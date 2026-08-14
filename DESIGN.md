@@ -97,14 +97,89 @@ implemente el módulo económico — este documento se ampliará entonces.)*
 
 - **Nombres y datos reales** para las dos primeras ligas españolas y los
   clubes europeos más relevantes que participan en competición europea.
-- Atributos de juego (tiro, defensa, físico, potencial, etc.) derivados de
-  estadísticas y reportajes reales, lo más fieles posible al rendimiento
-  real de cada jugador — construidos progresivamente, no todos de golpe.
+- Atributos de juego derivados de estadísticas y reportajes reales, lo más
+  fieles posible al rendimiento real de cada jugador — construidos
+  progresivamente, no todos de golpe.
 - Los clubes europeos "grandes" están fijos en su competición europea cada
   temporada por ahora (sin lógica de clasificación aún).
 - **Fase de arranque:** mientras se construye la base de datos real, el
   motor funciona con jugadores y equipos ficticios generados para poder
   probar y jugar desde ya.
+
+### 6.1 Ficha de jugador
+
+Inspirada en el nivel de profundidad de Football Manager, adaptada a
+baloncesto. Todos los atributos numéricos en **escala 1-20**.
+
+**Posiciones**: cada jugador tiene mínimo 1 y hasta 5 posiciones
+(Base, Escolta, Alero, Ala-pívot, Pívot), reflejando polivalencia real.
+
+#### Atributos Técnicos (fijos, mejoran con entrenamiento/edad)
+Tiro exterior, tiro media distancia, tiro interior, tiro libre,
+bandeja/finalización, pase, manejo de balón, rebote ofensivo, rebote
+defensivo, tapón, robo, tendencia a falta.
+
+#### Atributos Físicos (fijos)
+Velocidad (punta), aceleración, salto, fuerza, agilidad, balance
+(equilibrio/aguante al contacto), resistencia (aguante dentro de un
+partido), recuperación (velocidad de recuperación entre partidos/
+entrenamientos), durabilidad (propensión a lesión — se detallará en
+sesión de diseño del módulo de progresión/lesiones).
+
+#### Atributos Mentales (fijos)
+Visión de juego, decisión bajo presión, agresividad, concentración,
+liderazgo, trabajo en equipo, ambición, profesionalidad, temperamento,
+consistencia, anticipación, posicionamiento (movimiento sin balón),
+ética de trabajo (esfuerzo/energía que invierte en el partido, distinto
+de profesionalidad, que es cómo entrena).
+
+#### Rasgos (etiquetas, no numéricas)
+Ej. tirador clutch, especialista defensivo, generador de asistencias,
+chispa de banquillo, jugador de vestuario. Afectan a la simulación en
+situaciones concretas, no son un número 1-20.
+
+#### Experiencia
+Campo aparte, no encaja como atributo fijo ni estado dinámico: crece con
+partidos jugados (más con partidos "importantes": playoffs, Copa,
+competición europea), nunca decrece, no se entrena directamente. Actúa
+como modificador que ayuda en Decisión bajo presión y Consistencia en
+momentos de tensión (finales de partido, eliminatorias). Un jugador joven
+con buenos atributos pero poca Experiencia puede fallar más en momentos
+clave que un veterano con atributos algo menores.
+
+#### Ocultos para el usuario (existen en los datos, revelados vía scouting)
+Potencial (techo de mejora), profesionalidad, ambición. El scouting los
+revela progresivamente y con precisión creciente según la calidad de los
+ojeadores del club (a definir en detalle cuando se implemente el módulo
+de scouting).
+
+#### Estados dinámicos (cambian constantemente durante la simulación de temporada)
+Estos **siempre existen y se guardan en los datos del jugador**; lo que
+varía es cuánto se le muestra al usuario en la interfaz — "oculto" aquí
+significa oculto en la UI, nunca que el dato no exista o no se simule.
+
+- **Energía**: batería física actual. Baja al jugar/entrenar, sube al
+  descansar. Depende de Resistencia y Recuperación. **Visible** al
+  usuario.
+- **Ritmo de competición**: refleja si el jugador ha tenido continuidad
+  de minutos recientemente. Un jugador con mucha Energía pero sin jugar
+  hace semanas no rinde igual que uno con partidos seguidos.
+  **Semi-visible** (deducible por el usuario, sin mostrar un número
+  directo).
+- **Racha / momento anímico**: rachas de acierto o desacierto con
+  componente aleatorio/anímico, independiente de atributos fijos y de la
+  Energía. Existe y se actualiza en la base de datos como cualquier otro
+  estado, y la simulación de partidos la usa activamente — pero **nunca
+  se muestra en la interfaz**; el usuario solo la intuye por los
+  resultados recientes del jugador.
+
+#### Pendiente para sesiones de diseño futuras
+- Roles tácticos con valoración en estrellas (ej. "Base organizador",
+  "Anotador de banquillo"), similar a los roles de FM — se definirá junto
+  al módulo de tácticas, ya que depende de cómo se diseñen las tácticas
+  del equipo.
+- Sistema de lesiones (relacionado con Durabilidad) — se definirá junto
+  al módulo de progresión/entrenamiento.
 
 ## 7. Simulación de partidos
 
