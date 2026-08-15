@@ -37,3 +37,25 @@
 - Sección de prueba temporal en `index.html` que genera 2 equipos
   ficticios y muestra un resumen (nombre, ciudad, reputación,
   instalaciones y plantilla).
+
+## 2026-08-16
+
+- `Player` (`src/entities/Player.js`): añadidos los **Datos Físicos
+  Corporales** de DESIGN.md 6.1 — Altura, Envergadura y Peso (medidas
+  reales en cm/kg, distintas de los Atributos Físicos en escala 1-20).
+  Confirmado que `insideShot` (tiro interior) y `layup` (bandeja) ya
+  eran campos separados, tal como exige DESIGN.md.
+- `playerGenerator.js`: genera Altura/Peso con rangos realistas según
+  posición (interpolados entre Base 178-195cm y Pívot 195-215cm, con
+  solape deliberado entre posiciones vecinas) y Envergadura como la
+  altura más una variación aleatoria mayoritariamente positiva —
+  aproximación de diseño documentada en el código, no validada aún con
+  Dennis en sus valores exactos.
+- `Team` (`src/entities/Team.js`): pasada de verificación completa
+  contra DESIGN.md 6.2 (6.2.1 a 6.2.10) — no se encontraron campos
+  ausentes. Se añadió el comentario de asignación factor→componente de
+  Reputación (deportiva/financiera/cantera) aclarado en 6.2.1, y una
+  nota documentando que el ADN de Club todavía no sesga la generación
+  de la Cantera/Academia (pendiente, ver resumen de la sesión).
+- `index.html`: la prueba de jugadores ahora muestra también
+  Altura/Envergadura/Peso.

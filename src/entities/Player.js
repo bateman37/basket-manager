@@ -23,6 +23,10 @@
   const TECHNICAL_ATTRIBUTES = [
     'outsideShot', // tiro exterior
     'midRangeShot', // tiro media distancia
+    // 'insideShot' (tiro interior) y 'layup' (bandeja/finalización) son
+    // campos DISTINTOS a propósito — DESIGN.md 6.1 lo remarca explícitamente
+    // para que no se fusionen: tiro interior es tiro con arco cerca del aro
+    // (poste, gancho, bote-parado); bandeja es ir a canasta en movimiento.
     'insideShot', // tiro interior
     'freeThrows', // tiro libre
     'layup', // bandeja/finalización
@@ -125,6 +129,20 @@
       this.birthDate = data.birthDate ? new Date(data.birthDate) : null;
       this.positions = Player.validatePositions(data.positions);
 
+      // --- Datos Físicos Corporales (reales, no en escala 1-20) — DESIGN.md
+      // 6.1. Distintos de los Atributos Físicos de más abajo (que son
+      // habilidad/capacidad en escala 1-20): esto son medidas corporales
+      // reales. Alimentarán directamente al futuro motor de simulación
+      // (sección 7, todavía no implementado aquí) — de momento solo se
+      // guarda el dato.
+      const bodyMeasurements = data.bodyMeasurements || {};
+      this.bodyMeasurements = {
+        height: bodyMeasurements.height !== undefined ? bodyMeasurements.height : 190, // cm
+        // Envergadura puede ser mayor que la altura, como en la realidad.
+        wingspan: bodyMeasurements.wingspan !== undefined ? bodyMeasurements.wingspan : 193, // cm
+        weight: bodyMeasurements.weight !== undefined ? bodyMeasurements.weight : 90, // kg
+      };
+
       // --- Atributos fijos (escala 1-20) ---
       this.technical = buildAttributeGroup(TECHNICAL_ATTRIBUTES, data.technical, 10);
       this.physical = buildAttributeGroup(PHYSICAL_ATTRIBUTES, data.physical, 10);
@@ -213,6 +231,7 @@
         lastName: this.lastName,
         birthDate: this.birthDate ? this.birthDate.toISOString().slice(0, 10) : null,
         positions: this.positions,
+        bodyMeasurements: this.bodyMeasurements,
         technical: this.technical,
         physical: this.physical,
         mental: this.mental,
