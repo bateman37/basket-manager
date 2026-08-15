@@ -181,6 +181,164 @@ significa oculto en la UI, nunca que el dato no exista o no se simule.
 - Sistema de lesiones (relacionado con Durabilidad) — se definirá junto
   al módulo de progresión/entrenamiento.
 
+6.2 Ficha de equipo
+Diseño ampliado tras sesión de análisis de referentes (Football Manager,
+NBA 2K MyNBA/MyGM, Basketball GM, PC Basket/PC Fútbol, Pro Basketball
+Manager) — el enfoque es europeo/ACB, evitando deliberadamente
+mecánicas específicas de NBA (salary cap, draft, franquicias sin
+ascenso/descenso). La adaptación de una eventual comparación con clubes
+americanos queda pendiente para cuando se aborde esa parte del proyecto.
+Datos básicos
+Nombre, ciudad, año de fundación, división actual (1ª o 2ª), presupuesto
+(ver desglose económico en 6.2.6).
+Estadio/pabellón: sigue siendo una entidad separada asociada al
+equipo (no integrada directamente en esta ficha), tal como se decidió
+originalmente. Se detallará cuando se implemente su propio diseño; el
+equipo solo referencia su instancia de estadio, y variables como aforo y
+ocupación (usadas en 6.2.5, factor cancha, y 6.2.6, ingresos de
+taquilla) viven en esa entidad, no aquí.
+Plantilla
+Agrupa jugadores (entidad Jugador, ver 6.1).
+Plantilla total del club: sin límite duro por ahora.
+Convocatoria de partido: mínimo 8, máximo 12 jugadores, fiel al
+reglamento real de la ACB. Se aplica solo a la selección de partido,
+no a la plantilla total.
+6.2.1 Reputación (el "número maestro")
+Se muestra al usuario como 3 sub-componentes visibles por separado:
+Reputación deportiva
+Reputación financiera
+Reputación de cantera
+Factores que la alimentan (inspirado en el sistema de FM): títulos
+ganados/división en la que compite, calidad de la plantilla (actual e
+histórica), éxito desarrollando canteranos propios, e
+instalaciones/poder económico del club. La reputación gobierna la
+atracción de jugadores en fichajes, el interés de patrocinadores, y las
+expectativas que fija la junta/propietario (ver 6.2.4).
+6.2.2 Instalaciones (escala 1-20 cada una)
+Siete instalaciones internas del club, cada una mejorable con dinero
+(sujeto a aprobación de la junta si el gasto es grande), con coste de
+mantenimiento anual y posibilidad de quedar obsoleta con el tiempo
+si no se actualiza (igual que en Football Manager):
+Centro de Entrenamiento — progresión técnica/táctica del primer
+equipo, prevención de fatiga.
+Centro Médico — prevención y recuperación de lesiones.
+Preparación Física — rendimiento físico general y puesta a punto
+en pretemporada (distinto del Centro Médico: esta es sobre rendir
+mejor, la otra sobre no lesionarse/recuperarse).
+Cantera/Academia — calidad de los jugadores jóvenes generados
+(ver 6.2.3). En el futuro será la puerta de entrada al sistema
+completo de categorías inferiores.
+Red de Scouting — ojeadores de campo: descubrimiento de jugadores
+externos y velocidad/precisión para revelar los atributos ocultos de
+la ficha de jugador (Potencial, Profesionalidad, Ambición).
+Departamento de Análisis/Dirección Deportiva — analítica de datos
+y oficinas de dirección deportiva. Efecto: mejora general de calidad
+de decisiones (fichajes, tácticas). El efecto concreto/numérico se
+detallará cuando se diseñe el módulo de fichajes y el de tácticas —
+no inventar una fórmula todavía.
+Hospitality/Patrocinio — zonas VIP y relación con patrocinadores;
+alimenta los ingresos de Publicidad extra (ver 6.2.6).
+6.2.3 Cantera/Academia — placeholder actual
+Ambición declarada del proyecto (diferenciador frente a otros
+managers): más adelante se diseñará un sistema completo de gestión de
+categorías inferiores reales (infantil, cadete, junior, etc., cada
+una con su propia plantilla y progresión), algo que prácticamente ningún
+manager del mercado aborda con profundidad. Este sistema es complejo y
+queda pendiente de una sesión de diseño dedicada, junto con la
+decisión de si existe un club filial/vinculado en 2ª división para ceder
+jóvenes (también pendiente, ver nota abajo).
+Mientras tanto (placeholder para poder jugar ya): cada temporada, la
+instalación Cantera/Academia genera 3 jugadores jóvenes aleatorios,
+con atributos coherentes según las reglas ya definidas en 6.1
+(multi-posición, escala 1-20, atributos ocultos, potencial, etc.). Sin
+filial ni categorías todavía — estos jugadores se incorporan
+directamente a la plantilla total del club.
+6.2.4 Junta/Propietario y objetivos de temporada
+Existe una junta/propietario por encima del usuario (que ocupa el
+rol fusionado presidente+entrenador, ver sección 8) que puede
+despedirle si no se cumplen los objetivos. Detalle equivalente al
+Club Vision de FM:
+Nivel de paciencia (se erosiona con malos resultados sostenidos).
+Objetivo deportivo de la temporada (ej. posición en liga,
+permanencia, clasificación europea).
+Objetivo financiero de la temporada (ej. equilibrio
+presupuestario, no superar deuda).
+Plan a varias temporadas (visión plurianual, similar al "plan a
+cinco años" de FM).
+Esto conecta con la regla ya establecida en la sección 4: el usuario
+puede ser despedido y fichar por otro club durante la partida.
+6.2.5 Afición y factor cancha
+Variables de afición en la ficha de club:
+Base de abonados
+Satisfacción de la afición (dinámica, sube/baja con resultados,
+fichajes, precio de entradas, etc.)
+Ocupación media del pabellón
+Factor cancha: modula el rendimiento del equipo local con una
+fórmula basada en ocupación × satisfacción × importancia del
+partido, con más efecto en derbis y playoffs. Ver nota de investigación:
+estudios reales (Ganz y Allsop, 2024) cifran la ventaja real de jugar en
+casa en torno a ~2.1 puntos con público lleno frente a ~0.4 puntos sin
+público — usar esta magnitud como referencia de calibración cuando se
+implemente la fórmula en el motor de simulación, no un número arbitrario.
+6.2.6 Finanzas — desglose completo de ingresos y gastos
+Sustituye el "presupuesto dinámico" genérico de la sección 5 por este
+desglose, fiel a la estructura económica real de la ACB (donde, a
+diferencia de la NBA, el patrocinio es la primera fuente de ingresos,
+no la televisión):
+Ingresos:
+Patrocinio principal (naming del club/camiseta) — depende de
+reputación financiera.
+Publicidad extra (patrocinadores secundarios) — depende de
+reputación y de la instalación Hospitality/Patrocinio.
+Televisión/retransmisión — parte fija de liga + parte variable
+por reparto por méritos deportivos (posición final de temporada).
+Contrato de liga (reparto centralizado de la ACB, distinto de
+TV) — también con componente por méritos.
+Competición europea — premios propios de participar/avanzar en
+competición europea, aparte de la liga nacional.
+Taquilla — según ocupación del pabellón × precio de entrada,
+conectado con la sección de afición (6.2.5).
+Merchandising — depende de reputación y de tener jugadores
+populares/estrella en plantilla.
+Gastos:
+Salarios de jugadores.
+Mantenimiento anual de las 7 instalaciones (6.2.2).
+Cuerpo técnico — partida ya anotada pero con importe pendiente de
+definir cuando se diseñe esa entidad (ver 6.2.7).
+6.2.7 Cuerpo técnico
+No existe todavía como entidad propia — de momento el usuario ES el
+entrenador/presidente (rol único, ver sección 8). Pendiente de sesión de
+diseño futura (ayudantes, preparador físico dedicado, etc.), momento en
+el que también se definirá su coste salarial exacto dentro de gastos.
+6.2.8 ADN de Club
+Cada club tiene un rasgo de identidad histórica (ej. cantera, ritmo
+alto, defensa, veteranía) que:
+Sesga el tipo de jugadores que genera la Cantera/Academia (6.2.3).
+Da un bonus de moral cuando el equipo juega conforme a su
+tradición, y una penalización (descontento de afición) cuando la
+traiciona sistemáticamente.
+6.2.9 Rivalidades
+Dos tipos, ambos activos desde ya:
+Rivalidades fijas, por historia/geografía (derbis tradicionales).
+Rivalidades dinámicas, que emergen durante la partida por competir
+repetidamente por los mismos objetivos (título, permanencia, plaza
+europea).
+Efecto: bonus de moral y de asistencia/ocupación del pabellón en esos
+partidos concretos.
+6.2.10 Historia y leyendas de club
+Sistema completo de niveles automáticos, inspirado en Football Manager:
+Predilecto → Ídolo → Leyenda, calculado según títulos ganados,
+premios individuales, y actuaciones destacadas en derbis/rivalidades. El
+estatus puede mantenerse aunque el jugador abandone el club.
+Pendiente para sesiones de diseño futuras (Equipo)
+Sistema completo de categorías inferiores reales (infantil, cadete,
+junior...) con sus propias plantillas y progresión — ver 6.2.3.
+Club filial/vinculado en 2ª división para ceder canteranos — ver
+6.2.3.
+Cuerpo técnico como entidad propia y su coste salarial — ver 6.2.7.
+Fórmula numérica exacta del efecto del Departamento de
+Análisis/Dirección Deportiva sobre fichajes y tácticas — ver 6.2.2.
+
 ## 7. Simulación de partidos
 
 Nivel de detalle: **medio** — por cuartos, con eventos destacados
