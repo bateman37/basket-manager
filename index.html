@@ -16,8 +16,19 @@
     <pre id="player-test-output"></pre>
   </section>
 
+  <!-- Sección de prueba temporal para verificar la entidad Equipo y su
+       generador ficticio (src/entities/Team.js, src/utils/teamGenerator.js).
+       Se quitará cuando exista una pantalla real de club. -->
+  <section id="team-test">
+    <h2>Prueba: generación de equipos ficticios</h2>
+    <button id="generate-teams-btn" type="button">Generar 2 equipos de prueba</button>
+    <pre id="team-test-output"></pre>
+  </section>
+
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
+  <script src="src/entities/Team.js"></script>
+  <script src="src/utils/teamGenerator.js"></script>
   <script>
     // Prueba manual, sin interfaz definitiva: solo comprueba que los datos
     // del jugador se generan correctamente (consola + pantalla).
@@ -41,8 +52,40 @@
       document.getElementById('player-test-output').textContent = output;
     }
 
+    // Prueba manual de la entidad Equipo: solo un resumen representativo
+    // (nombre, ciudad, reputación, instalaciones y plantilla), no todos los
+    // campos de la ficha — para eso ya está el propio código de Team.js.
+    function renderTestTeams() {
+      const { generateFictionalTeams } = window.BasketManager;
+      const teams = generateFictionalTeams(2);
+
+      console.log('Equipos ficticios de prueba generados:', teams);
+
+      const output = teams.map((team) => {
+        const facilitiesSummary = Object.values(team.facilities)
+          .map((facility) => `${facility.name}: ${facility.level}/20${facility.obsolete ? ' (obsoleta)' : ''}`)
+          .join('\n    ');
+
+        const rosterSummary = team.roster
+          .map((player) => `${player.fullName} (${player.positions.join('/')})`)
+          .join('\n    ');
+
+        return [
+          `${team.fullName} — División ${team.division}, fundado en ${team.foundationYear}`,
+          `  ADN de club: ${team.clubDNA}`,
+          `  Reputación — deportiva: ${team.reputation.sporting}, financiera: ${team.reputation.financial}, cantera: ${team.reputation.youth}`,
+          `  Instalaciones:\n    ${facilitiesSummary}`,
+          `  Plantilla (${team.roster.length} jugadores):\n    ${rosterSummary}`,
+        ].join('\n');
+      }).join('\n\n');
+
+      document.getElementById('team-test-output').textContent = output;
+    }
+
     document.getElementById('generate-players-btn').addEventListener('click', renderTestPlayers);
+    document.getElementById('generate-teams-btn').addEventListener('click', renderTestTeams);
     renderTestPlayers(); // generación automática al cargar la página
+    renderTestTeams();
   </script>
 </body>
 </html>

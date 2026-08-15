@@ -192,10 +192,15 @@
     return Math.round(yearsAsPro * avgGamesPerYear * (0.5 + Math.random() * 0.5));
   }
 
-  function generateFictionalPlayer() {
+  // `options.minAge`/`options.maxAge` permiten generar perfiles de edad
+  // distintos (ej. jóvenes de cantera, ver Equipo.generateAcademyIntake());
+  // por defecto genera jugadores de plantilla habituales (18-36 años).
+  function generateFictionalPlayer(options = {}) {
+    const minAge = options.minAge !== undefined ? options.minAge : 18;
+    const maxAge = options.maxAge !== undefined ? options.maxAge : 36;
     const positions = pickPositions();
     const { firstName, lastName } = generateFictionalName();
-    const birthDate = randomBirthDate(18, 36);
+    const birthDate = randomBirthDate(minAge, maxAge);
     const age = Core.calculateAge(birthDate);
     const blended = blendProfiles(positions);
 
@@ -213,10 +218,10 @@
     });
   }
 
-  function generateFictionalPlayers(count) {
+  function generateFictionalPlayers(count, options) {
     const players = [];
     for (let i = 0; i < count; i++) {
-      players.push(generateFictionalPlayer());
+      players.push(generateFictionalPlayer(options));
     }
     return players;
   }
