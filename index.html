@@ -40,6 +40,7 @@
 
       const output = players.map((player) => [
         `${player.fullName} (${player.age} años) — ${player.positions.join(', ')}`,
+        `  Altura/Envergadura/Peso: ${player.bodyMeasurements.height}cm / ${player.bodyMeasurements.wingspan}cm / ${player.bodyMeasurements.weight}kg`,
         `  Técnicos: ${JSON.stringify(player.technical)}`,
         `  Físicos: ${JSON.stringify(player.physical)}`,
         `  Mentales: ${JSON.stringify(player.mental)}`,

@@ -108,6 +108,20 @@
       // Escala provisional 0-100: a diferencia de los atributos de jugador
       // (1-20, ya fijados en 6.1), DESIGN.md todavía no fija la escala
       // numérica de la reputación — pendiente de confirmar con Dennis.
+      //
+      // Asignación factor → componente (aclarada en DESIGN.md 6.2.1; solo
+      // documentada aquí, sin lógica de cálculo todavía — eso llegará con
+      // el módulo de fichajes):
+      //   - sporting (deportiva)  ← títulos ganados (this.history.titles) y
+      //     división en la que compite (this.division), calidad de la
+      //     plantilla actual e histórica (this.roster).
+      //   - financial (financiera) ← poder económico del club (this.budget,
+      //     this.finances) y nivel general de instalaciones (this.facilities,
+      //     inversión acumulada).
+      //   - youth (cantera)       ← éxito desarrollando canteranos propios
+      //     (de momento sin trackear el origen de cada jugador, ver nota de
+      //     la sesión) y nivel de las instalaciones Cantera/Academia y Red
+      //     de Scouting (this.facilities.academy, this.facilities.scoutingNetwork).
       const reputation = data.reputation || {};
       this.reputation = {
         sporting: clamp(reputation.sporting !== undefined ? reputation.sporting : 50, 0, 100),
@@ -241,6 +255,13 @@
     // categorías inferiores todavía). Relacionar la calidad de estos
     // jugadores con el nivel de la instalación Cantera/Academia queda
     // pendiente de una sesión de diseño futura — no se inventa esa fórmula.
+    //
+    // Nota de auditoría (no implementado todavía): DESIGN.md 6.2.8 dice que
+    // el ADN de Club debería "sesgar el tipo de jugadores que genera la
+    // Cantera/Academia" — this.clubDNA todavía NO influye en esta
+    // generación (usa el mismo generador genérico que cualquier jugador
+    // joven). Pendiente de definir cómo se traduce cada ADN en un sesgo de
+    // atributos/posiciones.
     generateAcademyIntake(count = 3) {
       const newPlayers = [];
       for (let i = 0; i < count; i++) {

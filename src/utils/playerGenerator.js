@@ -101,6 +101,22 @@
     },
   };
 
+  // Rangos de Altura/Peso por posición — DESIGN.md 6.1 solo fija dos
+  // referencias explícitas (Base 178-195cm, Pívot 195-215cm); el resto son
+  // interpolaciones razonables entre esos extremos, con solape deliberado
+  // entre posiciones vecinas (un Ala-pívot puede ser más alto que un Pívot
+  // "pequeño"), reflejando que la posición no es un compartimento estanco
+  // de altura en el baloncesto real. El peso no tiene ninguna referencia de
+  // Dennis todavía: es una aproximación propia, escalada con la altura
+  // típica de cada posición (más altura/fuerza esperada → más peso medio).
+  const POSITION_BODY_PROFILES = {
+    'Base': { height: [178, 195], weight: [75, 90] },
+    'Escolta': { height: [185, 198], weight: [80, 95] },
+    'Alero': { height: [193, 205], weight: [88, 100] },
+    'Ala-pívot': { height: [198, 210], weight: [95, 110] },
+    'Pívot': { height: [195, 215], weight: [100, 120] },
+  };
+
   function randomFrom(list) {
     return list[Math.floor(Math.random() * list.length)];
   }
@@ -150,6 +166,37 @@
       });
     });
     return blended;
+  }
+
+  // Promedia el rango [min, max] de la dimensión (height/weight) de todas
+  // las posiciones del jugador, igual que blendProfiles() hace con los
+  // atributos — un jugador Base/Escolta usa un rango intermedio entre ambos.
+  function blendBodyRange(positions, dimension) {
+    const mins = positions.map((pos) => POSITION_BODY_PROFILES[pos][dimension][0]);
+    const maxs = positions.map((pos) => POSITION_BODY_PROFILES[pos][dimension][1]);
+    const min = mins.reduce((sum, value) => sum + value, 0) / mins.length;
+    const max = maxs.reduce((sum, value) => sum + value, 0) / maxs.length;
+    return [min, max];
+  }
+
+  // Datos Físicos Corporales (DESIGN.md 6.1) — reales, no en escala 1-20.
+  function randomBodyMeasurements(positions) {
+    const [heightMin, heightMax] = blendBodyRange(positions, 'height');
+    const height = Math.round(heightMin + Math.random() * (heightMax - heightMin));
+
+    const [weightMin, weightMax] = blendBodyRange(positions, 'weight');
+    const weight = Math.round(weightMin + Math.random() * (weightMax - weightMin));
+
+    // Envergadura: no hay fórmula validada con Dennis todavía — aproximación
+    // de diseño propia, no un dato acordado. Se genera como la altura más
+    // una variación aleatoria en el rango [-3, +15] cm, con más recorrido
+    // hacia el lado positivo que hacia el negativo, para que la envergadura
+    // supere a la altura la mayoría de las veces (como ocurre en la
+    // realidad) sin impedir el caso contrario, menos frecuente.
+    const wingspanDelta = -3 + Math.random() * 18;
+    const wingspan = Math.round(height + wingspanDelta);
+
+    return { height, weight, wingspan };
   }
 
   function generateAttributeGroup(keys, blendedDeltas) {
@@ -209,6 +256,7 @@
       lastName,
       birthDate,
       positions,
+      bodyMeasurements: randomBodyMeasurements(positions),
       technical: generateAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical),
       physical: generateAttributeGroup(PHYSICAL_ATTRIBUTES, blended.physical),
       mental: generateAttributeGroup(MENTAL_ATTRIBUTES, blended.mental),
