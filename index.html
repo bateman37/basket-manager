@@ -6,5 +6,43 @@
 </head>
 <body>
   <h1>Basket Manager - en construcción</h1>
+
+  <!-- Sección de prueba temporal para verificar la entidad Jugador y su
+       generador ficticio (src/entities/Player.js, src/utils/playerGenerator.js).
+       Se quitará cuando exista una pantalla real de plantilla/roster. -->
+  <section id="player-test">
+    <h2>Prueba: generación de jugadores ficticios</h2>
+    <button id="generate-players-btn" type="button">Generar 3 jugadores de prueba</button>
+    <pre id="player-test-output"></pre>
+  </section>
+
+  <script src="src/entities/Player.js"></script>
+  <script src="src/utils/playerGenerator.js"></script>
+  <script>
+    // Prueba manual, sin interfaz definitiva: solo comprueba que los datos
+    // del jugador se generan correctamente (consola + pantalla).
+    function renderTestPlayers() {
+      const { generateFictionalPlayers } = window.BasketManager;
+      const players = generateFictionalPlayers(3);
+
+      console.log('Jugadores ficticios de prueba generados:', players);
+
+      const output = players.map((player) => [
+        `${player.fullName} (${player.age} años) — ${player.positions.join(', ')}`,
+        `  Técnicos: ${JSON.stringify(player.technical)}`,
+        `  Físicos: ${JSON.stringify(player.physical)}`,
+        `  Mentales: ${JSON.stringify(player.mental)}`,
+        `  Rasgos: ${player.traits.join(', ') || '(ninguno)'}`,
+        `  Experiencia: ${player.experience}`,
+        `  Ocultos (potencial/profesionalidad/ambición): ${JSON.stringify(player.hidden)}`,
+        `  Estados dinámicos (energía/ritmo/racha): ${JSON.stringify(player.dynamicState)}`,
+      ].join('\n')).join('\n\n');
+
+      document.getElementById('player-test-output').textContent = output;
+    }
+
+    document.getElementById('generate-players-btn').addEventListener('click', renderTestPlayers);
+    renderTestPlayers(); // generación automática al cargar la página
+  </script>
 </body>
 </html>
