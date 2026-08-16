@@ -27,7 +27,7 @@
         "insideShot": 5,
         "freeThrows": 16,
         "layup": 15,
-        "passing": 18,
+        "passing": 19,
         "ballHandling": 17,
         "offensiveRebound": 6,
         "defensiveRebound": 9,
@@ -123,12 +123,12 @@
         "durability": 17
       },
       "mental": {
-        "gameVision": 18,
+        "gameVision": 19,
         "pressureDecisionMaking": 15,
         "aggressiveness": 15,
         "concentration": 16,
         "leadership": 14,
-        "teamwork": 18,
+        "teamwork": 19,
         "temperament": 16,
         "consistency": 15,
         "anticipation": 15,
@@ -176,7 +176,7 @@
         "insideShot": 5,
         "freeThrows": 16,
         "layup": 15,
-        "passing": 18,
+        "passing": 19,
         "ballHandling": 16,
         "offensiveRebound": 5,
         "defensiveRebound": 10,
@@ -187,7 +187,7 @@
         "interiorDefense": 2
       },
       "physical": {
-        "topSpeed": 18,
+        "topSpeed": 19,
         "acceleration": 17,
         "jumping": 11,
         "strength": 11,
@@ -203,12 +203,12 @@
         "aggressiveness": 15,
         "concentration": 16,
         "leadership": 14,
-        "teamwork": 18,
+        "teamwork": 19,
         "temperament": 16,
         "consistency": 16,
         "anticipation": 15,
         "positioning": 14,
-        "workRate": 18
+        "workRate": 19
       },
       "traits": [
         "Generador de asistencias"
@@ -275,10 +275,10 @@
       "mental": {
         "gameVision": 13,
         "pressureDecisionMaking": 16,
-        "aggressiveness": 18,
+        "aggressiveness": 19,
         "concentration": 16,
         "leadership": 13,
-        "teamwork": 18,
+        "teamwork": 19,
         "temperament": 15,
         "consistency": 15,
         "anticipation": 13,
@@ -318,11 +318,11 @@
         "weight": 91
       },
       "technical": {
-        "outsideShot": 19,
+        "outsideShot": 20,
         "midRangeShot": 16,
         "insideShot": 9,
-        "freeThrows": 18,
-        "layup": 19,
+        "freeThrows": 19,
+        "layup": 20,
         "passing": 15,
         "ballHandling": 17,
         "offensiveRebound": 9,
@@ -334,28 +334,28 @@
         "interiorDefense": 7
       },
       "physical": {
-        "topSpeed": 18,
-        "acceleration": 18,
+        "topSpeed": 19,
+        "acceleration": 19,
         "jumping": 16,
         "strength": 15,
-        "agility": 19,
+        "agility": 20,
         "balance": 16,
-        "stamina": 19,
-        "recovery": 19,
-        "durability": 19
+        "stamina": 20,
+        "recovery": 20,
+        "durability": 20
       },
       "mental": {
         "gameVision": 15,
-        "pressureDecisionMaking": 19,
-        "aggressiveness": 18,
-        "concentration": 18,
+        "pressureDecisionMaking": 20,
+        "aggressiveness": 19,
+        "concentration": 19,
         "leadership": 15,
-        "teamwork": 18,
+        "teamwork": 19,
         "temperament": 17,
         "consistency": 17,
         "anticipation": 16,
         "positioning": 17,
-        "workRate": 19
+        "workRate": 20
       },
       "traits": [
         "Tirador clutch",
@@ -426,12 +426,12 @@
         "aggressiveness": 15,
         "concentration": 15,
         "leadership": 14,
-        "teamwork": 19,
+        "teamwork": 20,
         "temperament": 15,
         "consistency": 14,
         "anticipation": 15,
         "positioning": 17,
-        "workRate": 18
+        "workRate": 19
       },
       "traits": [],
       "experience": 280,
@@ -499,12 +499,12 @@
         "aggressiveness": 15,
         "concentration": 15,
         "leadership": 15,
-        "teamwork": 19,
+        "teamwork": 20,
         "temperament": 16,
         "consistency": 16,
         "anticipation": 16,
         "positioning": 15,
-        "workRate": 18
+        "workRate": 19
       },
       "traits": [],
       "experience": 280,
@@ -561,8 +561,8 @@
         "strength": 15,
         "agility": 15,
         "balance": 15,
-        "stamina": 18,
-        "recovery": 18,
+        "stamina": 19,
+        "recovery": 19,
         "durability": 16
       },
       "mental": {
@@ -571,7 +571,7 @@
         "aggressiveness": 16,
         "concentration": 16,
         "leadership": 13,
-        "teamwork": 18,
+        "teamwork": 19,
         "temperament": 16,
         "consistency": 16,
         "anticipation": 16,
@@ -644,12 +644,12 @@
         "aggressiveness": 16,
         "concentration": 15,
         "leadership": 14,
-        "teamwork": 18,
+        "teamwork": 19,
         "temperament": 16,
         "consistency": 16,
         "anticipation": 16,
         "positioning": 16,
-        "workRate": 18
+        "workRate": 19
       },
       "traits": [],
       "experience": 240,
@@ -708,7 +708,7 @@
         "balance": 16,
         "stamina": 16,
         "recovery": 17,
-        "durability": 18
+        "durability": 19
       },
       "mental": {
         "gameVision": 12,
@@ -721,7 +721,7 @@
         "consistency": 14,
         "anticipation": 16,
         "positioning": 17,
-        "workRate": 18
+        "workRate": 19
       },
       "traits": [],
       "experience": 260,
@@ -786,15 +786,15 @@
       "mental": {
         "gameVision": 11,
         "pressureDecisionMaking": 15,
-        "aggressiveness": 18,
+        "aggressiveness": 19,
         "concentration": 16,
         "leadership": 15,
-        "teamwork": 19,
+        "teamwork": 20,
         "temperament": 15,
         "consistency": 15,
         "anticipation": 17,
         "positioning": 17,
-        "workRate": 18
+        "workRate": 19
       },
       "traits": [],
       "experience": 290,
@@ -833,16 +833,16 @@
         "midRangeShot": 9,
         "insideShot": 17,
         "freeThrows": 13,
-        "layup": 18,
+        "layup": 19,
         "passing": 10,
         "ballHandling": 6,
-        "offensiveRebound": 19,
+        "offensiveRebound": 20,
         "defensiveRebound": 17,
         "blocking": 17,
         "stealing": 9,
         "foulTendency": 17,
         "perimeterDefense": 8,
-        "interiorDefense": 18
+        "interiorDefense": 19
       },
       "physical": {
         "topSpeed": 11,
@@ -850,7 +850,7 @@
         "jumping": 16,
         "strength": 20,
         "agility": 9,
-        "balance": 18,
+        "balance": 19,
         "stamina": 17,
         "recovery": 17,
         "durability": 17
@@ -858,14 +858,14 @@
       "mental": {
         "gameVision": 11,
         "pressureDecisionMaking": 14,
-        "aggressiveness": 18,
+        "aggressiveness": 19,
         "concentration": 16,
         "leadership": 14,
-        "teamwork": 19,
+        "teamwork": 20,
         "temperament": 15,
         "consistency": 14,
-        "anticipation": 18,
-        "positioning": 18,
+        "anticipation": 19,
+        "positioning": 19,
         "workRate": 20
       },
       "traits": [
@@ -907,40 +907,40 @@
         "midRangeShot": 9,
         "insideShot": 16,
         "freeThrows": 12,
-        "layup": 18,
+        "layup": 19,
         "passing": 10,
         "ballHandling": 6,
         "offensiveRebound": 17,
         "defensiveRebound": 17,
-        "blocking": 18,
+        "blocking": 19,
         "stealing": 9,
         "foulTendency": 17,
         "perimeterDefense": 7,
-        "interiorDefense": 18
+        "interiorDefense": 19
       },
       "physical": {
         "topSpeed": 10,
         "acceleration": 11,
         "jumping": 16,
-        "strength": 19,
+        "strength": 20,
         "agility": 10,
-        "balance": 18,
+        "balance": 19,
         "stamina": 17,
         "recovery": 16,
-        "durability": 18
+        "durability": 19
       },
       "mental": {
         "gameVision": 10,
         "pressureDecisionMaking": 14,
-        "aggressiveness": 18,
+        "aggressiveness": 19,
         "concentration": 16,
         "leadership": 15,
         "teamwork": 17,
         "temperament": 15,
         "consistency": 15,
-        "anticipation": 18,
-        "positioning": 18,
-        "workRate": 19
+        "anticipation": 19,
+        "positioning": 19,
+        "workRate": 20
       },
       "traits": [
         "Especialista defensivo"

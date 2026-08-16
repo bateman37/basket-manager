@@ -414,3 +414,50 @@
     sin errores de consola.
   - `CHANGELOG.md` actualizado (esta entrada). `DESIGN.md` no se ha
     tocado.
+
+- **Reescalado proporcional de atributos de la base de datos real**
+  (corrige que equipos top y modestos de 1ª división tuvieran un
+  overall casi idéntico, dejando el resultado de los partidos casi
+  todo al azar). Basado en `data/real/team_tiers.json` (tiers ya
+  validados con Dennis, `targetTop8` por equipo). El motor de
+  simulación (`MatchConfig.js`) **no se ha tocado** — cambio
+  deliberadamente aislado a los datos.
+  - `scripts/rescale-real-attributes.js` (nuevo): para cada uno de los
+    36 equipos, calcula el overall de cada jugador (media simple de
+    todos sus atributos de `technical`/`physical`/`mental` — `hidden` y
+    `dynamicState` no participan ni se tocan), calcula el rating medio
+    de sus 8 mejores jugadores, y aplica el factor
+    `targetTop8 / top8_actual` MULTIPLICATIVAMENTE a cada atributo de
+    CADA jugador del roster (incluidos los 9 jugadores placeholder de
+    las 4 plantillas parcheadas, para que queden coherentes con el
+    nivel de su equipo), redondeando a entero y con clamp estricto a
+    1-20. Ningún otro campo se toca (posiciones, medidas corporales,
+    rasgos, experiencia, ocultos, estados dinámicos, `dataSource`...).
+  - **Rango final de rating top8** — 1ª división: 11.84 – 15.93
+    (amplitud ~4.1, antes ~0.6); 2ª división: 11.44 – 13.60 (amplitud
+    ~2.2).
+  - Mayor ajuste al alza: Flexicar Fuenlabrada (x1.084) y Real Madrid
+    (x1.038). Mayor ajuste a la baja: Leyma Coruña (x0.820), MoraBanc
+    Andorra (x0.823) y Casademont Zaragoza (x0.826) — los tres eran
+    equipos de la parte baja de la tabla real cuyo dataset importado
+    los dejaba con un overall demasiado alto para su tier.
+  - **Verificado**: los 414 jugadores (405 reales + 9 placeholder)
+    comprobados uno a uno contra la versión anterior — cero atributos
+    fuera de 1-20, cero no-enteros, y los campos que no debían tocarse
+    quedan exactamente iguales que antes del reescalado. 33 de los 36
+    equipos quedan dentro de ±0.3 de su `targetTop8`; **3 quedan justo
+    fuera de tolerancia por el redondeo a entero de cada atributo**
+    (factor muy cercano a 1.0, así que muchos atributos no llegan a
+    cambiar de entero): Valencia Basket (14.77 vs objetivo 15.10, -0.33),
+    Caja Rural CB Zamora (11.81 vs objetivo 11.50, +0.31) y Palencia
+    Baloncesto (13.02 vs objetivo 12.70, +0.32). Esto provoca 4 cruces
+    de orden puntuales en 2ª división (Caja Rural CB Zamora y Palencia
+    Baloncesto quedan por encima de algún equipo de tier nominalmente
+    superior); en 1ª división el orden por tiers se respeta sin
+    ninguna excepción. Señalado aquí en vez de forzarlo en silencio —
+    no se ha aplicado ningún ajuste adicional no pedido en la tarea.
+  - `data/real/real-data-bundle.js` regenerado a partir de los equipos
+    ya reescalados. Verificado con Playwright headless (`file://`) que
+    la Liga real de 1ª división sigue simulando sin errores tras el
+    cambio, y que ahora el campeón de una temporada de prueba es Real
+    Madrid con una diferencia de puntos mucho más amplia que antes.
