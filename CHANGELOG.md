@@ -122,3 +122,42 @@
     minutos) y un resumen del log de eventos del Bloque C detectados
     durante la simulación (contraataques, tapones con mate, tiros sobre
     bocina, faltas técnicas...).
+- **Corrección de ritmo de posesión + Prórroga** (DESIGN.md 7.1 corregida
+  y 7.10 nueva):
+  - `src/core/MatchConfig.js`/`MatchEngine.js`: DESIGN.md 7.1 tenía un
+    error aritmético (la duración media de posesión se calculaba
+    dividiendo el partido entre las posesiones de UN equipo, cuando hay
+    que dividir entre las de LOS DOS combinados) — la cifra correcta es
+    ~14-15s de media, no ~29-30s. Se subió el rango del "paso" de
+    posesión normal (`tempo.stepMinSeconds`/`stepBaseMaxSeconds`, antes
+    3-18s, ahora 8-26s) hasta que el número de posesiones por equipo y
+    partido rondó las 82-83 reales.
+  - Los interceptos de Tiro interior y Bandeja se subieron de 0.58 a
+    0.65 (el ~58% "puro" de 7.3-bis se quedaba en ~49-53% real de
+    partido una vez restado el efecto acumulado de Tapón y Fatiga a lo
+    largo del partido).
+  - **Cifras finales verificadas por simulación (40 partidos)**:
+    posesiones ~85/equipo, marcador ~88 pts/equipo (antes ~128), Triple
+    34%, Media 41%, Interior 60.5%, Bandeja 57.2%, Tiro libre 78% — todo
+    dentro de rango realista ACB/Euroliga, sin errores de consistencia
+    interna (cuartos y box score cuadran con el marcador) en ningún
+    partido, y ninguno terminó empatado.
+  - `Team`/`Player`: sin cambios de esquema.
+  - **Prórroga (7.10, nueva)**: si el marcador está empatado al final
+    del 4º cuarto, se juegan prórrogas de 5 minutos (`match.
+    overtimeMinutes`) hasta desempatar — verificado con 40 partidos: 2
+    llegaron a prórroga, ninguno terminó en empate. Las faltas de
+    equipo se resetean en cada prórroga igual que en cada cuarto; las
+    faltas personales de cada jugador NO se resetean entre períodos
+    (nunca lo hicieron: `boxScore` es el mismo `Map` durante todo el
+    partido, solo se reinicia `teamFouls`). `quarterScores` ahora puede
+    tener más de 4 posiciones si hay prórroga.
+  - Nuevos campos en el resultado de `simulateMatch`: `possessionCount`
+    (posesiones por equipo, útil para verificar el ritmo), `wentToOvertime`
+    y `overtimePeriods`.
+  - `index.html`: la prueba de partido muestra ahora las posesiones por
+    equipo y, si hubo prórroga, cuántas.
+  - **Confirmado** (sin cambio de código): la implementación del Eje 2
+    (7.4) ya restaba el impuesto físico sobre el rating compuesto final
+    del lado marcado, no sobre un atributo suelto de Agilidad — coincide
+    con la aclaración añadida a DESIGN.md 7.4 tras esta sesión.

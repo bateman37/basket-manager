@@ -146,10 +146,15 @@
         .map(([type, count]) => `    ${type}: ${count}`)
         .join('\n');
 
+      const periodLabel = result.wentToOvertime
+        ? ` (con ${result.overtimePeriods} prórroga${result.overtimePeriods > 1 ? 's' : ''})`
+        : '';
+
       const output = [
-        `${home.fullName} ${result.finalScore.home} — ${result.finalScore.away} ${away.fullName}`,
-        `Por cuartos — ${home.fullName}: ${result.quarterScores.home.join(' / ')}`,
-        `Por cuartos — ${away.fullName}: ${result.quarterScores.away.join(' / ')}`,
+        `${home.fullName} ${result.finalScore.home} — ${result.finalScore.away} ${away.fullName}${periodLabel}`,
+        `Por cuartos/prórrogas — ${home.fullName}: ${result.quarterScores.home.join(' / ')}`,
+        `Por cuartos/prórrogas — ${away.fullName}: ${result.quarterScores.away.join(' / ')}`,
+        `Posesiones — ${home.fullName}: ${result.possessionCount.home}, ${away.fullName}: ${result.possessionCount.away}`,
         '',
         `Máximos anotadores ${home.fullName}:`,
         formatBoxScore(result.boxScore.home),
