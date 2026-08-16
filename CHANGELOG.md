@@ -87,3 +87,38 @@
   - `index.html`: nueva sección de prueba que simula un partido completo
     entre 2 equipos ficticios y muestra marcador, cuartos y máximos
     anotadores.
+- **Motor de simulación de partidos — Fase 2** (DESIGN.md sección 7):
+  - `src/entities/Player.js`: sin cambios de esquema.
+  - `src/core/MatchConfig.js`: añadidos los parámetros de Altura/
+    Envergadura/Peso (7.4: umbral del Eje 2 ~2.05-2.10m, magnitudes de
+    los bonos/impuestos), Presión de Momento (7.5), Consistencia y
+    Fatiga (7.5-bis), y todo el Bloque C (7.6: contraataque, ritmo de
+    posesión ligado a ADN de Club, últimos segundos, parcial de
+    anotación, falta técnica). Cada acción de Bloque A/B ya existente
+    lleva ahora las banderas `heightAxis1`/`heightAxis2` que le
+    correspondan según 7.4.
+  - `src/core/MatchEngine.js`: integra los 3 sistemas transversales en
+    el cálculo de cada acción (mezcla de atributos con Fatiga aplicada,
+    reponderación de mentales + bonus de Experiencia acotado bajo
+    Presión, ruido de Consistencia sobre la probabilidad final) y el
+    Bloque C completo dentro del bucle de posesión: contraataque (con
+    una ventana de reloj más corta y realista tras detectar el problema
+    de que el suelo de 3s del paso normal casi nunca solapaba con la
+    ventana de contraataque), tapón con mate y tiro sobre bocina
+    marcados como flags para la futura Fase 3 (sin sistema de
+    notabilidad todavía), últimos segundos sin jugada completa, parcial
+    de anotación (modificador de equipo simplificado, no
+    `dynamicState.momentum` individual — decisión documentada en el
+    código) y falta técnica (solo la probabilidad, sin escalado a
+    expulsión, tal como marca DESIGN.md como pendiente).
+  - Calibración: el consumo de energía por fatiga se ajustó a la baja
+    tras comprobar que los titulares llegaban a 0 antes de acabar el
+    partido; la probabilidad de "rebote largo" (contraataque) también
+    se ajustó a la baja tras comprobar que casi la mitad de las
+    posesiones quedaban elegibles para contraataque, acelerando el
+    ritmo del partido muy por encima de lo esperado.
+  - `index.html`: la prueba de partido ahora muestra también la energía
+    final de los titulares (para verificar que la Fatiga sube con los
+    minutos) y un resumen del log de eventos del Bloque C detectados
+    durante la simulación (contraataques, tapones con mate, tiros sobre
+    bocina, faltas técnicas...).
