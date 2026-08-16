@@ -107,12 +107,108 @@ posteriores, ver pendientes al final de esta sección).
   división no afecta, por ahora, a la participación europea de estos
   clubes fijos.
 
-### Pendiente para sesiones de diseño futuras (Liga/Calendario)
-- 2ª división en el calendario (Fase 1 solo implementa 1ª división).
-- Playoffs por el título (top 8, bracket sin repesca).
-- Ascensos/descensos y playoff de ascenso (cuartos + Final Four).
-- Copa (1ª división, top 8 a mitad de temporada) y Copa de 2ª división.
+### 3.2 Playoffs, Copa y Playoff de ascenso — Fase 2 (implementación)
+
+Formatos investigados y confirmados contra el reglamento real (ACB y
+Primera FEB), con las adaptaciones necesarias donde el juego todavía no
+tiene la pieza equivalente (ej. "equipo anfitrión" de la Copa real).
+
+#### 3.2.1 Playoffs por el título (1ª división)
+
+- Al terminar las 34 jornadas de liga regular, los **8 primeros**
+  clasificados disputan el playoff por el título.
+- **Bracket fijo, sin repesca** (igual que el real): 1º vs 8º, 2º vs 7º,
+  3º vs 6º, 4º vs 5º. Las semifinales enfrentan a los ganadores
+  manteniendo el bracket fijo (no se reordena por resultado).
+- **Cuartos de final**: al mejor de 3 partidos, formato de campo **1-1-1**
+  (el mejor clasificado de la pareja juega el 1º y 3er partido en casa,
+  si hace falta 3er partido).
+- **Semifinales y Final**: al mejor de 5 partidos, formato de campo
+  **2-2-1** (dos partidos en casa del mejor clasificado, dos en casa del
+  rival, quinto si hace falta en casa del mejor clasificado).
+- **Cada partido de la serie es un partido real** simulado con
+  `MatchEngine.simulateMatch()` — no se simula la serie de golpe. La
+  entidad de playoff expone una función para jugar el siguiente partido
+  pendiente de la serie activa y consultar el marcador de series en vivo
+  (ej. "2-1").
+- Ventaja de campo en cada ronda: siempre el equipo mejor clasificado en
+  la liga regular de los dos, no el ganador de la ronda anterior en la
+  otra llave (esto es fiel al formato real: el bracket ya fija de
+  antemano quién es local en cada partido de cada ronda, según su
+  posición de partida en la liga regular, aunque el rival cambie ronda a
+  ronda).
+
+#### 3.2.2 Copa
+
+- Se dispara **a mitad de temporada**, al completarse la jornada 17 (fin
+  de la ida).
+- Participan los **8 primeros** clasificados en ese momento de la
+  temporada. **Adaptación respecto al formato real**: la Copa real de
+  ACB reserva una plaza para el equipo anfitrión de la sede si no
+  entraría por clasificación — como el juego no tiene el concepto de
+  sede/anfitrión, se simplifica a los 8 primeros sin excepción.
+- **Todo a partido único**: cuartos de final, semifinales y final, cada
+  ronda se resuelve con un solo partido (sin ida/vuelta), fiel al
+  formato real de la Copa ACB ("final a ocho").
+- Bracket fijo por seeding de la clasificación en el momento del corte
+  (1 vs 8, 2 vs 7, 3 vs 6, 4 vs 5), sin repesca.
+- La liga regular se pausa mientras dura la Copa (4 jornadas de calendario
+  de golpe, ver Parte de implementación) y se retoma después en la
+  jornada 18 con normalidad.
+
+#### 3.2.3 Playoff de ascenso — sobre una 2ª división ficticia mínima
+
+**Adaptación necesaria para esta fase**: el playoff de ascenso real
+conecta 1ª y 2ª división, pero el proyecto todavía no tiene 2ª división
+implementada como parte del modo de juego real (no está en el alcance
+de esta fase tener plantillas, finanzas, instalaciones, etc. para 18
+equipos más). Para poder tener el playoff de ascenso funcionando ya
+(decisión de Dennis: implementarlo ahora, no aplazarlo), se genera una
+**2ª división ficticia mínima**: 18 equipos generados igual que los de
+prueba de 1ª división (mismo generador ficticio ya existente), con su
+propia instancia de `League` (se reutiliza `League.js` tal cual, sin
+modificarlo) para tener calendario y clasificación real de esa segunda
+liga. Esta 2ª división ficticia es una pieza de infraestructura para
+que el playoff de ascenso tenga con qué alimentarse — no sustituye ni
+adelanta el diseño completo de la 2ª división jugable (economía,
+plantillas reales, etc.), que sigue pendiente como pieza aparte.
+
+- Al terminar la liga regular de la 2ª división ficticia (34 jornadas,
+  igual que 1ª):
+  - El **1º clasificado asciende directo** (no participa en el playoff
+    de ascenso).
+  - Los clasificados **2º a 9º** (8 equipos) disputan el playoff de
+    ascenso por la segunda plaza.
+- **Cuartos de final**: al mejor de 5 partidos, formato de campo
+  **2-2-1**. Cruces por clasificación regular: 2º vs 9º, 3º vs 8º, 4º vs
+  7º, 5º vs 6º.
+- **Final Four**: los 4 ganadores de cuartos juegan semifinales y final,
+  **ambas a partido único**, en sede única (conceptual — no afecta a la
+  simulación). Cruces de semifinal también por clasificación regular
+  entre los 4 clasificados para la Final Four (mejor puesto de liga
+  regular de los 4 contra el peor, el otro cruce entre los dos
+  intermedios) — no sorteo.
+- El **ganador de la Final Four asciende** junto al 1º de liga regular
+  de la 2ª división ficticia.
+- **Fuera de alcance de esta fase** (ver Pendiente): la ventaja de
+  cuadro del subcampeón de la Copa de 2ª división en este playoff (la
+  Copa de 2ª división no está diseñada todavía), y el descenso real de
+  1ª a 2ª división (esta fase no conecta todavía ambas ligas con
+  ascensos/descensos reales entre partidas — ver 3.2, Pendiente).
+
+#### Pendiente para sesiones de diseño futuras (Playoffs/Copa/Ascenso)
+- 2ª división como modo de juego real (plantillas, economía,
+  instalaciones) — la de esta fase es solo una liga ficticia mínima de
+  soporte para el playoff de ascenso.
+- Descensos reales de 1ª a 2ª división (los 2 últimos de 1ª) conectando
+  ambas ligas entre temporadas.
+- Copa de 2ª división (formato completo) y su efecto de ventaja de
+  cuadro sobre el playoff de ascenso.
 - Supercopa y competición europea.
+- Revisar si la 2ª división ficticia mínima de 3.2.3 se sustituye más
+  adelante por la 2ª división real sin tener que rehacer la lógica del
+  playoff de ascenso (debería ser un simple cambio de qué `League` se le
+  pasa, si se diseña bien desde el principio).
 
 ## 4. Inicio de partida
 
