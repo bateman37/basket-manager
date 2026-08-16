@@ -248,3 +248,78 @@
     Verificado que intentar simular más allá de la jornada 34 se
     gestiona sin error visible (aviso de "temporada completa").
   - `CHANGELOG.md` actualizado (esta entrada).
+
+- **Playoffs, Copa y Playoff de ascenso — Fase 2 de Liga/Calendario
+  (DESIGN.md 3.2)**. Reutiliza `League.js` y `MatchEngine.js` tal cual,
+  sin ninguna modificación.
+  - `src/core/Bracket.js` (nuevo) — pieza genérica reutilizable, base de
+    las tres competiciones:
+    - `Series`: eliminatoria al mejor de N partidos entre dos equipos,
+      con un patrón de campo configurable (`SINGLE_GAME`,
+      `BEST_OF_3_1_1_1`, `BEST_OF_5_2_2_1`). Cada partido se simula de
+      verdad con `MatchEngine.simulateMatch` (nunca en bloque);
+      `playNextGame()` juega el siguiente partido pendiente respetando
+      el patrón, y `isDecided`/`winner` detectan cuándo hay ganador.
+      Un partido único es simplemente una serie al mejor de 1.
+    - `Bracket`: encadena rondas de `Series` a partir de un conjunto de
+      entradas semilladas (`{team, seed}`) y un emparejamiento de
+      primera ronda, con avance **fijo** entre rondas — nunca se
+      reordena por resultado, tal como exige DESIGN.md para playoffs y
+      Copa. Cada entrada conserva su seed original de principio a fin,
+      así que la ventaja de campo en cualquier ronda siempre recae en
+      el mejor clasificado real, sin importar de qué lado del bracket
+      venga el rival. `playNextGame()`/`getStatus()` exponen jugar el
+      siguiente partido de todo el bracket y consultar el estado
+      completo (marcador de cada serie, ronda actual, campeón).
+  - `src/core/Playoffs.js` (nuevo): `createTitlePlayoff(league)`
+    construye el playoff por el título de 1ª división a partir de una
+    `League` con la temporada regular completa — top 8 de
+    `getStandingsTable()`, bracket fijo 1v8/4v5/2v7/3v6 (orden de
+    bracket estándar: el 1º y el 2º solo pueden cruzarse en la final),
+    cuartos al mejor de 3 (1-1-1), semis y final al mejor de 5 (2-2-1).
+  - `src/core/Cup.js` (nuevo): `createCup(league)` construye la Copa a
+    partir de una `League` justo con la jornada 17 recién completada —
+    top 8 de la clasificación en ESE momento, bracket fijo igual que el
+    playoff pero todas las rondas a partido único. No toca el estado de
+    la Liga: solo lee una foto de la clasificación; la Liga sigue
+    avanzando con normalidad después (verificado que la clasificación y
+    `currentRound` no cambian tras jugar la Copa, y que la jornada 18
+    se simula con normalidad a continuación).
+    **Nota de implementación señalada, no confirmada por Dennis:**
+    DESIGN.md 3.2.2 no especifica quién es local en cada partido de
+    Copa (a diferencia de los playoffs, donde sí lo dice explícitamente)
+    — se ha asumido que el mejor clasificado en ese momento hace de
+    local, por coherencia con el resto de 3.2.
+  - `src/core/Promotion.js` (nuevo): 2ª división ficticia mínima (18
+    equipos con el generador ya existente + su propia instancia de
+    `League`, solo como infraestructura para alimentar el playoff, no
+    un modo de juego). `PromotionPlayoff`: el 1º de la liga regular
+    asciende directo (dato simple); los clasificados 2º-9º juegan
+    cuartos (bracket fijo, al mejor de 5, patrón 2-2-1: 2v9/3v8/4v7/5v6)
+    y una Final Four cuyas semifinales se REORDENAN por la
+    clasificación regular ORIGINAL de los 4 ganadores de cuartos (mejor
+    de los 4 vs peor de los 4, los dos intermedios entre sí) — no por
+    posición de bracket, la única excepción explícita de DESIGN.md 3.2
+    a la regla de bracket fijo. El campeón de la Final Four es el 2º
+    equipo ascendido; de momento solo se puede consultar (sin lógica de
+    temporada siguiente).
+  - **Verificado con un script Node dedicado**: orden de bracket
+    correcto (1v8 y 4v5 en la misma mitad, 2v7 y 3v6 en la otra, para
+    que el 1º y el 2º solo se crucen en la final), el local de cada
+    partido de la serie sigue siempre el patrón de campo declarado, la
+    Copa no altera la clasificación ni el `currentRound` de la Liga, y
+    el cruce de semifinal de la Final Four de ascenso queda reordenado
+    por seed original y no por posición de bracket de cuartos.
+  - `index.html`: nueva sección de prueba ("Playoffs, Copa y Playoff de
+    ascenso") separada de las anteriores. Un botón genera y simula una
+    Liga de 1ª división completa (dispara la Copa en la jornada 17 de
+    esa misma liga sin alterarla, y arma el playoff por el título al
+    terminar la temporada), con botones para jugar el playoff y la Copa
+    partido a partido o de una vez, mostrando el bracket completo y los
+    marcadores de cada serie en vivo. Otro botón genera y simula la 2ª
+    división ficticia completa y arma el playoff de ascenso, con
+    botones equivalentes que muestran cuartos, Final Four y quién
+    asciende al terminar. Verificado con Playwright headless (`file://`,
+    sin servidor): cero errores de consola tras generar/jugar las tres
+    competiciones de principio a fin.
+  - `CHANGELOG.md` actualizado (esta entrada).
