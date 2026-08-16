@@ -59,3 +59,31 @@
   de la Cantera/Academia (pendiente, ver resumen de la sesión).
 - `index.html`: la prueba de jugadores ahora muestra también
   Altura/Envergadura/Peso.
+- **Motor de simulación de partidos — Fase 1** (DESIGN.md sección 7):
+  - `src/entities/Player.js`: añadidos `perimeterDefense` (defensa
+    perimetral) e `interiorDefense` (defensa interior) como nuevos
+    Atributos Técnicos — DESIGN.md 7.6 los usaba en 6 de las 10 acciones
+    del Bloque A pero no existían en la ficha de 6.1; confirmado con
+    Dennis, añadidos también al generador (rangos coherentes por
+    posición) y documentados en DESIGN.md 6.1.
+  - `src/core/MatchConfig.js` (nuevo): `CONFIG_BASE` como entidad propia
+    (7.2) — duración de partido, reloj de posesión 24s/14s, interceptos
+    base por tipo de tiro (7.3-bis), y la mezcla de atributos
+    ofensiva/defensiva, pesos y método de combinación (resta o cociente)
+    de las 10 acciones del Bloque A y los 3 caminos del Bloque B (7.6).
+    Hueco vacío para un futuro `CONFIG_MODIFIERS_NBA`, sin rellenar.
+  - `src/core/MatchEngine.js` (nuevo): bucle de posesión basado en el
+    reloj real (no un número fijo de posesiones), con las 10 acciones del
+    Bloque A (Triple, Media distancia, Tiro interior, Bandeja, Tiro
+    libre, Pérdida de balón, Robo, Rebote, Tapón, Lucha por balón suelto)
+    y los 3 caminos del Bloque B (Falta defensiva con bonus, Falta en
+    tiro con sus 3 variantes, Violación de reloj), todo leído desde
+    MatchConfig. Selección de quinteto en pista con un placeholder simple
+    (titulares con más cuota que banquillo), sin rotaciones/tácticas
+    reales. Devuelve marcador final, marcador por cuartos y box score
+    básico por jugador. Bloque C, sistemas transversales (Presión de
+    Momento, Consistencia/Fatiga, modificador de Altura/Envergadura/Peso),
+    eventos destacados, factor cancha y racha quedan fuera de esta fase.
+  - `index.html`: nueva sección de prueba que simula un partido completo
+    entre 2 equipos ficticios y muestra marcador, cuartos y máximos
+    anotadores.

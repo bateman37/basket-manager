@@ -135,7 +135,15 @@ pívot alto anotando con facilidad sobre un base bajo cerca del aro).
 #### Atributos Técnicos (fijos, mejoran con entrenamiento/edad)
 Tiro exterior, tiro media distancia, tiro interior, tiro libre,
 bandeja/finalización, pase, manejo de balón, rebote ofensivo, rebote
-defensivo, tapón, robo, tendencia a falta.
+defensivo, tapón, robo, tendencia a falta, **defensa perimetral**,
+**defensa interior**.
+
+Nota (añadido al implementar el motor, sección 7): defensa perimetral y
+defensa interior faltaban en esta lista pese a que el catálogo de
+acciones (7.6, Bloque A) ya las usaba como `DefensaPerimetral` y
+`DefensaInterior` en 6 de las 10 acciones — inconsistencia detectada y
+resuelta añadiéndolas aquí como Atributos Técnicos normales (escala
+1-20), en vez de inventar una fórmula derivada de otros atributos.
 
 Nota: **tiro interior** y **bandeja/finalización** son atributos
 DISTINTOS (no deben fusionarse en el motor de simulación) — el tiro
