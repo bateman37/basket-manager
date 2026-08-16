@@ -425,14 +425,24 @@ público, patrón de referencia para el bucle de posesión) y
   tocar el aro) — este es el límite duro de cada posesión, no una
   duración fija.
 - **Cálculo de pace real**: la media NBA es de ~99 posesiones por equipo
-  cada 48 minutos (~2.06 posesiones por equipo y minuto). El reloj de
-  tiro es el mismo en FIBA (24s), así que el ritmo por minuto debería ser
-  similar; lo que cambia es el total de minutos jugados. En un partido
-  FIBA de 40 minutos, esto da aproximadamente **82-83 posesiones por
-  equipo por partido**, con cada posesión durando de media unos ~29-30s
-  de reloj real (contando saques y tiempo entre jugadas, no solo el
-  reloj de tiro puro). Esta cifra es un punto de partida para
-  calibración, no un valor final cerrado.
+  cada 48 minutos. El reloj de tiro es el mismo en FIBA (24s), así que el
+  ritmo por minuto debería ser similar; lo que cambia es el total de
+  minutos jugados. En un partido FIBA de 40 minutos, esto da
+  aproximadamente **82-83 posesiones por equipo por partido**.
+  **Corrección (detectada en sesión de depuración tras implementar el
+  motor):** la duración media de una posesión NO se calcula dividiendo
+  los 2400s del partido entre las 82-83 posesiones de un solo equipo
+  (eso daría ~29s, cifra que aparecía aquí antes y era un error) — ambos
+  equipos se turnan sobre el **mismo reloj compartido**, así que hay que
+  dividir entre el total de turnos de LOS DOS equipos combinados
+  (~165 turnos). Esto da una duración media real de **~14-15 segundos
+  por posesión**, la mitad de lo que decía esta sección originalmente.
+  Esta cifra es un punto de partida para calibración, no un valor final
+  cerrado, pero la implementación debe apuntar a ~14-15s de media, no a
+  ~29-30s — calibrar contra esto hasta que el número de posesiones por
+  equipo y partido ronde las 82-83 reales (una implementación inicial
+  puede desviarse; ajustar `pickPossessionStepSeconds`/parámetros de
+  ritmo en MatchConfig hasta acercarse a esta cifra, no al revés).
 - **Duración de partido como parámetro de CONFIG** (ver 7.2), no fija en
   el código: FIBA/ACB = 40 min actualmente; NBA = 48 min en el futuro,
   sin tocar ninguna fórmula interna al cambiarlo.
@@ -558,6 +568,19 @@ así que este es el mejor ancla disponible, ajustable en CONFIG):
   propio jugador alto (esto se descartó tras investigación: no hay
   evidencia de que la altura en sí perjudique el bote/manejo propio,
   solo la capacidad de defender el perímetro por agilidad).
+
+**Nota de implementación (confirmada al construir el motor)**: ninguna
+mezcla del catálogo de 7.6 usa un atributo suelto llamado
+"Agilidad"/"Velocidad" (usan `perimeterDefense`, `interiorDefense`,
+`stealing`, `ballHandling`, etc.). Por eso, el "impuesto físico" del
+Eje 2 se aplica sobre el **rating compuesto final** del lado marcado en
+la acción (después de mezclar sus atributos, antes de convertir a
+probabilidad), no sobre un atributo aislado — con el mismo tope acotado
+(máx. ~3 puntos sobre la escala 1-20). Esto conserva la protección del
+caso "Wembanyama": el impuesto es una resta fija, no un porcentaje, así
+que un jugador alto con buen `perimeterDefense`/`interiorDefense` sigue
+quedando por delante de uno sin esos atributos, solo con un descuento
+proporcional menor en términos relativos.
 
 Ambos ejes **pueden coexistir** sobre el mismo jugador en distintas
 acciones del mismo partido (ej. un pívot recibe el modificador de Eje 1
@@ -784,6 +807,24 @@ existe en los datos, nunca se muestra en la interfaz. Aplica un
 modificador acotado (pequeño, del orden de unos pocos puntos
 porcentuales) a la probabilidad de acierto del jugador "caliente", con
 decaimiento rápido (memoria de pocas posesiones).
+
+### 7.10 Prórroga
+
+Hueco de diseño detectado durante la depuración del motor implementado
+(nunca se había discutido hasta entonces): un partido de baloncesto real
+**nunca termina en empate**. Regla confirmada, fiel al reglamento real
+FIBA/ACB:
+
+- Si el marcador está empatado al final del 4º cuarto, se juega una
+  **prórroga de 5 minutos**.
+- Se juegan **tantas prórrogas de 5 minutos como hagan falta** hasta que
+  el marcador quede desempatado al final de una de ellas.
+- **Las faltas de equipo (para el bonus de tiros libres) se resetean al
+  inicio de cada prórroga**, igual que se resetean al inicio de cada
+  cuarto normal.
+- Las faltas personales de cada jugador (para la descalificación a 5)
+  **siguen acumulando sin resetearse** — son de partido completo, no por
+  período.
 
 ### Pendiente para sesiones de diseño futuras (Simulación)
 - Pesos numéricos finales calibrados de las 21 piezas del catálogo
