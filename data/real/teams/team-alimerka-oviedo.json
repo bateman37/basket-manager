@@ -1,0 +1,970 @@
+{
+  "id": "team-alimerka-oviedo",
+  "name": "Alimerka Oviedo Baloncesto",
+  "city": "Oviedo",
+  "foundationYear": 2004,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-alimerka-oviedo-01",
+      "firstName": "PJay",
+      "lastName": "Smith Jr.",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 195,
+        "weight": 80
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 13,
+        "insideShot": 4,
+        "freeThrows": 12,
+        "layup": 13,
+        "passing": 16,
+        "ballHandling": 15,
+        "offensiveRebound": 2,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 10,
+        "perimeterDefense": 13,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 9,
+        "strength": 9,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 16,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 12,
+        "concentration": 15,
+        "leadership": 11,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 12,
+        "anticipation": 12,
+        "positioning": 13,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-02",
+      "firstName": "Félix",
+      "lastName": "Terins",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 193,
+        "weight": 80
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 12,
+        "insideShot": 4,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 16,
+        "ballHandling": 15,
+        "offensiveRebound": 4,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 12,
+        "perimeterDefense": 11,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 9,
+        "strength": 9,
+        "agility": 15,
+        "balance": 13,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 12,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 160,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-03",
+      "firstName": "Zaire",
+      "lastName": "Williams",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 192,
+        "wingspan": 199,
+        "weight": 93
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 12,
+        "insideShot": 4,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 13,
+        "offensiveRebound": 5,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 11,
+        "foulTendency": 10,
+        "perimeterDefense": 11,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 14,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-04",
+      "firstName": "Brycen",
+      "lastName": "Goodine",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 198,
+        "weight": 85
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 14,
+        "layup": 15,
+        "passing": 13,
+        "ballHandling": 12,
+        "offensiveRebound": 5,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 11,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 14,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 14
+      },
+      "traits": [],
+      "experience": 140,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-05",
+      "firstName": "Sander",
+      "lastName": "Hollanders",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 199,
+        "weight": 87
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 14,
+        "insideShot": 5,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 13,
+        "offensiveRebound": 5,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 10,
+        "foulTendency": 12,
+        "perimeterDefense": 11,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 11,
+        "strength": 11,
+        "agility": 14,
+        "balance": 13,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 14,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 160,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-06",
+      "firstName": "Danilo",
+      "lastName": "Brnovic",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 207,
+        "weight": 93
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 13,
+        "insideShot": 6,
+        "freeThrows": 14,
+        "layup": 15,
+        "passing": 11,
+        "ballHandling": 10,
+        "offensiveRebound": 9,
+        "defensiveRebound": 12,
+        "blocking": 4,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 13,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 12,
+        "strength": 13,
+        "agility": 12,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 14,
+        "anticipation": 13,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 140,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-07",
+      "firstName": "Jorge",
+      "lastName": "Arias",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 206,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 7,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 11,
+        "offensiveRebound": 8,
+        "defensiveRebound": 12,
+        "blocking": 5,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 12,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 12,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 13,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 160,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 15,
+        "ambition": 16
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-08",
+      "firstName": "Francis",
+      "lastName": "Nwaokorie",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 204,
+        "wingspan": 211,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 11,
+        "midRangeShot": 11,
+        "insideShot": 12,
+        "freeThrows": 12,
+        "layup": 13,
+        "passing": 10,
+        "ballHandling": 8,
+        "offensiveRebound": 13,
+        "defensiveRebound": 14,
+        "blocking": 8,
+        "stealing": 8,
+        "foulTendency": 13,
+        "perimeterDefense": 10,
+        "interiorDefense": 13
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 10,
+        "jumping": 14,
+        "strength": 16,
+        "agility": 12,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-09",
+      "firstName": "Daniil",
+      "lastName": "Shelist",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 203,
+        "wingspan": 215,
+        "weight": 105
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 12,
+        "freeThrows": 11,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 8,
+        "offensiveRebound": 14,
+        "defensiveRebound": 13,
+        "blocking": 8,
+        "stealing": 8,
+        "foulTendency": 14,
+        "perimeterDefense": 11,
+        "interiorDefense": 14
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 11,
+        "jumping": 13,
+        "strength": 15,
+        "agility": 10,
+        "balance": 15,
+        "stamina": 14,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 17,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 15,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-10",
+      "firstName": "Brock",
+      "lastName": "Wisne",
+      "birthDate": null,
+      "positions": [
+        "Pívot",
+        "Ala-pívot"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 218,
+        "weight": 106
+      },
+      "technical": {
+        "outsideShot": 3,
+        "midRangeShot": 8,
+        "insideShot": 16,
+        "freeThrows": 12,
+        "layup": 16,
+        "passing": 9,
+        "ballHandling": 4,
+        "offensiveRebound": 16,
+        "defensiveRebound": 15,
+        "blocking": 14,
+        "stealing": 8,
+        "foulTendency": 15,
+        "perimeterDefense": 6,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 9,
+        "jumping": 14,
+        "strength": 17,
+        "agility": 8,
+        "balance": 17,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 9,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 13,
+        "consistency": 12,
+        "anticipation": 17,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-11",
+      "firstName": "Mouhamed",
+      "lastName": "Barro",
+      "birthDate": null,
+      "positions": [
+        "Pívot",
+        "Ala-pívot"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 209,
+        "wingspan": 222,
+        "weight": 106
+      },
+      "technical": {
+        "outsideShot": 2,
+        "midRangeShot": 7,
+        "insideShot": 15,
+        "freeThrows": 11,
+        "layup": 17,
+        "passing": 8,
+        "ballHandling": 3,
+        "offensiveRebound": 17,
+        "defensiveRebound": 16,
+        "blocking": 15,
+        "stealing": 8,
+        "foulTendency": 14,
+        "perimeterDefense": 7,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 8,
+        "acceleration": 10,
+        "jumping": 13,
+        "strength": 17,
+        "agility": 8,
+        "balance": 17,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 8,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 17,
+        "concentration": 14,
+        "leadership": 13,
+        "teamwork": 17,
+        "temperament": 13,
+        "consistency": 14,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-alimerka-oviedo-12",
+      "firstName": "Djigui",
+      "lastName": "Diarra",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-alimerka-oviedo",
+      "bodyMeasurements": {
+        "height": 209,
+        "wingspan": 218,
+        "weight": 108
+      },
+      "technical": {
+        "outsideShot": 3,
+        "midRangeShot": 6,
+        "insideShot": 15,
+        "freeThrows": 10,
+        "layup": 16,
+        "passing": 7,
+        "ballHandling": 4,
+        "offensiveRebound": 16,
+        "defensiveRebound": 17,
+        "blocking": 15,
+        "stealing": 6,
+        "foulTendency": 15,
+        "perimeterDefense": 6,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 9,
+        "acceleration": 10,
+        "jumping": 13,
+        "strength": 17,
+        "agility": 8,
+        "balance": 16,
+        "stamina": 14,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 8,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 16,
+        "concentration": 15,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 16,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 15,
+        "ambition": 16
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Desarrollo",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

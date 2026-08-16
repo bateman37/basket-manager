@@ -1,0 +1,218 @@
+[
+  {
+    "id": "team-asisa-joventut",
+    "name": "Asisa Joventut",
+    "city": "Badalona",
+    "division": "1ª"
+  },
+  {
+    "id": "team-barca",
+    "name": "Barça",
+    "city": "Barcelona",
+    "division": "1ª"
+  },
+  {
+    "id": "team-casademont-zaragoza",
+    "name": "Casademont Zaragoza",
+    "city": "Zaragoza",
+    "division": "1ª"
+  },
+  {
+    "id": "team-fiatc-girona",
+    "name": "FIATC Girona",
+    "city": "Girona",
+    "division": "1ª"
+  },
+  {
+    "id": "team-ilerna-lleida",
+    "name": "iLERNA Lleida",
+    "city": "Lleida",
+    "division": "1ª"
+  },
+  {
+    "id": "team-kids-and-us-manresa",
+    "name": "Kids&Us Manresa",
+    "city": "Manresa",
+    "division": "1ª"
+  },
+  {
+    "id": "team-kosner-baskonia",
+    "name": "Kosner Baskonia",
+    "city": "Vitoria-Gasteiz",
+    "division": "1ª"
+  },
+  {
+    "id": "team-la-laguna-tenerife",
+    "name": "La Laguna Tenerife",
+    "city": "San Cristóbal de La Laguna",
+    "division": "1ª"
+  },
+  {
+    "id": "team-leyma-coruna",
+    "name": "Leyma Coruña",
+    "city": "A Coruña",
+    "division": "1ª"
+  },
+  {
+    "id": "team-monbus-obradoiro",
+    "name": "Monbus Obradoiro",
+    "city": "Santiago de Compostela",
+    "division": "1ª"
+  },
+  {
+    "id": "team-morabanc-andorra",
+    "name": "MoraBanc Andorra",
+    "city": "Andorra la Vella",
+    "division": "1ª"
+  },
+  {
+    "id": "team-real-madrid",
+    "name": "Real Madrid",
+    "city": "Madrid",
+    "division": "1ª"
+  },
+  {
+    "id": "team-recoletas-salud-san-pablo-burgos",
+    "name": "Recoletas Salud San Pablo Burgos",
+    "city": "Burgos",
+    "division": "1ª"
+  },
+  {
+    "id": "team-rio-breogan",
+    "name": "Río Breogán",
+    "city": "Lugo",
+    "division": "1ª"
+  },
+  {
+    "id": "team-surne-bilbao-basket",
+    "name": "Surne Bilbao Basket",
+    "city": "Bilbao",
+    "division": "1ª"
+  },
+  {
+    "id": "team-ucam-murcia",
+    "name": "UCAM Murcia",
+    "city": "Murcia",
+    "division": "1ª"
+  },
+  {
+    "id": "team-unicaja",
+    "name": "Unicaja",
+    "city": "Málaga",
+    "division": "1ª"
+  },
+  {
+    "id": "team-valencia-basket",
+    "name": "Valencia Basket",
+    "city": "Valencia",
+    "division": "1ª"
+  },
+  {
+    "id": "team-alimerka-oviedo",
+    "name": "Alimerka Oviedo Baloncesto",
+    "city": "Oviedo",
+    "division": "2ª"
+  },
+  {
+    "id": "team-grupo-alega-cantabria",
+    "name": "Grupo Alega Cantabria",
+    "city": "Torrelavega",
+    "division": "2ª"
+  },
+  {
+    "id": "team-bueno-arenas-albacete",
+    "name": "Bueno Arenas Albacete Basket",
+    "city": "Albacete",
+    "division": "2ª"
+  },
+  {
+    "id": "team-grupo-ureta-tizona-burgos",
+    "name": "Grupo Ureta Tizona Burgos",
+    "city": "Burgos",
+    "division": "2ª"
+  },
+  {
+    "id": "team-caja-rural-cb-zamora",
+    "name": "Caja Rural CB Zamora",
+    "city": "Zamora",
+    "division": "2ª"
+  },
+  {
+    "id": "team-basquet-menorca",
+    "name": "Bàsquet Menorca",
+    "city": "Maó",
+    "division": "2ª"
+  },
+  {
+    "id": "team-cajasol-coto-cordoba",
+    "name": "Cajasol Coto Córdoba",
+    "city": "Córdoba",
+    "division": "2ª"
+  },
+  {
+    "id": "team-insolac-caja87",
+    "name": "Insolac Caja 87",
+    "city": "Sevilla",
+    "division": "2ª"
+  },
+  {
+    "id": "team-club-ourense-baloncesto",
+    "name": "Club Ourense Baloncesto",
+    "city": "Ourense",
+    "division": "2ª"
+  },
+  {
+    "id": "team-inveready-askatuak-gipuzkoa",
+    "name": "Inveready Askatuak Gipuzkoa",
+    "city": "Donostia-San Sebastián",
+    "division": "2ª"
+  },
+  {
+    "id": "team-coviran-granada",
+    "name": "Covirán Granada",
+    "city": "Granada",
+    "division": "2ª"
+  },
+  {
+    "id": "team-hla-alicante",
+    "name": "HLA Alicante",
+    "city": "Alicante",
+    "division": "2ª"
+  },
+  {
+    "id": "team-fibwi-mallorca-basquet-palma",
+    "name": "Fibwi Mallorca Bàsquet Palma",
+    "city": "Palma",
+    "division": "2ª"
+  },
+  {
+    "id": "team-movistar-estudiantes",
+    "name": "Movistar Estudiantes",
+    "city": "Madrid",
+    "division": "2ª"
+  },
+  {
+    "id": "team-flexicar-fuenlabrada",
+    "name": "Flexicar Fuenlabrada",
+    "city": "Fuenlabrada",
+    "division": "2ª"
+  },
+  {
+    "id": "team-palmer-basket-mallorca-palma",
+    "name": "Palmer Basket Mallorca Palma",
+    "city": "Palma",
+    "division": "2ª"
+  },
+  {
+    "id": "team-gran-canaria",
+    "name": "Gran Canaria",
+    "city": "Las Palmas de Gran Canaria",
+    "division": "2ª"
+  },
+  {
+    "id": "team-palencia-baloncesto",
+    "name": "Palencia Baloncesto",
+    "city": "Palencia",
+    "division": "2ª"
+  }
+]

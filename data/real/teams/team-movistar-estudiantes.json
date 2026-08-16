@@ -1,0 +1,975 @@
+{
+  "id": "team-movistar-estudiantes",
+  "name": "Movistar Estudiantes",
+  "city": "Madrid",
+  "foundationYear": 1948,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-movistar-estudiantes-01",
+      "firstName": "Fernando",
+      "lastName": "Zurbriggen",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 185,
+        "wingspan": 194,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 14,
+        "insideShot": 5,
+        "freeThrows": 16,
+        "layup": 16,
+        "passing": 18,
+        "ballHandling": 18,
+        "offensiveRebound": 6,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 13,
+        "foulTendency": 12,
+        "perimeterDefense": 14,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 16,
+        "jumping": 11,
+        "strength": 11,
+        "agility": 17,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 17,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 360,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-02",
+      "firstName": "Micah",
+      "lastName": "Speight",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 188,
+        "wingspan": 195,
+        "weight": 84
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 12,
+        "insideShot": 2,
+        "freeThrows": 13,
+        "layup": 15,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 3,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 10,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 9,
+        "strength": 10,
+        "agility": 15,
+        "balance": 15,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 13,
+        "concentration": 15,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 13,
+        "positioning": 13,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-03",
+      "firstName": "Jordan",
+      "lastName": "Walker",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 194,
+        "wingspan": 199,
+        "weight": 93
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 15,
+        "layup": 16,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 8,
+        "defensiveRebound": 10,
+        "blocking": 2,
+        "stealing": 14,
+        "foulTendency": 14,
+        "perimeterDefense": 14,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 16,
+        "jumping": 14,
+        "strength": 13,
+        "agility": 16,
+        "balance": 15,
+        "stamina": 18,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 17,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 320,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-04",
+      "firstName": "Omar",
+      "lastName": "Silverio",
+      "birthDate": null,
+      "positions": [
+        "Escolta"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 198,
+        "weight": 89
+      },
+      "technical": {
+        "outsideShot": 17,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 17,
+        "layup": 17,
+        "passing": 13,
+        "ballHandling": 15,
+        "offensiveRebound": 7,
+        "defensiveRebound": 10,
+        "blocking": 3,
+        "stealing": 12,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 15,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 16,
+        "balance": 15,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 16,
+        "concentration": 17,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 15,
+        "consistency": 15,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 17
+      },
+      "traits": [
+        "Tirador clutch"
+      ],
+      "experience": 350,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-05",
+      "firstName": "Lucas",
+      "lastName": "Giovannetti",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 209,
+        "weight": 97
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 13,
+        "insideShot": 7,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 11,
+        "offensiveRebound": 8,
+        "defensiveRebound": 13,
+        "blocking": 5,
+        "stealing": 12,
+        "foulTendency": 12,
+        "perimeterDefense": 13,
+        "interiorDefense": 8
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 14,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 13,
+        "balance": 15,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 12,
+        "anticipation": 13,
+        "positioning": 14,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 190,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 15,
+        "ambition": 16
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-06",
+      "firstName": "Millán",
+      "lastName": "Jiménez",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 201,
+        "wingspan": 209,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 8,
+        "freeThrows": 14,
+        "layup": 15,
+        "passing": 12,
+        "ballHandling": 10,
+        "offensiveRebound": 8,
+        "defensiveRebound": 13,
+        "blocking": 4,
+        "stealing": 11,
+        "foulTendency": 13,
+        "perimeterDefense": 13,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 13,
+        "jumping": 12,
+        "strength": 13,
+        "agility": 13,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 13,
+        "concentration": 15,
+        "leadership": 13,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 230,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 15,
+        "ambition": 16
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-07",
+      "firstName": "Travis",
+      "lastName": "Munnings",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 201,
+        "wingspan": 208,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 8,
+        "freeThrows": 14,
+        "layup": 13,
+        "passing": 11,
+        "ballHandling": 12,
+        "offensiveRebound": 9,
+        "defensiveRebound": 13,
+        "blocking": 5,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 13,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 12,
+        "balance": 13,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 190,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-08",
+      "firstName": "Juampi",
+      "lastName": "Vaulet",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 202,
+        "wingspan": 213,
+        "weight": 103
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 11,
+        "insideShot": 12,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 9,
+        "ballHandling": 9,
+        "offensiveRebound": 13,
+        "defensiveRebound": 13,
+        "blocking": 8,
+        "stealing": 8,
+        "foulTendency": 14,
+        "perimeterDefense": 9,
+        "interiorDefense": 14
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 11,
+        "jumping": 13,
+        "strength": 15,
+        "agility": 11,
+        "balance": 14,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-09",
+      "firstName": "Kaspar",
+      "lastName": "Treier",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 204,
+        "wingspan": 211,
+        "weight": 105
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 11,
+        "insideShot": 12,
+        "freeThrows": 12,
+        "layup": 14,
+        "passing": 9,
+        "ballHandling": 8,
+        "offensiveRebound": 13,
+        "defensiveRebound": 15,
+        "blocking": 8,
+        "stealing": 7,
+        "foulTendency": 12,
+        "perimeterDefense": 9,
+        "interiorDefense": 13
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 10,
+        "jumping": 13,
+        "strength": 15,
+        "agility": 11,
+        "balance": 16,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 14,
+        "concentration": 15,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 15,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 220,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-10",
+      "firstName": "Iván",
+      "lastName": "Aurrecoechea",
+      "birthDate": null,
+      "positions": [
+        "Pívot",
+        "Ala-pívot"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 208,
+        "wingspan": 222,
+        "weight": 112
+      },
+      "technical": {
+        "outsideShot": 6,
+        "midRangeShot": 9,
+        "insideShot": 18,
+        "freeThrows": 14,
+        "layup": 19,
+        "passing": 10,
+        "ballHandling": 6,
+        "offensiveRebound": 19,
+        "defensiveRebound": 18,
+        "blocking": 17,
+        "stealing": 9,
+        "foulTendency": 17,
+        "perimeterDefense": 7,
+        "interiorDefense": 19
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 11,
+        "jumping": 17,
+        "strength": 19,
+        "agility": 11,
+        "balance": 18,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 9,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 18,
+        "concentration": 17,
+        "leadership": 13,
+        "teamwork": 18,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 17,
+        "positioning": 17,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 310,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-11",
+      "firstName": "Mamadou",
+      "lastName": "Niang",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 219,
+        "weight": 110
+      },
+      "technical": {
+        "outsideShot": 2,
+        "midRangeShot": 7,
+        "insideShot": 15,
+        "freeThrows": 11,
+        "layup": 17,
+        "passing": 8,
+        "ballHandling": 4,
+        "offensiveRebound": 15,
+        "defensiveRebound": 16,
+        "blocking": 14,
+        "stealing": 8,
+        "foulTendency": 14,
+        "perimeterDefense": 6,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 8,
+        "acceleration": 9,
+        "jumping": 14,
+        "strength": 17,
+        "agility": 8,
+        "balance": 16,
+        "stamina": 14,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 7,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 16,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 12,
+        "anticipation": 16,
+        "positioning": 15,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 170,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-movistar-estudiantes-12",
+      "firstName": "Jehyve",
+      "lastName": "Floyd",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-movistar-estudiantes",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 217,
+        "weight": 114
+      },
+      "technical": {
+        "outsideShot": 4,
+        "midRangeShot": 9,
+        "insideShot": 17,
+        "freeThrows": 12,
+        "layup": 18,
+        "passing": 10,
+        "ballHandling": 5,
+        "offensiveRebound": 19,
+        "defensiveRebound": 19,
+        "blocking": 18,
+        "stealing": 9,
+        "foulTendency": 17,
+        "perimeterDefense": 9,
+        "interiorDefense": 19
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 12,
+        "jumping": 16,
+        "strength": 20,
+        "agility": 10,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 18,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 19,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 19,
+        "positioning": 18,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 330,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Cantera",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

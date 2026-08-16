@@ -1,0 +1,830 @@
+{
+  "id": "team-gran-canaria",
+  "name": "Gran Canaria",
+  "city": "Las Palmas de Gran Canaria",
+  "foundationYear": 1963,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-gran-canaria-01",
+      "firstName": "Carlos",
+      "lastName": "Alocén",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 193,
+        "weight": 84
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 14,
+        "ballHandling": 16,
+        "offensiveRebound": 4,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 15,
+        "jumping": 9,
+        "strength": 10,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 12,
+        "concentration": 15,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 12,
+        "anticipation": 14,
+        "positioning": 12,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 220,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-02",
+      "firstName": "Christian",
+      "lastName": "Díaz",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 185,
+        "wingspan": 190,
+        "weight": 78
+      },
+      "technical": {
+        "outsideShot": 11,
+        "midRangeShot": 12,
+        "insideShot": 4,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 15,
+        "ballHandling": 14,
+        "offensiveRebound": 3,
+        "defensiveRebound": 6,
+        "blocking": 1,
+        "stealing": 13,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 9,
+        "strength": 9,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 12,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-03",
+      "firstName": "Jón",
+      "lastName": "Axel Gudmundsson",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 192,
+        "weight": 86
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 13,
+        "layup": 13,
+        "passing": 17,
+        "ballHandling": 15,
+        "offensiveRebound": 3,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 13,
+        "foulTendency": 10,
+        "perimeterDefense": 13,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 9,
+        "strength": 9,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 16,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 13,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 13,
+        "positioning": 14,
+        "workRate": 14
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 140,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-04",
+      "firstName": "Marques",
+      "lastName": "Townes",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 200,
+        "weight": 93
+      },
+      "technical": {
+        "outsideShot": 17,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 17,
+        "layup": 15,
+        "passing": 13,
+        "ballHandling": 16,
+        "offensiveRebound": 7,
+        "defensiveRebound": 10,
+        "blocking": 4,
+        "stealing": 12,
+        "foulTendency": 13,
+        "perimeterDefense": 15,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 17,
+        "jumping": 14,
+        "strength": 13,
+        "agility": 16,
+        "balance": 16,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 17,
+        "aggressiveness": 17,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 16,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 16
+      },
+      "traits": [
+        "Tirador clutch"
+      ],
+      "experience": 320,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-05",
+      "firstName": "Joe",
+      "lastName": "Cremo",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 191,
+        "wingspan": 203,
+        "weight": 87
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 5,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 14,
+        "offensiveRebound": 5,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 11,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 14,
+        "jumping": 13,
+        "strength": 11,
+        "agility": 14,
+        "balance": 13,
+        "stamina": 16,
+        "recovery": 14,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 11,
+        "positioning": 14,
+        "workRate": 14
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-06",
+      "firstName": "Joaquín",
+      "lastName": "Rodríguez",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 194,
+        "wingspan": 201,
+        "weight": 89
+      },
+      "technical": {
+        "outsideShot": 18,
+        "midRangeShot": 15,
+        "insideShot": 5,
+        "freeThrows": 16,
+        "layup": 16,
+        "passing": 13,
+        "ballHandling": 16,
+        "offensiveRebound": 7,
+        "defensiveRebound": 10,
+        "blocking": 3,
+        "stealing": 13,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 17,
+        "jumping": 15,
+        "strength": 13,
+        "agility": 17,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 16,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 17,
+        "aggressiveness": 17,
+        "concentration": 15,
+        "leadership": 13,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 16
+      },
+      "traits": [
+        "Tirador clutch"
+      ],
+      "experience": 370,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-07",
+      "firstName": "Miquel",
+      "lastName": "Salvó",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 201,
+        "wingspan": 209,
+        "weight": 93
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 15,
+        "insideShot": 9,
+        "freeThrows": 15,
+        "layup": 15,
+        "passing": 12,
+        "ballHandling": 13,
+        "offensiveRebound": 12,
+        "defensiveRebound": 14,
+        "blocking": 6,
+        "stealing": 14,
+        "foulTendency": 13,
+        "perimeterDefense": 15,
+        "interiorDefense": 8
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 16,
+        "jumping": 15,
+        "strength": 15,
+        "agility": 16,
+        "balance": 15,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 16,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 15,
+        "consistency": 16,
+        "anticipation": 15,
+        "positioning": 15,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 360,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-08",
+      "firstName": "Roberts",
+      "lastName": "Stumbris",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 205,
+        "wingspan": 215,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 10,
+        "insideShot": 12,
+        "freeThrows": 12,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 9,
+        "offensiveRebound": 13,
+        "defensiveRebound": 14,
+        "blocking": 8,
+        "stealing": 7,
+        "foulTendency": 13,
+        "perimeterDefense": 10,
+        "interiorDefense": 14
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 11,
+        "jumping": 14,
+        "strength": 16,
+        "agility": 11,
+        "balance": 15,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 16,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 18,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 220,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-09",
+      "firstName": "Pierre",
+      "lastName": "Pelos",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 204,
+        "wingspan": 210,
+        "weight": 101
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 12,
+        "insideShot": 14,
+        "freeThrows": 14,
+        "layup": 16,
+        "passing": 13,
+        "ballHandling": 9,
+        "offensiveRebound": 15,
+        "defensiveRebound": 18,
+        "blocking": 9,
+        "stealing": 11,
+        "foulTendency": 15,
+        "perimeterDefense": 11,
+        "interiorDefense": 17
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 15,
+        "strength": 17,
+        "agility": 14,
+        "balance": 17,
+        "stamina": 18,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 19,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 18,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 380,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-gran-canaria-10",
+      "firstName": "Luke",
+      "lastName": "Fischer",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-gran-canaria",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 219,
+        "weight": 114
+      },
+      "technical": {
+        "outsideShot": 5,
+        "midRangeShot": 9,
+        "insideShot": 17,
+        "freeThrows": 13,
+        "layup": 18,
+        "passing": 10,
+        "ballHandling": 7,
+        "offensiveRebound": 18,
+        "defensiveRebound": 19,
+        "blocking": 17,
+        "stealing": 9,
+        "foulTendency": 17,
+        "perimeterDefense": 8,
+        "interiorDefense": 18
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 11,
+        "jumping": 16,
+        "strength": 19,
+        "agility": 10,
+        "balance": 18,
+        "stamina": 18,
+        "recovery": 18,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 18,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 14,
+        "anticipation": 18,
+        "positioning": 18,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 370,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Ritmo alto",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

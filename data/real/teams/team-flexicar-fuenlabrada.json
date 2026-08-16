@@ -1,0 +1,685 @@
+{
+  "id": "team-flexicar-fuenlabrada",
+  "name": "Flexicar Fuenlabrada",
+  "city": "Fuenlabrada",
+  "foundationYear": 1983,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-flexicar-fuenlabrada-01",
+      "firstName": "Mateo",
+      "lastName": "Díaz",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 184,
+        "wingspan": 191,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 13,
+        "insideShot": 4,
+        "freeThrows": 12,
+        "layup": 14,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 2,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 11,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 15,
+        "jumping": 8,
+        "strength": 9,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 16,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 13,
+        "consistency": 12,
+        "anticipation": 13,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 230,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-flexicar-fuenlabrada-02",
+      "firstName": "Javi",
+      "lastName": "López",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 194,
+        "weight": 78
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 14,
+        "insideShot": 2,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 15,
+        "ballHandling": 15,
+        "offensiveRebound": 3,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 8,
+        "strength": 8,
+        "agility": 15,
+        "balance": 13,
+        "stamina": 14,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 230,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-flexicar-fuenlabrada-03",
+      "firstName": "Vitor",
+      "lastName": "Benite",
+      "birthDate": null,
+      "positions": [
+        "Escolta"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 201,
+        "weight": 91
+      },
+      "technical": {
+        "outsideShot": 17,
+        "midRangeShot": 15,
+        "insideShot": 5,
+        "freeThrows": 15,
+        "layup": 16,
+        "passing": 14,
+        "ballHandling": 16,
+        "offensiveRebound": 7,
+        "defensiveRebound": 10,
+        "blocking": 3,
+        "stealing": 14,
+        "foulTendency": 12,
+        "perimeterDefense": 14,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 15,
+        "jumping": 14,
+        "strength": 13,
+        "agility": 16,
+        "balance": 15,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 17,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 15,
+        "temperament": 16,
+        "consistency": 16,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 17
+      },
+      "traits": [
+        "Tirador clutch",
+        "Jugador de vestuario"
+      ],
+      "experience": 570,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 17,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-flexicar-fuenlabrada-04",
+      "firstName": "Romaric",
+      "lastName": "Belemene",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 198,
+        "wingspan": 209,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 11,
+        "insideShot": 7,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 11,
+        "offensiveRebound": 9,
+        "defensiveRebound": 11,
+        "blocking": 5,
+        "stealing": 10,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 8
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 13,
+        "jumping": 13,
+        "strength": 14,
+        "agility": 12,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 15,
+        "positioning": 15,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-flexicar-fuenlabrada-05",
+      "firstName": "Iván",
+      "lastName": "Cruz",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 204,
+        "wingspan": 213,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 14,
+        "freeThrows": 14,
+        "layup": 16,
+        "passing": 11,
+        "ballHandling": 11,
+        "offensiveRebound": 15,
+        "defensiveRebound": 17,
+        "blocking": 9,
+        "stealing": 10,
+        "foulTendency": 14,
+        "perimeterDefense": 12,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 13,
+        "jumping": 16,
+        "strength": 17,
+        "agility": 13,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 16,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 19,
+        "temperament": 16,
+        "consistency": 14,
+        "anticipation": 16,
+        "positioning": 17,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 350,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "f4fabacb-fe98-4254-a610-1ff7f611abb0",
+      "firstName": "Diego",
+      "lastName": "Vidal Ortega",
+      "birthDate": "2006-06-09",
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 191,
+        "wingspan": 201,
+        "weight": 88
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 14,
+        "insideShot": 9,
+        "freeThrows": 11,
+        "layup": 11,
+        "passing": 14,
+        "ballHandling": 14,
+        "offensiveRebound": 9,
+        "defensiveRebound": 8,
+        "blocking": 4,
+        "stealing": 13,
+        "foulTendency": 9,
+        "perimeterDefense": 14,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 11,
+        "strength": 10,
+        "agility": 14,
+        "balance": 10,
+        "stamina": 11,
+        "recovery": 8,
+        "durability": 12
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 10,
+        "aggressiveness": 8,
+        "concentration": 12,
+        "leadership": 12,
+        "teamwork": 10,
+        "temperament": 9,
+        "consistency": 12,
+        "anticipation": 10,
+        "positioning": 9,
+        "workRate": 10
+      },
+      "traits": [
+        "Especialista defensivo",
+        "Generador de asistencias"
+      ],
+      "experience": 40,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    },
+    {
+      "id": "71925068-e7a1-45ee-9a42-ae97de0e2099",
+      "firstName": "Emilio",
+      "lastName": "Tapia Aguilar",
+      "birthDate": "2001-11-25",
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 201,
+        "wingspan": 199,
+        "weight": 101
+      },
+      "technical": {
+        "outsideShot": 8,
+        "midRangeShot": 12,
+        "insideShot": 14,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 10,
+        "offensiveRebound": 10,
+        "defensiveRebound": 10,
+        "blocking": 13,
+        "stealing": 10,
+        "foulTendency": 8,
+        "perimeterDefense": 8,
+        "interiorDefense": 10
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 10,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 11,
+        "balance": 12,
+        "stamina": 10,
+        "recovery": 8,
+        "durability": 12
+      },
+      "mental": {
+        "gameVision": 8,
+        "pressureDecisionMaking": 8,
+        "aggressiveness": 9,
+        "concentration": 12,
+        "leadership": 10,
+        "teamwork": 9,
+        "temperament": 8,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 11,
+        "workRate": 10
+      },
+      "traits": [],
+      "experience": 166,
+      "hidden": {
+        "potential": 14,
+        "professionalism": 4,
+        "ambition": 10
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    },
+    {
+      "id": "ced84c40-c348-448c-ba20-a8e976ad8fdb",
+      "firstName": "Marcos",
+      "lastName": "Rincón Molina",
+      "birthDate": "1999-12-19",
+      "positions": [
+        "Pívot",
+        "Ala-pívot"
+      ],
+      "teamId": "team-flexicar-fuenlabrada",
+      "bodyMeasurements": {
+        "height": 200,
+        "wingspan": 201,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 8,
+        "midRangeShot": 11,
+        "insideShot": 14,
+        "freeThrows": 12,
+        "layup": 13,
+        "passing": 8,
+        "ballHandling": 6,
+        "offensiveRebound": 16,
+        "defensiveRebound": 13,
+        "blocking": 14,
+        "stealing": 7,
+        "foulTendency": 12,
+        "perimeterDefense": 8,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 6,
+        "acceleration": 5,
+        "jumping": 10,
+        "strength": 15,
+        "agility": 9,
+        "balance": 13,
+        "stamina": 11,
+        "recovery": 11,
+        "durability": 11
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 9,
+        "aggressiveness": 8,
+        "concentration": 8,
+        "leadership": 8,
+        "teamwork": 13,
+        "temperament": 11,
+        "consistency": 10,
+        "anticipation": 10,
+        "positioning": 11,
+        "workRate": 9
+      },
+      "traits": [
+        "Generador de asistencias",
+        "Jugador de vestuario"
+      ],
+      "experience": 186,
+      "hidden": {
+        "potential": 6,
+        "professionalism": 12,
+        "ambition": 11
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Competitividad",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

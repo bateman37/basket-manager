@@ -1,0 +1,903 @@
+{
+  "id": "team-casademont-zaragoza",
+  "name": "Casademont Zaragoza",
+  "city": "Zaragoza",
+  "foundationYear": 2002,
+  "division": "1ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-casademont-zaragoza-01",
+      "firstName": "Guillem",
+      "lastName": "Vives",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 191,
+        "weight": 84
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 16,
+        "insideShot": 6,
+        "freeThrows": 15,
+        "layup": 17,
+        "passing": 17,
+        "ballHandling": 17,
+        "offensiveRebound": 4,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 14,
+        "foulTendency": 12,
+        "perimeterDefense": 14,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 16,
+        "jumping": 11,
+        "strength": 11,
+        "agility": 18,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 320,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-02",
+      "firstName": "Sergi",
+      "lastName": "García",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 188,
+        "wingspan": 195,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 14,
+        "insideShot": 5,
+        "freeThrows": 16,
+        "layup": 15,
+        "passing": 17,
+        "ballHandling": 17,
+        "offensiveRebound": 6,
+        "defensiveRebound": 9,
+        "blocking": 2,
+        "stealing": 15,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 17,
+        "jumping": 11,
+        "strength": 11,
+        "agility": 16,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 17,
+        "temperament": 17,
+        "consistency": 16,
+        "anticipation": 16,
+        "positioning": 16,
+        "workRate": 16
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 270,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-03",
+      "firstName": "Trae",
+      "lastName": "Bell-Haynes",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 185,
+        "wingspan": 193,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 15,
+        "layup": 17,
+        "passing": 17,
+        "ballHandling": 17,
+        "offensiveRebound": 5,
+        "defensiveRebound": 9,
+        "blocking": 2,
+        "stealing": 14,
+        "foulTendency": 12,
+        "perimeterDefense": 15,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 17,
+        "jumping": 11,
+        "strength": 11,
+        "agility": 17,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 16,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 16,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 16,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 16,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 290,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-04",
+      "firstName": "Justin",
+      "lastName": "Jaworski",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 203,
+        "weight": 87
+      },
+      "technical": {
+        "outsideShot": 17,
+        "midRangeShot": 16,
+        "insideShot": 5,
+        "freeThrows": 15,
+        "layup": 17,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 6,
+        "defensiveRebound": 10,
+        "blocking": 3,
+        "stealing": 13,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 17,
+        "jumping": 15,
+        "strength": 13,
+        "agility": 15,
+        "balance": 15,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 17,
+        "concentration": 15,
+        "leadership": 13,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [
+        "Tirador clutch"
+      ],
+      "experience": 300,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-05",
+      "firstName": "Miguel",
+      "lastName": "González",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 195,
+        "wingspan": 201,
+        "weight": 89
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 16,
+        "layup": 16,
+        "passing": 13,
+        "ballHandling": 15,
+        "offensiveRebound": 6,
+        "defensiveRebound": 10,
+        "blocking": 3,
+        "stealing": 14,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 17,
+        "jumping": 14,
+        "strength": 13,
+        "agility": 17,
+        "balance": 15,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 17,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 270,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-06",
+      "firstName": "Caleb",
+      "lastName": "Homesley",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 206,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 14,
+        "insideShot": 9,
+        "freeThrows": 15,
+        "layup": 16,
+        "passing": 13,
+        "ballHandling": 12,
+        "offensiveRebound": 10,
+        "defensiveRebound": 14,
+        "blocking": 7,
+        "stealing": 13,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 9
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 15,
+        "strength": 16,
+        "agility": 15,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 16,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 260,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-07",
+      "firstName": "Nico",
+      "lastName": "Brussino",
+      "birthDate": null,
+      "positions": [
+        "Alero"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 200,
+        "wingspan": 205,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 14,
+        "insideShot": 8,
+        "freeThrows": 15,
+        "layup": 16,
+        "passing": 12,
+        "ballHandling": 12,
+        "offensiveRebound": 11,
+        "defensiveRebound": 14,
+        "blocking": 6,
+        "stealing": 13,
+        "foulTendency": 13,
+        "perimeterDefense": 15,
+        "interiorDefense": 10
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 14,
+        "strength": 15,
+        "agility": 15,
+        "balance": 17,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 14,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 16,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 15,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 16,
+        "workRate": 19
+      },
+      "traits": [],
+      "experience": 260,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-08",
+      "firstName": "Jaime",
+      "lastName": "Fernández",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 206,
+        "wingspan": 215,
+        "weight": 103
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 15,
+        "freeThrows": 14,
+        "layup": 17,
+        "passing": 12,
+        "ballHandling": 11,
+        "offensiveRebound": 14,
+        "defensiveRebound": 16,
+        "blocking": 10,
+        "stealing": 10,
+        "foulTendency": 14,
+        "perimeterDefense": 12,
+        "interiorDefense": 14
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 12,
+        "jumping": 14,
+        "strength": 18,
+        "agility": 14,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 18,
+        "concentration": 16,
+        "leadership": 15,
+        "teamwork": 20,
+        "temperament": 17,
+        "consistency": 16,
+        "anticipation": 16,
+        "positioning": 18,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 260,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-09",
+      "firstName": "Roberts",
+      "lastName": "Blumbergs",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 206,
+        "wingspan": 210,
+        "weight": 103
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 14,
+        "freeThrows": 13,
+        "layup": 17,
+        "passing": 13,
+        "ballHandling": 10,
+        "offensiveRebound": 16,
+        "defensiveRebound": 16,
+        "blocking": 10,
+        "stealing": 10,
+        "foulTendency": 15,
+        "perimeterDefense": 11,
+        "interiorDefense": 14
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 12,
+        "jumping": 14,
+        "strength": 17,
+        "agility": 13,
+        "balance": 16,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 19,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 17,
+        "positioning": 17,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 300,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-10",
+      "firstName": "Gabriel",
+      "lastName": "Olaseni",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 220,
+        "weight": 110
+      },
+      "technical": {
+        "outsideShot": 4,
+        "midRangeShot": 9,
+        "insideShot": 16,
+        "freeThrows": 13,
+        "layup": 17,
+        "passing": 11,
+        "ballHandling": 6,
+        "offensiveRebound": 18,
+        "defensiveRebound": 19,
+        "blocking": 17,
+        "stealing": 10,
+        "foulTendency": 17,
+        "perimeterDefense": 7,
+        "interiorDefense": 19
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 12,
+        "jumping": 16,
+        "strength": 19,
+        "agility": 10,
+        "balance": 18,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 18,
+        "concentration": 15,
+        "leadership": 13,
+        "teamwork": 18,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 19,
+        "positioning": 18,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 310,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-casademont-zaragoza-11",
+      "firstName": "Laurynas",
+      "lastName": "Birutis",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-casademont-zaragoza",
+      "bodyMeasurements": {
+        "height": 212,
+        "wingspan": 222,
+        "weight": 108
+      },
+      "technical": {
+        "outsideShot": 6,
+        "midRangeShot": 9,
+        "insideShot": 17,
+        "freeThrows": 13,
+        "layup": 18,
+        "passing": 9,
+        "ballHandling": 6,
+        "offensiveRebound": 18,
+        "defensiveRebound": 18,
+        "blocking": 18,
+        "stealing": 8,
+        "foulTendency": 17,
+        "perimeterDefense": 8,
+        "interiorDefense": 18
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 11,
+        "jumping": 16,
+        "strength": 19,
+        "agility": 10,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 18,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 19,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 17,
+        "positioning": 19,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 330,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Competitividad",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}
