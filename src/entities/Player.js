@@ -137,6 +137,12 @@
       this.birthDate = data.birthDate ? new Date(data.birthDate) : null;
       this.positions = Player.validatePositions(data.positions);
 
+      // Relación con Team: id del equipo al que pertenece, o null si no
+      // tiene equipo (ej. generación aislada, o futuros agentes libres).
+      // Team.js es quien mantiene este campo sincronizado cuando el
+      // jugador entra/sale de un roster — Player no se auto-asigna nada.
+      this.teamId = data.teamId || null;
+
       // --- Datos Físicos Corporales (reales, no en escala 1-20) — DESIGN.md
       // 6.1. Distintos de los Atributos Físicos de más abajo (que son
       // habilidad/capacidad en escala 1-20): esto son medidas corporales
@@ -239,6 +245,7 @@
         lastName: this.lastName,
         birthDate: this.birthDate ? this.birthDate.toISOString().slice(0, 10) : null,
         positions: this.positions,
+        teamId: this.teamId,
         bodyMeasurements: this.bodyMeasurements,
         technical: this.technical,
         physical: this.physical,

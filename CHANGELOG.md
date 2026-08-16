@@ -249,6 +249,28 @@
     gestiona sin error visible (aviso de "temporada completa").
   - `CHANGELOG.md` actualizado (esta entrada).
 
+- **Relación bidireccional Player↔Team**. Cambio pequeño y acotado de
+  integridad de datos, sin afectar a ninguna regla de DESIGN.md (calendario,
+  ascensos/descensos, etc.).
+  - `src/entities/Player.js`: nuevo campo `teamId` (string o `null`) en el
+    constructor, junto al resto de datos básicos. Por defecto `null`
+    (jugador sin equipo). Incluido en `toJSON()`.
+  - `src/entities/Team.js`: `this.roster` sigue guardando los objetos
+    `Player` completos como hasta ahora; Team se encarga de mantener
+    `player.teamId` sincronizado con su propio `this.id` en cada punto
+    donde el roster cambia: `addPlayer()`, `removePlayer()` (lo deja en
+    `null` al salir), `generateAcademyIntake()` (Cantera/Academia), y el
+    propio constructor si recibe un `roster` ya poblado en `data` (por si
+    viene de una fuente que no lo puso).
+  - **Verificado con un script Node dedicado**: `addPlayer`/`removePlayer`
+    dejan el `teamId` correcto, los canteranos de `generateAcademyIntake`
+    salen con `teamId` ya asignado, un roster pasado directamente al
+    constructor queda sincronizado, y los generadores existentes
+    (`teamGenerator`, `skewedTeamGenerator`, `playerGenerator`) siguen
+    funcionando sin romperse, con `teamId` bien puesto en todos los
+    jugadores de sus rosters. También comprobado con Playwright headless
+    que `index.html` sigue sin errores de consola tras el cambio.
+
 - **Playoffs, Copa y Playoff de ascenso — Fase 2 de Liga/Calendario
   (DESIGN.md 3.2)**. Reutiliza `League.js` y `MatchEngine.js` tal cual,
   sin ninguna modificación.

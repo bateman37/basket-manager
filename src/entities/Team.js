@@ -103,6 +103,11 @@
       // Plantilla total sin límite duro; la convocatoria de partido (8-12)
       // se valida aparte con buildMatchSquad().
       this.roster = Array.isArray(data.roster) ? [...data.roster] : [];
+      // Si el roster llega ya poblado (equipos cargados desde datos
+      // guardados/generados con jugadores ya creados), aseguramos que cada
+      // jugador quede con teamId sincronizado, por si viene de una fuente
+      // que no lo puso.
+      this.roster.forEach((player) => { player.teamId = this.id; });
 
       // --- Reputación (DESIGN.md 6.2.1) ---
       // Escala provisional 0-100: a diferencia de los atributos de jugador
@@ -227,10 +232,13 @@
 
     // --- Plantilla ---
     addPlayer(player) {
+      player.teamId = this.id;
       this.roster.push(player);
     }
 
     removePlayer(playerId) {
+      const leaving = this.roster.find((player) => player.id === playerId);
+      if (leaving) leaving.teamId = null;
       this.roster = this.roster.filter((player) => player.id !== playerId);
     }
 
@@ -286,6 +294,7 @@
       const newPlayers = [];
       for (let i = 0; i < count; i++) {
         const player = PlayerGenerator.generateFictionalPlayer({ minAge: 16, maxAge: 19 });
+        player.teamId = this.id;
         this.roster.push(player);
         newPlayers.push(player);
       }
