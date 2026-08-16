@@ -248,6 +248,26 @@
       return squad;
     }
 
+    // Construye la convocatoria excluyendo a cualquier jugador cuya ÚNICA
+    // posición (o TODAS sus posiciones) sea la indicada — ej. excluir todos
+    // los "Pívot" puros, pero mantener a un jugador Ala-pívot/Pívot porque
+    // también sabe jugar de Ala-pívot. Genérico por posición: sirve igual
+    // para "sin Bases", "sin Aleros", etc., sin tocar código de nuevo.
+    // Herramienta de prueba de estrés del motor, no una regla de reglamento
+    // (no está en DESIGN.md) — reutiliza la misma validación 8-12 de
+    // buildMatchSquad().
+    buildMatchSquadExcludingPosition(position) {
+      const eligible = this.roster.filter((player) => !player.positions.every((p) => p === position));
+      if (eligible.length < MATCH_SQUAD_MIN) {
+        throw new Error(
+          `Tras excluir la posición "${position}" solo quedan ${eligible.length} jugadores elegibles `
+          + `en la plantilla de ${this.fullName} — hacen falta al menos ${MATCH_SQUAD_MIN} para convocar.`,
+        );
+      }
+      const ids = eligible.slice(0, MATCH_SQUAD_MAX).map((player) => player.id);
+      return this.buildMatchSquad(ids);
+    }
+
     // --- Cantera/Academia (DESIGN.md 6.2.3) ---
     // Placeholder actual: cada temporada la Cantera/Academia genera 3
     // jugadores jóvenes reutilizando el generador de jugadores (6.1), y se
