@@ -1,0 +1,970 @@
+{
+  "id": "team-hla-alicante",
+  "name": "HLA Alicante",
+  "city": "Alicante",
+  "foundationYear": 1994,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-hla-alicante-01",
+      "firstName": "Mike",
+      "lastName": "Torres",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 192,
+        "weight": 78
+      },
+      "technical": {
+        "outsideShot": 11,
+        "midRangeShot": 14,
+        "insideShot": 3,
+        "freeThrows": 13,
+        "layup": 15,
+        "passing": 15,
+        "ballHandling": 15,
+        "offensiveRebound": 3,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 10,
+        "strength": 9,
+        "agility": 14,
+        "balance": 15,
+        "stamina": 14,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 14,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 12,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 190,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-02",
+      "firstName": "Rafael",
+      "lastName": "Lisboa",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 185,
+        "wingspan": 191,
+        "weight": 78
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 14,
+        "insideShot": 3,
+        "freeThrows": 12,
+        "layup": 15,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 3,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 15,
+        "jumping": 8,
+        "strength": 9,
+        "agility": 14,
+        "balance": 15,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 14,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 14,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 13,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 200,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-03",
+      "firstName": "Dani",
+      "lastName": "Manchón",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 200,
+        "weight": 85
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 13,
+        "insideShot": 4,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 13,
+        "ballHandling": 13,
+        "offensiveRebound": 5,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 10,
+        "perimeterDefense": 11,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 13,
+        "jumping": 12,
+        "strength": 12,
+        "agility": 14,
+        "balance": 13,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 14,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 200,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-04",
+      "firstName": "Macio",
+      "lastName": "Teague",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 192,
+        "wingspan": 198,
+        "weight": 87
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 12,
+        "insideShot": 4,
+        "freeThrows": 15,
+        "layup": 13,
+        "passing": 11,
+        "ballHandling": 12,
+        "offensiveRebound": 6,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 13,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 14,
+        "jumping": 13,
+        "strength": 11,
+        "agility": 14,
+        "balance": 13,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 15,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 200,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-05",
+      "firstName": "Kristinn",
+      "lastName": "Pálsson",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 200,
+        "wingspan": 206,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 13,
+        "insideShot": 7,
+        "freeThrows": 12,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 11,
+        "offensiveRebound": 10,
+        "defensiveRebound": 11,
+        "blocking": 3,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 13,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-06",
+      "firstName": "Sediq",
+      "lastName": "Garuba",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 200,
+        "wingspan": 209,
+        "weight": 97
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 12,
+        "insideShot": 8,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 11,
+        "offensiveRebound": 9,
+        "defensiveRebound": 11,
+        "blocking": 4,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 14,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 12,
+        "jumping": 12,
+        "strength": 14,
+        "agility": 12,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 15,
+        "ambition": 16
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-07",
+      "firstName": "Tamenang",
+      "lastName": "Choh",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot",
+        "Escolta"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 206,
+        "weight": 91
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 14,
+        "insideShot": 9,
+        "freeThrows": 15,
+        "layup": 15,
+        "passing": 13,
+        "ballHandling": 12,
+        "offensiveRebound": 11,
+        "defensiveRebound": 15,
+        "blocking": 6,
+        "stealing": 13,
+        "foulTendency": 14,
+        "perimeterDefense": 16,
+        "interiorDefense": 9
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 15,
+        "strength": 15,
+        "agility": 15,
+        "balance": 15,
+        "stamina": 18,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 19,
+        "temperament": 15,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 380,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-08",
+      "firstName": "Wesley",
+      "lastName": "Dreamer",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 203,
+        "wingspan": 214,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 11,
+        "insideShot": 13,
+        "freeThrows": 12,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 7,
+        "offensiveRebound": 13,
+        "defensiveRebound": 14,
+        "blocking": 8,
+        "stealing": 7,
+        "foulTendency": 12,
+        "perimeterDefense": 9,
+        "interiorDefense": 12
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 11,
+        "jumping": 14,
+        "strength": 16,
+        "agility": 12,
+        "balance": 15,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 18,
+        "temperament": 14,
+        "consistency": 12,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-09",
+      "firstName": "Giorgi",
+      "lastName": "Korsantia",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 203,
+        "wingspan": 210,
+        "weight": 103
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 10,
+        "insideShot": 12,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 7,
+        "offensiveRebound": 13,
+        "defensiveRebound": 14,
+        "blocking": 8,
+        "stealing": 8,
+        "foulTendency": 14,
+        "perimeterDefense": 11,
+        "interiorDefense": 12
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 10,
+        "jumping": 14,
+        "strength": 15,
+        "agility": 11,
+        "balance": 14,
+        "stamina": 14,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 9,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 230,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-10",
+      "firstName": "Arnau",
+      "lastName": "Parrado",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 202,
+        "wingspan": 210,
+        "weight": 101
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 10,
+        "insideShot": 12,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 8,
+        "offensiveRebound": 13,
+        "defensiveRebound": 14,
+        "blocking": 8,
+        "stealing": 7,
+        "foulTendency": 13,
+        "perimeterDefense": 9,
+        "interiorDefense": 13
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 12,
+        "jumping": 14,
+        "strength": 16,
+        "agility": 10,
+        "balance": 15,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 15,
+        "concentration": 15,
+        "leadership": 13,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 170,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-11",
+      "firstName": "Mikhail",
+      "lastName": "Mikhailov",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 212,
+        "wingspan": 222,
+        "weight": 110
+      },
+      "technical": {
+        "outsideShot": 3,
+        "midRangeShot": 7,
+        "insideShot": 15,
+        "freeThrows": 10,
+        "layup": 16,
+        "passing": 7,
+        "ballHandling": 4,
+        "offensiveRebound": 16,
+        "defensiveRebound": 16,
+        "blocking": 15,
+        "stealing": 7,
+        "foulTendency": 15,
+        "perimeterDefense": 6,
+        "interiorDefense": 15
+      },
+      "physical": {
+        "topSpeed": 9,
+        "acceleration": 9,
+        "jumping": 15,
+        "strength": 17,
+        "agility": 7,
+        "balance": 15,
+        "stamina": 16,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 8,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 14,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-hla-alicante-12",
+      "firstName": "Romaro",
+      "lastName": "Gill",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-hla-alicante",
+      "bodyMeasurements": {
+        "height": 208,
+        "wingspan": 218,
+        "weight": 106
+      },
+      "technical": {
+        "outsideShot": 5,
+        "midRangeShot": 8,
+        "insideShot": 17,
+        "freeThrows": 14,
+        "layup": 18,
+        "passing": 10,
+        "ballHandling": 7,
+        "offensiveRebound": 19,
+        "defensiveRebound": 19,
+        "blocking": 17,
+        "stealing": 8,
+        "foulTendency": 16,
+        "perimeterDefense": 9,
+        "interiorDefense": 18
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 11,
+        "jumping": 16,
+        "strength": 19,
+        "agility": 10,
+        "balance": 17,
+        "stamina": 16,
+        "recovery": 18,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 9,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 18,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 16,
+        "anticipation": 18,
+        "positioning": 18,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 310,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Competitividad",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

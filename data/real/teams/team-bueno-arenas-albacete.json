@@ -1,0 +1,681 @@
+{
+  "id": "team-bueno-arenas-albacete",
+  "name": "Bueno Arenas Albacete Basket",
+  "city": "Albacete",
+  "foundationYear": 2012,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-bueno-arenas-albacete-01",
+      "firstName": "Silvano",
+      "lastName": "Merlo",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 184,
+        "wingspan": 195,
+        "weight": 84
+      },
+      "technical": {
+        "outsideShot": 11,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 12,
+        "layup": 14,
+        "passing": 16,
+        "ballHandling": 15,
+        "offensiveRebound": 2,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 16,
+        "jumping": 10,
+        "strength": 10,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 16,
+        "recovery": 14,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 16,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 14,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 13,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 190,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-bueno-arenas-albacete-02",
+      "firstName": "José",
+      "lastName": "Luis González",
+      "birthDate": null,
+      "positions": [
+        "Escolta"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 191,
+        "wingspan": 201,
+        "weight": 89
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 5,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 12,
+        "offensiveRebound": 4,
+        "defensiveRebound": 9,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 14,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 13,
+        "balance": 12,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 14,
+        "workRate": 14
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-bueno-arenas-albacete-03",
+      "firstName": "Nick",
+      "lastName": "Reid",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 207,
+        "weight": 91
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 11,
+        "insideShot": 6,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 12,
+        "ballHandling": 12,
+        "offensiveRebound": 9,
+        "defensiveRebound": 13,
+        "blocking": 4,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 13,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 12,
+        "jumping": 13,
+        "strength": 12,
+        "agility": 13,
+        "balance": 14,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 14,
+        "consistency": 12,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-bueno-arenas-albacete-04",
+      "firstName": "Jan",
+      "lastName": "Zemljic",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 193,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 11,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 14,
+        "layup": 14,
+        "passing": 16,
+        "ballHandling": 15,
+        "offensiveRebound": 2,
+        "defensiveRebound": 6,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 13,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 8,
+        "strength": 8,
+        "agility": 16,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 13,
+        "workRate": 14
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-bueno-arenas-albacete-05",
+      "firstName": "Bernat",
+      "lastName": "Vanaclocha",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 220,
+        "weight": 108
+      },
+      "technical": {
+        "outsideShot": 4,
+        "midRangeShot": 8,
+        "insideShot": 14,
+        "freeThrows": 12,
+        "layup": 16,
+        "passing": 9,
+        "ballHandling": 4,
+        "offensiveRebound": 17,
+        "defensiveRebound": 16,
+        "blocking": 15,
+        "stealing": 7,
+        "foulTendency": 14,
+        "perimeterDefense": 6,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 8,
+        "acceleration": 9,
+        "jumping": 14,
+        "strength": 17,
+        "agility": 8,
+        "balance": 17,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 7,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 12,
+        "anticipation": 17,
+        "positioning": 17,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "cac4eb12-e419-4937-852c-45b35df44b07",
+      "firstName": "Iván",
+      "lastName": "Serrano Yuste",
+      "birthDate": "2000-10-23",
+      "positions": [
+        "Pívot",
+        "Ala-pívot"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 204,
+        "wingspan": 216,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 7,
+        "midRangeShot": 11,
+        "insideShot": 14,
+        "freeThrows": 8,
+        "layup": 13,
+        "passing": 7,
+        "ballHandling": 4,
+        "offensiveRebound": 17,
+        "defensiveRebound": 15,
+        "blocking": 13,
+        "stealing": 5,
+        "foulTendency": 12,
+        "perimeterDefense": 6,
+        "interiorDefense": 12
+      },
+      "physical": {
+        "topSpeed": 6,
+        "acceleration": 7,
+        "jumping": 11,
+        "strength": 13,
+        "agility": 6,
+        "balance": 12,
+        "stamina": 8,
+        "recovery": 10,
+        "durability": 13
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 9,
+        "aggressiveness": 9,
+        "concentration": 10,
+        "leadership": 9,
+        "teamwork": 10,
+        "temperament": 11,
+        "consistency": 10,
+        "anticipation": 12,
+        "positioning": 12,
+        "workRate": 12
+      },
+      "traits": [
+        "Jugador de vestuario",
+        "Especialista defensivo"
+      ],
+      "experience": 167,
+      "hidden": {
+        "potential": 12,
+        "professionalism": 6,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    },
+    {
+      "id": "a506953b-f186-48ff-92e1-94d966455e2e",
+      "firstName": "Marcos",
+      "lastName": "Ugarte Tapia",
+      "birthDate": "1999-02-17",
+      "positions": [
+        "Ala-pívot"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 208,
+        "weight": 104
+      },
+      "technical": {
+        "outsideShot": 9,
+        "midRangeShot": 12,
+        "insideShot": 12,
+        "freeThrows": 12,
+        "layup": 15,
+        "passing": 8,
+        "ballHandling": 7,
+        "offensiveRebound": 13,
+        "defensiveRebound": 13,
+        "blocking": 12,
+        "stealing": 8,
+        "foulTendency": 11,
+        "perimeterDefense": 10,
+        "interiorDefense": 12
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 8,
+        "jumping": 12,
+        "strength": 12,
+        "agility": 8,
+        "balance": 13,
+        "stamina": 8,
+        "recovery": 9,
+        "durability": 12
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 11,
+        "aggressiveness": 11,
+        "concentration": 12,
+        "leadership": 8,
+        "teamwork": 12,
+        "temperament": 10,
+        "consistency": 9,
+        "anticipation": 10,
+        "positioning": 8,
+        "workRate": 9
+      },
+      "traits": [
+        "Jugador de vestuario",
+        "Tirador clutch"
+      ],
+      "experience": 147,
+      "hidden": {
+        "potential": 5,
+        "professionalism": 8,
+        "ambition": 5
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    },
+    {
+      "id": "0af48263-502b-40d3-827a-abdd3ae2e6bf",
+      "firstName": "Óscar",
+      "lastName": "Lozano Nieto",
+      "birthDate": "1996-10-27",
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-bueno-arenas-albacete",
+      "bodyMeasurements": {
+        "height": 194,
+        "wingspan": 207,
+        "weight": 84
+      },
+      "technical": {
+        "outsideShot": 11,
+        "midRangeShot": 12,
+        "insideShot": 5,
+        "freeThrows": 10,
+        "layup": 7,
+        "passing": 18,
+        "ballHandling": 16,
+        "offensiveRebound": 7,
+        "defensiveRebound": 9,
+        "blocking": 6,
+        "stealing": 14,
+        "foulTendency": 10,
+        "perimeterDefense": 11,
+        "interiorDefense": 6
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 13,
+        "jumping": 13,
+        "strength": 7,
+        "agility": 13,
+        "balance": 10,
+        "stamina": 12,
+        "recovery": 10,
+        "durability": 10
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 11,
+        "aggressiveness": 8,
+        "concentration": 8,
+        "leadership": 11,
+        "teamwork": 8,
+        "temperament": 12,
+        "consistency": 11,
+        "anticipation": 11,
+        "positioning": 11,
+        "workRate": 11
+      },
+      "traits": [],
+      "experience": 257,
+      "hidden": {
+        "potential": 16,
+        "professionalism": 12,
+        "ambition": 8
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Competitividad",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

@@ -1,0 +1,680 @@
+{
+  "id": "team-palmer-basket-mallorca-palma",
+  "name": "Palmer Basket Mallorca Palma",
+  "city": "Palma",
+  "foundationYear": 2023,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-palmer-basket-mallorca-palma-01",
+      "firstName": "Kevin",
+      "lastName": "Torres",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 191,
+        "wingspan": 200,
+        "weight": 91
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 12,
+        "insideShot": 4,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 14,
+        "offensiveRebound": 5,
+        "defensiveRebound": 9,
+        "blocking": 2,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 11,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 13,
+        "jumping": 13,
+        "strength": 11,
+        "agility": 13,
+        "balance": 13,
+        "stamina": 14,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 13,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 13,
+        "consistency": 14,
+        "anticipation": 12,
+        "positioning": 15,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 170,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palmer-basket-mallorca-palma-02",
+      "firstName": "Álex",
+      "lastName": "Blanco",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 190,
+        "weight": 86
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 16,
+        "ballHandling": 15,
+        "offensiveRebound": 4,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 10,
+        "strength": 9,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 12,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 14,
+        "consistency": 12,
+        "anticipation": 14,
+        "positioning": 12,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 15,
+        "ambition": 16
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palmer-basket-mallorca-palma-03",
+      "firstName": "Joan",
+      "lastName": "Feliu",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 195,
+        "wingspan": 202,
+        "weight": 93
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 13,
+        "insideShot": 5,
+        "freeThrows": 15,
+        "layup": 13,
+        "passing": 11,
+        "ballHandling": 12,
+        "offensiveRebound": 6,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 10,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 14,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 14,
+        "balance": 13,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palmer-basket-mallorca-palma-04",
+      "firstName": "David",
+      "lastName": "Jolinder",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 201,
+        "wingspan": 205,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 7,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 12,
+        "offensiveRebound": 10,
+        "defensiveRebound": 12,
+        "blocking": 4,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 13,
+        "interiorDefense": 6
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 12,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 13,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 14,
+        "concentration": 15,
+        "leadership": 11,
+        "teamwork": 17,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palmer-basket-mallorca-palma-05",
+      "firstName": "Octavio",
+      "lastName": "Brito",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 204,
+        "weight": 91
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 13,
+        "insideShot": 7,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 12,
+        "ballHandling": 12,
+        "offensiveRebound": 9,
+        "defensiveRebound": 11,
+        "blocking": 3,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 13,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 12,
+        "jumping": 13,
+        "strength": 14,
+        "agility": 14,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 15,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palmer-basket-mallorca-palma-06",
+      "firstName": "Ángel",
+      "lastName": "Comendador",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 206,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 8,
+        "freeThrows": 13,
+        "layup": 15,
+        "passing": 11,
+        "ballHandling": 11,
+        "offensiveRebound": 9,
+        "defensiveRebound": 12,
+        "blocking": 4,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 12,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 13,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 17,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palmer-basket-mallorca-palma-07",
+      "firstName": "Emil",
+      "lastName": "Stoilov",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 208,
+        "wingspan": 217,
+        "weight": 112
+      },
+      "technical": {
+        "outsideShot": 2,
+        "midRangeShot": 6,
+        "insideShot": 15,
+        "freeThrows": 11,
+        "layup": 17,
+        "passing": 7,
+        "ballHandling": 4,
+        "offensiveRebound": 16,
+        "defensiveRebound": 17,
+        "blocking": 15,
+        "stealing": 7,
+        "foulTendency": 15,
+        "perimeterDefense": 6,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 9,
+        "acceleration": 10,
+        "jumping": 14,
+        "strength": 17,
+        "agility": 8,
+        "balance": 17,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 9,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 17,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 210,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "9835e586-8857-43db-9136-91b4437bd97e",
+      "firstName": "Raúl",
+      "lastName": "Vidal Lozano",
+      "birthDate": "1997-04-20",
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-palmer-basket-mallorca-palma",
+      "bodyMeasurements": {
+        "height": 206,
+        "wingspan": 220,
+        "weight": 102
+      },
+      "technical": {
+        "outsideShot": 10,
+        "midRangeShot": 13,
+        "insideShot": 12,
+        "freeThrows": 13,
+        "layup": 12,
+        "passing": 10,
+        "ballHandling": 10,
+        "offensiveRebound": 13,
+        "defensiveRebound": 12,
+        "blocking": 10,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 11,
+        "interiorDefense": 12
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 8,
+        "jumping": 14,
+        "strength": 12,
+        "agility": 8,
+        "balance": 11,
+        "stamina": 13,
+        "recovery": 11,
+        "durability": 12
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 12,
+        "concentration": 10,
+        "leadership": 11,
+        "teamwork": 10,
+        "temperament": 9,
+        "consistency": 11,
+        "anticipation": 9,
+        "positioning": 10,
+        "workRate": 13
+      },
+      "traits": [
+        "Jugador de vestuario"
+      ],
+      "experience": 197,
+      "hidden": {
+        "potential": 7,
+        "professionalism": 8,
+        "ambition": 9
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Desarrollo",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

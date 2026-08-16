@@ -1,0 +1,809 @@
+================================================================================
+ACB / 1ª
+================================================================================
+
+{
+  "id": "team-asisa-joventut",
+  "name": "Asisa Joventut",
+  "city": "Badalona",
+  "foundationYear": 1930,
+  "division": "1ª",
+  "playerIds": [
+    "player-asisa-joventut-01",
+    "player-asisa-joventut-02",
+    "player-asisa-joventut-03",
+    "player-asisa-joventut-04",
+    "player-asisa-joventut-05",
+    "player-asisa-joventut-06",
+    "player-asisa-joventut-07",
+    "player-asisa-joventut-08",
+    "player-asisa-joventut-09",
+    "player-asisa-joventut-10",
+    "player-asisa-joventut-11",
+    "player-asisa-joventut-12"
+  ],
+  "clubDNA": "Cantera"
+}
+
+{
+  "id": "team-barca",
+  "name": "Barça",
+  "city": "Barcelona",
+  "foundationYear": 1926,
+  "division": "1ª",
+  "playerIds": [
+    "player-barca-01",
+    "player-barca-02",
+    "player-barca-03",
+    "player-barca-04",
+    "player-barca-05",
+    "player-barca-06",
+    "player-barca-07",
+    "player-barca-08",
+    "player-barca-09",
+    "player-barca-10",
+    "player-barca-11",
+    "player-barca-12",
+    "player-barca-13"
+  ],
+  "clubDNA": "Talento"
+}
+
+{
+  "id": "team-casademont-zaragoza",
+  "name": "Casademont Zaragoza",
+  "city": "Zaragoza",
+  "foundationYear": 2002,
+  "division": "1ª",
+  "playerIds": [
+    "player-casademont-zaragoza-01",
+    "player-casademont-zaragoza-02",
+    "player-casademont-zaragoza-03",
+    "player-casademont-zaragoza-04",
+    "player-casademont-zaragoza-05",
+    "player-casademont-zaragoza-06",
+    "player-casademont-zaragoza-07",
+    "player-casademont-zaragoza-08",
+    "player-casademont-zaragoza-09",
+    "player-casademont-zaragoza-10",
+    "player-casademont-zaragoza-11"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-fiatc-girona",
+  "name": "FIATC Girona",
+  "city": "Girona",
+  "foundationYear": 2014,
+  "division": "1ª",
+  "playerIds": [
+    "player-fiatc-girona-01",
+    "player-fiatc-girona-02",
+    "player-fiatc-girona-03",
+    "player-fiatc-girona-04",
+    "player-fiatc-girona-05",
+    "player-fiatc-girona-06",
+    "player-fiatc-girona-07",
+    "player-fiatc-girona-08",
+    "player-fiatc-girona-09",
+    "player-fiatc-girona-10",
+    "player-fiatc-girona-11"
+  ],
+  "clubDNA": "Desarrollo"
+}
+
+{
+  "id": "team-ilerna-lleida",
+  "name": "iLERNA Lleida",
+  "city": "Lleida",
+  "foundationYear": 2012,
+  "division": "1ª",
+  "playerIds": [
+    "player-ilerna-lleida-01",
+    "player-ilerna-lleida-02",
+    "player-ilerna-lleida-03",
+    "player-ilerna-lleida-04",
+    "player-ilerna-lleida-05",
+    "player-ilerna-lleida-06",
+    "player-ilerna-lleida-07",
+    "player-ilerna-lleida-08",
+    "player-ilerna-lleida-09",
+    "player-ilerna-lleida-10",
+    "player-ilerna-lleida-11"
+  ],
+  "clubDNA": "Intensidad"
+}
+
+{
+  "id": "team-kids-and-us-manresa",
+  "name": "Kids&Us Manresa",
+  "city": "Manresa",
+  "foundationYear": 1931,
+  "division": "1ª",
+  "playerIds": [
+    "player-kids-and-us-manresa-01",
+    "player-kids-and-us-manresa-02",
+    "player-kids-and-us-manresa-03",
+    "player-kids-and-us-manresa-04",
+    "player-kids-and-us-manresa-05",
+    "player-kids-and-us-manresa-06",
+    "player-kids-and-us-manresa-07",
+    "player-kids-and-us-manresa-08",
+    "player-kids-and-us-manresa-09",
+    "player-kids-and-us-manresa-10",
+    "player-kids-and-us-manresa-11",
+    "player-kids-and-us-manresa-12"
+  ],
+  "clubDNA": "Ritmo alto"
+}
+
+{
+  "id": "team-kosner-baskonia",
+  "name": "Kosner Baskonia",
+  "city": "Vitoria-Gasteiz",
+  "foundationYear": 1959,
+  "division": "1ª",
+  "playerIds": [
+    "player-kosner-baskonia-01",
+    "player-kosner-baskonia-02",
+    "player-kosner-baskonia-03",
+    "player-kosner-baskonia-04",
+    "player-kosner-baskonia-05",
+    "player-kosner-baskonia-06",
+    "player-kosner-baskonia-07",
+    "player-kosner-baskonia-08",
+    "player-kosner-baskonia-09",
+    "player-kosner-baskonia-10",
+    "player-kosner-baskonia-11"
+  ],
+  "clubDNA": "Carácter"
+}
+
+{
+  "id": "team-la-laguna-tenerife",
+  "name": "La Laguna Tenerife",
+  "city": "San Cristóbal de La Laguna",
+  "foundationYear": 1939,
+  "division": "1ª",
+  "playerIds": [
+    "player-la-laguna-tenerife-01",
+    "player-la-laguna-tenerife-02",
+    "player-la-laguna-tenerife-03",
+    "player-la-laguna-tenerife-04",
+    "player-la-laguna-tenerife-05",
+    "player-la-laguna-tenerife-06",
+    "player-la-laguna-tenerife-07",
+    "player-la-laguna-tenerife-08",
+    "player-la-laguna-tenerife-09",
+    "player-la-laguna-tenerife-10",
+    "player-la-laguna-tenerife-11",
+    "player-la-laguna-tenerife-12",
+    "player-la-laguna-tenerife-13",
+    "player-la-laguna-tenerife-14"
+  ],
+  "clubDNA": "Experiencia"
+}
+
+{
+  "id": "team-leyma-coruna",
+  "name": "Leyma Coruña",
+  "city": "A Coruña",
+  "foundationYear": 1996,
+  "division": "1ª",
+  "playerIds": [
+    "player-leyma-coruna-01",
+    "player-leyma-coruna-02",
+    "player-leyma-coruna-03",
+    "player-leyma-coruna-04",
+    "player-leyma-coruna-05",
+    "player-leyma-coruna-06",
+    "player-leyma-coruna-07",
+    "player-leyma-coruna-08",
+    "player-leyma-coruna-09",
+    "player-leyma-coruna-10",
+    "player-leyma-coruna-11",
+    "player-leyma-coruna-12"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-monbus-obradoiro",
+  "name": "Monbus Obradoiro",
+  "city": "Santiago de Compostela",
+  "foundationYear": 1970,
+  "division": "1ª",
+  "playerIds": [
+    "player-monbus-obradoiro-01",
+    "player-monbus-obradoiro-02",
+    "player-monbus-obradoiro-03",
+    "player-monbus-obradoiro-04",
+    "player-monbus-obradoiro-05",
+    "player-monbus-obradoiro-06",
+    "player-monbus-obradoiro-07",
+    "player-monbus-obradoiro-08",
+    "player-monbus-obradoiro-09",
+    "player-monbus-obradoiro-10",
+    "player-monbus-obradoiro-11",
+    "player-monbus-obradoiro-12",
+    "player-monbus-obradoiro-13"
+  ],
+  "clubDNA": "Identidad"
+}
+
+{
+  "id": "team-morabanc-andorra",
+  "name": "MoraBanc Andorra",
+  "city": "Andorra la Vella",
+  "foundationYear": 1970,
+  "division": "1ª",
+  "playerIds": [
+    "player-morabanc-andorra-01",
+    "player-morabanc-andorra-02",
+    "player-morabanc-andorra-03",
+    "player-morabanc-andorra-04",
+    "player-morabanc-andorra-05",
+    "player-morabanc-andorra-06",
+    "player-morabanc-andorra-07",
+    "player-morabanc-andorra-08",
+    "player-morabanc-andorra-09",
+    "player-morabanc-andorra-10",
+    "player-morabanc-andorra-11",
+    "player-morabanc-andorra-12",
+    "player-morabanc-andorra-13",
+    "player-morabanc-andorra-14"
+  ],
+  "clubDNA": "Ritmo alto"
+}
+
+{
+  "id": "team-real-madrid",
+  "name": "Real Madrid",
+  "city": "Madrid",
+  "foundationYear": 1931,
+  "division": "1ª",
+  "playerIds": [
+    "player-real-madrid-01",
+    "player-real-madrid-02",
+    "player-real-madrid-03",
+    "player-real-madrid-04",
+    "player-real-madrid-05",
+    "player-real-madrid-06",
+    "player-real-madrid-07",
+    "player-real-madrid-08",
+    "player-real-madrid-09",
+    "player-real-madrid-10",
+    "player-real-madrid-11",
+    "player-real-madrid-12",
+    "player-real-madrid-13",
+    "player-real-madrid-14",
+    "player-real-madrid-15",
+    "player-real-madrid-16"
+  ],
+  "clubDNA": "Exigencia"
+}
+
+{
+  "id": "team-recoletas-salud-san-pablo-burgos",
+  "name": "Recoletas Salud San Pablo Burgos",
+  "city": "Burgos",
+  "foundationYear": 2015,
+  "division": "1ª",
+  "playerIds": [
+    "player-recoletas-salud-san-pablo-burgos-01",
+    "player-recoletas-salud-san-pablo-burgos-02",
+    "player-recoletas-salud-san-pablo-burgos-03",
+    "player-recoletas-salud-san-pablo-burgos-04",
+    "player-recoletas-salud-san-pablo-burgos-05",
+    "player-recoletas-salud-san-pablo-burgos-06",
+    "player-recoletas-salud-san-pablo-burgos-07",
+    "player-recoletas-salud-san-pablo-burgos-08",
+    "player-recoletas-salud-san-pablo-burgos-09",
+    "player-recoletas-salud-san-pablo-burgos-10",
+    "player-recoletas-salud-san-pablo-burgos-11",
+    "player-recoletas-salud-san-pablo-burgos-12"
+  ],
+  "clubDNA": "Ambición"
+}
+
+{
+  "id": "team-rio-breogan",
+  "name": "Río Breogán",
+  "city": "Lugo",
+  "foundationYear": 1966,
+  "division": "1ª",
+  "playerIds": [
+    "player-rio-breogan-01",
+    "player-rio-breogan-02",
+    "player-rio-breogan-03",
+    "player-rio-breogan-04",
+    "player-rio-breogan-05",
+    "player-rio-breogan-06",
+    "player-rio-breogan-07",
+    "player-rio-breogan-08",
+    "player-rio-breogan-09",
+    "player-rio-breogan-10",
+    "player-rio-breogan-11",
+    "player-rio-breogan-12",
+    "player-rio-breogan-13"
+  ],
+  "clubDNA": "Carácter"
+}
+
+{
+  "id": "team-surne-bilbao-basket",
+  "name": "Surne Bilbao Basket",
+  "city": "Bilbao",
+  "foundationYear": 2000,
+  "division": "1ª",
+  "playerIds": [
+    "player-surne-bilbao-basket-01",
+    "player-surne-bilbao-basket-02",
+    "player-surne-bilbao-basket-03",
+    "player-surne-bilbao-basket-04",
+    "player-surne-bilbao-basket-05",
+    "player-surne-bilbao-basket-06",
+    "player-surne-bilbao-basket-07",
+    "player-surne-bilbao-basket-08",
+    "player-surne-bilbao-basket-09",
+    "player-surne-bilbao-basket-10",
+    "player-surne-bilbao-basket-11",
+    "player-surne-bilbao-basket-12",
+    "player-surne-bilbao-basket-13"
+  ],
+  "clubDNA": "Defensa"
+}
+
+{
+  "id": "team-ucam-murcia",
+  "name": "UCAM Murcia",
+  "city": "Murcia",
+  "foundationYear": 1985,
+  "division": "1ª",
+  "playerIds": [
+    "player-ucam-murcia-01",
+    "player-ucam-murcia-02",
+    "player-ucam-murcia-03",
+    "player-ucam-murcia-04",
+    "player-ucam-murcia-05",
+    "player-ucam-murcia-06",
+    "player-ucam-murcia-07",
+    "player-ucam-murcia-08",
+    "player-ucam-murcia-09",
+    "player-ucam-murcia-10",
+    "player-ucam-murcia-11",
+    "player-ucam-murcia-12",
+    "player-ucam-murcia-13",
+    "player-ucam-murcia-14",
+    "player-ucam-murcia-15",
+    "player-ucam-murcia-16"
+  ],
+  "clubDNA": "Intensidad"
+}
+
+{
+  "id": "team-unicaja",
+  "name": "Unicaja",
+  "city": "Málaga",
+  "foundationYear": 1977,
+  "division": "1ª",
+  "playerIds": [
+    "player-unicaja-01",
+    "player-unicaja-02",
+    "player-unicaja-03",
+    "player-unicaja-04",
+    "player-unicaja-05",
+    "player-unicaja-06",
+    "player-unicaja-07",
+    "player-unicaja-08",
+    "player-unicaja-09",
+    "player-unicaja-10",
+    "player-unicaja-11",
+    "player-unicaja-12",
+    "player-unicaja-13"
+  ],
+  "clubDNA": "Defensa"
+}
+
+{
+  "id": "team-valencia-basket",
+  "name": "Valencia Basket",
+  "city": "Valencia",
+  "foundationYear": 1986,
+  "division": "1ª",
+  "playerIds": [
+    "player-valencia-basket-01",
+    "player-valencia-basket-02",
+    "player-valencia-basket-03",
+    "player-valencia-basket-04",
+    "player-valencia-basket-05",
+    "player-valencia-basket-06",
+    "player-valencia-basket-07",
+    "player-valencia-basket-08",
+    "player-valencia-basket-09",
+    "player-valencia-basket-10",
+    "player-valencia-basket-11",
+    "player-valencia-basket-12",
+    "player-valencia-basket-13",
+    "player-valencia-basket-14",
+    "player-valencia-basket-15"
+  ],
+  "clubDNA": "Cantera"
+}
+
+================================================================================
+PRIMERA FEB / 2ª
+================================================================================
+
+{
+  "id": "team-alimerka-oviedo",
+  "name": "Alimerka Oviedo Baloncesto",
+  "city": "Oviedo",
+  "foundationYear": 2004,
+  "division": "2ª",
+  "playerIds": [
+    "player-alimerka-oviedo-01",
+    "player-alimerka-oviedo-02",
+    "player-alimerka-oviedo-03",
+    "player-alimerka-oviedo-04",
+    "player-alimerka-oviedo-05",
+    "player-alimerka-oviedo-06",
+    "player-alimerka-oviedo-07",
+    "player-alimerka-oviedo-08",
+    "player-alimerka-oviedo-09",
+    "player-alimerka-oviedo-10",
+    "player-alimerka-oviedo-11",
+    "player-alimerka-oviedo-12"
+  ],
+  "clubDNA": "Desarrollo"
+}
+
+{
+  "id": "team-grupo-alega-cantabria",
+  "name": "Grupo Alega Cantabria",
+  "city": "Torrelavega",
+  "foundationYear": 2003,
+  "division": "2ª",
+  "playerIds": [
+    "player-grupo-alega-cantabria-01",
+    "player-grupo-alega-cantabria-02",
+    "player-grupo-alega-cantabria-03",
+    "player-grupo-alega-cantabria-04",
+    "player-grupo-alega-cantabria-05",
+    "player-grupo-alega-cantabria-06",
+    "player-grupo-alega-cantabria-07",
+    "player-grupo-alega-cantabria-08",
+    "player-grupo-alega-cantabria-09"
+  ],
+  "clubDNA": "Desarrollo"
+}
+
+{
+  "id": "team-bueno-arenas-albacete",
+  "name": "Bueno Arenas Albacete Basket",
+  "city": "Albacete",
+  "foundationYear": 2012,
+  "division": "2ª",
+  "playerIds": [
+    "player-bueno-arenas-albacete-01",
+    "player-bueno-arenas-albacete-02",
+    "player-bueno-arenas-albacete-03",
+    "player-bueno-arenas-albacete-04",
+    "player-bueno-arenas-albacete-05"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-grupo-ureta-tizona-burgos",
+  "name": "Grupo Ureta Tizona Burgos",
+  "city": "Burgos",
+  "foundationYear": 2013,
+  "division": "2ª",
+  "playerIds": [
+    "player-grupo-ureta-tizona-burgos-01",
+    "player-grupo-ureta-tizona-burgos-02",
+    "player-grupo-ureta-tizona-burgos-03",
+    "player-grupo-ureta-tizona-burgos-04",
+    "player-grupo-ureta-tizona-burgos-05",
+    "player-grupo-ureta-tizona-burgos-06",
+    "player-grupo-ureta-tizona-burgos-07",
+    "player-grupo-ureta-tizona-burgos-08",
+    "player-grupo-ureta-tizona-burgos-09",
+    "player-grupo-ureta-tizona-burgos-10",
+    "player-grupo-ureta-tizona-burgos-11",
+    "player-grupo-ureta-tizona-burgos-12",
+    "player-grupo-ureta-tizona-burgos-13"
+  ],
+  "clubDNA": "Ritmo alto"
+}
+
+{
+  "id": "team-caja-rural-cb-zamora",
+  "name": "Caja Rural CB Zamora",
+  "city": "Zamora",
+  "foundationYear": 1977,
+  "division": "2ª",
+  "playerIds": [
+    "player-caja-rural-cb-zamora-01",
+    "player-caja-rural-cb-zamora-02",
+    "player-caja-rural-cb-zamora-03",
+    "player-caja-rural-cb-zamora-04",
+    "player-caja-rural-cb-zamora-05",
+    "player-caja-rural-cb-zamora-06"
+  ],
+  "clubDNA": "Continuidad"
+}
+
+{
+  "id": "team-basquet-menorca",
+  "name": "Bàsquet Menorca",
+  "city": "Maó",
+  "foundationYear": 2016,
+  "division": "2ª",
+  "playerIds": [
+    "player-basquet-menorca-01",
+    "player-basquet-menorca-02",
+    "player-basquet-menorca-03",
+    "player-basquet-menorca-04",
+    "player-basquet-menorca-05",
+    "player-basquet-menorca-06",
+    "player-basquet-menorca-07",
+    "player-basquet-menorca-08"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-cajasol-coto-cordoba",
+  "name": "Cajasol Coto Córdoba",
+  "city": "Córdoba",
+  "foundationYear": 2022,
+  "division": "2ª",
+  "playerIds": [
+    "player-cajasol-coto-cordoba-01",
+    "player-cajasol-coto-cordoba-02",
+    "player-cajasol-coto-cordoba-03",
+    "player-cajasol-coto-cordoba-04",
+    "player-cajasol-coto-cordoba-05",
+    "player-cajasol-coto-cordoba-06",
+    "player-cajasol-coto-cordoba-07",
+    "player-cajasol-coto-cordoba-08",
+    "player-cajasol-coto-cordoba-09",
+    "player-cajasol-coto-cordoba-10",
+    "player-cajasol-coto-cordoba-11",
+    "player-cajasol-coto-cordoba-12"
+  ],
+  "clubDNA": "Intensidad"
+}
+
+{
+  "id": "team-insolac-caja87",
+  "name": "Insolac Caja 87",
+  "city": "Sevilla",
+  "foundationYear": 2024,
+  "division": "2ª",
+  "playerIds": [
+    "player-insolac-caja87-01",
+    "player-insolac-caja87-02",
+    "player-insolac-caja87-03",
+    "player-insolac-caja87-04",
+    "player-insolac-caja87-05",
+    "player-insolac-caja87-06",
+    "player-insolac-caja87-07",
+    "player-insolac-caja87-08",
+    "player-insolac-caja87-09"
+  ],
+  "clubDNA": "Ambición"
+}
+
+{
+  "id": "team-club-ourense-baloncesto",
+  "name": "Club Ourense Baloncesto",
+  "city": "Ourense",
+  "foundationYear": 1978,
+  "division": "2ª",
+  "playerIds": [
+    "player-club-ourense-baloncesto-01",
+    "player-club-ourense-baloncesto-02",
+    "player-club-ourense-baloncesto-03",
+    "player-club-ourense-baloncesto-04",
+    "player-club-ourense-baloncesto-05",
+    "player-club-ourense-baloncesto-06",
+    "player-club-ourense-baloncesto-07",
+    "player-club-ourense-baloncesto-08",
+    "player-club-ourense-baloncesto-09",
+    "player-club-ourense-baloncesto-10"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-inveready-askatuak-gipuzkoa",
+  "name": "Inveready Askatuak Gipuzkoa",
+  "city": "Donostia-San Sebastián",
+  "foundationYear": 2001,
+  "division": "2ª",
+  "playerIds": [
+    "player-inveready-askatuak-gipuzkoa-01",
+    "player-inveready-askatuak-gipuzkoa-02",
+    "player-inveready-askatuak-gipuzkoa-03",
+    "player-inveready-askatuak-gipuzkoa-04",
+    "player-inveready-askatuak-gipuzkoa-05",
+    "player-inveready-askatuak-gipuzkoa-06",
+    "player-inveready-askatuak-gipuzkoa-07",
+    "player-inveready-askatuak-gipuzkoa-08"
+  ],
+  "clubDNA": "Identidad local"
+}
+
+{
+  "id": "team-coviran-granada",
+  "name": "Covirán Granada",
+  "city": "Granada",
+  "foundationYear": 2012,
+  "division": "2ª",
+  "playerIds": [
+    "player-coviran-granada-01",
+    "player-coviran-granada-02",
+    "player-coviran-granada-03",
+    "player-coviran-granada-04",
+    "player-coviran-granada-05",
+    "player-coviran-granada-06",
+    "player-coviran-granada-07",
+    "player-coviran-granada-08",
+    "player-coviran-granada-09",
+    "player-coviran-granada-10",
+    "player-coviran-granada-11",
+    "player-coviran-granada-12"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-hla-alicante",
+  "name": "HLA Alicante",
+  "city": "Alicante",
+  "foundationYear": 1994,
+  "division": "2ª",
+  "playerIds": [
+    "player-hla-alicante-01",
+    "player-hla-alicante-02",
+    "player-hla-alicante-03",
+    "player-hla-alicante-04",
+    "player-hla-alicante-05",
+    "player-hla-alicante-06",
+    "player-hla-alicante-07",
+    "player-hla-alicante-08",
+    "player-hla-alicante-09",
+    "player-hla-alicante-10",
+    "player-hla-alicante-11",
+    "player-hla-alicante-12"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-fibwi-mallorca-basquet-palma",
+  "name": "Fibwi Mallorca Bàsquet Palma",
+  "city": "Palma",
+  "foundationYear": 1982,
+  "division": "2ª",
+  "playerIds": [
+    "player-fibwi-mallorca-basquet-palma-01",
+    "player-fibwi-mallorca-basquet-palma-02",
+    "player-fibwi-mallorca-basquet-palma-03",
+    "player-fibwi-mallorca-basquet-palma-04",
+    "player-fibwi-mallorca-basquet-palma-05",
+    "player-fibwi-mallorca-basquet-palma-06",
+    "player-fibwi-mallorca-basquet-palma-07",
+    "player-fibwi-mallorca-basquet-palma-08",
+    "player-fibwi-mallorca-basquet-palma-09",
+    "player-fibwi-mallorca-basquet-palma-10",
+    "player-fibwi-mallorca-basquet-palma-11",
+    "player-fibwi-mallorca-basquet-palma-12"
+  ],
+  "clubDNA": "Desarrollo"
+}
+
+{
+  "id": "team-movistar-estudiantes",
+  "name": "Movistar Estudiantes",
+  "city": "Madrid",
+  "foundationYear": 1948,
+  "division": "2ª",
+  "playerIds": [
+    "player-movistar-estudiantes-01",
+    "player-movistar-estudiantes-02",
+    "player-movistar-estudiantes-03",
+    "player-movistar-estudiantes-04",
+    "player-movistar-estudiantes-05",
+    "player-movistar-estudiantes-06",
+    "player-movistar-estudiantes-07",
+    "player-movistar-estudiantes-08",
+    "player-movistar-estudiantes-09",
+    "player-movistar-estudiantes-10",
+    "player-movistar-estudiantes-11",
+    "player-movistar-estudiantes-12"
+  ],
+  "clubDNA": "Cantera"
+}
+
+{
+  "id": "team-flexicar-fuenlabrada",
+  "name": "Flexicar Fuenlabrada",
+  "city": "Fuenlabrada",
+  "foundationYear": 1983,
+  "division": "2ª",
+  "playerIds": [
+    "player-flexicar-fuenlabrada-01",
+    "player-flexicar-fuenlabrada-02",
+    "player-flexicar-fuenlabrada-03",
+    "player-flexicar-fuenlabrada-04",
+    "player-flexicar-fuenlabrada-05"
+  ],
+  "clubDNA": "Competitividad"
+}
+
+{
+  "id": "team-palmer-basket-mallorca-palma",
+  "name": "Palmer Basket Mallorca Palma",
+  "city": "Palma",
+  "foundationYear": 2023,
+  "division": "2ª",
+  "playerIds": [
+    "player-palmer-basket-mallorca-palma-01",
+    "player-palmer-basket-mallorca-palma-02",
+    "player-palmer-basket-mallorca-palma-03",
+    "player-palmer-basket-mallorca-palma-04",
+    "player-palmer-basket-mallorca-palma-05",
+    "player-palmer-basket-mallorca-palma-06",
+    "player-palmer-basket-mallorca-palma-07"
+  ],
+  "clubDNA": "Desarrollo"
+}
+
+{
+  "id": "team-gran-canaria",
+  "name": "Gran Canaria",
+  "city": "Las Palmas de Gran Canaria",
+  "foundationYear": 1963,
+  "division": "2ª",
+  "playerIds": [
+    "player-gran-canaria-01",
+    "player-gran-canaria-02",
+    "player-gran-canaria-03",
+    "player-gran-canaria-04",
+    "player-gran-canaria-05",
+    "player-gran-canaria-06",
+    "player-gran-canaria-07",
+    "player-gran-canaria-08",
+    "player-gran-canaria-09",
+    "player-gran-canaria-10"
+  ],
+  "clubDNA": "Ritmo alto"
+}
+
+{
+  "id": "team-palencia-baloncesto",
+  "name": "Palencia Baloncesto",
+  "city": "Palencia",
+  "foundationYear": 1979,
+  "division": "2ª",
+  "playerIds": [
+    "player-palencia-baloncesto-01",
+    "player-palencia-baloncesto-02",
+    "player-palencia-baloncesto-03",
+    "player-palencia-baloncesto-04",
+    "player-palencia-baloncesto-05",
+    "player-palencia-baloncesto-06",
+    "player-palencia-baloncesto-07",
+    "player-palencia-baloncesto-08",
+    "player-palencia-baloncesto-09",
+    "player-palencia-baloncesto-10",
+    "player-palencia-baloncesto-11"
+  ],
+  "clubDNA": "Competitividad"
+}
+

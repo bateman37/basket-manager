@@ -102,11 +102,28 @@
     <pre id="promotion-output">(primero genera y simula la 2ª división)</pre>
   </section>
 
+  <!-- Sección de prueba temporal para verificar la importación de la base
+       de datos REAL (ACB + Primera FEB) — ver DESIGN.md sección 2 y 6 y
+       CLAUDE.md ("Datos reales de jugadores/clubes"). Los datos vienen de
+       data/real/ (generados por scripts/import-real-data.js a partir de
+       data/real/sources/), NO del generador ficticio. Solo confirma
+       visualmente que cargan y juegan bien con el motor existente — no es
+       la pantalla definitiva del juego. Se quitará cuando exista una
+       pantalla real de competición. -->
+  <section id="real-data-test">
+    <h2>Prueba: Liga real de 1ª división (ACB) con datos importados</h2>
+    <button id="generate-real-league-btn" type="button">Generar Liga real de 1ª división (18 equipos ACB, desde data/real/)</button>
+    <button id="simulate-real-round-btn" type="button">Simular siguiente jornada</button>
+    <button id="simulate-real-season-btn" type="button">Simular temporada completa (hasta la jornada 34)</button>
+    <pre id="real-league-output">(todavía no se ha generado la liga real)</pre>
+  </section>
+
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
   <script src="src/entities/Team.js"></script>
   <script src="src/utils/teamGenerator.js"></script>
   <script src="src/utils/skewedTeamGenerator.js"></script>
+  <script src="data/real/real-data-bundle.js"></script>
   <script src="src/core/MatchConfig.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script src="src/core/League.js"></script>
@@ -639,6 +656,77 @@
       while (!promotionPlayoff.isComplete) promotionPlayoff.playNextGame();
       renderPromotionState();
     }
+
+    // --- Prueba de la Liga real de 1ª división (ACB), datos importados de
+    // data/real/ — ver DESIGN.md 2/6 y CLAUDE.md "Datos reales de
+    // jugadores/clubes". Reutiliza formatStandingsTable()/formatRoundResults()
+    // ya definidas para la Liga ficticia (Fase 1), que son genéricas: solo
+    // reciben la Liga/los partidos, no dependen de que los equipos sean
+    // ficticios o reales.
+    let realLeague = null;
+
+    // Reconstruye instancias reales de Player/Team (constructores propios,
+    // con toda su validación) a partir de los datos planos del bundle —
+    // igual que hace scripts/import-real-data.js al leer de disco.
+    function buildRealTeamFromData(teamData) {
+      const { Player, Team } = window.BasketManager;
+      const roster = teamData.roster.map((playerData) => {
+        const { dataSource, ...playerFields } = playerData;
+        const player = new Player(playerFields);
+        player.dataSource = dataSource || null;
+        return player;
+      });
+      return new Team({ ...teamData, roster });
+    }
+
+    function ensureRealLeagueExists() {
+      if (realLeague) return realLeague;
+      const { REAL_DATA_INDEX, REAL_DATA_TEAMS, League } = window.BasketManager;
+      const firstDivisionTeams = REAL_DATA_INDEX
+        .filter((entry) => entry.division === '1ª')
+        .map((entry) => buildRealTeamFromData(REAL_DATA_TEAMS[entry.id]));
+      realLeague = new League(firstDivisionTeams);
+      console.log('Liga real de 1ª división (ACB) generada desde data/real/:', realLeague);
+      return realLeague;
+    }
+
+    function renderRealLeagueState(lastRoundMatches) {
+      const league = realLeague;
+      const output = [
+        `Jornada actual: ${Math.min(league.currentRound, league.totalRounds)} / ${league.totalRounds}`
+          + (league.isSeasonComplete ? ' — TEMPORADA COMPLETA' : ''),
+        '',
+        lastRoundMatches ? `Resultados de la última jornada simulada (jornada ${lastRoundMatches[0].round}):` : '(todavía no se ha simulado ninguna jornada)',
+        lastRoundMatches ? formatRoundResults(lastRoundMatches) : '',
+        '',
+        'Clasificación:',
+        formatStandingsTable(league),
+      ].join('\n');
+      document.getElementById('real-league-output').textContent = output;
+    }
+
+    function generateRealLeague() {
+      ensureRealLeagueExists();
+      renderRealLeagueState(null);
+    }
+
+    function simulateNextRealLeagueRound() {
+      const league = ensureRealLeagueExists();
+      if (league.isSeasonComplete) { renderRealLeagueState(null); return; }
+      const matches = league.simulateNextRound();
+      renderRealLeagueState(matches);
+    }
+
+    function simulateFullRealLeagueSeason() {
+      const league = ensureRealLeagueExists();
+      let lastMatches = null;
+      while (!league.isSeasonComplete) lastMatches = league.simulateNextRound();
+      renderRealLeagueState(lastMatches);
+    }
+
+    document.getElementById('generate-real-league-btn').addEventListener('click', generateRealLeague);
+    document.getElementById('simulate-real-round-btn').addEventListener('click', simulateNextRealLeagueRound);
+    document.getElementById('simulate-real-season-btn').addEventListener('click', simulateFullRealLeagueSeason);
 
     document.getElementById('generate-phase2-league-btn').addEventListener('click', generatePhase2League);
     document.getElementById('title-playoff-next-btn').addEventListener('click', playNextTitlePlayoffGame);

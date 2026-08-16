@@ -1,0 +1,977 @@
+{
+  "id": "team-asisa-joventut",
+  "name": "Asisa Joventut",
+  "city": "Badalona",
+  "foundationYear": 1930,
+  "division": "1ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-asisa-joventut-01",
+      "firstName": "Boogie",
+      "lastName": "Ellis",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 194,
+        "weight": 78
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 14,
+        "insideShot": 5,
+        "freeThrows": 14,
+        "layup": 15,
+        "passing": 17,
+        "ballHandling": 18,
+        "offensiveRebound": 5,
+        "defensiveRebound": 9,
+        "blocking": 2,
+        "stealing": 13,
+        "foulTendency": 12,
+        "perimeterDefense": 15,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 17,
+        "jumping": 11,
+        "strength": 11,
+        "agility": 16,
+        "balance": 17,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 16,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 15,
+        "concentration": 15,
+        "leadership": 13,
+        "teamwork": 17,
+        "temperament": 17,
+        "consistency": 16,
+        "anticipation": 15,
+        "positioning": 15,
+        "workRate": 16
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 240,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-02",
+      "firstName": "Ludde",
+      "lastName": "Hakanson",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 194,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 15,
+        "layup": 16,
+        "passing": 16,
+        "ballHandling": 16,
+        "offensiveRebound": 4,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 15,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 16,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 17,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 15,
+        "concentration": 15,
+        "leadership": 14,
+        "teamwork": 17,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 15,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 290,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-03",
+      "firstName": "Nico",
+      "lastName": "Laprovittola",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 190,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 17,
+        "midRangeShot": 17,
+        "insideShot": 6,
+        "freeThrows": 18,
+        "layup": 18,
+        "passing": 20,
+        "ballHandling": 19,
+        "offensiveRebound": 7,
+        "defensiveRebound": 11,
+        "blocking": 3,
+        "stealing": 17,
+        "foulTendency": 14,
+        "perimeterDefense": 16,
+        "interiorDefense": 6
+      },
+      "physical": {
+        "topSpeed": 18,
+        "acceleration": 18,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 18,
+        "balance": 17,
+        "stamina": 19,
+        "recovery": 19,
+        "durability": 20
+      },
+      "mental": {
+        "gameVision": 19,
+        "pressureDecisionMaking": 18,
+        "aggressiveness": 17,
+        "concentration": 18,
+        "leadership": 16,
+        "teamwork": 20,
+        "temperament": 17,
+        "consistency": 18,
+        "anticipation": 17,
+        "positioning": 18,
+        "workRate": 20
+      },
+      "traits": [
+        "Generador de asistencias",
+        "Tirador clutch"
+      ],
+      "experience": 400,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-04",
+      "firstName": "Ricky",
+      "lastName": "Rubio",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 191,
+        "weight": 78
+      },
+      "technical": {
+        "outsideShot": 17,
+        "midRangeShot": 17,
+        "insideShot": 7,
+        "freeThrows": 17,
+        "layup": 18,
+        "passing": 20,
+        "ballHandling": 20,
+        "offensiveRebound": 7,
+        "defensiveRebound": 11,
+        "blocking": 4,
+        "stealing": 16,
+        "foulTendency": 16,
+        "perimeterDefense": 17,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 18,
+        "acceleration": 19,
+        "jumping": 12,
+        "strength": 14,
+        "agility": 19,
+        "balance": 17,
+        "stamina": 19,
+        "recovery": 20,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 19,
+        "pressureDecisionMaking": 18,
+        "aggressiveness": 17,
+        "concentration": 18,
+        "leadership": 17,
+        "teamwork": 18,
+        "temperament": 19,
+        "consistency": 16,
+        "anticipation": 17,
+        "positioning": 17,
+        "workRate": 18
+      },
+      "traits": [
+        "Generador de asistencias",
+        "Tirador clutch",
+        "Especialista defensivo"
+      ],
+      "experience": 670,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 17,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-05",
+      "firstName": "Isaac",
+      "lastName": "Nogués",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 191,
+        "wingspan": 201,
+        "weight": 91
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 16,
+        "layup": 15,
+        "passing": 13,
+        "ballHandling": 15,
+        "offensiveRebound": 6,
+        "defensiveRebound": 11,
+        "blocking": 3,
+        "stealing": 12,
+        "foulTendency": 13,
+        "perimeterDefense": 15,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 15,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 16,
+        "balance": 15,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 16,
+        "temperament": 16,
+        "consistency": 14,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 300,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-06",
+      "firstName": "Alex",
+      "lastName": "Reyes",
+      "birthDate": null,
+      "positions": [
+        "Alero"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 209,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 14,
+        "insideShot": 10,
+        "freeThrows": 16,
+        "layup": 16,
+        "passing": 12,
+        "ballHandling": 14,
+        "offensiveRebound": 11,
+        "defensiveRebound": 15,
+        "blocking": 5,
+        "stealing": 14,
+        "foulTendency": 15,
+        "perimeterDefense": 15,
+        "interiorDefense": 9
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 14,
+        "jumping": 15,
+        "strength": 16,
+        "agility": 15,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 17,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 17,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 260,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-07",
+      "firstName": "Yannick",
+      "lastName": "Kraag",
+      "birthDate": null,
+      "positions": [
+        "Alero"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 201,
+        "wingspan": 204,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 14,
+        "insideShot": 9,
+        "freeThrows": 15,
+        "layup": 17,
+        "passing": 12,
+        "ballHandling": 14,
+        "offensiveRebound": 11,
+        "defensiveRebound": 14,
+        "blocking": 6,
+        "stealing": 14,
+        "foulTendency": 14,
+        "perimeterDefense": 15,
+        "interiorDefense": 10
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 15,
+        "strength": 15,
+        "agility": 15,
+        "balance": 16,
+        "stamina": 18,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 16,
+        "concentration": 16,
+        "leadership": 15,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 250,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-08",
+      "firstName": "Emir",
+      "lastName": "Sulejmanovic",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 203,
+        "wingspan": 213,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 13,
+        "insideShot": 14,
+        "freeThrows": 14,
+        "layup": 16,
+        "passing": 12,
+        "ballHandling": 10,
+        "offensiveRebound": 15,
+        "defensiveRebound": 16,
+        "blocking": 11,
+        "stealing": 10,
+        "foulTendency": 16,
+        "perimeterDefense": 13,
+        "interiorDefense": 15
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 15,
+        "strength": 18,
+        "agility": 13,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 16,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 20,
+        "temperament": 16,
+        "consistency": 16,
+        "anticipation": 16,
+        "positioning": 17,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 240,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-09",
+      "firstName": "Kwan",
+      "lastName": "Cheatham",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 206,
+        "wingspan": 211,
+        "weight": 103
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 12,
+        "insideShot": 14,
+        "freeThrows": 13,
+        "layup": 16,
+        "passing": 12,
+        "ballHandling": 10,
+        "offensiveRebound": 15,
+        "defensiveRebound": 16,
+        "blocking": 11,
+        "stealing": 10,
+        "foulTendency": 14,
+        "perimeterDefense": 12,
+        "interiorDefense": 15
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 16,
+        "strength": 17,
+        "agility": 14,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 16,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 16,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 17,
+        "workRate": 19
+      },
+      "traits": [],
+      "experience": 250,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-10",
+      "firstName": "Michael",
+      "lastName": "Ruzic",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 204,
+        "wingspan": 214,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 15,
+        "freeThrows": 15,
+        "layup": 15,
+        "passing": 11,
+        "ballHandling": 9,
+        "offensiveRebound": 15,
+        "defensiveRebound": 16,
+        "blocking": 10,
+        "stealing": 10,
+        "foulTendency": 16,
+        "perimeterDefense": 11,
+        "interiorDefense": 15
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 12,
+        "jumping": 16,
+        "strength": 17,
+        "agility": 13,
+        "balance": 16,
+        "stamina": 16,
+        "recovery": 16,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 12,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 18,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 19,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 17,
+        "positioning": 17,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 300,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-11",
+      "firstName": "Ante",
+      "lastName": "Tomic",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 208,
+        "wingspan": 218,
+        "weight": 114
+      },
+      "technical": {
+        "outsideShot": 7,
+        "midRangeShot": 12,
+        "insideShot": 19,
+        "freeThrows": 16,
+        "layup": 20,
+        "passing": 13,
+        "ballHandling": 8,
+        "offensiveRebound": 20,
+        "defensiveRebound": 20,
+        "blocking": 20,
+        "stealing": 11,
+        "foulTendency": 19,
+        "perimeterDefense": 10,
+        "interiorDefense": 20
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 13,
+        "jumping": 17,
+        "strength": 20,
+        "agility": 13,
+        "balance": 20,
+        "stamina": 19,
+        "recovery": 19,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 20,
+        "concentration": 18,
+        "leadership": 17,
+        "teamwork": 20,
+        "temperament": 17,
+        "consistency": 17,
+        "anticipation": 20,
+        "positioning": 20,
+        "workRate": 20
+      },
+      "traits": [
+        "Especialista defensivo",
+        "Jugador de vestuario"
+      ],
+      "experience": 710,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 17,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-asisa-joventut-12",
+      "firstName": "Simon",
+      "lastName": "Birgander",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-asisa-joventut",
+      "bodyMeasurements": {
+        "height": 209,
+        "wingspan": 222,
+        "weight": 108
+      },
+      "technical": {
+        "outsideShot": 5,
+        "midRangeShot": 8,
+        "insideShot": 16,
+        "freeThrows": 12,
+        "layup": 19,
+        "passing": 11,
+        "ballHandling": 5,
+        "offensiveRebound": 18,
+        "defensiveRebound": 17,
+        "blocking": 17,
+        "stealing": 9,
+        "foulTendency": 17,
+        "perimeterDefense": 7,
+        "interiorDefense": 18
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 11,
+        "jumping": 15,
+        "strength": 19,
+        "agility": 11,
+        "balance": 18,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 18,
+        "concentration": 17,
+        "leadership": 13,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 18,
+        "positioning": 18,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 290,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Cantera",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

@@ -1,0 +1,684 @@
+{
+  "id": "team-caja-rural-cb-zamora",
+  "name": "Caja Rural CB Zamora",
+  "city": "Zamora",
+  "foundationYear": 1977,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-caja-rural-cb-zamora-01",
+      "firstName": "Pau",
+      "lastName": "Isern",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 190,
+        "weight": 80
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 13,
+        "layup": 13,
+        "passing": 17,
+        "ballHandling": 16,
+        "offensiveRebound": 4,
+        "defensiveRebound": 6,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 10,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 9,
+        "strength": 9,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 12,
+        "concentration": 13,
+        "leadership": 11,
+        "teamwork": 16,
+        "temperament": 15,
+        "consistency": 13,
+        "anticipation": 13,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 140,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-caja-rural-cb-zamora-02",
+      "firstName": "Jacob",
+      "lastName": "Round",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 198,
+        "weight": 85
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 4,
+        "freeThrows": 15,
+        "layup": 14,
+        "passing": 13,
+        "ballHandling": 13,
+        "offensiveRebound": 5,
+        "defensiveRebound": 9,
+        "blocking": 1,
+        "stealing": 10,
+        "foulTendency": 10,
+        "perimeterDefense": 12,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 14,
+        "balance": 12,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 15,
+        "concentration": 13,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 14
+      },
+      "traits": [],
+      "experience": 160,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-caja-rural-cb-zamora-03",
+      "firstName": "David",
+      "lastName": "Kristensen",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Pívot"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 204,
+        "wingspan": 212,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 11,
+        "insideShot": 12,
+        "freeThrows": 12,
+        "layup": 13,
+        "passing": 10,
+        "ballHandling": 9,
+        "offensiveRebound": 14,
+        "defensiveRebound": 14,
+        "blocking": 9,
+        "stealing": 8,
+        "foulTendency": 14,
+        "perimeterDefense": 10,
+        "interiorDefense": 14
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 12,
+        "jumping": 13,
+        "strength": 14,
+        "agility": 11,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 230,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-caja-rural-cb-zamora-04",
+      "firstName": "Oskar",
+      "lastName": "Palmquist",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 206,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 7,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 11,
+        "offensiveRebound": 8,
+        "defensiveRebound": 12,
+        "blocking": 4,
+        "stealing": 10,
+        "foulTendency": 12,
+        "perimeterDefense": 13,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 13,
+        "acceleration": 13,
+        "jumping": 14,
+        "strength": 13,
+        "agility": 13,
+        "balance": 13,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 13,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 170,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-caja-rural-cb-zamora-05",
+      "firstName": "Biram",
+      "lastName": "Faye",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 211,
+        "wingspan": 221,
+        "weight": 110
+      },
+      "technical": {
+        "outsideShot": 3,
+        "midRangeShot": 7,
+        "insideShot": 14,
+        "freeThrows": 10,
+        "layup": 17,
+        "passing": 8,
+        "ballHandling": 4,
+        "offensiveRebound": 16,
+        "defensiveRebound": 16,
+        "blocking": 15,
+        "stealing": 7,
+        "foulTendency": 15,
+        "perimeterDefense": 6,
+        "interiorDefense": 16
+      },
+      "physical": {
+        "topSpeed": 9,
+        "acceleration": 9,
+        "jumping": 15,
+        "strength": 17,
+        "agility": 8,
+        "balance": 16,
+        "stamina": 16,
+        "recovery": 16,
+        "durability": 14
+      },
+      "mental": {
+        "gameVision": 8,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 15,
+        "consistency": 12,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 140,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-caja-rural-cb-zamora-06",
+      "firstName": "Jesús",
+      "lastName": "Carralero",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 201,
+        "wingspan": 206,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 11,
+        "insideShot": 8,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 12,
+        "ballHandling": 10,
+        "offensiveRebound": 9,
+        "defensiveRebound": 13,
+        "blocking": 4,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 13,
+        "interiorDefense": 8
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 12,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 13,
+        "balance": 14,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 13,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "26aadb23-8885-4ee2-b154-4ec99aee510e",
+      "firstName": "Javier",
+      "lastName": "Bravo Tapia",
+      "birthDate": "2002-09-17",
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 225,
+        "weight": 106
+      },
+      "technical": {
+        "outsideShot": 4,
+        "midRangeShot": 7,
+        "insideShot": 10,
+        "freeThrows": 7,
+        "layup": 16,
+        "passing": 6,
+        "ballHandling": 3,
+        "offensiveRebound": 16,
+        "defensiveRebound": 14,
+        "blocking": 14,
+        "stealing": 6,
+        "foulTendency": 13,
+        "perimeterDefense": 7,
+        "interiorDefense": 13
+      },
+      "physical": {
+        "topSpeed": 4,
+        "acceleration": 6,
+        "jumping": 10,
+        "strength": 16,
+        "agility": 5,
+        "balance": 14,
+        "stamina": 10,
+        "recovery": 7,
+        "durability": 11
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 8,
+        "aggressiveness": 11,
+        "concentration": 10,
+        "leadership": 10,
+        "teamwork": 12,
+        "temperament": 12,
+        "consistency": 8,
+        "anticipation": 11,
+        "positioning": 10,
+        "workRate": 12
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 81,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 14,
+        "ambition": 9
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    },
+    {
+      "id": "94eea2b9-a431-405f-baca-f08e509c77fc",
+      "firstName": "Mario",
+      "lastName": "Molina Tapia",
+      "birthDate": "2007-05-06",
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-caja-rural-cb-zamora",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 207,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 9,
+        "midRangeShot": 11,
+        "insideShot": 14,
+        "freeThrows": 13,
+        "layup": 12,
+        "passing": 8,
+        "ballHandling": 9,
+        "offensiveRebound": 13,
+        "defensiveRebound": 14,
+        "blocking": 10,
+        "stealing": 8,
+        "foulTendency": 9,
+        "perimeterDefense": 8,
+        "interiorDefense": 12
+      },
+      "physical": {
+        "topSpeed": 8,
+        "acceleration": 11,
+        "jumping": 12,
+        "strength": 14,
+        "agility": 8,
+        "balance": 12,
+        "stamina": 13,
+        "recovery": 8,
+        "durability": 12
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 9,
+        "aggressiveness": 8,
+        "concentration": 12,
+        "leadership": 12,
+        "teamwork": 12,
+        "temperament": 8,
+        "consistency": 12,
+        "anticipation": 11,
+        "positioning": 8,
+        "workRate": 10
+      },
+      "traits": [
+        "Jugador de vestuario",
+        "Chispa de banquillo"
+      ],
+      "experience": 22,
+      "hidden": {
+        "potential": 12,
+        "professionalism": 12,
+        "ambition": 10
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "placeholder",
+        "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
+        "confidence": "n/a"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Continuidad",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

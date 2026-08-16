@@ -1,0 +1,975 @@
+{
+  "id": "team-leyma-coruna",
+  "name": "Leyma Coruña",
+  "city": "A Coruña",
+  "foundationYear": 1996,
+  "division": "1ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-leyma-coruna-01",
+      "firstName": "Alonzo",
+      "lastName": "Verge Jr.",
+      "birthDate": null,
+      "positions": [
+        "Base",
+        "Escolta"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 193,
+        "weight": 84
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 16,
+        "insideShot": 5,
+        "freeThrows": 16,
+        "layup": 17,
+        "passing": 17,
+        "ballHandling": 17,
+        "offensiveRebound": 4,
+        "defensiveRebound": 9,
+        "blocking": 3,
+        "stealing": 14,
+        "foulTendency": 12,
+        "perimeterDefense": 14,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 17,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 17,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 15,
+        "concentration": 17,
+        "leadership": 13,
+        "teamwork": 19,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 15,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 240,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-02",
+      "firstName": "Caio",
+      "lastName": "Pacheco",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 188,
+        "wingspan": 192,
+        "weight": 80
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 15,
+        "insideShot": 4,
+        "freeThrows": 15,
+        "layup": 15,
+        "passing": 17,
+        "ballHandling": 17,
+        "offensiveRebound": 6,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 13,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 17,
+        "jumping": 10,
+        "strength": 10,
+        "agility": 17,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 15,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 320,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-03",
+      "firstName": "Didac",
+      "lastName": "Cuevas",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 188,
+        "wingspan": 193,
+        "weight": 80
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 15,
+        "insideShot": 5,
+        "freeThrows": 15,
+        "layup": 17,
+        "passing": 17,
+        "ballHandling": 18,
+        "offensiveRebound": 5,
+        "defensiveRebound": 9,
+        "blocking": 2,
+        "stealing": 13,
+        "foulTendency": 13,
+        "perimeterDefense": 14,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 18,
+        "acceleration": 17,
+        "jumping": 11,
+        "strength": 10,
+        "agility": 18,
+        "balance": 15,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 18,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 14,
+        "anticipation": 14,
+        "positioning": 15,
+        "workRate": 18
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 280,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-04",
+      "firstName": "Paul",
+      "lastName": "Jorgensen",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Base"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 198,
+        "weight": 87
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 15,
+        "insideShot": 7,
+        "freeThrows": 16,
+        "layup": 16,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 8,
+        "defensiveRebound": 10,
+        "blocking": 3,
+        "stealing": 13,
+        "foulTendency": 12,
+        "perimeterDefense": 15,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 17,
+        "jumping": 13,
+        "strength": 13,
+        "agility": 16,
+        "balance": 14,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 16,
+        "temperament": 16,
+        "consistency": 16,
+        "anticipation": 15,
+        "positioning": 15,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 330,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-05",
+      "firstName": "Tomas",
+      "lastName": "Dimsa",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 191,
+        "wingspan": 203,
+        "weight": 93
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 15,
+        "insideShot": 6,
+        "freeThrows": 17,
+        "layup": 16,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 6,
+        "defensiveRebound": 10,
+        "blocking": 3,
+        "stealing": 12,
+        "foulTendency": 14,
+        "perimeterDefense": 14,
+        "interiorDefense": 5
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 16,
+        "jumping": 14,
+        "strength": 13,
+        "agility": 16,
+        "balance": 16,
+        "stamina": 18,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 17,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 12,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 310,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-06",
+      "firstName": "Guillem",
+      "lastName": "Jou",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Escolta"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 207,
+        "weight": 97
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 14,
+        "insideShot": 8,
+        "freeThrows": 15,
+        "layup": 16,
+        "passing": 14,
+        "ballHandling": 13,
+        "offensiveRebound": 11,
+        "defensiveRebound": 14,
+        "blocking": 7,
+        "stealing": 12,
+        "foulTendency": 14,
+        "perimeterDefense": 15,
+        "interiorDefense": 9
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 16,
+        "jumping": 15,
+        "strength": 14,
+        "agility": 16,
+        "balance": 17,
+        "stamina": 16,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 16,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 330,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-07",
+      "firstName": "Jacobo",
+      "lastName": "Díaz",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 208,
+        "weight": 99
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 14,
+        "insideShot": 9,
+        "freeThrows": 15,
+        "layup": 16,
+        "passing": 13,
+        "ballHandling": 13,
+        "offensiveRebound": 11,
+        "defensiveRebound": 14,
+        "blocking": 6,
+        "stealing": 13,
+        "foulTendency": 14,
+        "perimeterDefense": 15,
+        "interiorDefense": 10
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 14,
+        "jumping": 15,
+        "strength": 14,
+        "agility": 16,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 15,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 16,
+        "positioning": 15,
+        "workRate": 19
+      },
+      "traits": [],
+      "experience": 310,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-08",
+      "firstName": "Lukas",
+      "lastName": "Uleckas",
+      "birthDate": null,
+      "positions": [
+        "Alero"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 197,
+        "wingspan": 207,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 14,
+        "insideShot": 8,
+        "freeThrows": 16,
+        "layup": 16,
+        "passing": 14,
+        "ballHandling": 14,
+        "offensiveRebound": 11,
+        "defensiveRebound": 13,
+        "blocking": 6,
+        "stealing": 13,
+        "foulTendency": 13,
+        "perimeterDefense": 15,
+        "interiorDefense": 10
+      },
+      "physical": {
+        "topSpeed": 16,
+        "acceleration": 15,
+        "jumping": 15,
+        "strength": 15,
+        "agility": 15,
+        "balance": 16,
+        "stamina": 16,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 13,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 16,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 17,
+        "temperament": 15,
+        "consistency": 16,
+        "anticipation": 17,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 280,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-09",
+      "firstName": "Dino",
+      "lastName": "Radoncic",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot",
+        "Alero"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 202,
+        "wingspan": 212,
+        "weight": 107
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 12,
+        "insideShot": 14,
+        "freeThrows": 14,
+        "layup": 16,
+        "passing": 12,
+        "ballHandling": 10,
+        "offensiveRebound": 15,
+        "defensiveRebound": 15,
+        "blocking": 9,
+        "stealing": 11,
+        "foulTendency": 15,
+        "perimeterDefense": 11,
+        "interiorDefense": 15
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 16,
+        "strength": 17,
+        "agility": 14,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 17,
+        "concentration": 16,
+        "leadership": 13,
+        "teamwork": 19,
+        "temperament": 17,
+        "consistency": 14,
+        "anticipation": 16,
+        "positioning": 17,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 280,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-10",
+      "firstName": "Dmytro",
+      "lastName": "Skapintsev",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 208,
+        "wingspan": 217,
+        "weight": 110
+      },
+      "technical": {
+        "outsideShot": 4,
+        "midRangeShot": 9,
+        "insideShot": 16,
+        "freeThrows": 14,
+        "layup": 18,
+        "passing": 10,
+        "ballHandling": 7,
+        "offensiveRebound": 17,
+        "defensiveRebound": 18,
+        "blocking": 18,
+        "stealing": 9,
+        "foulTendency": 18,
+        "perimeterDefense": 9,
+        "interiorDefense": 18
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 11,
+        "jumping": 15,
+        "strength": 20,
+        "agility": 10,
+        "balance": 18,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 19,
+        "concentration": 16,
+        "leadership": 15,
+        "teamwork": 17,
+        "temperament": 16,
+        "consistency": 15,
+        "anticipation": 18,
+        "positioning": 19,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 300,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-11",
+      "firstName": "George",
+      "lastName": "Conditt IV",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 208,
+        "wingspan": 219,
+        "weight": 106
+      },
+      "technical": {
+        "outsideShot": 6,
+        "midRangeShot": 10,
+        "insideShot": 18,
+        "freeThrows": 13,
+        "layup": 18,
+        "passing": 9,
+        "ballHandling": 6,
+        "offensiveRebound": 19,
+        "defensiveRebound": 17,
+        "blocking": 17,
+        "stealing": 8,
+        "foulTendency": 17,
+        "perimeterDefense": 8,
+        "interiorDefense": 17
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 11,
+        "jumping": 16,
+        "strength": 19,
+        "agility": 9,
+        "balance": 17,
+        "stamina": 18,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 9,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 18,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 15,
+        "consistency": 15,
+        "anticipation": 18,
+        "positioning": 19,
+        "workRate": 19
+      },
+      "traits": [],
+      "experience": 240,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-leyma-coruna-12",
+      "firstName": "Karlis",
+      "lastName": "Silins",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-leyma-coruna",
+      "bodyMeasurements": {
+        "height": 209,
+        "wingspan": 220,
+        "weight": 110
+      },
+      "technical": {
+        "outsideShot": 5,
+        "midRangeShot": 9,
+        "insideShot": 18,
+        "freeThrows": 12,
+        "layup": 17,
+        "passing": 10,
+        "ballHandling": 6,
+        "offensiveRebound": 18,
+        "defensiveRebound": 18,
+        "blocking": 17,
+        "stealing": 10,
+        "foulTendency": 17,
+        "perimeterDefense": 8,
+        "interiorDefense": 18
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 11,
+        "jumping": 17,
+        "strength": 19,
+        "agility": 9,
+        "balance": 17,
+        "stamina": 17,
+        "recovery": 18,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 18,
+        "concentration": 16,
+        "leadership": 14,
+        "teamwork": 18,
+        "temperament": 16,
+        "consistency": 14,
+        "anticipation": 19,
+        "positioning": 19,
+        "workRate": 18
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 330,
+      "hidden": {
+        "potential": 10,
+        "professionalism": 16,
+        "ambition": 15
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Competitividad",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

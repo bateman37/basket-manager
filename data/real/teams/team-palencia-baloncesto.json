@@ -1,0 +1,905 @@
+{
+  "id": "team-palencia-baloncesto",
+  "name": "Palencia Baloncesto",
+  "city": "Palencia",
+  "foundationYear": 1979,
+  "division": "2ª",
+  "budget": 0,
+  "stadium": null,
+  "roster": [
+    {
+      "id": "player-palencia-baloncesto-01",
+      "firstName": "Dani",
+      "lastName": "Rodríguez",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 185,
+        "wingspan": 190,
+        "weight": 80
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 13,
+        "insideShot": 2,
+        "freeThrows": 13,
+        "layup": 14,
+        "passing": 14,
+        "ballHandling": 15,
+        "offensiveRebound": 3,
+        "defensiveRebound": 8,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 1
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 15,
+        "jumping": 10,
+        "strength": 9,
+        "agility": 15,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 14,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 12,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 13,
+        "workRate": 16
+      },
+      "traits": [
+        "Jugador de vestuario"
+      ],
+      "experience": 380,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 17,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-02",
+      "firstName": "Álex",
+      "lastName": "Hernández",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 188,
+        "wingspan": 191,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 13,
+        "insideShot": 3,
+        "freeThrows": 13,
+        "layup": 13,
+        "passing": 15,
+        "ballHandling": 16,
+        "offensiveRebound": 2,
+        "defensiveRebound": 7,
+        "blocking": 1,
+        "stealing": 12,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 15,
+        "acceleration": 15,
+        "jumping": 10,
+        "strength": 9,
+        "agility": 14,
+        "balance": 14,
+        "stamina": 14,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 15,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 13,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 13,
+        "workRate": 15
+      },
+      "traits": [
+        "Jugador de vestuario"
+      ],
+      "experience": 410,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 17,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-03",
+      "firstName": "Manu",
+      "lastName": "Rodríguez",
+      "birthDate": null,
+      "positions": [
+        "Escolta"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 195,
+        "wingspan": 199,
+        "weight": 87
+      },
+      "technical": {
+        "outsideShot": 15,
+        "midRangeShot": 13,
+        "insideShot": 4,
+        "freeThrows": 15,
+        "layup": 14,
+        "passing": 11,
+        "ballHandling": 13,
+        "offensiveRebound": 5,
+        "defensiveRebound": 8,
+        "blocking": 2,
+        "stealing": 10,
+        "foulTendency": 11,
+        "perimeterDefense": 12,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 14,
+        "balance": 13,
+        "stamina": 16,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 14,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 16
+      },
+      "traits": [
+        "Jugador de vestuario"
+      ],
+      "experience": 410,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 17,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-04",
+      "firstName": "Mathieu",
+      "lastName": "Kamba",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 193,
+        "wingspan": 198,
+        "weight": 87
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 4,
+        "freeThrows": 15,
+        "layup": 15,
+        "passing": 10,
+        "ballHandling": 12,
+        "offensiveRebound": 5,
+        "defensiveRebound": 7,
+        "blocking": 2,
+        "stealing": 10,
+        "foulTendency": 12,
+        "perimeterDefense": 12,
+        "interiorDefense": 3
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 13,
+        "jumping": 12,
+        "strength": 10,
+        "agility": 13,
+        "balance": 13,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 14,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 14,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 15
+      },
+      "traits": [],
+      "experience": 180,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-05",
+      "firstName": "Chema",
+      "lastName": "González",
+      "birthDate": null,
+      "positions": [
+        "Alero",
+        "Ala-pívot"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 199,
+        "wingspan": 207,
+        "weight": 95
+      },
+      "technical": {
+        "outsideShot": 13,
+        "midRangeShot": 12,
+        "insideShot": 7,
+        "freeThrows": 14,
+        "layup": 15,
+        "passing": 11,
+        "ballHandling": 11,
+        "offensiveRebound": 8,
+        "defensiveRebound": 12,
+        "blocking": 3,
+        "stealing": 11,
+        "foulTendency": 12,
+        "perimeterDefense": 14,
+        "interiorDefense": 7
+      },
+      "physical": {
+        "topSpeed": 12,
+        "acceleration": 13,
+        "jumping": 12,
+        "strength": 13,
+        "agility": 13,
+        "balance": 15,
+        "stamina": 15,
+        "recovery": 16,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 15,
+        "concentration": 14,
+        "leadership": 12,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 17
+      },
+      "traits": [
+        "Jugador de vestuario"
+      ],
+      "experience": 400,
+      "hidden": {
+        "potential": 8,
+        "professionalism": 17,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-06",
+      "firstName": "Alec",
+      "lastName": "Wintering",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 195,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 16,
+        "insideShot": 4,
+        "freeThrows": 16,
+        "layup": 15,
+        "passing": 17,
+        "ballHandling": 17,
+        "offensiveRebound": 6,
+        "defensiveRebound": 9,
+        "blocking": 3,
+        "stealing": 13,
+        "foulTendency": 14,
+        "perimeterDefense": 13,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 17,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 17,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 15,
+        "teamwork": 18,
+        "temperament": 15,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 17
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 310,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-07",
+      "firstName": "Vasilije",
+      "lastName": "Vucetic",
+      "birthDate": null,
+      "positions": [
+        "Pívot"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 209,
+        "wingspan": 222,
+        "weight": 112
+      },
+      "technical": {
+        "outsideShot": 3,
+        "midRangeShot": 7,
+        "insideShot": 14,
+        "freeThrows": 11,
+        "layup": 16,
+        "passing": 8,
+        "ballHandling": 4,
+        "offensiveRebound": 16,
+        "defensiveRebound": 16,
+        "blocking": 16,
+        "stealing": 6,
+        "foulTendency": 16,
+        "perimeterDefense": 6,
+        "interiorDefense": 15
+      },
+      "physical": {
+        "topSpeed": 8,
+        "acceleration": 9,
+        "jumping": 14,
+        "strength": 17,
+        "agility": 8,
+        "balance": 16,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 8,
+        "pressureDecisionMaking": 12,
+        "aggressiveness": 16,
+        "concentration": 13,
+        "leadership": 12,
+        "teamwork": 16,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 15,
+        "positioning": 16,
+        "workRate": 18
+      },
+      "traits": [],
+      "experience": 140,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-08",
+      "firstName": "Lucas",
+      "lastName": "Langarita",
+      "birthDate": null,
+      "positions": [
+        "Escolta",
+        "Alero"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 191,
+        "wingspan": 203,
+        "weight": 85
+      },
+      "technical": {
+        "outsideShot": 14,
+        "midRangeShot": 13,
+        "insideShot": 4,
+        "freeThrows": 14,
+        "layup": 13,
+        "passing": 11,
+        "ballHandling": 13,
+        "offensiveRebound": 5,
+        "defensiveRebound": 9,
+        "blocking": 1,
+        "stealing": 11,
+        "foulTendency": 11,
+        "perimeterDefense": 13,
+        "interiorDefense": 2
+      },
+      "physical": {
+        "topSpeed": 14,
+        "acceleration": 14,
+        "jumping": 13,
+        "strength": 11,
+        "agility": 15,
+        "balance": 13,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 15
+      },
+      "mental": {
+        "gameVision": 11,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 14,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 15,
+        "temperament": 14,
+        "consistency": 14,
+        "anticipation": 12,
+        "positioning": 14,
+        "workRate": 14
+      },
+      "traits": [],
+      "experience": 150,
+      "hidden": {
+        "potential": 15,
+        "professionalism": 15,
+        "ambition": 16
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-09",
+      "firstName": "Dimitar",
+      "lastName": "Dimitrov",
+      "birthDate": null,
+      "positions": [
+        "Ala-pívot"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 206,
+        "wingspan": 213,
+        "weight": 103
+      },
+      "technical": {
+        "outsideShot": 12,
+        "midRangeShot": 11,
+        "insideShot": 11,
+        "freeThrows": 12,
+        "layup": 14,
+        "passing": 10,
+        "ballHandling": 7,
+        "offensiveRebound": 13,
+        "defensiveRebound": 14,
+        "blocking": 8,
+        "stealing": 7,
+        "foulTendency": 12,
+        "perimeterDefense": 11,
+        "interiorDefense": 13
+      },
+      "physical": {
+        "topSpeed": 11,
+        "acceleration": 12,
+        "jumping": 12,
+        "strength": 15,
+        "agility": 12,
+        "balance": 14,
+        "stamina": 15,
+        "recovery": 15,
+        "durability": 16
+      },
+      "mental": {
+        "gameVision": 10,
+        "pressureDecisionMaking": 13,
+        "aggressiveness": 16,
+        "concentration": 14,
+        "leadership": 11,
+        "teamwork": 16,
+        "temperament": 13,
+        "consistency": 13,
+        "anticipation": 14,
+        "positioning": 16,
+        "workRate": 17
+      },
+      "traits": [],
+      "experience": 160,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-10",
+      "firstName": "Tanner",
+      "lastName": "McGrew",
+      "birthDate": null,
+      "positions": [
+        "Pívot",
+        "Ala-pívot"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 210,
+        "wingspan": 218,
+        "weight": 108
+      },
+      "technical": {
+        "outsideShot": 5,
+        "midRangeShot": 9,
+        "insideShot": 18,
+        "freeThrows": 12,
+        "layup": 19,
+        "passing": 10,
+        "ballHandling": 7,
+        "offensiveRebound": 18,
+        "defensiveRebound": 19,
+        "blocking": 18,
+        "stealing": 9,
+        "foulTendency": 17,
+        "perimeterDefense": 8,
+        "interiorDefense": 20
+      },
+      "physical": {
+        "topSpeed": 10,
+        "acceleration": 11,
+        "jumping": 16,
+        "strength": 19,
+        "agility": 11,
+        "balance": 19,
+        "stamina": 16,
+        "recovery": 16,
+        "durability": 18
+      },
+      "mental": {
+        "gameVision": 9,
+        "pressureDecisionMaking": 15,
+        "aggressiveness": 18,
+        "concentration": 17,
+        "leadership": 14,
+        "teamwork": 19,
+        "temperament": 17,
+        "consistency": 15,
+        "anticipation": 19,
+        "positioning": 18,
+        "workRate": 19
+      },
+      "traits": [
+        "Especialista defensivo"
+      ],
+      "experience": 390,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "player-palencia-baloncesto-11",
+      "firstName": "Alec",
+      "lastName": "Wintering",
+      "birthDate": null,
+      "positions": [
+        "Base"
+      ],
+      "teamId": "team-palencia-baloncesto",
+      "bodyMeasurements": {
+        "height": 186,
+        "wingspan": 195,
+        "weight": 82
+      },
+      "technical": {
+        "outsideShot": 16,
+        "midRangeShot": 16,
+        "insideShot": 4,
+        "freeThrows": 16,
+        "layup": 15,
+        "passing": 17,
+        "ballHandling": 17,
+        "offensiveRebound": 6,
+        "defensiveRebound": 9,
+        "blocking": 3,
+        "stealing": 13,
+        "foulTendency": 14,
+        "perimeterDefense": 13,
+        "interiorDefense": 4
+      },
+      "physical": {
+        "topSpeed": 17,
+        "acceleration": 17,
+        "jumping": 12,
+        "strength": 11,
+        "agility": 17,
+        "balance": 16,
+        "stamina": 17,
+        "recovery": 17,
+        "durability": 17
+      },
+      "mental": {
+        "gameVision": 17,
+        "pressureDecisionMaking": 16,
+        "aggressiveness": 15,
+        "concentration": 16,
+        "leadership": 15,
+        "teamwork": 18,
+        "temperament": 15,
+        "consistency": 15,
+        "anticipation": 14,
+        "positioning": 14,
+        "workRate": 17
+      },
+      "traits": [
+        "Generador de asistencias"
+      ],
+      "experience": 310,
+      "hidden": {
+        "potential": 11,
+        "professionalism": 15,
+        "ambition": 14
+      },
+      "dynamicState": {
+        "energy": 100,
+        "competitionRhythm": 50,
+        "momentum": 0
+      },
+      "dataSource": {
+        "type": "estimated",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "confidence": "medium"
+      }
+    }
+  ],
+  "reputation": {
+    "sporting": 50,
+    "financial": 50,
+    "youth": 50
+  },
+  "facilities": {
+    "trainingCenter": {
+      "name": "Centro de Entrenamiento",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "medicalCenter": {
+      "name": "Centro Médico",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "physicalPreparation": {
+      "name": "Preparación Física",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "academy": {
+      "name": "Cantera/Academia",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "scoutingNetwork": {
+      "name": "Red de Scouting",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "analyticsDepartment": {
+      "name": "Departamento de Análisis/Dirección Deportiva",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    },
+    "hospitality": {
+      "name": "Hospitality/Patrocinio",
+      "level": 10,
+      "maintenanceCost": 0,
+      "obsolete": false
+    }
+  },
+  "board": {
+    "patience": 50,
+    "sportingGoal": "Permanencia",
+    "financialGoal": "Equilibrio presupuestario",
+    "multiYearPlan": []
+  },
+  "fanbase": {
+    "seasonTicketHolders": 0,
+    "satisfaction": 50,
+    "averageAttendance": 70
+  },
+  "finances": {
+    "income": {
+      "mainSponsorship": 0,
+      "secondarySponsorship": 0,
+      "tvRights": 0,
+      "leagueRevenueShare": 0,
+      "europeanCompetition": 0,
+      "ticketSales": 0,
+      "merchandising": 0
+    },
+    "expenses": {
+      "playerSalaries": 0,
+      "coachingStaff": 0
+    }
+  },
+  "clubDNA": "Competitividad",
+  "rivalries": {
+    "fixed": [],
+    "dynamic": []
+  },
+  "history": {
+    "titles": [],
+    "legends": []
+  }
+}

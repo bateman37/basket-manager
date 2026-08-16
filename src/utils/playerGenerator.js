@@ -282,11 +282,15 @@
   // generateSkewedAttributeGroup) en vez del rango habitual. Los atributos
   // ocultos (potencial/profesionalidad/ambición) NO se ven afectados por
   // `attributeRange` — no forman parte de "Técnicos/Físicos/Mentales".
+  // `options.positions` fuerza las posiciones del jugador en vez de
+  // sortearlas con pickPositions() — usado por el script de importación de
+  // datos reales (scripts/import-real-data.js) para completar de forma
+  // dirigida las posiciones que le falten a una plantilla incompleta.
   function generateFictionalPlayer(options = {}) {
     const minAge = options.minAge !== undefined ? options.minAge : 18;
     const maxAge = options.maxAge !== undefined ? options.maxAge : 36;
     const { attributeRange } = options;
-    const positions = pickPositions();
+    const positions = options.positions ? Player.validatePositions(options.positions) : pickPositions();
     const { firstName, lastName } = generateFictionalName();
     const birthDate = randomBirthDate(minAge, maxAge);
     const age = Core.calculateAge(birthDate);

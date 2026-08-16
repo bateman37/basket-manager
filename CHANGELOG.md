@@ -345,3 +345,72 @@
     sin servidor): cero errores de consola tras generar/jugar las tres
     competiciones de principio a fin.
   - `CHANGELOG.md` actualizado (esta entrada).
+
+- **Primera base de datos real: ACB + Primera FEB (36 equipos, 405
+  jugadores)** — ver DESIGN.md sección 2 y 6 ("datos reales de
+  jugadores/clubes") y CLAUDE.md (misma sección).
+  - `scripts/import-real-data.js` (nuevo, script de utilidad Node — no
+    forma parte del arranque del juego): parsea los dos ficheros de
+    origen (`data/real/sources/equipos_acb_y_feb.txt` y
+    `todos_los_jugadores_acb_y_feb.txt`, texto con separadores de sección
+    y bloques JSON de un objeto cada uno), instancia cada jugador y
+    equipo con los constructores REALES de `Player.js`/`Team.js` (no
+    objetos planos, para heredar toda su validación: posiciones,
+    división, clamps de atributos 1-20...), y guarda el resultado en
+    `data/real/`: un fichero por equipo (`data/real/teams/<id>.json`) y
+    un índice (`data/real/index.json`).
+  - **18 equipos ACB (1ª) + 18 Primera FEB (2ª), 405 jugadores reales**
+    con atributos estimados a partir de datasets de mercado de la
+    competición (`dataSource.type: "estimated"`, con su nivel de
+    confianza). 4 equipos de 2ª división llegaban con la plantilla
+    incompleta en el dataset importado (menos de los 8 mínimos de
+    convocatoria — `Bueno Arenas Albacete Basket`, `Flexicar
+    Fuenlabrada`, `Caja Rural CB Zamora`, `Palmer Basket Mallorca
+    Palma`): se completaron hasta 8 con jugadores ficticios del
+    generador ya existente (nombres ficticios de verdad, nunca nombres
+    que parezcan reales), cubriendo primero cualquier posición que
+    faltase del todo en la plantilla real y marcados explícitamente con
+    `dataSource.type: "placeholder"` para que quede clara la diferencia
+    — 9 jugadores placeholder en total, ninguno en el resto de equipos.
+  - Comprobación de integridad pedida explícitamente: el `teamId` que ya
+    traía cada jugador en el JSON de origen se compara contra el equipo
+    que lo referencia por `playerIds` ANTES de construir el `Team`, para
+    avisar de inconsistencias en vez de sobrescribirlas en silencio — en
+    esta importación no se encontró ninguna.
+  - `src/utils/playerGenerator.js`: pequeño añadido (no rompe compatibilidad,
+    ningún llamante existente lo usaba) — `generateFictionalPlayer()`
+    acepta ahora `options.positions` para forzar la posición del
+    jugador generado en vez de sortearla, necesario para completar de
+    forma dirigida las posiciones que faltasen en una plantilla
+    incompleta.
+  - `data/real/real-data-bundle.js` (nuevo, generado automáticamente por
+    el script de importación, no editar a mano): mismos datos que los
+    JSON de `data/real/`, pero cargables con un `<script>` normal en vez
+    de `fetch()` — comprobado que `fetch()` de un JSON local falla por
+    CORS cuando `index.html` se abre con `file://` (la forma habitual de
+    probar este proyecto, ver CLAUDE.md), así que sin este bundle la
+    nueva sección de prueba no funcionaría fuera de un servidor.
+  - **`Player.js` NO se ha tocado**: el campo `dataSource` se conserva
+    como propiedad añadida después de instanciar cada `Player` (no
+    dentro del constructor). **Pendiente de decidir con Dennis**: si se
+    formaliza como campo propio de la ficha de jugador (constructor +
+    `toJSON()`) o se queda solo como metadato de origen de los datos
+    importados — no se ha tomado esa decisión aquí.
+  - `index.html`: nueva sección de prueba ("Liga real de 1ª división
+    (ACB) con datos importados") que carga los 18 equipos reales de 1ª
+    división desde `data/real/` (vía el bundle, reconstruyendo instancias
+    reales de `Player`/`Team`), arma una `League` real y permite
+    simular jornada a jornada o la temporada completa, igual que ya
+    podía hacerse con equipos ficticios.
+  - **Verificado con un script Node dedicado** (releyendo desde disco,
+    no solo confiando en la ejecución del propio importador): los 36
+    equipos cargan sin errores de constructor, los 4 equipos parcheados
+    tienen exactamente 8 jugadores, ningún equipo fuera de esos 4 tiene
+    ningún jugador `placeholder`, los 405 jugadores reales conservan su
+    `dataSource` de origen, y la Liga real de 1ª división simula al
+    menos una jornada sin errores. También verificado con Playwright
+    headless (`file://`, sin servidor) que la nueva sección de
+    `index.html` genera la liga, simula jornadas y la temporada completa
+    sin errores de consola.
+  - `CHANGELOG.md` actualizado (esta entrada). `DESIGN.md` no se ha
+    tocado.

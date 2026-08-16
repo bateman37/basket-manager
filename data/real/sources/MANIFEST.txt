@@ -1,0 +1,6 @@
+Equipos 1ª: 18
+Equipos 2ª: 18
+Equipos total: 36
+Jugadores total: 405
+Validación: IDs de jugador únicos y todos los teamId existentes.
+Nota: varios JSON iniciales de ACB dejaron de estar accesibles en el contexto activo; se consolidaron de nuevo usando la plantilla ACB 2026-27 verificada y la misma estructura de atributos. Los rosters FEB son los que se fueron generando en esta conversación.
