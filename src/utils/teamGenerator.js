@@ -62,7 +62,11 @@
     ];
   }
 
-  function generateFictionalTeam() {
+  // `options.playerOptions` se pasa tal cual a generateFictionalPlayers()
+  // — permite, por ejemplo, generar la plantilla con un rango de atributos
+  // sesgado para pruebas de estrés del motor (ver skewedTeamGenerator.js),
+  // sin cambiar el comportamiento por defecto (roster normal) si se omite.
+  function generateFictionalTeam(options = {}) {
     const city = randomFrom(CITY_NAMES);
     const name = `${randomFrom(CLUB_PREFIXES)} ${city}`;
 
@@ -72,7 +76,7 @@
       foundationYear: randomInt(1930, 2005),
       division: randomFrom(DIVISIONS),
       budget: randomInt(500000, 8000000),
-      roster: generateFictionalPlayers(randomInt(14, 16)),
+      roster: generateFictionalPlayers(randomInt(14, 16), options.playerOptions),
       reputation: {
         sporting: randomInt(30, 90),
         financial: randomInt(30, 90),

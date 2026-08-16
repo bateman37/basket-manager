@@ -16,6 +16,8 @@
     TECHNICAL_ATTRIBUTES,
     PHYSICAL_ATTRIBUTES,
     MENTAL_ATTRIBUTES,
+    ATTRIBUTE_MIN,
+    ATTRIBUTE_MAX,
   } = Core;
 
   const ATTRIBUTE_BASE = 10; // valor medio de partida antes de aplicar el perfil de posición
@@ -212,6 +214,34 @@
     return group;
   }
 
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  // Herramienta de prueba de estrés del motor (no una regla de diseño):
+  // genera el mismo perfil relativo por posición que generateAttributeGroup,
+  // pero comprimido dentro de `range` ({min,max} en escala 1-20) en vez del
+  // rango habitual (ATTRIBUTE_BASE ± ruido) — para equipos "sesgados" (ej.
+  // un "súper equipo" 16-20, uno "flojo" 3-8). Los deltas de posición se
+  // escalan proporcionalmente al ancho de `range` para que un rango
+  // estrecho no empuje los valores fuera de él (un Pívot "súper" sigue
+  // reboteando relativamente mejor que un Base "súper", solo que ambos
+  // quedan comprimidos dentro del mismo rango estrecho).
+  function generateSkewedAttributeGroup(keys, blendedDeltas, range) {
+    const base = (range.min + range.max) / 2;
+    const width = range.max - range.min;
+    const fullScaleWidth = ATTRIBUTE_MAX - ATTRIBUTE_MIN;
+    const deltaScale = width / fullScaleWidth;
+    const noiseSpread = Math.max(0.5, width * 0.18);
+    const group = {};
+    keys.forEach((key) => {
+      const delta = (blendedDeltas[key] || 0) * deltaScale;
+      const raw = base + delta + randomNoise(noiseSpread);
+      group[key] = clamp(Math.round(raw), range.min, range.max);
+    });
+    return group;
+  }
+
   // Potencial/Profesionalidad/Ambición no dependen de la posición ni (por
   // ahora) de la edad — correlacionarlos con la edad es una decisión del
   // módulo de progresión, todavía pendiente (DESIGN.md sección 9).
@@ -246,14 +276,31 @@
   // `options.minAge`/`options.maxAge` permiten generar perfiles de edad
   // distintos (ej. jóvenes de cantera, ver Equipo.generateAcademyIntake());
   // por defecto genera jugadores de plantilla habituales (18-36 años).
+  // `options.attributeRange` ({min,max} en escala 1-20) es una herramienta
+  // de prueba de estrés del motor: si se indica, los atributos Técnicos/
+  // Físicos/Mentales se generan comprimidos dentro de ese rango (ver
+  // generateSkewedAttributeGroup) en vez del rango habitual. Los atributos
+  // ocultos (potencial/profesionalidad/ambición) NO se ven afectados por
+  // `attributeRange` — no forman parte de "Técnicos/Físicos/Mentales".
   function generateFictionalPlayer(options = {}) {
     const minAge = options.minAge !== undefined ? options.minAge : 18;
     const maxAge = options.maxAge !== undefined ? options.maxAge : 36;
+    const { attributeRange } = options;
     const positions = pickPositions();
     const { firstName, lastName } = generateFictionalName();
     const birthDate = randomBirthDate(minAge, maxAge);
     const age = Core.calculateAge(birthDate);
     const blended = blendProfiles(positions);
+
+    const technical = attributeRange
+      ? generateSkewedAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical, attributeRange)
+      : generateAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical);
+    const physical = attributeRange
+      ? generateSkewedAttributeGroup(PHYSICAL_ATTRIBUTES, blended.physical, attributeRange)
+      : generateAttributeGroup(PHYSICAL_ATTRIBUTES, blended.physical);
+    const mental = attributeRange
+      ? generateSkewedAttributeGroup(MENTAL_ATTRIBUTES, blended.mental, attributeRange)
+      : generateAttributeGroup(MENTAL_ATTRIBUTES, blended.mental);
 
     return new Player({
       firstName,
@@ -261,9 +308,9 @@
       birthDate,
       positions,
       bodyMeasurements: randomBodyMeasurements(positions),
-      technical: generateAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical),
-      physical: generateAttributeGroup(PHYSICAL_ATTRIBUTES, blended.physical),
-      mental: generateAttributeGroup(MENTAL_ATTRIBUTES, blended.mental),
+      technical,
+      physical,
+      mental,
       traits: randomTraits(),
       hidden: randomHiddenAttributes(),
       experience: estimateStartingExperience(age),

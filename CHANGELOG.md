@@ -161,3 +161,47 @@
     (7.4) ya restaba el impuesto físico sobre el rating compuesto final
     del lado marcado, no sobre un atributo suelto de Agilidad — coincide
     con la aclaración añadida a DESIGN.md 7.4 tras esta sesión.
+- **Herramienta de prueba de estrés del motor** (diagnóstico/depuración,
+  no parte del juego):
+  - `src/utils/playerGenerator.js`: `generateFictionalPlayer()` acepta un
+    `options.attributeRange` opcional ({min,max} en escala 1-20) que
+    comprime los atributos Técnicos/Físicos/Mentales generados dentro de
+    ese rango (perfiles por posición reescalados proporcionalmente, para
+    que un rango estrecho no empuje los valores fuera de él) — usado para
+    generar equipos "sesgados" (súper/flojo) de prueba, sin tocar el
+    comportamiento por defecto.
+  - `src/utils/teamGenerator.js`: `generateFictionalTeam()` acepta ahora
+    `options.playerOptions`, pasado tal cual a la generación de plantilla.
+  - `src/utils/skewedTeamGenerator.js` (nuevo): `generateSkewedTeam(range)`,
+    envoltorio fino sobre `generateFictionalTeam` para generar equipos
+    "sesgados".
+  - `src/entities/Team.js`: nuevo método
+    `buildMatchSquadExcludingPosition(position)` — construye la
+    convocatoria (reutilizando la validación 8-12 de `buildMatchSquad`)
+    excluyendo a los jugadores cuya ÚNICA posición (o todas sus
+    posiciones) sea la indicada; lanza un error descriptivo si quedan
+    menos de 8 elegibles. Genérico por posición.
+  - `src/core/MatchEngine.js`: `simulateMatch()` acepta un `options`
+    opcional (`homeSquad`/`awaySquad`) para poder simular con una
+    convocatoria ya construida (ej. la de `buildMatchSquadExcludingPosition`)
+    en vez de la convocatoria por defecto — retrocompatible.
+  - `index.html`: nueva sección "Pruebas de estrés del motor", separada de
+    las demás, con dos botones que simulan 30 partidos cada uno
+    (alternando local/visitante 15/15, regenerando equipos frescos en
+    cada partido para no arrastrar Fatiga acumulada entre partidos, ya
+    que la recuperación entre partidos todavía no existe): súper equipo
+    (16-20) vs flojo (3-8), y equipo fuerte sin pívots (14-19) vs equipo
+    normal, este último con un desglose diagnóstico agregado (rebotes,
+    tapones, % de tiro interior/bandeja permitido al rival).
+  - **Resultados observados (30 partidos cada prueba)**: el súper equipo
+    ganó el 100% de las veces (diferencia media +110 pts) y el equipo
+    fuerte sin pívots TAMBIÉN ganó el 100% de las veces (diferencia media
+    +54 pts) pese a la exclusión — el desglose diagnóstico sí muestra la
+    grieta esperada (equipo normal tira ~50% en interior/bandeja contra la
+    defensa sin pívots, frente a un ~70% del propio equipo fuerte, y saca
+    más rebotes defensivos de forma desproporcionada), pero la brecha de
+    atributos (14-19 vs ~10 de base) es demasiado grande para que la
+    ausencia de una sola posición cambie el resultado. Cero sorpresas en
+    60 partidos combinados — señalado explícitamente para que se valore
+    si el motor necesita más variables antes de decidir si es o no un
+    problema de calibración.

@@ -771,9 +771,13 @@
   }
 
   // --- Partido completo ---
-  function simulateMatch(homeTeam, awayTeam, config = CONFIG_BASE) {
-    const homeSquad = defaultMatchSquad(homeTeam);
-    const awaySquad = defaultMatchSquad(awayTeam);
+  // `options.homeSquad`/`options.awaySquad` permiten pasar una convocatoria
+  // ya construida (ej. Team.buildMatchSquadExcludingPosition(), para
+  // pruebas de estrés) en vez de la convocatoria por defecto de
+  // defaultMatchSquad() — si se omiten, el comportamiento es el de siempre.
+  function simulateMatch(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
+    const homeSquad = options.homeSquad || defaultMatchSquad(homeTeam);
+    const awaySquad = options.awaySquad || defaultMatchSquad(awayTeam);
     const boxScore = new Map();
     const quarterScores = { home: [], away: [] };
     const runningScore = { home: 0, away: 0 };

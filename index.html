@@ -39,10 +39,30 @@
     <pre id="match-test-output"></pre>
   </section>
 
+  <!-- Pruebas de estrés del motor de simulación — herramienta de
+       diagnóstico/depuración, NO parte del juego final. Genera equipos con
+       atributos deliberadamente extremos o convocatorias incompletas para
+       comprobar que el comportamiento del motor es razonable en los
+       márgenes (ver DESIGN.md sección 7, especialmente el catálogo de
+       acciones 7.6). Se quitará de aquí cuando exista una pantalla/CLI de
+       pruebas dedicada. -->
+  <section id="stress-test">
+    <h2>Pruebas de estrés del motor</h2>
+
+    <h3>Súper equipo (16-20) vs equipo flojo (3-8)</h3>
+    <button id="stress-super-weak-btn" type="button">Simular 30 partidos</button>
+    <pre id="stress-super-weak-output"></pre>
+
+    <h3>Equipo fuerte SIN PÍVOTS (14-19) vs equipo normal</h3>
+    <button id="stress-no-centers-btn" type="button">Simular 30 partidos</button>
+    <pre id="stress-no-centers-output"></pre>
+  </section>
+
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
   <script src="src/entities/Team.js"></script>
   <script src="src/utils/teamGenerator.js"></script>
+  <script src="src/utils/skewedTeamGenerator.js"></script>
   <script src="src/core/MatchConfig.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script>
@@ -172,12 +192,179 @@
       document.getElementById('match-test-output').textContent = output;
     }
 
+    // --- Pruebas de estrés del motor (diagnóstico, no parte del juego) ---
+    const STRESS_TEST_GAMES = 30;
+
+    function aggregateTeamBoxScore(boxScoreLines) {
+      const totals = {
+        points: 0,
+        reboundsOffensive: 0,
+        reboundsDefensive: 0,
+        blocks: 0,
+        steals: 0,
+        turnovers: 0,
+        insideShotMade: 0,
+        insideShotAttempted: 0,
+        layupMade: 0,
+        layupAttempted: 0,
+      };
+      boxScoreLines.forEach((line) => {
+        totals.points += line.points;
+        totals.reboundsOffensive += line.reboundsOffensive;
+        totals.reboundsDefensive += line.reboundsDefensive;
+        totals.blocks += line.blocks;
+        totals.steals += line.steals;
+        totals.turnovers += line.turnovers;
+        totals.insideShotMade += line.fieldGoals.insideShot.made;
+        totals.insideShotAttempted += line.fieldGoals.insideShot.attempted;
+        totals.layupMade += line.fieldGoals.layup.made;
+        totals.layupAttempted += line.fieldGoals.layup.attempted;
+      });
+      return totals;
+    }
+
+    function percentage(made, attempted) {
+      return attempted > 0 ? (made / attempted * 100).toFixed(1) : '—';
+    }
+
+    // Botón 1: súper equipo (16-20) vs equipo flojo (3-8). Se regenera un
+    // equipo fresco en cada uno de los 30 partidos (mismo rango de sesgo)
+    // en vez de reutilizar las mismas instancias de Player 30 veces
+    // seguidas: la Fatiga (dynamicState.energy) todavía no se recupera
+    // entre partidos (pertenece al futuro módulo de calendario/temporada,
+    // DESIGN.md 7.5-bis) — reutilizar los mismos jugadores dejaría a todos
+    // con la energía por los suelos a partir del 2º o 3er partido,
+    // contaminando la comparación con fatiga acumulada no realista.
+    function runSuperVsWeakStressTest() {
+      const { generateSkewedTeam } = window.BasketManager;
+      const { simulateMatch } = window.BasketManager;
+
+      let superWins = 0;
+      let weakWins = 0;
+      let superPointsTotal = 0;
+      let weakPointsTotal = 0;
+      let diffTotal = 0;
+
+      for (let i = 0; i < STRESS_TEST_GAMES; i++) {
+        const superTeam = generateSkewedTeam({ min: 16, max: 20 });
+        const weakTeam = generateSkewedTeam({ min: 3, max: 8 });
+        const superIsHome = i < STRESS_TEST_GAMES / 2; // 15 partidos con cada uno de local
+        const home = superIsHome ? superTeam : weakTeam;
+        const away = superIsHome ? weakTeam : superTeam;
+        const result = simulateMatch(home, away);
+        const superScore = superIsHome ? result.finalScore.home : result.finalScore.away;
+        const weakScore = superIsHome ? result.finalScore.away : result.finalScore.home;
+
+        if (superScore > weakScore) superWins += 1;
+        else weakWins += 1;
+        superPointsTotal += superScore;
+        weakPointsTotal += weakScore;
+        diffTotal += (superScore - weakScore);
+      }
+
+      const output = [
+        `Súper equipo (atributos 16-20) vs equipo flojo (3-8) — ${STRESS_TEST_GAMES} partidos (15 de local cada uno)`,
+        '',
+        `Victorias súper equipo: ${superWins}/${STRESS_TEST_GAMES} (${(superWins / STRESS_TEST_GAMES * 100).toFixed(1)}%)`,
+        `Victorias equipo flojo: ${weakWins}/${STRESS_TEST_GAMES} (${(weakWins / STRESS_TEST_GAMES * 100).toFixed(1)}%)`,
+        `Marcador medio súper equipo: ${(superPointsTotal / STRESS_TEST_GAMES).toFixed(1)} pts`,
+        `Marcador medio equipo flojo: ${(weakPointsTotal / STRESS_TEST_GAMES).toFixed(1)} pts`,
+        `Diferencia media de puntos (súper - flojo): ${(diffTotal / STRESS_TEST_GAMES).toFixed(1)}`,
+      ].join('\n');
+
+      console.log('Prueba de estrés súper vs flojo:', { superWins, weakWins, superPointsTotal, weakPointsTotal, diffTotal });
+      document.getElementById('stress-super-weak-output').textContent = output;
+    }
+
+    // Botón 2: equipo fuerte (14-19) convocado SIN pívots puros (ver
+    // Team.buildMatchSquadExcludingPosition) vs equipo normal. Misma
+    // decisión que el botón 1: equipos frescos en cada partido, para no
+    // arrastrar fatiga acumulada entre los 30 partidos.
+    function runNoCentersStressTest() {
+      const { generateSkewedTeam, generateFictionalTeams } = window.BasketManager;
+      const { simulateMatch } = window.BasketManager;
+
+      let strongWins = 0;
+      let normalWins = 0;
+      let strongPointsTotal = 0;
+      let normalPointsTotal = 0;
+      let diffTotal = 0;
+      let strongAgg = null;
+      let normalAgg = null;
+
+      function addAgg(target, addition) {
+        if (!target) return addition;
+        Object.keys(target).forEach((key) => { target[key] += addition[key]; });
+        return target;
+      }
+
+      for (let i = 0; i < STRESS_TEST_GAMES; i++) {
+        const strongTeam = generateSkewedTeam({ min: 14, max: 19 });
+        const [normalTeam] = generateFictionalTeams(1);
+        const strongSquad = strongTeam.buildMatchSquadExcludingPosition('Pívot');
+
+        const strongIsHome = i < STRESS_TEST_GAMES / 2;
+        const home = strongIsHome ? strongTeam : normalTeam;
+        const away = strongIsHome ? normalTeam : strongTeam;
+        const options = strongIsHome ? { homeSquad: strongSquad } : { awaySquad: strongSquad };
+        const result = simulateMatch(home, away, undefined, options);
+
+        const strongScore = strongIsHome ? result.finalScore.home : result.finalScore.away;
+        const normalScore = strongIsHome ? result.finalScore.away : result.finalScore.home;
+        const strongBox = strongIsHome ? result.boxScore.home : result.boxScore.away;
+        const normalBox = strongIsHome ? result.boxScore.away : result.boxScore.home;
+
+        if (strongScore > normalScore) strongWins += 1;
+        else normalWins += 1;
+        strongPointsTotal += strongScore;
+        normalPointsTotal += normalScore;
+        diffTotal += (strongScore - normalScore);
+
+        strongAgg = addAgg(strongAgg, aggregateTeamBoxScore(strongBox));
+        normalAgg = addAgg(normalAgg, aggregateTeamBoxScore(normalBox));
+      }
+
+      const output = [
+        `Equipo fuerte SIN PÍVOTS (14-19) vs equipo normal — ${STRESS_TEST_GAMES} partidos (15 de local cada uno)`,
+        '',
+        `Victorias equipo fuerte sin pívots: ${strongWins}/${STRESS_TEST_GAMES} (${(strongWins / STRESS_TEST_GAMES * 100).toFixed(1)}%)`,
+        `Victorias equipo normal: ${normalWins}/${STRESS_TEST_GAMES} (${(normalWins / STRESS_TEST_GAMES * 100).toFixed(1)}%)`,
+        `Marcador medio equipo fuerte sin pívots: ${(strongPointsTotal / STRESS_TEST_GAMES).toFixed(1)} pts`,
+        `Marcador medio equipo normal: ${(normalPointsTotal / STRESS_TEST_GAMES).toFixed(1)} pts`,
+        `Diferencia media de puntos (fuerte sin pívots - normal): ${(diffTotal / STRESS_TEST_GAMES).toFixed(1)}`,
+        '',
+        'Desglose diagnóstico agregado (dónde debería notarse la falta de pívots):',
+        `  Rebotes totales — fuerte sin pívots: ${strongAgg.reboundsOffensive + strongAgg.reboundsDefensive} `
+          + `(${strongAgg.reboundsOffensive} of. / ${strongAgg.reboundsDefensive} def.), `
+          + `normal: ${normalAgg.reboundsOffensive + normalAgg.reboundsDefensive} `
+          + `(${normalAgg.reboundsOffensive} of. / ${normalAgg.reboundsDefensive} def.)`,
+        `  Tapones totales — fuerte sin pívots: ${strongAgg.blocks}, normal: ${normalAgg.blocks}`,
+        `  % Tiro interior permitido al equipo normal (atacando contra la defensa sin pívots): `
+          + `${percentage(normalAgg.insideShotMade, normalAgg.insideShotAttempted)}% `
+          + `(${normalAgg.insideShotMade}/${normalAgg.insideShotAttempted})`,
+        `  % Bandeja permitida al equipo normal (atacando contra la defensa sin pívots): `
+          + `${percentage(normalAgg.layupMade, normalAgg.layupAttempted)}% `
+          + `(${normalAgg.layupMade}/${normalAgg.layupAttempted})`,
+        `  Para comparar: % Tiro interior/Bandeja del propio equipo fuerte sin pívots: `
+          + `${percentage(strongAgg.insideShotMade, strongAgg.insideShotAttempted)}% / `
+          + `${percentage(strongAgg.layupMade, strongAgg.layupAttempted)}%`,
+      ].join('\n');
+
+      console.log('Prueba de estrés sin pívots:', { strongWins, normalWins, strongAgg, normalAgg });
+      document.getElementById('stress-no-centers-output').textContent = output;
+    }
+
     document.getElementById('generate-players-btn').addEventListener('click', renderTestPlayers);
     document.getElementById('generate-teams-btn').addEventListener('click', renderTestTeams);
     document.getElementById('simulate-match-btn').addEventListener('click', renderTestMatch);
+    document.getElementById('stress-super-weak-btn').addEventListener('click', runSuperVsWeakStressTest);
+    document.getElementById('stress-no-centers-btn').addEventListener('click', runNoCentersStressTest);
     renderTestPlayers(); // generación automática al cargar la página
     renderTestTeams();
     renderTestMatch();
+    // Las pruebas de estrés (30 partidos cada una) NO se lanzan automáticamente
+    // al cargar la página — son manuales, a petición, como corresponde a una
+    // herramienta de diagnóstico bajo demanda.
   </script>
 </body>
 </html>
