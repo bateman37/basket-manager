@@ -1,0 +1,43 @@
+{
+  "_readme": "Tiers de reputación/nivel para reescalado proporcional de atributos, basado en presupuesto real conocido (Real Madrid 45M, Valencia Basket 35M, Kosner Baskonia 17M, Gran Canaria 10.5M como anclas duras) y clasificaciones ACB/Primera FEB 2024-25 y 2025-26 investigadas. Validado con Dennis. El campo 'targetTop8' es el rating medio objetivo (escala 1-20) de los 8 jugadores de mayor nivel de la plantilla, tras reescalado.",
+  "division1": {
+    "team-real-madrid": { "tier": 1, "targetTop8": 15.8, "reason": "Presupuesto real más alto ACB (45M€), 18 títulos históricos" },
+    "team-valencia-basket": { "tier": 2, "targetTop8": 15.1, "reason": "Presupuesto real confirmado 35M€, campeón 2025-26, subcampeón 2024-25" },
+    "team-barca": { "tier": 2, "targetTop8": 15.1, "reason": "17 títulos históricos, presupuesto tradicionalmente 2º-3º más alto" },
+    "team-kosner-baskonia": { "tier": 3, "targetTop8": 14.5, "reason": "Presupuesto real confirmado 17M€, Euroliga habitual" },
+    "team-unicaja": { "tier": 3, "targetTop8": 14.5, "reason": "Semifinalista 2024-25, top seed 2023-24, Euroliga" },
+    "team-la-laguna-tenerife": { "tier": 3, "targetTop8": 14.5, "reason": "Semifinalista 2024-25" },
+    "team-surne-bilbao-basket": { "tier": 4, "targetTop8": 13.9, "reason": "Mitad-alta habitual, club consolidado" },
+    "team-ucam-murcia": { "tier": 4, "targetTop8": 13.9, "reason": "Subcampeón ACB 2023-24" },
+    "team-asisa-joventut": { "tier": 5, "targetTop8": 13.3, "reason": "Cantera histórica, mitad de tabla" },
+    "team-rio-breogan": { "tier": 5, "targetTop8": 13.3, "reason": "Mitad de tabla habitual" },
+    "team-kids-and-us-manresa": { "tier": 5, "targetTop8": 13.3, "reason": "Mitad de tabla, presupuesto modesto" },
+    "team-fiatc-girona": { "tier": 5, "targetTop8": 13.3, "reason": "Club reciente en ACB, presupuesto modesto" },
+    "team-monbus-obradoiro": { "tier": 6, "targetTop8": 12.6, "reason": "Presupuesto modesto (~3M€), pelea permanencia" },
+    "team-recoletas-salud-san-pablo-burgos": { "tier": 6, "targetTop8": 12.6, "reason": "Recién ascendido 2025-26" },
+    "team-ilerna-lleida": { "tier": 6, "targetTop8": 12.6, "reason": "Mitad-baja habitual" },
+    "team-leyma-coruna": { "tier": 7, "targetTop8": 11.9, "reason": "Descendido 2024-25 tras 1 temporada en ACB" },
+    "team-casademont-zaragoza": { "tier": 7, "targetTop8": 11.9, "reason": "15º clasificado real 2025-26" },
+    "team-morabanc-andorra": { "tier": 7, "targetTop8": 11.9, "reason": "16º clasificado real 2025-26" }
+  },
+  "division2": {
+    "team-gran-canaria": { "tier": 1, "targetTop8": 13.6, "reason": "Descendido de ACB 2025-26, nivel superior al resto de 2ª" },
+    "team-movistar-estudiantes": { "tier": 2, "targetTop8": 13.1, "reason": "4º Primera FEB 2024-25" },
+    "team-flexicar-fuenlabrada": { "tier": 2, "targetTop8": 13.1, "reason": "Finalista playoff de ascenso 2024-25 y 2025-26" },
+    "team-coviran-granada": { "tier": 2, "targetTop8": 13.1, "reason": "Nivel alto acorde a su plantilla real de ACB (nota: en la realidad juega en 1ª tras readmisión; se mantiene en 2ª según el dataset del juego)" },
+    "team-palencia-baloncesto": { "tier": 3, "targetTop8": 12.7, "reason": "5º Primera FEB 2024-25, presupuesto medio-alto" },
+    "team-grupo-ureta-tizona-burgos": { "tier": 3, "targetTop8": 12.7, "reason": "9º Primera FEB 2024-25" },
+    "team-inveready-askatuak-gipuzkoa": { "tier": 3, "targetTop8": 12.7, "reason": "8º Primera FEB 2024-25, rendimiento sobre su presupuesto en 2025-26" },
+    "team-alimerka-oviedo": { "tier": 4, "targetTop8": 12.3, "reason": "10º Primera FEB 2024-25" },
+    "team-club-ourense-baloncesto": { "tier": 4, "targetTop8": 12.3, "reason": "11º Primera FEB 2024-25" },
+    "team-hla-alicante": { "tier": 4, "targetTop8": 12.3, "reason": "Mitad de tabla FEB" },
+    "team-basquet-menorca": { "tier": 4, "targetTop8": 12.3, "reason": "Mitad de tabla FEB" },
+    "team-cajasol-coto-cordoba": { "tier": 5, "targetTop8": 11.9, "reason": "Mitad-baja FEB" },
+    "team-grupo-alega-cantabria": { "tier": 5, "targetTop8": 11.9, "reason": "Mitad-baja FEB" },
+    "team-fibwi-mallorca-basquet-palma": { "tier": 5, "targetTop8": 11.9, "reason": "Mitad-baja FEB" },
+    "team-palmer-basket-mallorca-palma": { "tier": 5, "targetTop8": 11.9, "reason": "Mitad-baja FEB, plantilla parcheada con placeholders" },
+    "team-caja-rural-cb-zamora": { "tier": 6, "targetTop8": 11.5, "reason": "Presupuesto bajo, plantilla parcheada con placeholders" },
+    "team-insolac-caja87": { "tier": 6, "targetTop8": 11.5, "reason": "Presupuesto bajo" },
+    "team-bueno-arenas-albacete": { "tier": 6, "targetTop8": 11.5, "reason": "Presupuesto bajo, plantilla parcheada con placeholders" }
+  }
+}
