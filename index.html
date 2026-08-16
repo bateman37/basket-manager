@@ -70,6 +70,38 @@
     <pre id="league-test-output"></pre>
   </section>
 
+  <!-- Sección de prueba temporal para verificar Playoffs/Copa/Ascenso, Fase
+       2 de Liga/Calendario (src/core/Bracket.js, Playoffs.js, Cup.js,
+       Promotion.js) — ver DESIGN.md 3.2. Reutiliza League.js y
+       MatchEngine.js tal cual, sin modificarlos. Se quitará cuando exista
+       una pantalla real de competición. -->
+  <section id="phase2-test">
+    <h2>Prueba: Playoffs, Copa y Playoff de ascenso (Fase 2 — DESIGN.md 3.2)</h2>
+
+    <h3>1ª división: liga completa + playoff por el título + Copa (jornada 17)</h3>
+    <button id="generate-phase2-league-btn" type="button">Generar y simular la Liga de 1ª división completa (18 equipos, 34 jornadas — dispara la Copa en la jornada 17)</button>
+    <pre id="phase2-league-output">(todavía no se ha generado la liga)</pre>
+
+    <h4>Playoff por el título (top 8, bracket fijo: 1v8/2v7/3v6/4v5)</h4>
+    <button id="title-playoff-next-btn" type="button">Jugar siguiente partido del playoff</button>
+    <button id="title-playoff-full-btn" type="button">Jugar playoff completo</button>
+    <pre id="title-playoff-output">(primero genera y simula la liga de 1ª división)</pre>
+
+    <h4>Copa (top 8 en la jornada 17, todo a partido único)</h4>
+    <button id="cup-next-btn" type="button">Jugar siguiente partido de la Copa</button>
+    <button id="cup-full-btn" type="button">Jugar Copa completa</button>
+    <pre id="cup-output">(primero genera y simula la liga de 1ª división)</pre>
+
+    <h3>2ª división ficticia + playoff de ascenso</h3>
+    <button id="generate-second-division-btn" type="button">Generar y simular la 2ª división ficticia completa (18 equipos, 34 jornadas)</button>
+    <pre id="second-division-output">(todavía no se ha generado la 2ª división)</pre>
+
+    <h4>Playoff de ascenso (1º asciende directo; 2º-9º juegan cuartos + Final Four reordenada)</h4>
+    <button id="promotion-next-btn" type="button">Jugar siguiente partido del ascenso</button>
+    <button id="promotion-full-btn" type="button">Jugar playoff de ascenso completo</button>
+    <pre id="promotion-output">(primero genera y simula la 2ª división)</pre>
+  </section>
+
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
   <script src="src/entities/Team.js"></script>
@@ -78,6 +110,10 @@
   <script src="src/core/MatchConfig.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script src="src/core/League.js"></script>
+  <script src="src/core/Bracket.js"></script>
+  <script src="src/core/Playoffs.js"></script>
+  <script src="src/core/Cup.js"></script>
+  <script src="src/core/Promotion.js"></script>
   <script>
     // Prueba manual, sin interfaz definitiva: solo comprueba que los datos
     // del jugador se generan correctamente (consola + pantalla).
@@ -440,6 +476,178 @@
       }
       renderLeagueState(lastMatches);
     }
+
+    // --- Prueba de Playoffs/Copa/Ascenso (Fase 2 — DESIGN.md 3.2) ---
+    // Estado en memoria de esta sección: se genera una vez por clic en cada
+    // botón "Generar y simular..." y se reutiliza entre los botones de
+    // "jugar siguiente partido" para ir avanzando el MISMO bracket.
+    let phase2League = null;
+    let titlePlayoff = null;
+    let cupBracket = null;
+    let secondDivisionLeague = null;
+    let promotionPlayoff = null;
+
+    function formatSeriesLine(series) {
+      const label = `Seed ${series.betterEntry.seed} ${series.betterEntry.team.fullName} vs `
+        + `Seed ${series.worseEntry.seed} ${series.worseEntry.team.fullName}`;
+      const score = `${series.wins.better}-${series.wins.worse}`;
+      const state = series.isDecided
+        ? ` → gana ${series.winner.team.fullName}`
+        : ` (necesita ${series.gamesNeededToWin} victorias, van ${series.gamesPlayed} partido(s) jugado(s))`;
+      return `    ${label}: ${score}${state}`;
+    }
+
+    // `roundLabels`: nombre de cada ronda en el mismo orden que
+    // bracketStatus.rounds (ej. ['Cuartos de final', 'Semifinales', 'Final']).
+    function formatBracketStatus(bracketStatus, roundLabels) {
+      const lines = [];
+      bracketStatus.rounds.forEach((round, index) => {
+        lines.push(`  ${roundLabels[index] || `Ronda ${index + 1}`}:`);
+        round.forEach((series) => lines.push(formatSeriesLine(series)));
+      });
+      if (bracketStatus.champion) {
+        lines.push('', `  CAMPEÓN: ${bracketStatus.champion.team.fullName} (seed ${bracketStatus.champion.seed})`);
+      }
+      return lines.join('\n');
+    }
+
+    function renderPhase2LeagueState() {
+      const out = document.getElementById('phase2-league-output');
+      if (!phase2League) { out.textContent = '(todavía no se ha generado la liga)'; return; }
+      const table = phase2League.getStandingsTable();
+      const top8 = table.slice(0, 8).map((s, i) => `    ${i + 1}. ${s.team.fullName} (${s.points} pts)`).join('\n');
+      out.textContent = [
+        `Liga de 1ª división completa: jornada ${phase2League.currentRound - 1} / ${phase2League.totalRounds}`,
+        'Top 8 de la clasificación final (los que juegan el playoff por el título):',
+        top8,
+      ].join('\n');
+    }
+
+    function generatePhase2League() {
+      const { generateFictionalTeams, League, createCup, createTitlePlayoff } = window.BasketManager;
+      const teams = generateFictionalTeams(18);
+      phase2League = new League(teams);
+      for (let i = 0; i < 17; i++) phase2League.simulateNextRound();
+      cupBracket = createCup(phase2League); // foto de la clasificación en la jornada 17, no altera la liga
+      while (!phase2League.isSeasonComplete) phase2League.simulateNextRound();
+      titlePlayoff = createTitlePlayoff(phase2League);
+      console.log('Liga de 1ª división de prueba (Fase 2) generada y simulada:', { phase2League, cupBracket, titlePlayoff });
+      renderPhase2LeagueState();
+      renderTitlePlayoffState();
+      renderCupState();
+    }
+
+    const TITLE_PLAYOFF_ROUND_LABELS = ['Cuartos de final (al mejor de 3, patrón 1-1-1)', 'Semifinales (al mejor de 5, patrón 2-2-1)', 'Final (al mejor de 5, patrón 2-2-1)'];
+
+    function renderTitlePlayoffState() {
+      const out = document.getElementById('title-playoff-output');
+      if (!titlePlayoff) { out.textContent = '(primero genera y simula la liga de 1ª división)'; return; }
+      out.textContent = formatBracketStatus(titlePlayoff.getStatus(), TITLE_PLAYOFF_ROUND_LABELS);
+    }
+
+    function playNextTitlePlayoffGame() {
+      if (!titlePlayoff || titlePlayoff.isComplete) { renderTitlePlayoffState(); return; }
+      titlePlayoff.playNextGame();
+      renderTitlePlayoffState();
+    }
+
+    function playFullTitlePlayoff() {
+      if (!titlePlayoff) { renderTitlePlayoffState(); return; }
+      while (!titlePlayoff.isComplete) titlePlayoff.playNextGame();
+      renderTitlePlayoffState();
+    }
+
+    const CUP_ROUND_LABELS = ['Cuartos de final (partido único)', 'Semifinales (partido único)', 'Final (partido único)'];
+
+    function renderCupState() {
+      const out = document.getElementById('cup-output');
+      if (!cupBracket) { out.textContent = '(primero genera y simula la liga de 1ª división)'; return; }
+      out.textContent = formatBracketStatus(cupBracket.getStatus(), CUP_ROUND_LABELS);
+    }
+
+    function playNextCupGame() {
+      if (!cupBracket || cupBracket.isComplete) { renderCupState(); return; }
+      cupBracket.playNextGame();
+      renderCupState();
+    }
+
+    function playFullCup() {
+      if (!cupBracket) { renderCupState(); return; }
+      while (!cupBracket.isComplete) cupBracket.playNextGame();
+      renderCupState();
+    }
+
+    function renderSecondDivisionState() {
+      const out = document.getElementById('second-division-output');
+      if (!secondDivisionLeague) { out.textContent = '(todavía no se ha generado la 2ª división)'; return; }
+      const table = secondDivisionLeague.getStandingsTable();
+      const top9 = table.slice(0, 9).map((s, i) => `    ${i + 1}. ${s.team.fullName} (${s.points} pts)`).join('\n');
+      out.textContent = [
+        `2ª división ficticia completa: jornada ${secondDivisionLeague.currentRound - 1} / ${secondDivisionLeague.totalRounds}`,
+        'Top 9 de la clasificación final (1º asciende directo; 2º-9º juegan el playoff de ascenso):',
+        top9,
+      ].join('\n');
+    }
+
+    function generateSecondDivision() {
+      const { generateFictionalTeams, League, PromotionPlayoff } = window.BasketManager;
+      const teams = generateFictionalTeams(18);
+      secondDivisionLeague = new League(teams);
+      while (!secondDivisionLeague.isSeasonComplete) secondDivisionLeague.simulateNextRound();
+      promotionPlayoff = new PromotionPlayoff(secondDivisionLeague);
+      console.log('2ª división ficticia de prueba generada y simulada:', { secondDivisionLeague, promotionPlayoff });
+      renderSecondDivisionState();
+      renderPromotionState();
+    }
+
+    function formatPromotionStatus(status) {
+      const lines = [];
+      lines.push(`Asciende directo (1º de liga regular): ${status.directPromotion.team.fullName}`, '');
+      lines.push('Cuartos del playoff de ascenso (al mejor de 5, patrón 2-2-1: 2v9/3v8/4v7/5v6):');
+      status.quarterFinals.rounds[0].forEach((series) => lines.push(formatSeriesLine(series)));
+      if (status.finalFour) {
+        lines.push('', 'Final Four (cruces de semifinal reordenados por clasificación regular ORIGINAL, no por bracket de cuartos):');
+        lines.push('  Semifinales (partido único):');
+        status.finalFour.rounds[0].forEach((series) => lines.push(formatSeriesLine(series)));
+        if (status.finalFour.rounds[1]) {
+          lines.push('  Final (partido único):');
+          status.finalFour.rounds[1].forEach((series) => lines.push(formatSeriesLine(series)));
+        }
+      } else {
+        lines.push('', '(la Final Four todavía no se puede armar: faltan partidos de cuartos)');
+      }
+      if (status.secondPromotedEntry) {
+        lines.push('', `2º ASCENDIDO: ${status.secondPromotedEntry.team.fullName} (seed ${status.secondPromotedEntry.seed} en la liga regular)`);
+      }
+      return lines.join('\n');
+    }
+
+    function renderPromotionState() {
+      const out = document.getElementById('promotion-output');
+      if (!promotionPlayoff) { out.textContent = '(primero genera y simula la 2ª división)'; return; }
+      out.textContent = formatPromotionStatus(promotionPlayoff.getStatus());
+    }
+
+    function playNextPromotionGame() {
+      if (!promotionPlayoff || promotionPlayoff.isComplete) { renderPromotionState(); return; }
+      promotionPlayoff.playNextGame();
+      renderPromotionState();
+    }
+
+    function playFullPromotion() {
+      if (!promotionPlayoff) { renderPromotionState(); return; }
+      while (!promotionPlayoff.isComplete) promotionPlayoff.playNextGame();
+      renderPromotionState();
+    }
+
+    document.getElementById('generate-phase2-league-btn').addEventListener('click', generatePhase2League);
+    document.getElementById('title-playoff-next-btn').addEventListener('click', playNextTitlePlayoffGame);
+    document.getElementById('title-playoff-full-btn').addEventListener('click', playFullTitlePlayoff);
+    document.getElementById('cup-next-btn').addEventListener('click', playNextCupGame);
+    document.getElementById('cup-full-btn').addEventListener('click', playFullCup);
+    document.getElementById('generate-second-division-btn').addEventListener('click', generateSecondDivision);
+    document.getElementById('promotion-next-btn').addEventListener('click', playNextPromotionGame);
+    document.getElementById('promotion-full-btn').addEventListener('click', playFullPromotion);
 
     document.getElementById('generate-players-btn').addEventListener('click', renderTestPlayers);
     document.getElementById('generate-teams-btn').addEventListener('click', renderTestTeams);
