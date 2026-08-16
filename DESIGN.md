@@ -36,6 +36,36 @@ esto (ver sección 12).
   (18 equipos, estructura tipo Primera FEB / LEB Oro), cada una con
   calendario completo ida y vuelta.
 
+### 3.1 Liga y Calendario — Fase 1 (implementación)
+
+Alcance de la primera fase: **solo 1ª división**, sin playoffs, sin
+ascensos/descensos, sin Copa/Supercopa todavía (todo eso llega en fases
+posteriores, ver pendientes al final de esta sección).
+
+- **Generación de calendario**: algoritmo del círculo (round-robin
+  estándar) para 18 equipos → 34 jornadas (17 de ida + 17 de vuelta),
+  cada equipo juega exactamente una vez por jornada.
+- **Puntuación real FIBA/ACB**: 2 puntos por victoria, 1 punto por
+  derrota (no hay "puntos por participar" ni sistema 3-1-0 de fútbol).
+- **Simulación por jornada completa**: la entidad Liga puede simular
+  todos los partidos de una jornada de golpe (reutilizando el motor de
+  partidos ya existente), no solo partido a partido.
+- **Criterio de desempate en la clasificación** (normativa real ACB,
+  artículo de desempates): para dos equipos empatados a puntos, en
+  orden:
+  1. Balance de victorias-derrotas en los partidos jugados **entre
+     ellos**.
+  2. Diferencia de puntos en esos enfrentamientos directos ("basket
+     average particular").
+  3. Diferencia de puntos **general** de toda la liga regular.
+  4. Puntos anotados en toda la liga regular.
+  5. Suma de cocientes de tantos a favor y en contra de toda la liga.
+  Para empates de **3 o más equipos**: se resuelve como una "mini-liga"
+  entre solo los equipos empatados (pasos 1-2 restringidos a sus
+  enfrentamientos mutuos); si el empate se resuelve solo parcialmente
+  (un subgrupo sigue empatado), se repite el proceso completo desde el
+  paso 1 para ese subgrupo restante.
+
 ### Ascensos y descensos (basado en el sistema real ACB / Primera FEB)
 
 - **2 plazas de ascenso** de 2ª a 1ª división por temporada:
@@ -76,6 +106,13 @@ esto (ver sección 12).
   dinámico todavía — se revisará más adelante). Un ascenso/descenso de
   división no afecta, por ahora, a la participación europea de estos
   clubes fijos.
+
+### Pendiente para sesiones de diseño futuras (Liga/Calendario)
+- 2ª división en el calendario (Fase 1 solo implementa 1ª división).
+- Playoffs por el título (top 8, bracket sin repesca).
+- Ascensos/descensos y playoff de ascenso (cuartos + Final Four).
+- Copa (1ª división, top 8 a mitad de temporada) y Copa de 2ª división.
+- Supercopa y competición europea.
 
 ## 4. Inicio de partida
 
