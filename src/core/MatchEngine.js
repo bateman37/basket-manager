@@ -333,10 +333,10 @@
     }
     const visionFactor = NEUTRAL_ATTRIBUTE / Math.max(avgGameVision, 1);
     const tempoFactor = 1 - tempoBias * config.tempo.stepReductionFactor;
-    const baseMax = 18 * tempoFactor;
-    const adjustedMax = Math.max(4, Math.min(baseMax * visionFactor, shotClockRemaining + 6));
-    const min = 3;
-    return min + Math.random() * (Math.max(min + 1, adjustedMax) - min);
+    const baseMax = config.tempo.stepBaseMaxSeconds * tempoFactor;
+    const min = config.tempo.stepMinSeconds;
+    const adjustedMax = Math.max(min + 1, Math.min(baseMax * visionFactor, shotClockRemaining + 6));
+    return min + Math.random() * (adjustedMax - min);
   }
 
   function getTempoBias(team, config) {
@@ -786,17 +786,34 @@
     const scoringRun = { side: null, points: 0, activeSide: null };
     let fastBreakEligible = false;
     const eventLog = [];
+    const possessionCount = { home: 0, away: 0 };
 
     // Simplificación de Fase 1: no se modela el salto inicial (jump ball);
-    // el equipo local empieza siempre con la posesión del primer cuarto.
+    // el equipo local empieza siempre con la posesión del primer cuarto (y
+    // de cada prórroga, ver 7.10 — DESIGN.md no especifica quién saca en
+    // prórroga, así que se reutiliza la misma simplificación).
     let offenseSide = 'home';
 
     const quarterLength = (config.match.durationMinutes * 60) / config.match.quarters;
+    const overtimeLength = config.match.overtimeMinutes * 60;
 
-    for (let quarter = 1; quarter <= config.match.quarters; quarter++) {
+    // 7.10: se juegan los 4 cuartos siempre, y luego tantas prórrogas de 5
+    // minutos como hagan falta hasta que el marcador quede desempatado al
+    // final de alguna — un partido real nunca termina en empate. Las
+    // faltas personales (`boxScore`, por jugador) NO se reinician entre
+    // períodos porque `boxScore` es el mismo Map durante todo el partido;
+    // solo `teamFouls` (faltas de EQUIPO, para el bonus) se reinicia al
+    // empezar cada período, cuarto o prórroga por igual.
+    let period = 0;
+    let isOvertime = false;
+    do {
+      period += 1;
+      isOvertime = period > config.match.quarters;
+      const periodLength = isOvertime ? overtimeLength : quarterLength;
+
       const teamFouls = { [homeTeam.id]: 0, [awayTeam.id]: 0 };
-      let clockRemaining = quarterLength;
-      const quarterPoints = { home: 0, away: 0 };
+      let clockRemaining = periodLength;
+      const periodPoints = { home: 0, away: 0 };
 
       while (clockRemaining > 0) {
         const offenseTeam = offenseSide === 'home' ? homeTeam : awayTeam;
@@ -805,10 +822,11 @@
         const defenseSquad = offenseSide === 'home' ? awaySquad : homeSquad;
         const defenseSide = offenseSide === 'home' ? 'away' : 'home';
 
-        // 7.5: presión, calculada UNA vez por posesión (tiempo total
-        // restante de PARTIDO, no solo del cuarto, y diferencia absoluta
-        // de marcador en curso).
-        const quartersRemainingAfterThis = config.match.quarters - quarter;
+        // 7.5: presión, calculada UNA vez por posesión. En prórroga no hay
+        // "cuartos restantes" que sumar (es un período de muerte súbita
+        // acumulativa) — se usa solo el reloj restante de la propia
+        // prórroga como tiempo restante de partido.
+        const quartersRemainingAfterThis = isOvertime ? 0 : config.match.quarters - period;
         const totalGameSecondsRemaining = clockRemaining + quartersRemainingAfterThis * quarterLength;
         const scoreDiff = Math.abs(runningScore.home - runningScore.away);
         const pressure = computePressure(totalGameSecondsRemaining, scoreDiff, config);
@@ -827,13 +845,14 @@
           offenseTeam, defenseTeam, offenseSquad, defenseSquad, teamFouls, config, boxScore, context,
         );
 
-        // Simplificación de Fase 1: el final de cuarto solo se comprueba
+        // Simplificación de Fase 1: el final de período solo se comprueba
         // ENTRE posesiones, no dentro de una posesión en curso.
         clockRemaining -= result.elapsed;
-        quarterPoints[offenseSide] += result.points;
-        quarterPoints[defenseSide] += result.defensePoints;
+        periodPoints[offenseSide] += result.points;
+        periodPoints[defenseSide] += result.defensePoints;
         runningScore[offenseSide] += result.points;
         runningScore[defenseSide] += result.defensePoints;
+        possessionCount[offenseSide] += 1;
 
         updateScoringRun(scoringRun, offenseSide, result.points, config);
         if (result.defensePoints > 0) updateScoringRun(scoringRun, defenseSide, result.defensePoints, config);
@@ -845,19 +864,27 @@
         // futuro sistema de selección de eventos destacados (7.7, Fase 3):
         // aquí solo se ACUMULA el log completo, no se filtra ni presenta.
         result.events.forEach((event) => {
-          eventLog.push({ ...event, quarter, offenseSide });
+          eventLog.push({ ...event, period, offenseSide });
         });
 
         offenseSide = defenseSide;
       }
 
-      quarterScores.home.push(quarterPoints.home);
-      quarterScores.away.push(quarterPoints.away);
-    }
+      quarterScores.home.push(periodPoints.home);
+      quarterScores.away.push(periodPoints.away);
+      // Seguir mientras falten cuartos regulares por jugar, O el marcador
+      // siga empatado tras jugar los 4 (entonces hace falta otra prórroga)
+      // — condicionar solo a `isOvertime` sería un error: justo al acabar
+      // el 4º cuarto empatado, `isOvertime` todavía es `false` (se refiere
+      // al período que se acaba de jugar, no al siguiente).
+    } while (period < config.match.quarters || runningScore.home === runningScore.away);
 
     return {
       finalScore: runningScore,
       quarterScores,
+      wentToOvertime: period > config.match.quarters,
+      overtimePeriods: Math.max(0, period - config.match.quarters),
+      possessionCount,
       boxScore: {
         home: homeSquad.map((player) => getStatLine(boxScore, player)),
         away: awaySquad.map((player) => getStatLine(boxScore, player)),

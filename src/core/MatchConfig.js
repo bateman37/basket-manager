@@ -53,10 +53,11 @@
     match: {
       durationMinutes: 40, // FIBA/ACB (parámetro de CONFIG, ver 7.1 y 7.2)
       quarters: 4,
+      overtimeMinutes: 5, // DESIGN.md 7.10: prórroga de 5 minutos, tantas como hagan falta
       shotClockSeconds: 24, // reloj de posesión FIBA
       offensiveReboundShotClockSeconds: 14, // reset tras rebote ofensivo
       // Umbral de "bonus" (tiros libres por cualquier falta defensiva fuera
-      // de tiro) — regla FIBA/ACB: 5ª falta de equipo en el cuarto.
+      // de tiro) — regla FIBA/ACB: 5ª falta de equipo en el cuarto/prórroga.
       teamFoulBonusThreshold: 5,
     },
 
@@ -144,7 +145,17 @@
     // definido a este comportamiento — este mapeo es una propuesta propia
     // de calibración, no una regla acordada. Escala aprox. -1 (muy pausado)
     // a +1 (muy rápido); los ADN no listados usan `defaultBias`.
+    // `stepMinSeconds`/`stepBaseMaxSeconds`: rango del "paso" de posesión
+    // normal antes de aplicar ritmo/visión (ver MatchEngine.
+    // pickPossessionStepSeconds) — DESIGN.md 7.1 (corregida): la duración
+    // media real de una posesión debe rondar ~14-15s, calculada dividiendo
+    // los 2400s del partido entre el total de posesiones de AMBOS equipos
+    // combinados (~165), no solo las de un equipo. Calibrado por
+    // simulación para que el nº de posesiones por equipo y partido ronde
+    // las 82-83 reales (ver CHANGELOG para las cifras finales verificadas).
     tempo: {
+      stepMinSeconds: 8,
+      stepBaseMaxSeconds: 26,
       stepReductionFactor: 0.25,
       dnaBias: {
         'Ritmo alto': 0.7,
@@ -221,7 +232,11 @@
       // 3. Tiro interior — DESIGN.md 7.6.3
       insideShot: {
         method: 'subtract',
-        intercept: 0.58,
+        // Calibrado por simulación: 0.58 (intercepto "puro" de 7.3-bis) se
+        // quedaba en ~49% real de partido una vez restado el efecto de
+        // Tapón (~10% de estos intentos) y Fatiga a lo largo del partido —
+        // subido para que el % final de partido ronde el ~58% objetivo.
+        intercept: 0.65,
         sensitivity: 0.015,
         primary: { insideShot: 0.5, jumping: 0.25, strength: 0.25 },
         secondary: { interiorDefense: 0.5, blocking: 0.3, positioning: 0.2 },
@@ -233,7 +248,10 @@
       // 4. Bandeja/finalización — DESIGN.md 7.6.4
       layup: {
         method: 'subtract',
-        intercept: 0.58, // provisional, comparte con insideShot (7.3-bis)
+        // Ídem insideShot: calibrado a 0.65 tras simulación (ver comentario
+        // arriba); sigue compartiendo el mismo intercepto "puro" de origen
+        // (7.3-bis) que insideShot, solo se recalibran igual.
+        intercept: 0.65,
         sensitivity: 0.015,
         primary: { layup: 0.4, acceleration: 0.25, balance: 0.2, aggressiveness: 0.15 },
         secondary: { interiorDefense: 0.4, strength: 0.35, positioning: 0.25 },
