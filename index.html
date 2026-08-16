@@ -25,10 +25,24 @@
     <pre id="team-test-output"></pre>
   </section>
 
+  <!-- Sección de prueba temporal para verificar el motor de simulación de
+       partidos, Fase 1 (src/core/MatchConfig.js, src/core/MatchEngine.js):
+       Bloque A (10 acciones base) + Bloque B (3 caminos de reglamento).
+       NO incluye Bloque C, sistemas transversales, factor cancha ni racha
+       — ver comentarios de MatchEngine.js. Se quitará cuando exista una
+       pantalla real de partido. -->
+  <section id="match-test">
+    <h2>Prueba: simulación de un partido completo (Fase 1 del motor)</h2>
+    <button id="simulate-match-btn" type="button">Simular un partido entre 2 equipos de prueba</button>
+    <pre id="match-test-output"></pre>
+  </section>
+
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
   <script src="src/entities/Team.js"></script>
   <script src="src/utils/teamGenerator.js"></script>
+  <script src="src/core/MatchConfig.js"></script>
+  <script src="src/core/MatchEngine.js"></script>
   <script>
     // Prueba manual, sin interfaz definitiva: solo comprueba que los datos
     // del jugador se generan correctamente (consola + pantalla).
@@ -83,10 +97,56 @@
       document.getElementById('team-test-output').textContent = output;
     }
 
+    // Prueba manual del motor de simulación: genera 2 equipos, simula un
+    // partido completo entre ellos y muestra marcador, cuartos y un box
+    // score básico (los máximos anotadores de cada equipo, no la plantilla
+    // completa, para que quepa en pantalla).
+    function renderTestMatch() {
+      const { generateFictionalTeams } = window.BasketManager;
+      const { simulateMatch } = window.BasketManager;
+      const [home, away] = generateFictionalTeams(2);
+      const result = simulateMatch(home, away);
+
+      console.log('Partido de prueba simulado:', { home, away, result });
+
+      function formatBoxScore(box) {
+        return box
+          .slice()
+          .sort((a, b) => b.points - a.points)
+          .slice(0, 6)
+          .map((line) => {
+            const fg = line.fieldGoals;
+            const fgSummary = Object.entries(fg)
+              .map(([type, stats]) => `${type} ${stats.made}/${stats.attempted}`)
+              .join(', ');
+            return `    ${line.name}: ${line.points} pts (${fgSummary}, TL ${line.freeThrows.made}/${line.freeThrows.attempted}) `
+              + `— ${line.reboundsOffensive + line.reboundsDefensive} reb, ${line.steals} rob, ${line.blocks} tap, `
+              + `${line.turnovers} pér, ${line.personalFouls} faltas`;
+          })
+          .join('\n');
+      }
+
+      const output = [
+        `${home.fullName} ${result.finalScore.home} — ${result.finalScore.away} ${away.fullName}`,
+        `Por cuartos — ${home.fullName}: ${result.quarterScores.home.join(' / ')}`,
+        `Por cuartos — ${away.fullName}: ${result.quarterScores.away.join(' / ')}`,
+        '',
+        `Máximos anotadores ${home.fullName}:`,
+        formatBoxScore(result.boxScore.home),
+        '',
+        `Máximos anotadores ${away.fullName}:`,
+        formatBoxScore(result.boxScore.away),
+      ].join('\n');
+
+      document.getElementById('match-test-output').textContent = output;
+    }
+
     document.getElementById('generate-players-btn').addEventListener('click', renderTestPlayers);
     document.getElementById('generate-teams-btn').addEventListener('click', renderTestTeams);
+    document.getElementById('simulate-match-btn').addEventListener('click', renderTestMatch);
     renderTestPlayers(); // generación automática al cargar la página
     renderTestTeams();
+    renderTestMatch();
   </script>
 </body>
 </html>

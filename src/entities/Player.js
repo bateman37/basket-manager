@@ -37,6 +37,14 @@
     'blocking', // tapón
     'stealing', // robo
     'foulTendency', // tendencia a falta (más alto = más propenso a pitarle falta)
+    // Añadidos al implementar el motor de simulación (DESIGN.md 7.6, Bloque
+    // A): varias fórmulas de acción (Triple, Media distancia, Tiro interior,
+    // Bandeja, Pérdida de balón, Robo) usan "DefensaPerimetral"/
+    // "DefensaInterior" como atributo defensivo, pero DESIGN.md 6.1 nunca
+    // los había listado — confirmado con Dennis, se añaden aquí como
+    // Atributos Técnicos y se documentan también en DESIGN.md 6.1.
+    'perimeterDefense', // defensa perimetral (contención a tiradores/manejadores)
+    'interiorDefense', // defensa interior (contención cerca del aro/poste)
   ];
 
   // Atributos Físicos — DESIGN.md 6.1 (fijos).

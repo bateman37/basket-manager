@@ -45,6 +45,7 @@
         ballHandling: 6, passing: 6, outsideShot: 3, midRangeShot: 2,
         freeThrows: 2, insideShot: -3, layup: -1, offensiveRebound: -4,
         defensiveRebound: -3, blocking: -5, stealing: 4, foulTendency: -1,
+        perimeterDefense: 3, interiorDefense: -5,
       },
       physical: {
         topSpeed: 4, acceleration: 4, jumping: 1, strength: -3,
@@ -59,7 +60,7 @@
       technical: {
         outsideShot: 5, midRangeShot: 4, freeThrows: 3, ballHandling: 2,
         insideShot: -1, layup: 1, offensiveRebound: -3, defensiveRebound: -2,
-        blocking: -4, stealing: 2,
+        blocking: -4, stealing: 2, perimeterDefense: 2, interiorDefense: -4,
       },
       physical: {
         topSpeed: 3, acceleration: 3, jumping: 2, strength: -2,
@@ -71,6 +72,7 @@
       technical: {
         outsideShot: 2, midRangeShot: 2, freeThrows: 2, insideShot: 1,
         layup: 2, ballHandling: 1, defensiveRebound: 1, blocking: -1, stealing: 1,
+        perimeterDefense: 1, interiorDefense: 1,
       },
       physical: { topSpeed: 1, acceleration: 1, jumping: 2, balance: 1, stamina: 1 },
       mental: { consistency: 1, teamwork: 1 },
@@ -80,6 +82,7 @@
         outsideShot: -2, midRangeShot: 1, insideShot: 3, layup: 3,
         ballHandling: -3, passing: -1, offensiveRebound: 4, defensiveRebound: 4,
         blocking: 3, stealing: -2, foulTendency: 1,
+        perimeterDefense: -2, interiorDefense: 3,
       },
       physical: {
         topSpeed: -2, acceleration: -2, jumping: 2, strength: 4,
@@ -92,6 +95,7 @@
         outsideShot: -5, midRangeShot: -2, insideShot: 2, layup: 4,
         freeThrows: -1, ballHandling: -5, passing: -2, offensiveRebound: 6,
         defensiveRebound: 6, blocking: 5, stealing: -3, foulTendency: 2,
+        perimeterDefense: -4, interiorDefense: 5,
       },
       physical: {
         topSpeed: -4, acceleration: -4, jumping: 1, strength: 6,
