@@ -205,3 +205,46 @@
     60 partidos combinados — señalado explícitamente para que se valore
     si el motor necesita más variables antes de decidir si es o no un
     problema de calibración.
+- **Entidad Liga y Calendario — Fase 1** (DESIGN.md 3.1, nueva): solo 1ª
+  división, sin playoffs/ascensos/descensos/Copa todavía (ver
+  "Pendiente" en DESIGN.md 3.1).
+  - `src/core/League.js` (nuevo):
+    - Generación de calendario con el algoritmo del círculo
+      (round-robin estándar) para 18 equipos: 34 jornadas (17 ida + 17
+      vuelta), cada equipo juega exactamente una vez por jornada.
+      Verificado por simulación: 306 partidos totales, cada pareja de
+      equipos se enfrenta exactamente 2 veces (una en cada campo).
+    - `League.simulateNextRound()`: simula de golpe todos los partidos
+      pendientes de la jornada actual (reutilizando
+      `MatchEngine.simulateMatch`), actualiza la clasificación y avanza
+      el puntero de jornada. Lanza un error descriptivo si se intenta
+      simular más allá de la jornada 34.
+    - Clasificación con puntuación real FIBA/ACB (2 puntos victoria, 1
+      derrota, no el 3-1-0 de fútbol), actualizada automáticamente tras
+      cada partido: jugados, victorias, derrotas, puntos a favor/en
+      contra, diferencia, y la suma de cocientes PF/PA por partido
+      (necesaria para el paso 5 del desempate).
+    - Criterio de desempate completo de 5 pasos (DESIGN.md 3.1): balance
+      mutuo, diferencia mutua, diferencia general, puntos anotados
+      generales, suma de cocientes generales — implementado de forma
+      recursiva para que los empates de 3+ equipos se resuelvan como
+      mini-liga (pasos 1-2 restringidos a los enfrentamientos mutuos del
+      subgrupo que sigue empatado en cada momento) y, si tras los 5
+      pasos un subgrupo sigue empatado, se reinicie el proceso desde el
+      paso 1 para ese subgrupo más pequeño. Con una guarda de seguridad
+      para el caso extremo (no debería ocurrir en la práctica) de un
+      empate genuinamente irresoluble con estos criterios, para no
+      entrar en bucle infinito.
+    - **Verificado con escenarios fabricados a mano** (no solo con
+      partidos aleatorios): un equipo que gana el enfrentamiento directo
+      queda por delante pese a tener peor diferencia general de puntos
+      (pasos 1-2 priman sobre el 3); un empate a 3 con balance mutuo
+      también empatado (1-1 cada uno) se resuelve correctamente por
+      diferencia de puntos mutua (paso 2).
+  - `index.html`: nueva sección de prueba que genera una Liga de 18
+    equipos ficticios al cargar la página, con un botón para simular la
+    siguiente jornada (muestra resultados + clasificación actualizada) y
+    otro para simular la temporada completa de golpe (34 jornadas, ~1s).
+    Verificado que intentar simular más allá de la jornada 34 se
+    gestiona sin error visible (aviso de "temporada completa").
+  - `CHANGELOG.md` actualizado (esta entrada).

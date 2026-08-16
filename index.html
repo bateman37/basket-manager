@@ -58,6 +58,18 @@
     <pre id="stress-no-centers-output"></pre>
   </section>
 
+  <!-- Sección de prueba temporal para verificar la entidad Liga y su
+       calendario, Fase 1 (src/core/League.js): solo 1ª división, 18
+       equipos, 34 jornadas (17 ida + 17 vuelta), sin playoffs/ascensos/
+       Copa todavía — ver DESIGN.md 3.1. Se quitará cuando exista una
+       pantalla real de competición. -->
+  <section id="league-test">
+    <h2>Prueba: Liga y Calendario (Fase 1 — solo 1ª división)</h2>
+    <button id="simulate-round-btn" type="button">Simular siguiente jornada</button>
+    <button id="simulate-season-btn" type="button">Simular temporada completa (hasta la jornada 34)</button>
+    <pre id="league-test-output"></pre>
+  </section>
+
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
   <script src="src/entities/Team.js"></script>
@@ -65,6 +77,7 @@
   <script src="src/utils/skewedTeamGenerator.js"></script>
   <script src="src/core/MatchConfig.js"></script>
   <script src="src/core/MatchEngine.js"></script>
+  <script src="src/core/League.js"></script>
   <script>
     // Prueba manual, sin interfaz definitiva: solo comprueba que los datos
     // del jugador se generan correctamente (consola + pantalla).
@@ -354,14 +367,92 @@
       document.getElementById('stress-no-centers-output').textContent = output;
     }
 
+    // --- Prueba de Liga y Calendario (Fase 1) ---
+    // La Liga se genera UNA vez al cargar la página (18 equipos ficticios)
+    // y se reutiliza entre clics, para que "Simular siguiente jornada" vaya
+    // avanzando la MISMA temporada en vez de crear una liga nueva cada vez.
+    let testLeague = null;
+
+    function formatStandingsTable(league) {
+      const header = '  # Equipo                                          PJ  V   D  Pts    PF    PC   Dif';
+      const rows = league.getStandingsTable().map((standing, index) => {
+        const name = standing.team.fullName.padEnd(46).slice(0, 46);
+        const rank = String(index + 1).padStart(3);
+        const played = String(standing.played).padStart(3);
+        const wins = String(standing.wins).padStart(3);
+        const losses = String(standing.losses).padStart(3);
+        const points = String(standing.points).padStart(4);
+        const pf = String(standing.pointsFor).padStart(6);
+        const pa = String(standing.pointsAgainst).padStart(6);
+        const diff = String(standing.pointDifference).padStart(5);
+        return `${rank} ${name}${played} ${wins} ${losses} ${points} ${pf} ${pa} ${diff}`;
+      });
+      return [header, ...rows].join('\n');
+    }
+
+    function formatRoundResults(matches) {
+      return matches
+        .map((match) => `    ${match.homeTeam.fullName} ${match.result.finalScore.home} — `
+          + `${match.result.finalScore.away} ${match.awayTeam.fullName}`)
+        .join('\n');
+    }
+
+    function ensureLeagueExists() {
+      if (testLeague) return testLeague;
+      const { generateFictionalTeams } = window.BasketManager;
+      const { League } = window.BasketManager;
+      const teams = generateFictionalTeams(18);
+      testLeague = new League(teams);
+      console.log('Liga de prueba generada (18 equipos, calendario de 34 jornadas):', testLeague);
+      return testLeague;
+    }
+
+    function renderLeagueState(lastRoundMatches) {
+      const league = testLeague;
+      const output = [
+        `Jornada actual: ${Math.min(league.currentRound, league.totalRounds)} / ${league.totalRounds}`
+          + (league.isSeasonComplete ? ' — TEMPORADA COMPLETA' : ''),
+        '',
+        lastRoundMatches ? `Resultados de la última jornada simulada (jornada ${lastRoundMatches[0].round}):` : '(todavía no se ha simulado ninguna jornada)',
+        lastRoundMatches ? formatRoundResults(lastRoundMatches) : '',
+        '',
+        'Clasificación:',
+        formatStandingsTable(league),
+      ].join('\n');
+      document.getElementById('league-test-output').textContent = output;
+    }
+
+    function simulateNextLeagueRound() {
+      const league = ensureLeagueExists();
+      if (league.isSeasonComplete) {
+        renderLeagueState(null);
+        return;
+      }
+      const matches = league.simulateNextRound();
+      renderLeagueState(matches);
+    }
+
+    function simulateFullLeagueSeason() {
+      const league = ensureLeagueExists();
+      let lastMatches = null;
+      while (!league.isSeasonComplete) {
+        lastMatches = league.simulateNextRound();
+      }
+      renderLeagueState(lastMatches);
+    }
+
     document.getElementById('generate-players-btn').addEventListener('click', renderTestPlayers);
     document.getElementById('generate-teams-btn').addEventListener('click', renderTestTeams);
     document.getElementById('simulate-match-btn').addEventListener('click', renderTestMatch);
     document.getElementById('stress-super-weak-btn').addEventListener('click', runSuperVsWeakStressTest);
     document.getElementById('stress-no-centers-btn').addEventListener('click', runNoCentersStressTest);
+    document.getElementById('simulate-round-btn').addEventListener('click', simulateNextLeagueRound);
+    document.getElementById('simulate-season-btn').addEventListener('click', simulateFullLeagueSeason);
     renderTestPlayers(); // generación automática al cargar la página
     renderTestTeams();
     renderTestMatch();
+    ensureLeagueExists();
+    renderLeagueState(null); // muestra la clasificación inicial (0 partidos) al cargar
     // Las pruebas de estrés (30 partidos cada una) NO se lanzan automáticamente
     // al cargar la página — son manuales, a petición, como corresponde a una
     // herramienta de diagnóstico bajo demanda.
