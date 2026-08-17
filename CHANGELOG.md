@@ -544,3 +544,56 @@
     nacimiento no se usa todavía para nada (no hay cálculo de edad, no
     se muestra en ninguna pantalla, no se conecta a ninguna fórmula del
     motor) — `DESIGN.md` no define ningún uso de la edad todavía.
+
+- **Bloque B — Liga, Copa y Playoffs como un único flujo** (`src/ui/game.js`):
+  antes, el botón principal de Home solo avanzaba la liga regular, y
+  Copa/Playoff/Ascenso solo se podían jugar partido a partido desde sus
+  pestañas en Competiciones, resueltos de golpe (sin el revelado
+  progresivo por cuartos que sí tiene la liga). Ahora es un único flujo:
+  - Nueva `getActiveBracket()`: mientras exista una Copa o un
+    Playoff/Ascenso activo y sin terminar (prioridad fija Copa >
+    Playoff por el título > Playoff de ascenso), el botón principal de
+    Home deja de decir "Jugar siguiente jornada" y pasa a avanzar ESE
+    bracket un partido a la vez, con la tarjeta rotulada según la ronda
+    en curso (ej. "Copa — Cuartos de final", "Playoff de ascenso — Final
+    (Final Four)"). Cuando no hay ningún bracket activo, el botón vuelve
+    a comportarse exactamente como antes (jornada de liga regular).
+  - Nueva `playBracketGameWithReveal()`: puente que convierte el
+    `{ gameNumber, homeEntry, awayEntry, result }` que devuelve
+    `Bracket.playNextGame()`/`PromotionPlayoff.playNextGame()` en el
+    `{ homeTeam, awayTeam, result }` que ya esperan
+    `startMatchReveal()`/`renderMatchScreen()` — así cualquier partido de
+    Copa/Playoff/Ascenso se revela cuarto a cuarto exactamente igual que
+    un partido de liga, sin tocar `Bracket.js`/`Cup.js`/`Playoffs.js`/
+    `Promotion.js`.
+  - Los tres botones de "Jugar siguiente partido de la Copa/playoff/
+    ascenso" que ya existían en la pestaña Competiciones (que antes
+    resolvían el partido de golpe) ahora pasan por el mismo puente — un
+    único camino para jugar un partido de bracket, no dos con
+    comportamiento distinto. La pestaña Competiciones sigue existiendo
+    igual que antes para consultar clasificación/cruces/resultados.
+  - La creación automática de brackets en `simulateNextRound()`
+    (jornada 17→18 para la Copa, fin de liga regular para Playoff/
+    Ascenso) no se ha tocado.
+  - **Verificado con Playwright headless** (`file://`, sin servidor), en
+    los tres frentes pedidos: 1ª división completa (liga hasta jornada
+    17, Copa creada y jugada entera desde el botón de Home con revelado
+    por cuartos visible, vuelta a la liga regular, liga hasta jornada 34,
+    Playoff por el título jugado entero igual desde Home); 2ª división
+    completa (liga hasta jornada 34, Playoff de ascenso — cuartos y
+    Final Four — jugado entero desde Home); y el botón de Copa en la
+    pestaña Competiciones pasando también por el revelado por cuartos.
+    Al terminar liga + Copa + Playoff en 1ª, el botón principal vuelve a
+    su estado ya existente de "Temporada regular terminada" (deshabilitado),
+    sin dejar ningún estado ambiguo. Cero errores de página (el único
+    error de consola es la carga externa ya conocida de Google Fonts, no
+    relacionado con este cambio).
+  - **Decisión de UI tomada sin estar 100% especificada, a confirmar con
+    Dennis**: al pulsar "Volver a Inicio" tras revelar un partido de
+    bracket jugado desde la pestaña Competiciones (no desde Home), el
+    flujo lleva a la pantalla de Inicio (Home), no de vuelta a
+    Competiciones — mismo destino que ya tenían los partidos de liga.
+    Parece razonable por consistencia, pero no estaba explícitamente
+    pedido para el caso "iniciado desde Competiciones".
+  - No se ha tocado `Bracket.js`, `Cup.js`, `Playoffs.js`,
+    `Promotion.js` ni `League.js`.
