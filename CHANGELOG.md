@@ -503,3 +503,97 @@
     pantalla de Competiciones sigue mostrando el contenido de esa
     pestaña obsoleta hasta que el usuario pulsa otra pestaña — no da
     error, solo un resto visual. Pendiente de decidir si se corrige.
+
+## 2026-08-17
+
+- **Bloque A — Fechas de nacimiento reales cargadas** (`data/real/real-data-bundle.js`
+  y `data/real/teams/*.json`): los 405 jugadores reales con `id` tipo
+  `player-<team-slug>-NN` tenían `birthDate: null`; Dennis aportó el
+  fichero con las 405 fechas reales (formato `YYYY-MM-DD`), emparejadas
+  por `id` (nunca por nombre, para evitar duplicados). Los 405 hicieron
+  match exacto con el bundle — cero IDs sin correspondencia en ningún
+  sentido. No se ha tocado ningún otro campo (`technical`, `physical`,
+  `mental`, `hidden`, `traits`, `experience`, `dynamicState`,
+  `bodyMeasurements`), verificado campo a campo tras la carga.
+  - Actualizado también `dataSource.basis` en esos 405 registros: la
+    frase "Fecha de nacimiento no recuperada con seguridad en esta
+    consolidación y se deja vacía" se sustituye por "Fecha de nacimiento
+    verificada en la consolidación posterior del dataset.", conservando
+    el resto de la frase original (p. ej. la cláusula sobre medidas
+    físicas que en 173 de los 405 iba unida por punto y coma).
+  - **Añadido no pedido explícitamente pero necesario para evitar una
+    regresión silenciosa**: `data/real/real-data-bundle.js` se genera a
+    partir de `data/real/teams/*.json` vía
+    `scripts/import-real-data.js`/`rescale-real-attributes.js`. Esos 36
+    ficheros por equipo son la fuente de verdad y también tenían
+    `birthDate: null` en los mismos 405 registros. Si solo se actualiza
+    el bundle, la próxima vez que se ejecute cualquiera de esos dos
+    scripts se regeneraría el bundle desde los JSON de equipo y las 405
+    fechas cargadas hoy desaparecerían sin aviso. Se han actualizado
+    también esos 36 ficheros con los mismos 405 `birthDate` y el mismo
+    cambio de `dataSource.basis`, verificando que bundle y ficheros de
+    equipo quedan byte a byte equivalentes (como ya lo estaban antes de
+    tocar nada).
+  - Verificado tras la carga: JSON válido en los 37 ficheros afectados,
+    sin IDs duplicados, sin referencias `teamId` rotas, sin
+    `birthDate: null` restante en jugadores `player-*`, y las 9 fichas
+    de jugadores con `id` en formato UUID (fuera del alcance de este
+    bloque, plantilla adicional de Primera FEB con fechas ya cargadas
+    por otra vía anterior) intactas.
+  - Confirmado explícitamente con Dennis en el encargo: la fecha de
+    nacimiento no se usa todavía para nada (no hay cálculo de edad, no
+    se muestra en ninguna pantalla, no se conecta a ninguna fórmula del
+    motor) — `DESIGN.md` no define ningún uso de la edad todavía.
+
+- **Bloque B — Liga, Copa y Playoffs como un único flujo** (`src/ui/game.js`):
+  antes, el botón principal de Home solo avanzaba la liga regular, y
+  Copa/Playoff/Ascenso solo se podían jugar partido a partido desde sus
+  pestañas en Competiciones, resueltos de golpe (sin el revelado
+  progresivo por cuartos que sí tiene la liga). Ahora es un único flujo:
+  - Nueva `getActiveBracket()`: mientras exista una Copa o un
+    Playoff/Ascenso activo y sin terminar (prioridad fija Copa >
+    Playoff por el título > Playoff de ascenso), el botón principal de
+    Home deja de decir "Jugar siguiente jornada" y pasa a avanzar ESE
+    bracket un partido a la vez, con la tarjeta rotulada según la ronda
+    en curso (ej. "Copa — Cuartos de final", "Playoff de ascenso — Final
+    (Final Four)"). Cuando no hay ningún bracket activo, el botón vuelve
+    a comportarse exactamente como antes (jornada de liga regular).
+  - Nueva `playBracketGameWithReveal()`: puente que convierte el
+    `{ gameNumber, homeEntry, awayEntry, result }` que devuelve
+    `Bracket.playNextGame()`/`PromotionPlayoff.playNextGame()` en el
+    `{ homeTeam, awayTeam, result }` que ya esperan
+    `startMatchReveal()`/`renderMatchScreen()` — así cualquier partido de
+    Copa/Playoff/Ascenso se revela cuarto a cuarto exactamente igual que
+    un partido de liga, sin tocar `Bracket.js`/`Cup.js`/`Playoffs.js`/
+    `Promotion.js`.
+  - Los tres botones de "Jugar siguiente partido de la Copa/playoff/
+    ascenso" que ya existían en la pestaña Competiciones (que antes
+    resolvían el partido de golpe) ahora pasan por el mismo puente — un
+    único camino para jugar un partido de bracket, no dos con
+    comportamiento distinto. La pestaña Competiciones sigue existiendo
+    igual que antes para consultar clasificación/cruces/resultados.
+  - La creación automática de brackets en `simulateNextRound()`
+    (jornada 17→18 para la Copa, fin de liga regular para Playoff/
+    Ascenso) no se ha tocado.
+  - **Verificado con Playwright headless** (`file://`, sin servidor), en
+    los tres frentes pedidos: 1ª división completa (liga hasta jornada
+    17, Copa creada y jugada entera desde el botón de Home con revelado
+    por cuartos visible, vuelta a la liga regular, liga hasta jornada 34,
+    Playoff por el título jugado entero igual desde Home); 2ª división
+    completa (liga hasta jornada 34, Playoff de ascenso — cuartos y
+    Final Four — jugado entero desde Home); y el botón de Copa en la
+    pestaña Competiciones pasando también por el revelado por cuartos.
+    Al terminar liga + Copa + Playoff en 1ª, el botón principal vuelve a
+    su estado ya existente de "Temporada regular terminada" (deshabilitado),
+    sin dejar ningún estado ambiguo. Cero errores de página (el único
+    error de consola es la carga externa ya conocida de Google Fonts, no
+    relacionado con este cambio).
+  - **Decisión de UI tomada sin estar 100% especificada, a confirmar con
+    Dennis**: al pulsar "Volver a Inicio" tras revelar un partido de
+    bracket jugado desde la pestaña Competiciones (no desde Home), el
+    flujo lleva a la pantalla de Inicio (Home), no de vuelta a
+    Competiciones — mismo destino que ya tenían los partidos de liga.
+    Parece razonable por consistencia, pero no estaba explícitamente
+    pedido para el caso "iniciado desde Competiciones".
+  - No se ha tocado `Bracket.js`, `Cup.js`, `Playoffs.js`,
+    `Promotion.js` ni `League.js`.

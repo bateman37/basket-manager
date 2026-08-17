@@ -72,6 +72,52 @@ Evitar el uso de logos, escudos o assets gráficos con marcas registradas.
 Los nombres de ligas y competiciones ficticias (si se usan en vez de los
 reales) deben quedar claramente diferenciados en `DESIGN.md`.
 
+## Interfaz de juego (`src/ui/game.js` + `src/ui/game.css`)
+
+`index.html` tiene dos entradas independientes, elegidas desde una landing
+con dos botones:
+
+- **Modo prueba**: todo el contenido técnico original de `index.html`
+  (generación de jugadores/equipos, simulación de un partido suelto,
+  pruebas de estrés del motor, pruebas de Liga/Playoffs/Copa/Ascenso). Vive
+  tal cual estaba, sin lógica propia añadida — solo queda envuelto en un
+  contenedor que se oculta/muestra. Cualquier sesión que añada una nueva
+  prueba técnica de un sistema del motor debe seguir añadiéndola aquí,
+  como hasta ahora.
+- **Empezar temporada**: la interfaz real de juego, implementada en
+  `src/ui/game.js` (lógica) y `src/ui/game.css` (estilos). Es una capa de
+  presentación sobre el motor existente — no contiene ninguna regla de
+  juego propia, todas las reglas activas ya estaban en `DESIGN.md` antes
+  de escribir esta interfaz (Liga 3.1, Playoffs/Copa/Ascenso 3.2). Si una
+  sesión futura necesita tocar esta interfaz, debe seguir estas
+  decisiones ya tomadas, en vez de reinterpretarlas:
+  - Selección de equipo: **solo datos reales** del bundle
+    (`data/real/real-data-bundle.js`), nunca ficticios — decisión de
+    producto, no está en `DESIGN.md` porque es de interfaz, no de reglas
+    de juego.
+  - Jugadores/equipos se reconstruyen siempre como **instancias reales**
+    de `Player`/`Team` (nunca objetos planos) a partir del bundle — mismo
+    patrón que ya usa `scripts/import-real-data.js` y la antigua sección
+    de prueba de la Liga real. Si se añade otra fuente de datos (por
+    ejemplo, un futuro roster editado en partida), debe reconstruirse
+    igual, nunca operarse como JSON plano directamente en la UI.
+  - El campo `dataSource` de cada jugador sigue **fuera** del constructor
+    de `Player` (se asigna aparte tras instanciar) — no integrarlo dentro
+    del constructor si se toca este archivo.
+  - Revelado progresivo por cuartos en la pantalla de partido: el motor
+    (`MatchEngine.simulateMatch`) no tiene punto de entrada por cuartos y
+    no se le debe añadir uno solo para esto — resuelve el partido entero
+    de una vez. La pantalla simula primero de golpe y luego **revela**
+    `result.quarterScores` cuarto a cuarto en la interfaz. Cualquier
+    "simulación en vivo" futura debe seguir este mismo patrón (calcular
+    ya, revelar poco a poco), no forzar al motor a pararse a mitad de
+    partido.
+  - La progresión de jornada (Copa en jornada 17, Playoff por el título /
+    Playoff de ascenso al terminar la liga regular) se dispara desde
+    `simulateNextRound()` en `game.js`, reutilizando `createCup`,
+    `createTitlePlayoff` y `PromotionPlayoff` tal cual — no se ha tocado
+    ninguno de los tres.
+
 ## Qué NO hacer sin confirmar con Dennis primero
 
 - No introducir frameworks, librerías de pago, o dependencias pesadas sin
@@ -80,3 +126,7 @@ reales) deben quedar claramente diferenciados en `DESIGN.md`.
   que no estén ya en `DESIGN.md` — proponerlas y esperar confirmación.
 - No borrar ni sobrescribir datos en `data/real/` al generar datos
   ficticios de prueba.
+- No reinterpretar las decisiones ya tomadas en "Interfaz de juego" de
+  este archivo (selección solo de datos reales, instancias reales de
+  Player/Team, dataSource fuera del constructor, revelado progresivo por
+  cuartos) sin comentarlo antes con Dennis.

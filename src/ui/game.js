@@ -173,9 +173,65 @@
     );
     state.pendingUserMatch = userMatch || null;
 
-    // Avanza cualquier bracket ya en juego mientras la liga no da más
-    // partidos de por sí (Copa/Playoffs/Ascenso se juegan "en paralelo",
-    // el usuario los avanza desde la pantalla de Competiciones, no aquí).
+    // El avance partido a partido de Copa/Playoffs/Ascenso, una vez
+    // creados, lo dispara el botón principal de Home (getActiveBracket()),
+    // no esta función — aquí solo se crean en el instante justo.
+  }
+
+  // ---------------------------------------------------------------------
+  // Bracket activo (Copa / Playoff por el título / Playoff de ascenso):
+  // mientras haya uno sin terminar, manda sobre la liga regular en el
+  // botón principal de Home — "el partido que toca ahora". Prioridad fija:
+  // Copa > Playoff por el título (1ª) > Playoff de ascenso (2ª); null si
+  // no hay ninguno activo (la liga regular manda, comportamiento normal).
+  // ---------------------------------------------------------------------
+  function getActiveBracketRoundLabel(bracket, labels) {
+    const status = bracket.getStatus();
+    const roundIndex = Math.min(status.rounds.length - 1, labels.length - 1);
+    return labels[roundIndex] || `Ronda ${status.rounds.length}`;
+  }
+
+  function getActiveBracket() {
+    if (state.cup && !state.cup.isComplete) {
+      return {
+        title: 'Copa',
+        roundLabel: getActiveBracketRoundLabel(state.cup, ['Cuartos de final', 'Semifinales', 'Final']),
+        bracket: state.cup,
+      };
+    }
+    if (state.titlePlayoff && !state.titlePlayoff.isComplete) {
+      return {
+        title: 'Playoff por el título',
+        roundLabel: getActiveBracketRoundLabel(state.titlePlayoff, ['Cuartos de final', 'Semifinales', 'Final']),
+        bracket: state.titlePlayoff,
+      };
+    }
+    if (state.promotionPlayoff && !state.promotionPlayoff.isComplete) {
+      const promo = state.promotionPlayoff;
+      let roundLabel = 'Cuartos de ascenso';
+      if (promo.isQuarterFinalsComplete) {
+        promo.ensureFinalFour();
+        roundLabel = getActiveBracketRoundLabel(promo.finalFour, ['Semifinales (Final Four)', 'Final (Final Four)']);
+      }
+      return { title: 'Playoff de ascenso', roundLabel, bracket: promo };
+    }
+    return null;
+  }
+
+  // Puente entre el shape de Bracket/PromotionPlayoff.playNextGame()
+  // ({ gameNumber, homeEntry, awayEntry, result }) y el shape que espera
+  // startMatchReveal()/renderMatchScreen() ({ homeTeam, awayTeam, result }),
+  // igual que ya se hace con state.pendingUserMatch para partidos de liga
+  // — así todo partido de bracket se revela cuarto a cuarto igual que uno
+  // de liga, sin tocar Bracket.js/Cup.js/Playoffs.js/Promotion.js.
+  function playBracketGameWithReveal(bracket) {
+    const game = bracket.playNextGame();
+    state.pendingUserMatch = {
+      homeTeam: game.homeEntry.team,
+      awayTeam: game.awayEntry.team,
+      result: game.result,
+    };
+    goToScreen('match');
   }
 
   // ---------------------------------------------------------------------
@@ -188,6 +244,7 @@
     const standings = league.getStandingsTable();
     const userRank = standings.findIndex((s) => s.team.id === team.id) + 1;
     const userStanding = standings[userRank - 1];
+    const activeBracket = getActiveBracket();
 
     const nextMatches = league.isSeasonComplete ? [] : league.getCurrentRoundMatches();
     const userNextMatch = nextMatches.find(
@@ -204,6 +261,26 @@
         ? `<p>${matchLabel(userNextMatch, team.id)}</p>`
         : '<p class="gm-muted">Tu equipo descansa esta jornada.</p>';
 
+    // Mientras haya un bracket (Copa/Playoff/Ascenso) activo y sin
+    // terminar, la tarjeta principal de Home se convierte en "el partido
+    // que toca ahora" de ese bracket, en vez de la jornada de liga —
+    // el usuario no tiene que ir a Competiciones a buscarlo.
+    const primaryCardHtml = activeBracket
+      ? `
+        <div class="gm-card">
+          <h3>${activeBracket.title} — ${activeBracket.roundLabel}</h3>
+          <p class="gm-muted">Competición en marcha. La liga regular espera a que termine.</p>
+          <button id="gm-play-bracket-btn" class="gm-btn gm-btn--primary">Jugar siguiente partido</button>
+        </div>`
+      : `
+        <div class="gm-card">
+          <h3>Jornada ${Math.min(league.currentRound, league.totalRounds)} / ${league.totalRounds}</h3>
+          ${nextMatchHtml}
+          <button id="gm-play-round-btn" class="gm-btn gm-btn--primary" ${league.isSeasonComplete ? 'disabled' : ''}>
+            ${league.isSeasonComplete ? 'Temporada regular terminada' : 'Jugar siguiente jornada'}
+          </button>
+        </div>`;
+
     container.innerHTML = `
       <div class="home-hero">
         <div class="home-hero__team">
@@ -219,13 +296,7 @@
       </div>
 
       <div class="home-grid">
-        <div class="gm-card">
-          <h3>Jornada ${Math.min(league.currentRound, league.totalRounds)} / ${league.totalRounds}</h3>
-          ${nextMatchHtml}
-          <button id="gm-play-round-btn" class="gm-btn gm-btn--primary" ${league.isSeasonComplete ? 'disabled' : ''}>
-            ${league.isSeasonComplete ? 'Temporada regular terminada' : 'Jugar siguiente jornada'}
-          </button>
-        </div>
+        ${primaryCardHtml}
 
         <div class="gm-card">
           <h3>Última jornada</h3>
@@ -233,6 +304,11 @@
         </div>
       </div>
     `;
+
+    const bracketBtn = byId('gm-play-bracket-btn');
+    if (bracketBtn) {
+      bracketBtn.addEventListener('click', () => playBracketGameWithReveal(activeBracket.bracket));
+    }
 
     const playBtn = byId('gm-play-round-btn');
     if (playBtn) {
@@ -410,14 +486,17 @@
       });
     });
 
+    // Mismo puente de revelado por cuartos que usa el botón principal de
+    // Home (playBracketGameWithReveal) — un único camino para jugar un
+    // partido de bracket, nunca uno con reveal y otro sin él.
     const cupBtn = byId('gm-advance-cup-btn');
-    if (cupBtn) cupBtn.addEventListener('click', () => { state.cup.playNextGame(); renderCompetitionsScreen(); });
+    if (cupBtn) cupBtn.addEventListener('click', () => playBracketGameWithReveal(state.cup));
 
     const playoffBtn = byId('gm-advance-playoff-btn');
-    if (playoffBtn) playoffBtn.addEventListener('click', () => { state.titlePlayoff.playNextGame(); renderCompetitionsScreen(); });
+    if (playoffBtn) playoffBtn.addEventListener('click', () => playBracketGameWithReveal(state.titlePlayoff));
 
     const promoBtn = byId('gm-advance-promotion-btn');
-    if (promoBtn) promoBtn.addEventListener('click', () => { state.promotionPlayoff.playNextGame(); renderCompetitionsScreen(); });
+    if (promoBtn) promoBtn.addEventListener('click', () => playBracketGameWithReveal(state.promotionPlayoff));
   }
 
   // ---------------------------------------------------------------------
