@@ -461,3 +461,45 @@
     la Liga real de 1ª división sigue simulando sin errores tras el
     cambio, y que ahora el campeón de una temporada de prueba es Real
     Madrid con una diferencia de puntos mucho más amplia que antes.
+
+- **Nuevo frontend de juego** (diseñado y probado aparte, aplicado aquí
+  vía `apply_frontend.sh` tras revisar su contenido — ver nota de
+  auditoría abajo). Reescribe `index.html` y añade `src/ui/game.js` +
+  `src/ui/game.css`; no toca `src/core/`, `src/entities/` ni
+  `src/utils/`.
+  - `index.html` pasa a ser una landing con dos botones: "Empezar
+    temporada" (modo juego nuevo) y "Modo prueba" (todo el contenido
+    técnico que ya existía, intacto, solo oculto por defecto detrás del
+    botón).
+  - Modo juego (`src/ui/game.js`): elegir club real de 1ª o 2ª división
+    (del bundle `data/real/`), avanzar jornada a jornada, partido del
+    usuario con marcador revelándose cuarto a cuarto y box score
+    completo (individual + totales de equipo) al terminar, calendario,
+    competiciones (liga + Copa + Playoff por el título en 1ª; liga +
+    Playoff de ascenso en 2ª) y estadísticas de jugadores por
+    competición — todo reutilizando `League.js`/`Cup.js`/`Playoffs.js`/
+    `Promotion.js`/`MatchEngine.js` tal cual, sin modificarlos.
+  - **Auditoría antes de ejecutar el script** (entregado como
+    `.sh` con el contenido de los 3 ficheros en base64): confirmado que
+    solo escribe esos 3 ficheros (nada de red, nada destructivo);
+    decodificado y revisado el contenido de los 3 antes de aplicarlo.
+  - **Verificado con Playwright headless** (`file://`, sin servidor):
+    modo prueba sigue funcionando igual que antes; modo juego completo
+    de punta a punta — selección de equipo, simulación de jornada con
+    reveal cuarto a cuarto (suma de parciales cuadra con el marcador
+    final), box score individual + totales de equipo, calendario,
+    estadísticas, y las pestañas de Copa/Playoff/Ascenso muestran el
+    aviso de "todavía no disponible" correctamente antes de
+    desbloquearse. Cero errores de consola/página.
+  - **Nota externa al proyecto, no bloqueante**: `index.html` enlaza a
+    Google Fonts (`fonts.googleapis.com`) — funciona, pero introduce
+    una dependencia de red que antes no existía (sin conexión, cae a
+    fuentes por defecto sin romper nada). No decidido aquí si se quiere
+    mantener o quitar.
+  - **Bug menor detectado, no corregido** (fuera del alcance pedido de
+    esta tarea): si se cambia de equipo de 1ª a 2ª división (o
+    viceversa) mientras está activa una pestaña de competición que solo
+    existe en la otra división (ej. "Playoff por el título"), la
+    pantalla de Competiciones sigue mostrando el contenido de esa
+    pestaña obsoleta hasta que el usuario pulsa otra pestaña — no da
+    error, solo un resto visual. Pendiente de decidir si se corrige.

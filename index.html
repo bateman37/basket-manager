@@ -2,9 +2,81 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Basket Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/ui/game.css">
 </head>
 <body>
+
+  <!-- ======================================================================
+       LANDING — punto de entrada único de index.html: elegir entre el modo
+       de pruebas técnicas (todo lo que había antes en esta página, intacto)
+       y la nueva pantalla de juego ("Empezar temporada"). Ver src/ui/game.js.
+       ====================================================================== -->
+  <div id="gm-landing" class="gm-landing">
+    <h1>Basket Manager</h1>
+    <p>Elige un club real de ACB o Primera FEB y juega la temporada, o entra en el modo de pruebas técnicas del motor.</p>
+    <div class="gm-landing__actions">
+      <button id="gm-goto-season-btn" class="gm-landing__btn gm-landing__btn--primary" type="button">Empezar temporada</button>
+      <button id="gm-goto-test-btn" class="gm-landing__btn" type="button">Modo prueba</button>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODO JUEGO — pantallas nuevas: selección de equipo, inicio,
+       calendario, competiciones, estadísticas, partido. Toda la lógica vive
+       en src/ui/game.js, que reutiliza el motor/entidades existentes sin
+       modificarlos.
+       ====================================================================== -->
+  <div id="gm-app" class="gm-root" style="display:none;">
+    <div class="gm-topbar">
+      <span class="gm-topbar__title">🏀 Basket Manager</span>
+      <button id="gm-back-to-team-select" class="gm-topbar__back" type="button">← Elegir otro club / salir</button>
+    </div>
+    <nav id="gm-nav" class="is-hidden">
+      <button class="gm-nav__btn" data-screen="home" type="button">Inicio</button>
+      <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
+      <button class="gm-nav__btn" data-screen="competitions" type="button">Competiciones</button>
+      <button class="gm-nav__btn" data-screen="stats" type="button">Estadísticas</button>
+      <button class="gm-nav__btn" data-screen="match" type="button">Partido</button>
+    </nav>
+
+    <section id="gm-screen-team-select" class="gm-screen is-active">
+      <h2>Elige tu club</h2>
+      <div id="gm-team-select"></div>
+    </section>
+
+    <section id="gm-screen-home" class="gm-screen">
+      <div id="gm-home"></div>
+    </section>
+
+    <section id="gm-screen-calendar" class="gm-screen">
+      <div id="gm-calendar"></div>
+    </section>
+
+    <section id="gm-screen-competitions" class="gm-screen">
+      <h2>Competiciones</h2>
+      <div id="gm-competitions"></div>
+    </section>
+
+    <section id="gm-screen-stats" class="gm-screen">
+      <h2>Estadísticas de la temporada</h2>
+      <div id="gm-stats"></div>
+    </section>
+
+    <section id="gm-screen-match" class="gm-screen">
+      <div id="gm-match"></div>
+    </section>
+  </div>
+
+  <!-- ======================================================================
+       MODO PRUEBA — contenido técnico original de index.html, SIN cambios,
+       solo envuelto para poder ocultarlo/mostrarlo desde la landing de
+       arriba. Nada de lo de dentro se ha tocado.
+       ====================================================================== -->
+  <div id="gm-test-mode-section" style="display:none;">
   <h1>Basket Manager - en construcción</h1>
 
   <!-- Sección de prueba temporal para verificar la entidad Jugador y su
@@ -117,6 +189,8 @@
     <button id="simulate-real-season-btn" type="button">Simular temporada completa (hasta la jornada 34)</button>
     <pre id="real-league-output">(todavía no se ha generado la liga real)</pre>
   </section>
+  </div>
+  <!-- fin de #gm-test-mode-section -->
 
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
@@ -131,6 +205,31 @@
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>
   <script src="src/core/Promotion.js"></script>
+  <script src="src/ui/game.js"></script>
+  <script>
+    // --- Landing: alternar entre modo juego y modo prueba ---
+    // El modo prueba arranca oculto por defecto (antes era lo único que
+    // había en la página); el modo juego se inicializa de forma perezosa,
+    // solo la primera vez que el usuario pulsa "Empezar temporada", para no
+    // construir equipos reales si nunca se visita esa pantalla.
+    let gameInitialized = false;
+
+    document.getElementById('gm-goto-season-btn').addEventListener('click', () => {
+      document.getElementById('gm-landing').style.display = 'none';
+      document.getElementById('gm-test-mode-section').style.display = 'none';
+      document.getElementById('gm-app').style.display = 'block';
+      if (!gameInitialized) {
+        window.BasketManagerGame.init();
+        gameInitialized = true;
+      }
+    });
+
+    document.getElementById('gm-goto-test-btn').addEventListener('click', () => {
+      document.getElementById('gm-landing').style.display = 'none';
+      document.getElementById('gm-app').style.display = 'none';
+      document.getElementById('gm-test-mode-section').style.display = 'block';
+    });
+  </script>
   <script>
     // Prueba manual, sin interfaz definitiva: solo comprueba que los datos
     // del jugador se generan correctamente (consola + pantalla).
