@@ -156,29 +156,35 @@ baloncesto. Todos los atributos numéricos en **escala 1-20**.
 
 **Actualización (sesión de diseño de Alineaciones/Rotación, ver 7.11)**:
 el campo deja de ser una lista plana de posiciones habilitadas y pasa a
-tener **nivel de competencia por posición**, necesario para calcular la
-penalización por polivalencia de emergencia (7.11):
+ser un **mapa con nivel de competencia para las 5 posiciones,
+siempre presente** (no una lista variable de 1 a 5 entradas):
 
-- **Posición principal**: exactamente 1. Nivel fijo implícito de 20 (no
-  se almacena como número variable — un jugador siempre rinde al 100%
-  de su capacidad en su posición principal, por definición).
-- **Posiciones secundarias**: de 0 a 4 adicionales (el total de
-  posiciones habilitadas sigue sin superar 5). Cada una lleva un
-  **nivel explícito en escala 1-20**, coherente con el resto de la
-  ficha — no es una etiqueta plana de "habilitada/no habilitada", sino
-  un grado real de competencia en esa posición (ej. un base con
-  Escolta de secundaria a nivel 16 se defiende mucho mejor ahí que uno
-  a nivel 6).
-- Las posiciones **no habilitadas en absoluto** (ni como principal ni
-  como secundaria) no tienen nivel almacenado; si el motor necesita
-  usar a ese jugador ahí en emergencia total (7.11), se trata como
-  nivel 1 por defecto, nunca bloqueando la jugada.
-- El generador de jugadores (real o ficticio) decide cuántas
-  secundarias tiene cada jugador y a qué nivel, según coherencia
-  posicional (ej. una secundaria de Pívot en un Base sería posible pero
-  rara, y se generaría con nivel bajo) — el criterio exacto de
-  generación se deja para cuando se trabaje esa parte del generador,
-  no bloquea el uso del campo en el motor de partido.
+- Cada jugador tiene un valor 1-20 para **cada una** de las 5
+  posiciones (Base, Escolta, Alero, Ala-pívot, Pívot), no solo para las
+  que "tiene habilitadas". Una posición en la que el jugador no está
+  habilitado en absoluto simplemente lleva un valor bajo (nivel 1), en
+  vez de no existir en los datos.
+- **Posición principal**: no es un campo aparte — se deduce
+  directamente de cuál de las 5 posiciones tiene valor **20** (el
+  jugador rinde al 100% de su capacidad exactamente en su posición
+  principal, por definición, y solo en ella). Esto evita que puedan
+  quedar inconsistentes un campo "principal" declarado y el propio
+  valor numérico.
+- **Posiciones secundarias**: las que tienen un valor entre 1 y 19,
+  coherente con el resto de la ficha — un grado real de competencia,
+  no una etiqueta plana de "habilitada/no habilitada" (ej. un base con
+  Escolta a nivel 16 se defiende mucho mejor ahí que uno a nivel 6).
+- Este shape simplifica el uso en el motor (7.11.3, polivalencia de
+  emergencia): nunca hay que comprobar si una posición "existe" en los
+  datos del jugador — siempre hay un valor que consultar, incluso para
+  las posiciones no habilitadas (nivel 1 por defecto), así que la regla
+  de emergencia total queda implícita en los propios datos.
+- El generador de jugadores (real o ficticio) decide el valor de cada
+  una de las 5 posiciones según coherencia posicional (ej. un Base
+  tendría un valor muy bajo en Pívot, y probablemente un valor medio en
+  Escolta) — el criterio exacto de generación se deja para cuando se
+  trabaje esa parte del generador, no bloquea el uso del campo en el
+  motor de partido.
 
 #### Datos Físicos Corporales (reales, no en escala 1-20)
 Distintos de los Atributos Físicos de abajo (que son habilidad/capacidad
@@ -910,13 +916,16 @@ de desgaste y recuperación de Energía que depende directamente de ella.
 - La convocatoria de partido sigue la regla ya fijada en 6.2 (mínimo 8,
   máximo 12 jugadores de la plantilla total).
 - Para cada jugador convocado, el usuario declara **una posición para
-  ese partido concreto**, elegida entre las posiciones habilitadas de
-  ese jugador (principal o alguna secundaria, ver 6.1). Un jugador
-  polivalente puede así jugar en una posición distinta a su principal
-  en un partido dado (ej. por baja de otro jugador en esa posición),
-  sin que eso sea una "emergencia" — es una elección deliberada del
-  usuario, distinta de la polivalencia de emergencia de 7.11.3, que es
-  una decisión automática del motor durante el partido.
+  ese partido concreto**, elegida entre las posiciones en las que el
+  jugador tiene un nivel razonable según su mapa de 5 posiciones (6.1):
+  la de valor 20 (su principal) o cualquiera con un valor que el
+  usuario considere jugable como secundaria — el motor no impone un
+  umbral duro aquí, es una decisión del usuario. Un jugador polivalente
+  puede así jugar en una posición distinta a su principal en un
+  partido dado (ej. por baja de otro jugador en esa posición), sin que
+  eso sea una "emergencia" — es una elección deliberada del usuario,
+  distinta de la polivalencia de emergencia de 7.11.3, que es una
+  decisión automática del motor durante el partido.
 
 #### 7.11.2 Rotación: cuotas de minutos + quintetos fijos
 
@@ -952,18 +961,18 @@ queda sin cobertura (los jugadores asignados a ella agotaron su cuota,
 o no hay convocados suficientes en ella):
 
 - El motor busca, entre los convocados que **todavía tengan minutos
-  disponibles**, el que tenga esa posición habilitada (como principal o
-  secundaria, 6.1) con la **menor distancia posicional** a la posición
-  vacía. La distancia se mide como diferencia de índice en el espectro
-  Base(1)–Escolta(2)–Alero(3)–Ala-pívot(4)–Pívot(5) (ej. Alero→Ala-pívot
-  = distancia 1; Base→Pívot = distancia 4).
+  disponibles**, el que tenga el **mayor nivel** en esa posición dentro
+  de su mapa de 5 posiciones (6.1) combinado con la **menor distancia
+  posicional** a la posición vacía. La distancia se mide como
+  diferencia de índice en el espectro Base(1)–Escolta(2)–Alero(3)–
+  Ala-pívot(4)–Pívot(5) (ej. Alero→Ala-pívot = distancia 1; Base→Pívot
+  = distancia 4). Como el mapa de 5 posiciones (6.1) siempre tiene un
+  valor para cada posición, esta búsqueda no necesita un caso especial
+  para "no la tiene habilitada" — simplemente ese candidato tendrá un
+  nivel bajo (cercano a 1) en la fórmula de penalización de abajo, y el
+  motor puede seguir usándolo sin bloquearse.
 - **Desempate**: si hay varios candidatos a la misma distancia mínima,
   gana el que tenga más cuota de minutos restante.
-- Si ningún convocado tiene esa posición habilitada en absoluto, se usa
-  igualmente al candidato de menor distancia, tratando su nivel en esa
-  posición como **1** (emergencia total) — el motor nunca se bloquea
-  por falta de cobertura, siempre encuentra una salida, por penalizada
-  que esté.
 
 **Penalización por polivalencia**: un jugador que cubre una posición
 distinta a la que se le declaró (7.11.1) sufre una penalización de
@@ -974,13 +983,14 @@ rendimiento en esa jugada:
 
 - `penalización_base` crece con la distancia posicional (a calibrar en
   CONFIG, como el resto de fórmulas del motor).
-- El nivel usado es el de la ficha actualizada de 6.1: 20 si fuera su
-  posición principal (caso que no debería darse aquí, ya que si es su
-  principal no hay emergencia), el nivel explícito 1-20 si es una
-  secundaria habilitada, o 1 si no la tiene habilitada en absoluto.
+- El nivel usado es directamente el valor de esa posición en el mapa de
+  6.1 (20 si fuera su principal, caso que no debería darse aquí ya que
+  si es su principal no hay emergencia; el valor 1-20 que corresponda
+  en cualquier otro caso, incluyendo valores bajos para posiciones en
+  las que el jugador apenas tiene competencia).
 - Efecto práctico: un jugador con nivel alto en la posición de
   emergencia apenas sufre penalización (tiene sentido, básicamente ya
-  sabe jugar ahí); un jugador sin esa posición habilitada sufre la
+  sabe jugar ahí); un jugador con nivel bajo en esa posición sufre la
   penalización casi completa.
 
 #### 7.11.4 Desgaste de Energía dentro del partido
