@@ -11,7 +11,7 @@
       "id": "player-flexicar-fuenlabrada-01",
       "firstName": "Mateo",
       "lastName": "Díaz",
-      "birthDate": null,
+      "birthDate": "2002-03-06",
       "positions": [
         "Base"
       ],
@@ -75,7 +75,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -83,7 +83,7 @@
       "id": "player-flexicar-fuenlabrada-02",
       "firstName": "Javi",
       "lastName": "López",
-      "birthDate": null,
+      "birthDate": "1999-05-06",
       "positions": [
         "Base"
       ],
@@ -147,7 +147,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -155,7 +155,7 @@
       "id": "player-flexicar-fuenlabrada-03",
       "firstName": "Vitor",
       "lastName": "Benite",
-      "birthDate": null,
+      "birthDate": "1990-02-20",
       "positions": [
         "Escolta"
       ],
@@ -222,7 +222,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -230,7 +230,7 @@
       "id": "player-flexicar-fuenlabrada-04",
       "firstName": "Romaric",
       "lastName": "Belemene",
-      "birthDate": null,
+      "birthDate": "1997-02-19",
       "positions": [
         "Alero",
         "Ala-pívot"
@@ -295,7 +295,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -303,7 +303,7 @@
       "id": "player-flexicar-fuenlabrada-05",
       "firstName": "Iván",
       "lastName": "Cruz",
-      "birthDate": null,
+      "birthDate": "1991-10-24",
       "positions": [
         "Ala-pívot",
         "Pívot"
@@ -368,7 +368,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },

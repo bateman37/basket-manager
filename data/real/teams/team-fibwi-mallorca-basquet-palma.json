@@ -11,7 +11,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-01",
       "firstName": "Hugo",
       "lastName": "Ferreira",
-      "birthDate": null,
+      "birthDate": "2001-07-28",
       "positions": [
         "Base"
       ],
@@ -75,7 +75,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -83,7 +83,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-02",
       "firstName": "Adrià",
       "lastName": "Moncanut",
-      "birthDate": null,
+      "birthDate": "2002-10-06",
       "positions": [
         "Base"
       ],
@@ -147,7 +147,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -155,7 +155,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-03",
       "firstName": "Lysander",
       "lastName": "Bracey",
-      "birthDate": null,
+      "birthDate": "1996-11-01",
       "positions": [
         "Base",
         "Escolta"
@@ -220,7 +220,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -228,7 +228,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-04",
       "firstName": "Jaume",
       "lastName": "Lobo",
-      "birthDate": null,
+      "birthDate": "1997-07-31",
       "positions": [
         "Escolta"
       ],
@@ -292,7 +292,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -300,7 +300,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-05",
       "firstName": "Sergi",
       "lastName": "Huguet",
-      "birthDate": null,
+      "birthDate": "2002-08-31",
       "positions": [
         "Escolta",
         "Alero"
@@ -365,7 +365,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -373,7 +373,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-06",
       "firstName": "Osvaldas",
       "lastName": "Matulionis",
-      "birthDate": null,
+      "birthDate": "1991-08-19",
       "positions": [
         "Alero",
         "Ala-pívot"
@@ -440,7 +440,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -448,7 +448,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-07",
       "firstName": "Xabi",
       "lastName": "Beraza",
-      "birthDate": null,
+      "birthDate": "1999-01-26",
       "positions": [
         "Alero",
         "Ala-pívot"
@@ -513,7 +513,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -521,7 +521,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-08",
       "firstName": "Alessandro",
       "lastName": "Scariolo",
-      "birthDate": null,
+      "birthDate": "2001-10-21",
       "positions": [
         "Alero",
         "Escolta"
@@ -586,7 +586,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -594,7 +594,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-09",
       "firstName": "Đorđe",
       "lastName": "Simeunović",
-      "birthDate": null,
+      "birthDate": "1995-04-26",
       "positions": [
         "Ala-pívot",
         "Alero"
@@ -659,7 +659,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -667,7 +667,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-10",
       "firstName": "Garmine",
       "lastName": "Kande",
-      "birthDate": null,
+      "birthDate": "1999-08-24",
       "positions": [
         "Ala-pívot",
         "Pívot"
@@ -732,7 +732,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -740,7 +740,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-11",
       "firstName": "Osaretin",
       "lastName": "Cerdá",
-      "birthDate": null,
+      "birthDate": "2005-06-04",
       "positions": [
         "Pívot"
       ],
@@ -804,7 +804,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -812,7 +812,7 @@
       "id": "player-fibwi-mallorca-basquet-palma-12",
       "firstName": "Shilo",
       "lastName": "Jackson",
-      "birthDate": null,
+      "birthDate": "2003-06-25",
       "positions": [
         "Pívot"
       ],
@@ -876,7 +876,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     }

@@ -238,7 +238,7 @@
         "id": "player-asisa-joventut-01",
         "firstName": "Boogie",
         "lastName": "Ellis",
-        "birthDate": null,
+        "birthDate": "2000-12-12",
         "positions": [
           "Base"
         ],
@@ -304,7 +304,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -312,7 +312,7 @@
         "id": "player-asisa-joventut-02",
         "firstName": "Ludde",
         "lastName": "Hakanson",
-        "birthDate": null,
+        "birthDate": "1996-03-22",
         "positions": [
           "Base"
         ],
@@ -376,7 +376,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -384,7 +384,7 @@
         "id": "player-asisa-joventut-03",
         "firstName": "Nico",
         "lastName": "Laprovittola",
-        "birthDate": null,
+        "birthDate": "1990-01-31",
         "positions": [
           "Base",
           "Escolta"
@@ -452,7 +452,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -460,7 +460,7 @@
         "id": "player-asisa-joventut-04",
         "firstName": "Ricky",
         "lastName": "Rubio",
-        "birthDate": null,
+        "birthDate": "1990-10-21",
         "positions": [
           "Base"
         ],
@@ -528,7 +528,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -536,7 +536,7 @@
         "id": "player-asisa-joventut-05",
         "firstName": "Isaac",
         "lastName": "Nogués",
-        "birthDate": null,
+        "birthDate": "2004-02-10",
         "positions": [
           "Escolta",
           "Alero"
@@ -601,7 +601,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -609,7 +609,7 @@
         "id": "player-asisa-joventut-06",
         "firstName": "Alex",
         "lastName": "Reyes",
-        "birthDate": null,
+        "birthDate": "1993-12-17",
         "positions": [
           "Alero"
         ],
@@ -673,7 +673,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -681,7 +681,7 @@
         "id": "player-asisa-joventut-07",
         "firstName": "Yannick",
         "lastName": "Kraag",
-        "birthDate": null,
+        "birthDate": "2002-10-16",
         "positions": [
           "Alero"
         ],
@@ -745,7 +745,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -753,7 +753,7 @@
         "id": "player-asisa-joventut-08",
         "firstName": "Emir",
         "lastName": "Sulejmanovic",
-        "birthDate": null,
+        "birthDate": "1995-07-13",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -818,7 +818,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -826,7 +826,7 @@
         "id": "player-asisa-joventut-09",
         "firstName": "Kwan",
         "lastName": "Cheatham",
-        "birthDate": null,
+        "birthDate": "1995-08-21",
         "positions": [
           "Ala-pívot"
         ],
@@ -890,7 +890,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -898,7 +898,7 @@
         "id": "player-asisa-joventut-10",
         "firstName": "Michael",
         "lastName": "Ruzic",
-        "birthDate": null,
+        "birthDate": "2006-10-04",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -963,7 +963,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -971,7 +971,7 @@
         "id": "player-asisa-joventut-11",
         "firstName": "Ante",
         "lastName": "Tomic",
-        "birthDate": null,
+        "birthDate": "1987-02-17",
         "positions": [
           "Pívot"
         ],
@@ -1038,7 +1038,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1046,7 +1046,7 @@
         "id": "player-asisa-joventut-12",
         "firstName": "Simon",
         "lastName": "Birgander",
-        "birthDate": null,
+        "birthDate": "1997-10-23",
         "positions": [
           "Pívot"
         ],
@@ -1112,7 +1112,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -1215,7 +1215,7 @@
         "id": "player-barca-01",
         "firstName": "Juan",
         "lastName": "Núñez",
-        "birthDate": null,
+        "birthDate": "2004-06-04",
         "positions": [
           "Base"
         ],
@@ -1281,7 +1281,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1289,7 +1289,7 @@
         "id": "player-barca-02",
         "firstName": "Justin",
         "lastName": "Robinson",
-        "birthDate": null,
+        "birthDate": "1997-10-12",
         "positions": [
           "Base"
         ],
@@ -1355,7 +1355,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1363,7 +1363,7 @@
         "id": "player-barca-03",
         "firstName": "Umoja",
         "lastName": "Gibson",
-        "birthDate": null,
+        "birthDate": "1998-07-04",
         "positions": [
           "Base",
           "Escolta"
@@ -1430,7 +1430,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1438,7 +1438,7 @@
         "id": "player-barca-04",
         "firstName": "Darío",
         "lastName": "Brizuela",
-        "birthDate": null,
+        "birthDate": "1994-11-08",
         "positions": [
           "Escolta",
           "Base"
@@ -1503,7 +1503,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1511,7 +1511,7 @@
         "id": "player-barca-05",
         "firstName": "Kevin",
         "lastName": "Punter",
-        "birthDate": null,
+        "birthDate": "1993-06-25",
         "positions": [
           "Escolta"
         ],
@@ -1578,7 +1578,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1586,7 +1586,7 @@
         "id": "player-barca-06",
         "firstName": "Agustín",
         "lastName": "Ubal",
-        "birthDate": null,
+        "birthDate": "2003-07-19",
         "positions": [
           "Alero",
           "Escolta"
@@ -1651,7 +1651,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1659,7 +1659,7 @@
         "id": "player-barca-07",
         "firstName": "Joel",
         "lastName": "Parra",
-        "birthDate": null,
+        "birthDate": "2000-04-04",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -1724,7 +1724,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1732,7 +1732,7 @@
         "id": "player-barca-08",
         "firstName": "Stanley",
         "lastName": "Umude",
-        "birthDate": null,
+        "birthDate": "1999-04-12",
         "positions": [
           "Alero"
         ],
@@ -1796,7 +1796,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1804,7 +1804,7 @@
         "id": "player-barca-09",
         "firstName": "Tyrese",
         "lastName": "Martin",
-        "birthDate": null,
+        "birthDate": "1999-03-07",
         "positions": [
           "Alero",
           "Escolta"
@@ -1869,7 +1869,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1877,7 +1877,7 @@
         "id": "player-barca-10",
         "firstName": "Olivier",
         "lastName": "Nkamhoua",
-        "birthDate": null,
+        "birthDate": "2000-05-02",
         "positions": [
           "Ala-pívot"
         ],
@@ -1941,7 +1941,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -1949,7 +1949,7 @@
         "id": "player-barca-11",
         "firstName": "Tosan",
         "lastName": "Evbuomwan",
-        "birthDate": null,
+        "birthDate": "2001-02-16",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -2014,7 +2014,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2022,7 +2022,7 @@
         "id": "player-barca-12",
         "firstName": "Josh",
         "lastName": "Nebo",
-        "birthDate": null,
+        "birthDate": "1997-07-19",
         "positions": [
           "Pívot"
         ],
@@ -2088,7 +2088,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2096,7 +2096,7 @@
         "id": "player-barca-13",
         "firstName": "Olek",
         "lastName": "Balcerowski",
-        "birthDate": null,
+        "birthDate": "2000-11-19",
         "positions": [
           "Pívot"
         ],
@@ -2162,7 +2162,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -2265,7 +2265,7 @@
         "id": "player-casademont-zaragoza-01",
         "firstName": "Guillem",
         "lastName": "Vives",
-        "birthDate": null,
+        "birthDate": "1993-06-16",
         "positions": [
           "Base"
         ],
@@ -2331,7 +2331,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2339,7 +2339,7 @@
         "id": "player-casademont-zaragoza-02",
         "firstName": "Sergi",
         "lastName": "García",
-        "birthDate": null,
+        "birthDate": "1997-02-17",
         "positions": [
           "Base"
         ],
@@ -2405,7 +2405,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2413,7 +2413,7 @@
         "id": "player-casademont-zaragoza-03",
         "firstName": "Trae",
         "lastName": "Bell-Haynes",
-        "birthDate": null,
+        "birthDate": "1995-09-05",
         "positions": [
           "Base"
         ],
@@ -2479,7 +2479,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2487,7 +2487,7 @@
         "id": "player-casademont-zaragoza-04",
         "firstName": "Justin",
         "lastName": "Jaworski",
-        "birthDate": null,
+        "birthDate": "1999-06-21",
         "positions": [
           "Escolta",
           "Base"
@@ -2554,7 +2554,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2562,7 +2562,7 @@
         "id": "player-casademont-zaragoza-05",
         "firstName": "Miguel",
         "lastName": "González",
-        "birthDate": null,
+        "birthDate": "1999-03-20",
         "positions": [
           "Escolta",
           "Alero"
@@ -2627,7 +2627,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2635,7 +2635,7 @@
         "id": "player-casademont-zaragoza-06",
         "firstName": "Caleb",
         "lastName": "Homesley",
-        "birthDate": null,
+        "birthDate": "1996-11-27",
         "positions": [
           "Alero",
           "Escolta"
@@ -2700,7 +2700,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2708,7 +2708,7 @@
         "id": "player-casademont-zaragoza-07",
         "firstName": "Nico",
         "lastName": "Brussino",
-        "birthDate": null,
+        "birthDate": "1993-03-02",
         "positions": [
           "Alero"
         ],
@@ -2772,7 +2772,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2780,7 +2780,7 @@
         "id": "player-casademont-zaragoza-08",
         "firstName": "Jaime",
         "lastName": "Fernández",
-        "birthDate": null,
+        "birthDate": "2000-07-15",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -2845,7 +2845,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2853,7 +2853,7 @@
         "id": "player-casademont-zaragoza-09",
         "firstName": "Roberts",
         "lastName": "Blumbergs",
-        "birthDate": null,
+        "birthDate": "1998-04-29",
         "positions": [
           "Ala-pívot"
         ],
@@ -2917,7 +2917,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2925,7 +2925,7 @@
         "id": "player-casademont-zaragoza-10",
         "firstName": "Gabriel",
         "lastName": "Olaseni",
-        "birthDate": null,
+        "birthDate": "1991-12-29",
         "positions": [
           "Pívot"
         ],
@@ -2991,7 +2991,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -2999,7 +2999,7 @@
         "id": "player-casademont-zaragoza-11",
         "firstName": "Laurynas",
         "lastName": "Birutis",
-        "birthDate": null,
+        "birthDate": "1997-08-27",
         "positions": [
           "Pívot"
         ],
@@ -3065,7 +3065,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -3168,7 +3168,7 @@
         "id": "player-fiatc-girona-01",
         "firstName": "Andrzej",
         "lastName": "Pluta",
-        "birthDate": null,
+        "birthDate": "2000-06-03",
         "positions": [
           "Base"
         ],
@@ -3234,7 +3234,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3242,7 +3242,7 @@
         "id": "player-fiatc-girona-02",
         "firstName": "Isaac",
         "lastName": "Vázquez",
-        "birthDate": null,
+        "birthDate": "2004-10-10",
         "positions": [
           "Base"
         ],
@@ -3308,7 +3308,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3316,7 +3316,7 @@
         "id": "player-fiatc-girona-03",
         "firstName": "Mac",
         "lastName": "McClung",
-        "birthDate": null,
+        "birthDate": "1999-01-06",
         "positions": [
           "Base",
           "Escolta"
@@ -3383,7 +3383,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3391,7 +3391,7 @@
         "id": "player-fiatc-girona-04",
         "firstName": "Stanley",
         "lastName": "Whittaker",
-        "birthDate": null,
+        "birthDate": "1994-10-21",
         "positions": [
           "Base",
           "Escolta"
@@ -3458,7 +3458,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3466,7 +3466,7 @@
         "id": "player-fiatc-girona-05",
         "firstName": "Maxi",
         "lastName": "Fjellerup",
-        "birthDate": null,
+        "birthDate": "1997-11-25",
         "positions": [
           "Escolta",
           "Alero"
@@ -3533,7 +3533,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3541,7 +3541,7 @@
         "id": "player-fiatc-girona-06",
         "firstName": "Pep",
         "lastName": "Busquets",
-        "birthDate": null,
+        "birthDate": "1999-03-02",
         "positions": [
           "Escolta",
           "Alero"
@@ -3606,7 +3606,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3614,7 +3614,7 @@
         "id": "player-fiatc-girona-07",
         "firstName": "Sergi",
         "lastName": "Martínez",
-        "birthDate": null,
+        "birthDate": "1999-05-10",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -3679,7 +3679,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3687,7 +3687,7 @@
         "id": "player-fiatc-girona-08",
         "firstName": "David",
         "lastName": "N'Guessan",
-        "birthDate": null,
+        "birthDate": "2000-06-12",
         "positions": [
           "Ala-pívot"
         ],
@@ -3751,7 +3751,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3759,7 +3759,7 @@
         "id": "player-fiatc-girona-09",
         "firstName": "Nikola",
         "lastName": "Maric",
-        "birthDate": null,
+        "birthDate": "1998-12-19",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -3824,7 +3824,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3832,7 +3832,7 @@
         "id": "player-fiatc-girona-10",
         "firstName": "Aljaz",
         "lastName": "Kunc",
-        "birthDate": null,
+        "birthDate": "1999-07-30",
         "positions": [
           "Pívot"
         ],
@@ -3898,7 +3898,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -3906,7 +3906,7 @@
         "id": "player-fiatc-girona-11",
         "firstName": "Martinas",
         "lastName": "Geben",
-        "birthDate": null,
+        "birthDate": "1994-10-20",
         "positions": [
           "Pívot"
         ],
@@ -3972,7 +3972,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -4075,7 +4075,7 @@
         "id": "player-ilerna-lleida-01",
         "firstName": "Dani",
         "lastName": "García",
-        "birthDate": null,
+        "birthDate": "1998-01-30",
         "positions": [
           "Base"
         ],
@@ -4139,7 +4139,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4147,7 +4147,7 @@
         "id": "player-ilerna-lleida-02",
         "firstName": "Darius",
         "lastName": "McGhee",
-        "birthDate": null,
+        "birthDate": "1999-06-02",
         "positions": [
           "Base",
           "Escolta"
@@ -4214,7 +4214,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4222,7 +4222,7 @@
         "id": "player-ilerna-lleida-03",
         "firstName": "James",
         "lastName": "Batemon",
-        "birthDate": null,
+        "birthDate": "1997-04-08",
         "positions": [
           "Escolta",
           "Base"
@@ -4289,7 +4289,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4297,7 +4297,7 @@
         "id": "player-ilerna-lleida-04",
         "firstName": "Mark",
         "lastName": "Hughes",
-        "birthDate": null,
+        "birthDate": "1997-02-15",
         "positions": [
           "Escolta"
         ],
@@ -4361,7 +4361,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4369,7 +4369,7 @@
         "id": "player-ilerna-lleida-05",
         "firstName": "Mikel",
         "lastName": "Sanz",
-        "birthDate": null,
+        "birthDate": "1999-02-01",
         "positions": [
           "Alero",
           "Escolta"
@@ -4434,7 +4434,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4442,7 +4442,7 @@
         "id": "player-ilerna-lleida-06",
         "firstName": "Oriol",
         "lastName": "Paulí",
-        "birthDate": null,
+        "birthDate": "1994-05-20",
         "positions": [
           "Alero",
           "Escolta"
@@ -4507,7 +4507,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4515,7 +4515,7 @@
         "id": "player-ilerna-lleida-07",
         "firstName": "John",
         "lastName": "Shurna",
-        "birthDate": null,
+        "birthDate": "1990-04-30",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -4580,7 +4580,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4588,7 +4588,7 @@
         "id": "player-ilerna-lleida-08",
         "firstName": "Melvin",
         "lastName": "Ejim",
-        "birthDate": null,
+        "birthDate": "1991-03-04",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -4653,7 +4653,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4661,7 +4661,7 @@
         "id": "player-ilerna-lleida-09",
         "firstName": "Atoumane",
         "lastName": "Diagne",
-        "birthDate": null,
+        "birthDate": "1998-12-31",
         "positions": [
           "Pívot"
         ],
@@ -4725,7 +4725,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4733,7 +4733,7 @@
         "id": "player-ilerna-lleida-10",
         "firstName": "Kur",
         "lastName": "Kuath",
-        "birthDate": null,
+        "birthDate": "1998-08-12",
         "positions": [
           "Pívot"
         ],
@@ -4799,7 +4799,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -4807,7 +4807,7 @@
         "id": "player-ilerna-lleida-11",
         "firstName": "Zacharie",
         "lastName": "Perrin",
-        "birthDate": null,
+        "birthDate": "2004-08-30",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -4874,7 +4874,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -4977,7 +4977,7 @@
         "id": "player-kids-and-us-manresa-01",
         "firstName": "Ferran",
         "lastName": "Bassas",
-        "birthDate": null,
+        "birthDate": "1992-04-29",
         "positions": [
           "Base"
         ],
@@ -5043,7 +5043,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5051,7 +5051,7 @@
         "id": "player-kids-and-us-manresa-02",
         "firstName": "Hugo",
         "lastName": "Benítez",
-        "birthDate": null,
+        "birthDate": "2001-01-20",
         "positions": [
           "Base"
         ],
@@ -5117,7 +5117,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5125,7 +5125,7 @@
         "id": "player-kids-and-us-manresa-03",
         "firstName": "Lucas",
         "lastName": "Beaufort",
-        "birthDate": null,
+        "birthDate": "2002-05-24",
         "positions": [
           "Base",
           "Escolta"
@@ -5192,7 +5192,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5200,7 +5200,7 @@
         "id": "player-kids-and-us-manresa-04",
         "firstName": "Rafa",
         "lastName": "Villar",
-        "birthDate": null,
+        "birthDate": "2004-08-09",
         "positions": [
           "Base",
           "Escolta"
@@ -5267,7 +5267,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5275,7 +5275,7 @@
         "id": "player-kids-and-us-manresa-05",
         "firstName": "Lukasz",
         "lastName": "Kolenda",
-        "birthDate": null,
+        "birthDate": "1999-07-28",
         "positions": [
           "Escolta",
           "Base"
@@ -5340,7 +5340,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5348,7 +5348,7 @@
         "id": "player-kids-and-us-manresa-06",
         "firstName": "Chibuzo",
         "lastName": "Agbo",
-        "birthDate": null,
+        "birthDate": "2001-11-28",
         "positions": [
           "Alero",
           "Escolta"
@@ -5413,7 +5413,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5421,7 +5421,7 @@
         "id": "player-kids-and-us-manresa-07",
         "firstName": "Pablo",
         "lastName": "Tamba",
-        "birthDate": null,
+        "birthDate": "2003-09-04",
         "positions": [
           "Alero"
         ],
@@ -5485,7 +5485,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5493,7 +5493,7 @@
         "id": "player-kids-and-us-manresa-08",
         "firstName": "Eric",
         "lastName": "Vila",
-        "birthDate": null,
+        "birthDate": "1998-05-15",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -5558,7 +5558,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5566,7 +5566,7 @@
         "id": "player-kids-and-us-manresa-09",
         "firstName": "Timmy",
         "lastName": "Allen",
-        "birthDate": null,
+        "birthDate": "2000-01-09",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -5631,7 +5631,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5639,7 +5639,7 @@
         "id": "player-kids-and-us-manresa-10",
         "firstName": "Yordan",
         "lastName": "Minchev",
-        "birthDate": null,
+        "birthDate": "1998-10-17",
         "positions": [
           "Ala-pívot"
         ],
@@ -5703,7 +5703,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5711,7 +5711,7 @@
         "id": "player-kids-and-us-manresa-11",
         "firstName": "Nick",
         "lastName": "Ongenda",
-        "birthDate": null,
+        "birthDate": "2000-09-29",
         "positions": [
           "Pívot"
         ],
@@ -5777,7 +5777,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -5785,7 +5785,7 @@
         "id": "player-kids-and-us-manresa-12",
         "firstName": "Pierre",
         "lastName": "Oriola",
-        "birthDate": null,
+        "birthDate": "1992-09-25",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -5852,7 +5852,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -5955,7 +5955,7 @@
         "id": "player-kosner-baskonia-01",
         "firstName": "Damion",
         "lastName": "Baugh",
-        "birthDate": null,
+        "birthDate": "2000-08-03",
         "positions": [
           "Base",
           "Escolta"
@@ -6022,7 +6022,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6030,7 +6030,7 @@
         "id": "player-kosner-baskonia-02",
         "firstName": "Kobi",
         "lastName": "Simmons",
-        "birthDate": null,
+        "birthDate": "1997-07-04",
         "positions": [
           "Base"
         ],
@@ -6096,7 +6096,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6104,7 +6104,7 @@
         "id": "player-kosner-baskonia-03",
         "firstName": "Markus",
         "lastName": "Howard",
-        "birthDate": null,
+        "birthDate": "1999-03-03",
         "positions": [
           "Escolta",
           "Base"
@@ -6172,7 +6172,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6180,7 +6180,7 @@
         "id": "player-kosner-baskonia-04",
         "firstName": "Matteo",
         "lastName": "Spagnolo",
-        "birthDate": null,
+        "birthDate": "2003-01-10",
         "positions": [
           "Escolta",
           "Base"
@@ -6245,7 +6245,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6253,7 +6253,7 @@
         "id": "player-kosner-baskonia-05",
         "firstName": "AJ",
         "lastName": "Lawson",
-        "birthDate": null,
+        "birthDate": "2000-07-15",
         "positions": [
           "Alero",
           "Escolta"
@@ -6318,7 +6318,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6326,7 +6326,7 @@
         "id": "player-kosner-baskonia-06",
         "firstName": "Chris",
         "lastName": "Duarte",
-        "birthDate": null,
+        "birthDate": "1997-06-13",
         "positions": [
           "Alero",
           "Escolta"
@@ -6391,7 +6391,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6399,7 +6399,7 @@
         "id": "player-kosner-baskonia-07",
         "firstName": "Dewayne",
         "lastName": "Stewart Jr",
-        "birthDate": null,
+        "birthDate": "1999-07-28",
         "positions": [
           "Alero"
         ],
@@ -6463,7 +6463,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6471,7 +6471,7 @@
         "id": "player-kosner-baskonia-08",
         "firstName": "Rodions",
         "lastName": "Kurucs",
-        "birthDate": null,
+        "birthDate": "1998-02-05",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -6536,7 +6536,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6544,7 +6544,7 @@
         "id": "player-kosner-baskonia-09",
         "firstName": "Tadas",
         "lastName": "Sedekerskis",
-        "birthDate": null,
+        "birthDate": "1998-01-17",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -6609,7 +6609,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6617,7 +6617,7 @@
         "id": "player-kosner-baskonia-10",
         "firstName": "Clement",
         "lastName": "Frisch",
-        "birthDate": null,
+        "birthDate": "2002-01-07",
         "positions": [
           "Ala-pívot"
         ],
@@ -6681,7 +6681,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6689,7 +6689,7 @@
         "id": "player-kosner-baskonia-11",
         "firstName": "Khalifa",
         "lastName": "Diop",
-        "birthDate": null,
+        "birthDate": "2002-01-15",
         "positions": [
           "Pívot"
         ],
@@ -6755,7 +6755,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -6858,7 +6858,7 @@
         "id": "player-la-laguna-tenerife-01",
         "firstName": "Arturs",
         "lastName": "Kurucs",
-        "birthDate": null,
+        "birthDate": "2000-01-19",
         "positions": [
           "Base",
           "Escolta"
@@ -6925,7 +6925,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -6933,7 +6933,7 @@
         "id": "player-la-laguna-tenerife-02",
         "firstName": "Bruno",
         "lastName": "Fitipaldo",
-        "birthDate": null,
+        "birthDate": "1991-08-02",
         "positions": [
           "Base"
         ],
@@ -6997,7 +6997,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7005,7 +7005,7 @@
         "id": "player-la-laguna-tenerife-03",
         "firstName": "Marcelinho",
         "lastName": "Huertas",
-        "birthDate": null,
+        "birthDate": "1983-05-25",
         "positions": [
           "Base"
         ],
@@ -7073,7 +7073,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7081,7 +7081,7 @@
         "id": "player-la-laguna-tenerife-04",
         "firstName": "Jaime",
         "lastName": "Fernández",
-        "birthDate": null,
+        "birthDate": "2000-07-15",
         "positions": [
           "Escolta",
           "Base"
@@ -7146,7 +7146,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7154,7 +7154,7 @@
         "id": "player-la-laguna-tenerife-05",
         "firstName": "Kyle",
         "lastName": "Guy",
-        "birthDate": null,
+        "birthDate": "1997-08-11",
         "positions": [
           "Escolta"
         ],
@@ -7220,7 +7220,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7228,7 +7228,7 @@
         "id": "player-la-laguna-tenerife-06",
         "firstName": "TJ",
         "lastName": "Bamba",
-        "birthDate": null,
+        "birthDate": "2001-01-06",
         "positions": [
           "Escolta",
           "Alero"
@@ -7293,7 +7293,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7301,7 +7301,7 @@
         "id": "player-la-laguna-tenerife-07",
         "firstName": "Wesley",
         "lastName": "Van Beck",
-        "birthDate": null,
+        "birthDate": "1996-01-22",
         "positions": [
           "Escolta",
           "Alero"
@@ -7366,7 +7366,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7374,7 +7374,7 @@
         "id": "player-la-laguna-tenerife-08",
         "firstName": "Héctor",
         "lastName": "Alderete",
-        "birthDate": null,
+        "birthDate": "2002-03-06",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -7439,7 +7439,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7447,7 +7447,7 @@
         "id": "player-la-laguna-tenerife-09",
         "firstName": "Rokas",
         "lastName": "Giedraitis",
-        "birthDate": null,
+        "birthDate": "1992-08-16",
         "positions": [
           "Alero"
         ],
@@ -7511,7 +7511,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7519,7 +7519,7 @@
         "id": "player-la-laguna-tenerife-10",
         "firstName": "Xabi",
         "lastName": "López-Arostegui",
-        "birthDate": null,
+        "birthDate": "1997-05-19",
         "positions": [
           "Alero",
           "Escolta"
@@ -7584,7 +7584,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7592,7 +7592,7 @@
         "id": "player-la-laguna-tenerife-11",
         "firstName": "Aaron",
         "lastName": "Doornekamp",
-        "birthDate": null,
+        "birthDate": "1985-12-05",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -7659,7 +7659,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7667,7 +7667,7 @@
         "id": "player-la-laguna-tenerife-12",
         "firstName": "Tim",
         "lastName": "Abromaitis",
-        "birthDate": null,
+        "birthDate": "1989-09-17",
         "positions": [
           "Ala-pívot"
         ],
@@ -7733,7 +7733,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7741,7 +7741,7 @@
         "id": "player-la-laguna-tenerife-13",
         "firstName": "Ethan",
         "lastName": "Happ",
-        "birthDate": null,
+        "birthDate": "1996-05-07",
         "positions": [
           "Pívot"
         ],
@@ -7807,7 +7807,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -7815,7 +7815,7 @@
         "id": "player-la-laguna-tenerife-14",
         "firstName": "Giorgi",
         "lastName": "Shermadini",
-        "birthDate": null,
+        "birthDate": "1989-04-02",
         "positions": [
           "Pívot"
         ],
@@ -7881,7 +7881,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -7984,7 +7984,7 @@
         "id": "player-leyma-coruna-01",
         "firstName": "Alonzo",
         "lastName": "Verge Jr.",
-        "birthDate": null,
+        "birthDate": "1998-10-17",
         "positions": [
           "Base",
           "Escolta"
@@ -8051,7 +8051,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8059,7 +8059,7 @@
         "id": "player-leyma-coruna-02",
         "firstName": "Caio",
         "lastName": "Pacheco",
-        "birthDate": null,
+        "birthDate": "1999-02-22",
         "positions": [
           "Base"
         ],
@@ -8125,7 +8125,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8133,7 +8133,7 @@
         "id": "player-leyma-coruna-03",
         "firstName": "Didac",
         "lastName": "Cuevas",
-        "birthDate": null,
+        "birthDate": "2000-06-20",
         "positions": [
           "Base"
         ],
@@ -8199,7 +8199,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8207,7 +8207,7 @@
         "id": "player-leyma-coruna-04",
         "firstName": "Paul",
         "lastName": "Jorgensen",
-        "birthDate": null,
+        "birthDate": "1996-07-21",
         "positions": [
           "Escolta",
           "Base"
@@ -8272,7 +8272,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8280,7 +8280,7 @@
         "id": "player-leyma-coruna-05",
         "firstName": "Tomas",
         "lastName": "Dimsa",
-        "birthDate": null,
+        "birthDate": "1994-01-02",
         "positions": [
           "Escolta",
           "Alero"
@@ -8345,7 +8345,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8353,7 +8353,7 @@
         "id": "player-leyma-coruna-06",
         "firstName": "Guillem",
         "lastName": "Jou",
-        "birthDate": null,
+        "birthDate": "1997-07-15",
         "positions": [
           "Alero",
           "Escolta"
@@ -8418,7 +8418,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8426,7 +8426,7 @@
         "id": "player-leyma-coruna-07",
         "firstName": "Jacobo",
         "lastName": "Díaz",
-        "birthDate": null,
+        "birthDate": "1996-07-23",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -8491,7 +8491,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8499,7 +8499,7 @@
         "id": "player-leyma-coruna-08",
         "firstName": "Lukas",
         "lastName": "Uleckas",
-        "birthDate": null,
+        "birthDate": "1999-08-06",
         "positions": [
           "Alero"
         ],
@@ -8563,7 +8563,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8571,7 +8571,7 @@
         "id": "player-leyma-coruna-09",
         "firstName": "Dino",
         "lastName": "Radoncic",
-        "birthDate": null,
+        "birthDate": "1999-01-08",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -8636,7 +8636,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8644,7 +8644,7 @@
         "id": "player-leyma-coruna-10",
         "firstName": "Dmytro",
         "lastName": "Skapintsev",
-        "birthDate": null,
+        "birthDate": "1998-05-12",
         "positions": [
           "Pívot"
         ],
@@ -8710,7 +8710,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8718,7 +8718,7 @@
         "id": "player-leyma-coruna-11",
         "firstName": "George",
         "lastName": "Conditt IV",
-        "birthDate": null,
+        "birthDate": "2000-08-22",
         "positions": [
           "Pívot"
         ],
@@ -8782,7 +8782,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -8790,7 +8790,7 @@
         "id": "player-leyma-coruna-12",
         "firstName": "Karlis",
         "lastName": "Silins",
-        "birthDate": null,
+        "birthDate": "1997-07-22",
         "positions": [
           "Pívot"
         ],
@@ -8856,7 +8856,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -8959,7 +8959,7 @@
         "id": "player-monbus-obradoiro-01",
         "firstName": "Brandon",
         "lastName": "Childress",
-        "birthDate": null,
+        "birthDate": "1997-08-31",
         "positions": [
           "Base"
         ],
@@ -9025,7 +9025,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9033,7 +9033,7 @@
         "id": "player-monbus-obradoiro-02",
         "firstName": "Alex",
         "lastName": "Barcello",
-        "birthDate": null,
+        "birthDate": "1998-08-31",
         "positions": [
           "Escolta",
           "Base"
@@ -9098,7 +9098,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9106,7 +9106,7 @@
         "id": "player-monbus-obradoiro-03",
         "firstName": "Caleb",
         "lastName": "Agada",
-        "birthDate": null,
+        "birthDate": "1994-08-31",
         "positions": [
           "Escolta",
           "Alero"
@@ -9171,7 +9171,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9179,7 +9179,7 @@
         "id": "player-monbus-obradoiro-04",
         "firstName": "Diogo",
         "lastName": "Brito",
-        "birthDate": null,
+        "birthDate": "1997-04-24",
         "positions": [
           "Escolta",
           "Alero"
@@ -9244,7 +9244,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9252,7 +9252,7 @@
         "id": "player-monbus-obradoiro-05",
         "firstName": "Olle",
         "lastName": "Lundqvist",
-        "birthDate": null,
+        "birthDate": "1999-11-21",
         "positions": [
           "Escolta",
           "Base"
@@ -9317,7 +9317,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9325,7 +9325,7 @@
         "id": "player-monbus-obradoiro-06",
         "firstName": "Sergi",
         "lastName": "Quintela",
-        "birthDate": null,
+        "birthDate": "1996-04-21",
         "positions": [
           "Escolta",
           "Alero"
@@ -9390,7 +9390,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9398,7 +9398,7 @@
         "id": "player-monbus-obradoiro-07",
         "firstName": "Leo",
         "lastName": "Meindl",
-        "birthDate": null,
+        "birthDate": "1993-03-20",
         "positions": [
           "Alero"
         ],
@@ -9462,7 +9462,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9470,7 +9470,7 @@
         "id": "player-monbus-obradoiro-08",
         "firstName": "Yunio",
         "lastName": "Barrueta",
-        "birthDate": null,
+        "birthDate": "1993-04-15",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -9535,7 +9535,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9543,7 +9543,7 @@
         "id": "player-monbus-obradoiro-09",
         "firstName": "Alejandro",
         "lastName": "Galán",
-        "birthDate": null,
+        "birthDate": "1999-09-12",
         "positions": [
           "Ala-pívot"
         ],
@@ -9607,7 +9607,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9615,7 +9615,7 @@
         "id": "player-monbus-obradoiro-10",
         "firstName": "Alonso",
         "lastName": "Faure",
-        "birthDate": null,
+        "birthDate": "2002-02-20",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -9680,7 +9680,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9688,7 +9688,7 @@
         "id": "player-monbus-obradoiro-11",
         "firstName": "Efe",
         "lastName": "Abogidi",
-        "birthDate": null,
+        "birthDate": "2001-10-11",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -9753,7 +9753,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9761,7 +9761,7 @@
         "id": "player-monbus-obradoiro-12",
         "firstName": "Felipe",
         "lastName": "dos Anjos",
-        "birthDate": null,
+        "birthDate": "1998-04-30",
         "positions": [
           "Pívot"
         ],
@@ -9827,7 +9827,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -9835,7 +9835,7 @@
         "id": "player-monbus-obradoiro-13",
         "firstName": "Joel",
         "lastName": "Soriano",
-        "birthDate": null,
+        "birthDate": "2000-01-30",
         "positions": [
           "Pívot"
         ],
@@ -9901,7 +9901,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -10004,7 +10004,7 @@
         "id": "player-morabanc-andorra-01",
         "firstName": "James",
         "lastName": "Akinjo",
-        "birthDate": null,
+        "birthDate": "2000-11-27",
         "positions": [
           "Base"
         ],
@@ -10070,7 +10070,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10078,7 +10078,7 @@
         "id": "player-morabanc-andorra-02",
         "firstName": "Luka",
         "lastName": "Bottiroli",
-        "birthDate": null,
+        "birthDate": "2009-01-10",
         "positions": [
           "Base"
         ],
@@ -10144,7 +10144,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10152,7 +10152,7 @@
         "id": "player-morabanc-andorra-03",
         "firstName": "Rafa",
         "lastName": "Luz",
-        "birthDate": null,
+        "birthDate": "1992-02-11",
         "positions": [
           "Base"
         ],
@@ -10218,7 +10218,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10226,7 +10226,7 @@
         "id": "player-morabanc-andorra-04",
         "firstName": "Aaron",
         "lastName": "Best",
-        "birthDate": null,
+        "birthDate": "1992-09-01",
         "positions": [
           "Escolta",
           "Alero"
@@ -10291,7 +10291,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10299,7 +10299,7 @@
         "id": "player-morabanc-andorra-05",
         "firstName": "Chumi",
         "lastName": "Ortega",
-        "birthDate": null,
+        "birthDate": "1997-08-13",
         "positions": [
           "Escolta",
           "Alero"
@@ -10364,7 +10364,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10372,7 +10372,7 @@
         "id": "player-morabanc-andorra-06",
         "firstName": "Kassius",
         "lastName": "Robertson",
-        "birthDate": null,
+        "birthDate": "1994-04-20",
         "positions": [
           "Escolta"
         ],
@@ -10436,7 +10436,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10444,7 +10444,7 @@
         "id": "player-morabanc-andorra-07",
         "firstName": "Kyle",
         "lastName": "Kuric",
-        "birthDate": null,
+        "birthDate": "1989-08-25",
         "positions": [
           "Escolta"
         ],
@@ -10508,7 +10508,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10516,7 +10516,7 @@
         "id": "player-morabanc-andorra-08",
         "firstName": "Kostas",
         "lastName": "Kostadinov",
-        "birthDate": null,
+        "birthDate": "2003-03-25",
         "positions": [
           "Alero"
         ],
@@ -10580,7 +10580,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10588,7 +10588,7 @@
         "id": "player-morabanc-andorra-09",
         "firstName": "Lazar",
         "lastName": "Mutic",
-        "birthDate": null,
+        "birthDate": "1999-01-06",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -10653,7 +10653,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10661,7 +10661,7 @@
         "id": "player-morabanc-andorra-10",
         "firstName": "Wes",
         "lastName": "Iwundu",
-        "birthDate": null,
+        "birthDate": "1994-12-20",
         "positions": [
           "Alero"
         ],
@@ -10725,7 +10725,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10733,7 +10733,7 @@
         "id": "player-morabanc-andorra-11",
         "firstName": "Cameron",
         "lastName": "McGriff",
-        "birthDate": null,
+        "birthDate": "1997-09-30",
         "positions": [
           "Ala-pívot"
         ],
@@ -10797,7 +10797,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10805,7 +10805,7 @@
         "id": "player-morabanc-andorra-12",
         "firstName": "Owen",
         "lastName": "Aquino",
-        "birthDate": null,
+        "birthDate": "2003-01-08",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -10870,7 +10870,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10878,7 +10878,7 @@
         "id": "player-morabanc-andorra-13",
         "firstName": "Artem",
         "lastName": "Pustovyi",
-        "birthDate": null,
+        "birthDate": "1992-06-25",
         "positions": [
           "Pívot"
         ],
@@ -10942,7 +10942,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -10950,7 +10950,7 @@
         "id": "player-morabanc-andorra-14",
         "firstName": "Leon",
         "lastName": "Radosevic",
-        "birthDate": null,
+        "birthDate": "1990-02-26",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -11017,7 +11017,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -11120,7 +11120,7 @@
         "id": "player-real-madrid-01",
         "firstName": "Andrés",
         "lastName": "Feliz",
-        "birthDate": null,
+        "birthDate": "1997-07-15",
         "positions": [
           "Base"
         ],
@@ -11184,7 +11184,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11192,7 +11192,7 @@
         "id": "player-real-madrid-02",
         "firstName": "Facu",
         "lastName": "Campazzo",
-        "birthDate": null,
+        "birthDate": "1991-03-23",
         "positions": [
           "Base"
         ],
@@ -11259,7 +11259,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11267,7 +11267,7 @@
         "id": "player-real-madrid-03",
         "firstName": "Theo",
         "lastName": "Maledon",
-        "birthDate": null,
+        "birthDate": "2001-06-12",
         "positions": [
           "Base",
           "Escolta"
@@ -11334,7 +11334,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11342,7 +11342,7 @@
         "id": "player-real-madrid-04",
         "firstName": "Max",
         "lastName": "Shulga",
-        "birthDate": null,
+        "birthDate": "2002-06-25",
         "positions": [
           "Escolta",
           "Alero"
@@ -11409,7 +11409,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11417,7 +11417,7 @@
         "id": "player-real-madrid-05",
         "firstName": "Sergio",
         "lastName": "Llull",
-        "birthDate": null,
+        "birthDate": "1987-11-15",
         "positions": [
           "Escolta",
           "Base"
@@ -11486,7 +11486,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11494,7 +11494,7 @@
         "id": "player-real-madrid-06",
         "firstName": "Alberto",
         "lastName": "Abalde",
-        "birthDate": null,
+        "birthDate": "1995-12-15",
         "positions": [
           "Alero",
           "Escolta"
@@ -11559,7 +11559,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11567,7 +11567,7 @@
         "id": "player-real-madrid-07",
         "firstName": "Gabriele",
         "lastName": "Procida",
-        "birthDate": null,
+        "birthDate": "2002-06-01",
         "positions": [
           "Alero"
         ],
@@ -11631,7 +11631,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11639,7 +11639,7 @@
         "id": "player-real-madrid-08",
         "firstName": "Gaby",
         "lastName": "Deck",
-        "birthDate": null,
+        "birthDate": "1995-02-08",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -11704,7 +11704,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11712,7 +11712,7 @@
         "id": "player-real-madrid-09",
         "firstName": "Timothé",
         "lastName": "Luwawu-Cabarrot",
-        "birthDate": null,
+        "birthDate": "1995-05-09",
         "positions": [
           "Alero",
           "Escolta"
@@ -11777,7 +11777,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11785,7 +11785,7 @@
         "id": "player-real-madrid-10",
         "firstName": "Chuma",
         "lastName": "Okeke",
-        "birthDate": null,
+        "birthDate": "1998-08-18",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -11850,7 +11850,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11858,7 +11858,7 @@
         "id": "player-real-madrid-11",
         "firstName": "Izan",
         "lastName": "Almansa",
-        "birthDate": null,
+        "birthDate": "2005-06-07",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -11923,7 +11923,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -11931,7 +11931,7 @@
         "id": "player-real-madrid-12",
         "firstName": "Jaime",
         "lastName": "Pradilla",
-        "birthDate": null,
+        "birthDate": "2001-01-03",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -11996,7 +11996,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12004,7 +12004,7 @@
         "id": "player-real-madrid-13",
         "firstName": "Mikael",
         "lastName": "Jantunen",
-        "birthDate": null,
+        "birthDate": "2000-04-20",
         "positions": [
           "Ala-pívot"
         ],
@@ -12068,7 +12068,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12076,7 +12076,7 @@
         "id": "player-real-madrid-14",
         "firstName": "Usman",
         "lastName": "Garuba",
-        "birthDate": null,
+        "birthDate": "2002-03-09",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -12141,7 +12141,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12149,7 +12149,7 @@
         "id": "player-real-madrid-15",
         "firstName": "Edy",
         "lastName": "Tavares",
-        "birthDate": null,
+        "birthDate": "1992-03-22",
         "positions": [
           "Pívot"
         ],
@@ -12215,7 +12215,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12223,7 +12223,7 @@
         "id": "player-real-madrid-16",
         "firstName": "Olivier",
         "lastName": "Sarr",
-        "birthDate": null,
+        "birthDate": "1999-02-20",
         "positions": [
           "Pívot"
         ],
@@ -12289,7 +12289,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -12392,7 +12392,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-01",
         "firstName": "DJ",
         "lastName": "Steward",
-        "birthDate": null,
+        "birthDate": "2001-10-02",
         "positions": [
           "Base",
           "Escolta"
@@ -12459,7 +12459,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12467,7 +12467,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-02",
         "firstName": "Ziga",
         "lastName": "Samar",
-        "birthDate": null,
+        "birthDate": "2001-01-26",
         "positions": [
           "Base"
         ],
@@ -12533,7 +12533,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12541,7 +12541,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-03",
         "firstName": "Chase",
         "lastName": "Audige",
-        "birthDate": null,
+        "birthDate": "1999-06-29",
         "positions": [
           "Escolta",
           "Base"
@@ -12606,7 +12606,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12614,7 +12614,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-04",
         "firstName": "Raúl",
         "lastName": "Lobaco",
-        "birthDate": null,
+        "birthDate": "2000-11-29",
         "positions": [
           "Escolta"
         ],
@@ -12678,7 +12678,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12686,7 +12686,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-05",
         "firstName": "Retin",
         "lastName": "Obasohan",
-        "birthDate": null,
+        "birthDate": "1993-07-06",
         "positions": [
           "Escolta",
           "Base"
@@ -12751,7 +12751,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12759,7 +12759,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-06",
         "firstName": "Dusan",
         "lastName": "Radosavljevic",
-        "birthDate": null,
+        "birthDate": "2001-11-03",
         "positions": [
           "Alero"
         ],
@@ -12823,7 +12823,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12831,7 +12831,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-07",
         "firstName": "Pablo",
         "lastName": "Almazán",
-        "birthDate": null,
+        "birthDate": "1989-01-15",
         "positions": [
           "Alero"
         ],
@@ -12895,7 +12895,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12903,7 +12903,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-08",
         "firstName": "Vlatko",
         "lastName": "Cancar",
-        "birthDate": null,
+        "birthDate": "1997-04-10",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -12968,7 +12968,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -12976,7 +12976,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-09",
         "firstName": "Christian",
         "lastName": "Sengfelder",
-        "birthDate": null,
+        "birthDate": "1995-02-28",
         "positions": [
           "Ala-pívot"
         ],
@@ -13040,7 +13040,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13048,7 +13048,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-10",
         "firstName": "Dani",
         "lastName": "Díez",
-        "birthDate": null,
+        "birthDate": "1993-04-07",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -13113,7 +13113,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13121,7 +13121,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-11",
         "firstName": "Balsa",
         "lastName": "Koprivica",
-        "birthDate": null,
+        "birthDate": "2000-05-01",
         "positions": [
           "Pívot"
         ],
@@ -13187,7 +13187,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13195,7 +13195,7 @@
         "id": "player-recoletas-salud-san-pablo-burgos-12",
         "firstName": "Rubén",
         "lastName": "Guerrero",
-        "birthDate": null,
+        "birthDate": "1995-10-22",
         "positions": [
           "Pívot"
         ],
@@ -13261,7 +13261,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -13364,7 +13364,7 @@
         "id": "player-rio-breogan-01",
         "firstName": "Dominik",
         "lastName": "Mavra",
-        "birthDate": null,
+        "birthDate": "1994-06-15",
         "positions": [
           "Base"
         ],
@@ -13428,7 +13428,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13436,7 +13436,7 @@
         "id": "player-rio-breogan-02",
         "firstName": "Erik",
         "lastName": "Quintela",
-        "birthDate": null,
+        "birthDate": "1991-08-17",
         "positions": [
           "Base"
         ],
@@ -13502,7 +13502,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13510,7 +13510,7 @@
         "id": "player-rio-breogan-03",
         "firstName": "Rasir",
         "lastName": "Bolton",
-        "birthDate": null,
+        "birthDate": "1999-09-27",
         "positions": [
           "Base",
           "Escolta"
@@ -13577,7 +13577,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13585,7 +13585,7 @@
         "id": "player-rio-breogan-04",
         "firstName": "Francis",
         "lastName": "Alonso",
-        "birthDate": null,
+        "birthDate": "1996-05-25",
         "positions": [
           "Escolta"
         ],
@@ -13649,7 +13649,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13657,7 +13657,7 @@
         "id": "player-rio-breogan-05",
         "firstName": "Josep",
         "lastName": "Peris",
-        "birthDate": null,
+        "birthDate": "2000-08-06",
         "positions": [
           "Escolta",
           "Base"
@@ -13722,7 +13722,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13730,7 +13730,7 @@
         "id": "player-rio-breogan-06",
         "firstName": "Aleksandar",
         "lastName": "Aranitovic",
-        "birthDate": null,
+        "birthDate": "1998-01-24",
         "positions": [
           "Alero",
           "Escolta"
@@ -13795,7 +13795,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13803,7 +13803,7 @@
         "id": "player-rio-breogan-07",
         "firstName": "Tevin",
         "lastName": "Brown",
-        "birthDate": null,
+        "birthDate": "1998-09-23",
         "positions": [
           "Alero",
           "Escolta"
@@ -13868,7 +13868,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13876,7 +13876,7 @@
         "id": "player-rio-breogan-08",
         "firstName": "Andersson",
         "lastName": "García",
-        "birthDate": null,
+        "birthDate": "2000-08-23",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -13941,7 +13941,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -13949,7 +13949,7 @@
         "id": "player-rio-breogan-09",
         "firstName": "Edgar",
         "lastName": "Vicedo",
-        "birthDate": null,
+        "birthDate": "1994-08-24",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -14014,7 +14014,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14022,7 +14022,7 @@
         "id": "player-rio-breogan-10",
         "firstName": "Mihajlo",
         "lastName": "Andric",
-        "birthDate": null,
+        "birthDate": "1994-01-04",
         "positions": [
           "Ala-pívot"
         ],
@@ -14086,7 +14086,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14094,7 +14094,7 @@
         "id": "player-rio-breogan-11",
         "firstName": "Aleksa",
         "lastName": "Ilic",
-        "birthDate": null,
+        "birthDate": "1996-09-17",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -14161,7 +14161,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14169,7 +14169,7 @@
         "id": "player-rio-breogan-12",
         "firstName": "Danko",
         "lastName": "Brankovic",
-        "birthDate": null,
+        "birthDate": "2000-11-05",
         "positions": [
           "Pívot"
         ],
@@ -14233,7 +14233,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14241,7 +14241,7 @@
         "id": "player-rio-breogan-13",
         "firstName": "Jonathan",
         "lastName": "Kasibabu",
-        "birthDate": null,
+        "birthDate": "1996-04-24",
         "positions": [
           "Pívot"
         ],
@@ -14305,7 +14305,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -14408,7 +14408,7 @@
         "id": "player-surne-bilbao-basket-01",
         "firstName": "Adam",
         "lastName": "Somogyi",
-        "birthDate": null,
+        "birthDate": "2000-06-30",
         "positions": [
           "Base"
         ],
@@ -14474,7 +14474,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14482,7 +14482,7 @@
         "id": "player-surne-bilbao-basket-02",
         "firstName": "Dan",
         "lastName": "Duščak",
-        "birthDate": null,
+        "birthDate": "2002-07-02",
         "positions": [
           "Base"
         ],
@@ -14548,7 +14548,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14556,7 +14556,7 @@
         "id": "player-surne-bilbao-basket-03",
         "firstName": "Harald",
         "lastName": "Frey",
-        "birthDate": null,
+        "birthDate": "1997-05-27",
         "positions": [
           "Base"
         ],
@@ -14622,7 +14622,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14630,7 +14630,7 @@
         "id": "player-surne-bilbao-basket-04",
         "firstName": "Aleix",
         "lastName": "Font",
-        "birthDate": null,
+        "birthDate": "1998-03-11",
         "positions": [
           "Escolta",
           "Alero"
@@ -14695,7 +14695,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14703,7 +14703,7 @@
         "id": "player-surne-bilbao-basket-05",
         "firstName": "Darrun",
         "lastName": "Hilliard",
-        "birthDate": null,
+        "birthDate": "1993-04-13",
         "positions": [
           "Escolta",
           "Alero"
@@ -14770,7 +14770,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14778,7 +14778,7 @@
         "id": "player-surne-bilbao-basket-06",
         "firstName": "Margiris",
         "lastName": "Normantas",
-        "birthDate": null,
+        "birthDate": "1996-10-27",
         "positions": [
           "Escolta",
           "Alero"
@@ -14843,7 +14843,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14851,7 +14851,7 @@
         "id": "player-surne-bilbao-basket-07",
         "firstName": "Nate",
         "lastName": "Darling",
-        "birthDate": null,
+        "birthDate": "1998-08-30",
         "positions": [
           "Escolta"
         ],
@@ -14915,7 +14915,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14923,7 +14923,7 @@
         "id": "player-surne-bilbao-basket-08",
         "firstName": "Manex",
         "lastName": "Ansorregi",
-        "birthDate": null,
+        "birthDate": "2002-04-11",
         "positions": [
           "Alero"
         ],
@@ -14987,7 +14987,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -14995,7 +14995,7 @@
         "id": "player-surne-bilbao-basket-09",
         "firstName": "Luke",
         "lastName": "Petrasek",
-        "birthDate": null,
+        "birthDate": "1995-08-17",
         "positions": [
           "Ala-pívot"
         ],
@@ -15059,7 +15059,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15067,7 +15067,7 @@
         "id": "player-surne-bilbao-basket-10",
         "firstName": "Martin",
         "lastName": "Krampelj",
-        "birthDate": null,
+        "birthDate": "1995-03-10",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -15132,7 +15132,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15140,7 +15140,7 @@
         "id": "player-surne-bilbao-basket-11",
         "firstName": "Bastien",
         "lastName": "Vautier",
-        "birthDate": null,
+        "birthDate": "1998-11-15",
         "positions": [
           "Pívot"
         ],
@@ -15206,7 +15206,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15214,7 +15214,7 @@
         "id": "player-surne-bilbao-basket-12",
         "firstName": "Ondřej",
         "lastName": "Husták",
-        "birthDate": null,
+        "birthDate": "2003-11-04",
         "positions": [
           "Pívot"
         ],
@@ -15280,7 +15280,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15288,7 +15288,7 @@
         "id": "player-surne-bilbao-basket-13",
         "firstName": "Tryggvi",
         "lastName": "Hlinason",
-        "birthDate": null,
+        "birthDate": "1997-10-28",
         "positions": [
           "Pívot"
         ],
@@ -15354,7 +15354,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -15457,7 +15457,7 @@
         "id": "player-ucam-murcia-01",
         "firstName": "David",
         "lastName": "DeJulius",
-        "birthDate": null,
+        "birthDate": "1999-08-09",
         "positions": [
           "Base"
         ],
@@ -15521,7 +15521,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15529,7 +15529,7 @@
         "id": "player-ucam-murcia-02",
         "firstName": "Jonah",
         "lastName": "Radebaugh",
-        "birthDate": null,
+        "birthDate": "1997-06-17",
         "positions": [
           "Base",
           "Escolta"
@@ -15596,7 +15596,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15604,7 +15604,7 @@
         "id": "player-ucam-murcia-03",
         "firstName": "Juani",
         "lastName": "Marcos",
-        "birthDate": null,
+        "birthDate": "2000-07-06",
         "positions": [
           "Base"
         ],
@@ -15670,7 +15670,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15678,7 +15678,7 @@
         "id": "player-ucam-murcia-04",
         "firstName": "Michael",
         "lastName": "Forrest",
-        "birthDate": null,
+        "birthDate": "1999-12-02",
         "positions": [
           "Base",
           "Escolta"
@@ -15745,7 +15745,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15753,7 +15753,7 @@
         "id": "player-ucam-murcia-05",
         "firstName": "Dylan",
         "lastName": "Ennis",
-        "birthDate": null,
+        "birthDate": "1991-12-26",
         "positions": [
           "Escolta",
           "Base"
@@ -15818,7 +15818,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15826,7 +15826,7 @@
         "id": "player-ucam-murcia-06",
         "firstName": "Wilhelm",
         "lastName": "Falk",
-        "birthDate": null,
+        "birthDate": "2003-06-25",
         "positions": [
           "Escolta"
         ],
@@ -15890,7 +15890,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15898,7 +15898,7 @@
         "id": "player-ucam-murcia-07",
         "firstName": "Howard",
         "lastName": "Sant-Roos",
-        "birthDate": null,
+        "birthDate": "1991-02-13",
         "positions": [
           "Alero",
           "Escolta"
@@ -15963,7 +15963,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -15971,7 +15971,7 @@
         "id": "player-ucam-murcia-08",
         "firstName": "Sander",
         "lastName": "Raieste",
-        "birthDate": null,
+        "birthDate": "1999-03-31",
         "positions": [
           "Alero"
         ],
@@ -16035,7 +16035,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16043,7 +16043,7 @@
         "id": "player-ucam-murcia-09",
         "firstName": "Souley",
         "lastName": "Boum",
-        "birthDate": null,
+        "birthDate": "1999-01-26",
         "positions": [
           "Alero",
           "Escolta"
@@ -16108,7 +16108,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16116,7 +16116,7 @@
         "id": "player-ucam-murcia-10",
         "firstName": "Toni",
         "lastName": "Nakic",
-        "birthDate": null,
+        "birthDate": "1999-06-01",
         "positions": [
           "Alero"
         ],
@@ -16180,7 +16180,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16188,7 +16188,7 @@
         "id": "player-ucam-murcia-11",
         "firstName": "Kaiser",
         "lastName": "Gates",
-        "birthDate": null,
+        "birthDate": "1996-11-08",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -16253,7 +16253,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16261,7 +16261,7 @@
         "id": "player-ucam-murcia-12",
         "firstName": "Marcis",
         "lastName": "Steinbergs",
-        "birthDate": null,
+        "birthDate": "2001-08-28",
         "positions": [
           "Ala-pívot"
         ],
@@ -16325,7 +16325,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16333,7 +16333,7 @@
         "id": "player-ucam-murcia-13",
         "firstName": "Rubén",
         "lastName": "López de la Torre",
-        "birthDate": null,
+        "birthDate": "2002-03-13",
         "positions": [
           "Ala-pívot"
         ],
@@ -16397,7 +16397,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16405,7 +16405,7 @@
         "id": "player-ucam-murcia-14",
         "firstName": "Emmanuel",
         "lastName": "Cate",
-        "birthDate": null,
+        "birthDate": "1997-07-30",
         "positions": [
           "Pívot"
         ],
@@ -16471,7 +16471,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16479,7 +16479,7 @@
         "id": "player-ucam-murcia-15",
         "firstName": "Jean-Marc",
         "lastName": "Pansa",
-        "birthDate": null,
+        "birthDate": "1997-08-20",
         "positions": [
           "Pívot"
         ],
@@ -16545,7 +16545,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16553,7 +16553,7 @@
         "id": "player-ucam-murcia-16",
         "firstName": "Moussa",
         "lastName": "Diagne",
-        "birthDate": null,
+        "birthDate": "1994-03-06",
         "positions": [
           "Pívot"
         ],
@@ -16619,7 +16619,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -16722,7 +16722,7 @@
         "id": "player-unicaja-01",
         "firstName": "Alberto",
         "lastName": "Díaz",
-        "birthDate": null,
+        "birthDate": "1994-04-23",
         "positions": [
           "Base"
         ],
@@ -16790,7 +16790,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16798,7 +16798,7 @@
         "id": "player-unicaja-02",
         "firstName": "Kendrick",
         "lastName": "Perry",
-        "birthDate": null,
+        "birthDate": "1992-12-23",
         "positions": [
           "Base"
         ],
@@ -16865,7 +16865,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16873,7 +16873,7 @@
         "id": "player-unicaja-03",
         "firstName": "Melwin",
         "lastName": "Pantzar",
-        "birthDate": null,
+        "birthDate": "2000-04-10",
         "positions": [
           "Base",
           "Escolta"
@@ -16940,7 +16940,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -16948,7 +16948,7 @@
         "id": "player-unicaja-04",
         "firstName": "Cameron",
         "lastName": "Hunt",
-        "birthDate": null,
+        "birthDate": "1997-08-25",
         "positions": [
           "Escolta",
           "Base"
@@ -17013,7 +17013,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17021,7 +17021,7 @@
         "id": "player-unicaja-05",
         "firstName": "Nihad",
         "lastName": "Djedovic",
-        "birthDate": null,
+        "birthDate": "1990-01-12",
         "positions": [
           "Escolta",
           "Alero"
@@ -17088,7 +17088,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17096,7 +17096,7 @@
         "id": "player-unicaja-06",
         "firstName": "Tyler",
         "lastName": "Kalinoski",
-        "birthDate": null,
+        "birthDate": "1992-12-19",
         "positions": [
           "Escolta"
         ],
@@ -17162,7 +17162,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17170,7 +17170,7 @@
         "id": "player-unicaja-07",
         "firstName": "Ignas",
         "lastName": "Brazdeikis",
-        "birthDate": null,
+        "birthDate": "1999-01-08",
         "positions": [
           "Alero",
           "Escolta"
@@ -17235,7 +17235,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17243,7 +17243,7 @@
         "id": "player-unicaja-08",
         "firstName": "Jonathan",
         "lastName": "Barreiro",
-        "birthDate": null,
+        "birthDate": "1997-01-16",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -17308,7 +17308,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17316,7 +17316,7 @@
         "id": "player-unicaja-09",
         "firstName": "Amine",
         "lastName": "Noua",
-        "birthDate": null,
+        "birthDate": "1997-02-07",
         "positions": [
           "Ala-pívot"
         ],
@@ -17380,7 +17380,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17388,7 +17388,7 @@
         "id": "player-unicaja-10",
         "firstName": "Tyson",
         "lastName": "Pérez",
-        "birthDate": null,
+        "birthDate": "1996-01-29",
         "positions": [
           "Ala-pívot"
         ],
@@ -17452,7 +17452,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17460,7 +17460,7 @@
         "id": "player-unicaja-11",
         "firstName": "David",
         "lastName": "Kravish",
-        "birthDate": null,
+        "birthDate": "1992-09-12",
         "positions": [
           "Pívot"
         ],
@@ -17526,7 +17526,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17534,7 +17534,7 @@
         "id": "player-unicaja-12",
         "firstName": "Willy",
         "lastName": "Hernangómez",
-        "birthDate": null,
+        "birthDate": "1994-05-27",
         "positions": [
           "Pívot"
         ],
@@ -17600,7 +17600,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17608,7 +17608,7 @@
         "id": "player-unicaja-13",
         "firstName": "Yannick",
         "lastName": "Nzosa",
-        "birthDate": null,
+        "birthDate": "2003-11-15",
         "positions": [
           "Pívot"
         ],
@@ -17672,7 +17672,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -17775,7 +17775,7 @@
         "id": "player-valencia-basket-01",
         "firstName": "Álvaro",
         "lastName": "Cárdenas",
-        "birthDate": null,
+        "birthDate": "2002-04-29",
         "positions": [
           "Base"
         ],
@@ -17841,7 +17841,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17849,7 +17849,7 @@
         "id": "player-valencia-basket-02",
         "firstName": "Mario",
         "lastName": "Saint-Supéry",
-        "birthDate": null,
+        "birthDate": "2006-04-14",
         "positions": [
           "Base",
           "Escolta"
@@ -17916,7 +17916,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17924,7 +17924,7 @@
         "id": "player-valencia-basket-03",
         "firstName": "TJ",
         "lastName": "Shorts",
-        "birthDate": null,
+        "birthDate": "1997-10-15",
         "positions": [
           "Base"
         ],
@@ -17991,7 +17991,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -17999,7 +17999,7 @@
         "id": "player-valencia-basket-04",
         "firstName": "Armoni",
         "lastName": "Brooks",
-        "birthDate": null,
+        "birthDate": "1998-06-05",
         "positions": [
           "Escolta"
         ],
@@ -18063,7 +18063,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18071,7 +18071,7 @@
         "id": "player-valencia-basket-05",
         "firstName": "Gonzalo",
         "lastName": "Corbalán",
-        "birthDate": null,
+        "birthDate": "2002-03-03",
         "positions": [
           "Escolta",
           "Base"
@@ -18136,7 +18136,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18144,7 +18144,7 @@
         "id": "player-valencia-basket-06",
         "firstName": "Josep",
         "lastName": "Puerto",
-        "birthDate": null,
+        "birthDate": "1999-03-08",
         "positions": [
           "Escolta",
           "Alero"
@@ -18209,7 +18209,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18217,7 +18217,7 @@
         "id": "player-valencia-basket-07",
         "firstName": "Lucas",
         "lastName": "Marí",
-        "birthDate": null,
+        "birthDate": "2005-10-20",
         "positions": [
           "Escolta",
           "Base"
@@ -18282,7 +18282,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18290,7 +18290,7 @@
         "id": "player-valencia-basket-08",
         "firstName": "Omari",
         "lastName": "Moore",
-        "birthDate": null,
+        "birthDate": "2000-09-18",
         "positions": [
           "Base",
           "Escolta",
@@ -18358,7 +18358,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18366,7 +18366,7 @@
         "id": "player-valencia-basket-09",
         "firstName": "Elias",
         "lastName": "Valtonen",
-        "birthDate": null,
+        "birthDate": "1999-06-11",
         "positions": [
           "Alero"
         ],
@@ -18430,7 +18430,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18438,7 +18438,7 @@
         "id": "player-valencia-basket-10",
         "firstName": "Kameron",
         "lastName": "Taylor",
-        "birthDate": null,
+        "birthDate": "1994-10-05",
         "positions": [
           "Alero",
           "Escolta"
@@ -18503,7 +18503,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18511,7 +18511,7 @@
         "id": "player-valencia-basket-11",
         "firstName": "Dylan",
         "lastName": "Osetkowski",
-        "birthDate": null,
+        "birthDate": "1996-08-08",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -18576,7 +18576,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18584,7 +18584,7 @@
         "id": "player-valencia-basket-12",
         "firstName": "Mo",
         "lastName": "Gueye",
-        "birthDate": null,
+        "birthDate": "1998-07-08",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -18649,7 +18649,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18657,7 +18657,7 @@
         "id": "player-valencia-basket-13",
         "firstName": "Nate",
         "lastName": "Reuvers",
-        "birthDate": null,
+        "birthDate": "1998-09-30",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -18722,7 +18722,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18730,7 +18730,7 @@
         "id": "player-valencia-basket-14",
         "firstName": "Neal",
         "lastName": "Sako",
-        "birthDate": null,
+        "birthDate": "1998-08-13",
         "positions": [
           "Pívot"
         ],
@@ -18796,7 +18796,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -18804,7 +18804,7 @@
         "id": "player-valencia-basket-15",
         "firstName": "Yankuba",
         "lastName": "Sima",
-        "birthDate": null,
+        "birthDate": "1996-07-28",
         "positions": [
           "Pívot"
         ],
@@ -18870,7 +18870,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -18973,7 +18973,7 @@
         "id": "player-alimerka-oviedo-01",
         "firstName": "PJay",
         "lastName": "Smith Jr.",
-        "birthDate": null,
+        "birthDate": "2003-02-13",
         "positions": [
           "Base",
           "Escolta"
@@ -19038,7 +19038,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19046,7 +19046,7 @@
         "id": "player-alimerka-oviedo-02",
         "firstName": "Félix",
         "lastName": "Terins",
-        "birthDate": null,
+        "birthDate": "1998-04-24",
         "positions": [
           "Base",
           "Escolta"
@@ -19111,7 +19111,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19119,7 +19119,7 @@
         "id": "player-alimerka-oviedo-03",
         "firstName": "Zaire",
         "lastName": "Williams",
-        "birthDate": null,
+        "birthDate": "2004-01-01",
         "positions": [
           "Escolta",
           "Base"
@@ -19184,7 +19184,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19192,7 +19192,7 @@
         "id": "player-alimerka-oviedo-04",
         "firstName": "Brycen",
         "lastName": "Goodine",
-        "birthDate": null,
+        "birthDate": "1999-09-29",
         "positions": [
           "Escolta",
           "Base"
@@ -19257,7 +19257,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19265,7 +19265,7 @@
         "id": "player-alimerka-oviedo-05",
         "firstName": "Sander",
         "lastName": "Hollanders",
-        "birthDate": null,
+        "birthDate": "2001-09-13",
         "positions": [
           "Escolta",
           "Alero"
@@ -19330,7 +19330,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19338,7 +19338,7 @@
         "id": "player-alimerka-oviedo-06",
         "firstName": "Danilo",
         "lastName": "Brnovic",
-        "birthDate": null,
+        "birthDate": "2000-08-10",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -19403,7 +19403,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19411,7 +19411,7 @@
         "id": "player-alimerka-oviedo-07",
         "firstName": "Jorge",
         "lastName": "Arias",
-        "birthDate": null,
+        "birthDate": "2006-01-25",
         "positions": [
           "Alero",
           "Escolta"
@@ -19476,7 +19476,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19484,7 +19484,7 @@
         "id": "player-alimerka-oviedo-08",
         "firstName": "Francis",
         "lastName": "Nwaokorie",
-        "birthDate": null,
+        "birthDate": "2002-09-24",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -19549,7 +19549,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19557,7 +19557,7 @@
         "id": "player-alimerka-oviedo-09",
         "firstName": "Daniil",
         "lastName": "Shelist",
-        "birthDate": null,
+        "birthDate": "2003-08-30",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -19622,7 +19622,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19630,7 +19630,7 @@
         "id": "player-alimerka-oviedo-10",
         "firstName": "Brock",
         "lastName": "Wisne",
-        "birthDate": null,
+        "birthDate": "2003-09-18",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -19695,7 +19695,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19703,7 +19703,7 @@
         "id": "player-alimerka-oviedo-11",
         "firstName": "Mouhamed",
         "lastName": "Barro",
-        "birthDate": null,
+        "birthDate": "1995-05-10",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -19768,7 +19768,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -19776,7 +19776,7 @@
         "id": "player-alimerka-oviedo-12",
         "firstName": "Djigui",
         "lastName": "Diarra",
-        "birthDate": null,
+        "birthDate": "2004-07-09",
         "positions": [
           "Pívot"
         ],
@@ -19840,7 +19840,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -19943,7 +19943,7 @@
         "id": "player-grupo-alega-cantabria-01",
         "firstName": "Alec",
         "lastName": "Wintering",
-        "birthDate": null,
+        "birthDate": "1995-04-26",
         "positions": [
           "Base"
         ],
@@ -20009,7 +20009,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20017,7 +20017,7 @@
         "id": "player-grupo-alega-cantabria-02",
         "firstName": "Guillem",
         "lastName": "Ferrando",
-        "birthDate": null,
+        "birthDate": "2002-01-08",
         "positions": [
           "Base"
         ],
@@ -20081,7 +20081,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20089,7 +20089,7 @@
         "id": "player-grupo-alega-cantabria-03",
         "firstName": "Germán",
         "lastName": "Martínez",
-        "birthDate": null,
+        "birthDate": "1998-06-29",
         "positions": [
           "Escolta",
           "Base"
@@ -20154,7 +20154,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20162,7 +20162,7 @@
         "id": "player-grupo-alega-cantabria-04",
         "firstName": "KJ",
         "lastName": "Jenkins",
-        "birthDate": null,
+        "birthDate": "2000-07-15",
         "positions": [
           "Escolta",
           "Base"
@@ -20227,7 +20227,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20235,7 +20235,7 @@
         "id": "player-grupo-alega-cantabria-05",
         "firstName": "Miha",
         "lastName": "Lapornik",
-        "birthDate": null,
+        "birthDate": "1993-10-18",
         "positions": [
           "Escolta",
           "Alero"
@@ -20300,7 +20300,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20308,7 +20308,7 @@
         "id": "player-grupo-alega-cantabria-06",
         "firstName": "Rodrigo",
         "lastName": "Seoane",
-        "birthDate": null,
+        "birthDate": "1999-08-16",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -20373,7 +20373,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20381,7 +20381,7 @@
         "id": "player-grupo-alega-cantabria-07",
         "firstName": "Diego",
         "lastName": "Alderete",
-        "birthDate": null,
+        "birthDate": "2000-04-22",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -20446,7 +20446,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20454,7 +20454,7 @@
         "id": "player-grupo-alega-cantabria-08",
         "firstName": "Samuel",
         "lastName": "Rodríguez",
-        "birthDate": null,
+        "birthDate": "1997-08-02",
         "positions": [
           "Ala-pívot"
         ],
@@ -20518,7 +20518,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20526,7 +20526,7 @@
         "id": "player-grupo-alega-cantabria-09",
         "firstName": "Danilo",
         "lastName": "Ostojić",
-        "birthDate": null,
+        "birthDate": "1996-05-11",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -20591,7 +20591,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -20694,7 +20694,7 @@
         "id": "player-bueno-arenas-albacete-01",
         "firstName": "Silvano",
         "lastName": "Merlo",
-        "birthDate": null,
+        "birthDate": "2002-08-19",
         "positions": [
           "Base",
           "Escolta"
@@ -20759,7 +20759,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20767,7 +20767,7 @@
         "id": "player-bueno-arenas-albacete-02",
         "firstName": "José",
         "lastName": "Luis González",
-        "birthDate": null,
+        "birthDate": "1994-08-20",
         "positions": [
           "Escolta"
         ],
@@ -20831,7 +20831,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20839,7 +20839,7 @@
         "id": "player-bueno-arenas-albacete-03",
         "firstName": "Nick",
         "lastName": "Reid",
-        "birthDate": null,
+        "birthDate": "2002-03-20",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -20904,7 +20904,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20912,7 +20912,7 @@
         "id": "player-bueno-arenas-albacete-04",
         "firstName": "Jan",
         "lastName": "Zemljic",
-        "birthDate": null,
+        "birthDate": "2004-10-14",
         "positions": [
           "Base",
           "Escolta"
@@ -20977,7 +20977,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -20985,7 +20985,7 @@
         "id": "player-bueno-arenas-albacete-05",
         "firstName": "Bernat",
         "lastName": "Vanaclocha",
-        "birthDate": null,
+        "birthDate": "1998-04-16",
         "positions": [
           "Pívot"
         ],
@@ -21049,7 +21049,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21375,7 +21375,7 @@
         "id": "player-grupo-ureta-tizona-burgos-01",
         "firstName": "Sebastian",
         "lastName": "Aris",
-        "birthDate": null,
+        "birthDate": "1995-12-09",
         "positions": [
           "Base"
         ],
@@ -21439,7 +21439,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21447,7 +21447,7 @@
         "id": "player-grupo-ureta-tizona-burgos-02",
         "firstName": "Alberto",
         "lastName": "Cabrera",
-        "birthDate": null,
+        "birthDate": "1998-10-05",
         "positions": [
           "Base"
         ],
@@ -21511,7 +21511,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21519,7 +21519,7 @@
         "id": "player-grupo-ureta-tizona-burgos-03",
         "firstName": "Andy",
         "lastName": "Huelves",
-        "birthDate": null,
+        "birthDate": "2007-03-10",
         "positions": [
           "Base",
           "Escolta"
@@ -21586,7 +21586,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21594,7 +21594,7 @@
         "id": "player-grupo-ureta-tizona-burgos-04",
         "firstName": "Jalen",
         "lastName": "Tate",
-        "birthDate": null,
+        "birthDate": "1998-06-18",
         "positions": [
           "Escolta",
           "Alero"
@@ -21659,7 +21659,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21667,7 +21667,7 @@
         "id": "player-grupo-ureta-tizona-burgos-05",
         "firstName": "Gerard",
         "lastName": "Jofresa",
-        "birthDate": null,
+        "birthDate": "2001-03-20",
         "positions": [
           "Escolta",
           "Base"
@@ -21732,7 +21732,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21740,7 +21740,7 @@
         "id": "player-grupo-ureta-tizona-burgos-06",
         "firstName": "Ander",
         "lastName": "Urdiain",
-        "birthDate": null,
+        "birthDate": "2000-11-16",
         "positions": [
           "Alero",
           "Escolta"
@@ -21805,7 +21805,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21813,7 +21813,7 @@
         "id": "player-grupo-ureta-tizona-burgos-07",
         "firstName": "Chris",
         "lastName": "Czerapowicz",
-        "birthDate": null,
+        "birthDate": "1991-09-15",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -21878,7 +21878,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21886,7 +21886,7 @@
         "id": "player-grupo-ureta-tizona-burgos-08",
         "firstName": "Totte",
         "lastName": "Alonso",
-        "birthDate": null,
+        "birthDate": "2001-04-01",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -21951,7 +21951,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -21959,7 +21959,7 @@
         "id": "player-grupo-ureta-tizona-burgos-09",
         "firstName": "Pablo",
         "lastName": "Hernández",
-        "birthDate": null,
+        "birthDate": "1997-02-17",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -22024,7 +22024,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22032,7 +22032,7 @@
         "id": "player-grupo-ureta-tizona-burgos-10",
         "firstName": "Aleksandre",
         "lastName": "Phevadze",
-        "birthDate": null,
+        "birthDate": "1998-04-15",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -22097,7 +22097,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22105,7 +22105,7 @@
         "id": "player-grupo-ureta-tizona-burgos-11",
         "firstName": "Niko",
         "lastName": "Rocak",
-        "birthDate": null,
+        "birthDate": "2001-02-21",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -22170,7 +22170,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22178,7 +22178,7 @@
         "id": "player-grupo-ureta-tizona-burgos-12",
         "firstName": "Javonte",
         "lastName": "Brown",
-        "birthDate": null,
+        "birthDate": "2002-09-19",
         "positions": [
           "Pívot"
         ],
@@ -22242,7 +22242,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22250,7 +22250,7 @@
         "id": "player-grupo-ureta-tizona-burgos-13",
         "firstName": "Chris",
         "lastName": "Echui",
-        "birthDate": null,
+        "birthDate": "2008-11-03",
         "positions": [
           "Escolta",
           "Base"
@@ -22315,7 +22315,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -22418,7 +22418,7 @@
         "id": "player-caja-rural-cb-zamora-01",
         "firstName": "Pau",
         "lastName": "Isern",
-        "birthDate": null,
+        "birthDate": "2001-11-13",
         "positions": [
           "Base",
           "Escolta"
@@ -22485,7 +22485,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22493,7 +22493,7 @@
         "id": "player-caja-rural-cb-zamora-02",
         "firstName": "Jacob",
         "lastName": "Round",
-        "birthDate": null,
+        "birthDate": "2000-04-03",
         "positions": [
           "Escolta",
           "Base"
@@ -22558,7 +22558,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22566,7 +22566,7 @@
         "id": "player-caja-rural-cb-zamora-03",
         "firstName": "David",
         "lastName": "Kristensen",
-        "birthDate": null,
+        "birthDate": "1998-08-25",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -22631,7 +22631,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22639,7 +22639,7 @@
         "id": "player-caja-rural-cb-zamora-04",
         "firstName": "Oskar",
         "lastName": "Palmquist",
-        "birthDate": null,
+        "birthDate": "2000-05-05",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -22704,7 +22704,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22712,7 +22712,7 @@
         "id": "player-caja-rural-cb-zamora-05",
         "firstName": "Biram",
         "lastName": "Faye",
-        "birthDate": null,
+        "birthDate": "2000-03-10",
         "positions": [
           "Pívot"
         ],
@@ -22776,7 +22776,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -22784,7 +22784,7 @@
         "id": "player-caja-rural-cb-zamora-06",
         "firstName": "Jesús",
         "lastName": "Carralero",
-        "birthDate": null,
+        "birthDate": "2000-07-24",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -22849,7 +22849,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23102,7 +23102,7 @@
         "id": "player-basquet-menorca-01",
         "firstName": "Pol",
         "lastName": "Figueras",
-        "birthDate": null,
+        "birthDate": "1998-03-21",
         "positions": [
           "Base"
         ],
@@ -23166,7 +23166,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23174,7 +23174,7 @@
         "id": "player-basquet-menorca-02",
         "firstName": "AJ",
         "lastName": "Slaughter",
-        "birthDate": null,
+        "birthDate": "1987-08-03",
         "positions": [
           "Escolta",
           "Base"
@@ -23241,7 +23241,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23249,7 +23249,7 @@
         "id": "player-basquet-menorca-03",
         "firstName": "Adams",
         "lastName": "Sola",
-        "birthDate": null,
+        "birthDate": "2000-07-27",
         "positions": [
           "Escolta",
           "Alero"
@@ -23314,7 +23314,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23322,7 +23322,7 @@
         "id": "player-basquet-menorca-04",
         "firstName": "Kyle",
         "lastName": "Greeley",
-        "birthDate": null,
+        "birthDate": "2000-05-30",
         "positions": [
           "Escolta",
           "Alero"
@@ -23387,7 +23387,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23395,7 +23395,7 @@
         "id": "player-basquet-menorca-05",
         "firstName": "Marc",
         "lastName": "Martí",
-        "birthDate": null,
+        "birthDate": "1997-06-19",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -23460,7 +23460,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23468,7 +23468,7 @@
         "id": "player-basquet-menorca-06",
         "firstName": "Iñaki",
         "lastName": "Ordóñez",
-        "birthDate": null,
+        "birthDate": "2003-01-01",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -23533,7 +23533,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23541,7 +23541,7 @@
         "id": "player-basquet-menorca-07",
         "firstName": "Adam",
         "lastName": "Kejval",
-        "birthDate": null,
+        "birthDate": "2002-01-21",
         "positions": [
           "Pívot"
         ],
@@ -23605,7 +23605,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23613,7 +23613,7 @@
         "id": "player-basquet-menorca-08",
         "firstName": "Wildens",
         "lastName": "Leveque",
-        "birthDate": null,
+        "birthDate": "2000-06-11",
         "positions": [
           "Pívot"
         ],
@@ -23677,7 +23677,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -23780,7 +23780,7 @@
         "id": "player-cajasol-coto-cordoba-01",
         "firstName": "Gonzalo",
         "lastName": "Orozco",
-        "birthDate": null,
+        "birthDate": "2002-05-07",
         "positions": [
           "Base"
         ],
@@ -23844,7 +23844,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23852,7 +23852,7 @@
         "id": "player-cajasol-coto-cordoba-02",
         "firstName": "Fernando",
         "lastName": "Bello",
-        "birthDate": null,
+        "birthDate": "2003-06-25",
         "positions": [
           "Alero",
           "Escolta"
@@ -23917,7 +23917,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23925,7 +23925,7 @@
         "id": "player-cajasol-coto-cordoba-03",
         "firstName": "Nuha",
         "lastName": "Sagnia",
-        "birthDate": null,
+        "birthDate": "2000-08-01",
         "positions": [
           "Pívot"
         ],
@@ -23989,7 +23989,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -23997,7 +23997,7 @@
         "id": "player-cajasol-coto-cordoba-04",
         "firstName": "Alejandro",
         "lastName": "Rodríguez",
-        "birthDate": null,
+        "birthDate": "1998-01-19",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -24062,7 +24062,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24070,7 +24070,7 @@
         "id": "player-cajasol-coto-cordoba-05",
         "firstName": "Jalen",
         "lastName": "Cone",
-        "birthDate": null,
+        "birthDate": "2000-12-14",
         "positions": [
           "Escolta",
           "Base"
@@ -24135,7 +24135,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24143,7 +24143,7 @@
         "id": "player-cajasol-coto-cordoba-06",
         "firstName": "Manuel",
         "lastName": "Trujillo",
-        "birthDate": null,
+        "birthDate": "2007-03-20",
         "positions": [
           "Base",
           "Escolta"
@@ -24208,7 +24208,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24216,7 +24216,7 @@
         "id": "player-cajasol-coto-cordoba-07",
         "firstName": "Tyler",
         "lastName": "Stephenson-Moore",
-        "birthDate": null,
+        "birthDate": "2001-08-19",
         "positions": [
           "Escolta",
           "Alero"
@@ -24281,7 +24281,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24289,7 +24289,7 @@
         "id": "player-cajasol-coto-cordoba-08",
         "firstName": "Mike",
         "lastName": "Nuga",
-        "birthDate": null,
+        "birthDate": "1997-12-27",
         "positions": [
           "Escolta",
           "Base"
@@ -24354,7 +24354,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24362,7 +24362,7 @@
         "id": "player-cajasol-coto-cordoba-09",
         "firstName": "Pau",
         "lastName": "Treviño",
-        "birthDate": null,
+        "birthDate": "2001-09-04",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -24427,7 +24427,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24435,7 +24435,7 @@
         "id": "player-cajasol-coto-cordoba-10",
         "firstName": "Ignacio",
         "lastName": "Rosa",
-        "birthDate": null,
+        "birthDate": "1999-07-01",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -24500,7 +24500,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24508,7 +24508,7 @@
         "id": "player-cajasol-coto-cordoba-11",
         "firstName": "Mladen",
         "lastName": "Armus",
-        "birthDate": null,
+        "birthDate": "1997-03-26",
         "positions": [
           "Pívot"
         ],
@@ -24572,7 +24572,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24580,7 +24580,7 @@
         "id": "player-cajasol-coto-cordoba-12",
         "firstName": "Leslie",
         "lastName": "Nkereuwem",
-        "birthDate": null,
+        "birthDate": "2000-12-08",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -24645,7 +24645,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -24748,7 +24748,7 @@
         "id": "player-insolac-caja87-01",
         "firstName": "Nacho",
         "lastName": "Varela",
-        "birthDate": null,
+        "birthDate": "2000-01-24",
         "positions": [
           "Base"
         ],
@@ -24812,7 +24812,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24820,7 +24820,7 @@
         "id": "player-insolac-caja87-02",
         "firstName": "Aanen",
         "lastName": "Moody",
-        "birthDate": null,
+        "birthDate": "1998-01-15",
         "positions": [
           "Escolta",
           "Base"
@@ -24885,7 +24885,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24893,7 +24893,7 @@
         "id": "player-insolac-caja87-03",
         "firstName": "Ezekiel",
         "lastName": "Soumbey-Alley",
-        "birthDate": null,
+        "birthDate": "1999-02-14",
         "positions": [
           "Escolta",
           "Base"
@@ -24958,7 +24958,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -24966,7 +24966,7 @@
         "id": "player-insolac-caja87-04",
         "firstName": "Sergio",
         "lastName": "Cecilia",
-        "birthDate": null,
+        "birthDate": "2000-04-12",
         "positions": [
           "Alero",
           "Escolta"
@@ -25031,7 +25031,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25039,7 +25039,7 @@
         "id": "player-insolac-caja87-05",
         "firstName": "Unai",
         "lastName": "Mendikote",
-        "birthDate": null,
+        "birthDate": "1999-03-30",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -25104,7 +25104,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25112,7 +25112,7 @@
         "id": "player-insolac-caja87-06",
         "firstName": "Nedim",
         "lastName": "Dedovic",
-        "birthDate": null,
+        "birthDate": "1997-02-16",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -25177,7 +25177,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25185,7 +25185,7 @@
         "id": "player-insolac-caja87-07",
         "firstName": "Ramón",
         "lastName": "Vilà",
-        "birthDate": null,
+        "birthDate": "1997-09-11",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -25250,7 +25250,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25258,7 +25258,7 @@
         "id": "player-insolac-caja87-08",
         "firstName": "Archange",
         "lastName": "Izaw-Bolavie",
-        "birthDate": null,
+        "birthDate": "2001-06-27",
         "positions": [
           "Pívot"
         ],
@@ -25322,7 +25322,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25330,7 +25330,7 @@
         "id": "player-insolac-caja87-09",
         "firstName": "Adrián",
         "lastName": "Latorre",
-        "birthDate": null,
+        "birthDate": "2001-08-20",
         "positions": [
           "Pívot"
         ],
@@ -25394,7 +25394,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -25497,7 +25497,7 @@
         "id": "player-club-ourense-baloncesto-01",
         "firstName": "Xabi",
         "lastName": "Oroz",
-        "birthDate": null,
+        "birthDate": "1996-01-19",
         "positions": [
           "Base",
           "Escolta"
@@ -25562,7 +25562,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25570,7 +25570,7 @@
         "id": "player-club-ourense-baloncesto-02",
         "firstName": "Toms",
         "lastName": "Leimanis",
-        "birthDate": null,
+        "birthDate": "1994-08-07",
         "positions": [
           "Base",
           "Escolta"
@@ -25635,7 +25635,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25643,7 +25643,7 @@
         "id": "player-club-ourense-baloncesto-03",
         "firstName": "Sesan",
         "lastName": "Russell",
-        "birthDate": null,
+        "birthDate": "1999-04-26",
         "positions": [
           "Base",
           "Escolta"
@@ -25708,7 +25708,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25716,7 +25716,7 @@
         "id": "player-club-ourense-baloncesto-04",
         "firstName": "Martín",
         "lastName": "Fernández",
-        "birthDate": null,
+        "birthDate": "2001-12-05",
         "positions": [
           "Escolta",
           "Alero"
@@ -25781,7 +25781,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25789,7 +25789,7 @@
         "id": "player-club-ourense-baloncesto-05",
         "firstName": "Diogo",
         "lastName": "Seixas",
-        "birthDate": null,
+        "birthDate": "2004-05-11",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -25854,7 +25854,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25862,7 +25862,7 @@
         "id": "player-club-ourense-baloncesto-06",
         "firstName": "Sean",
         "lastName": "McDonnell",
-        "birthDate": null,
+        "birthDate": "1995-09-13",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -25927,7 +25927,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -25935,7 +25935,7 @@
         "id": "player-club-ourense-baloncesto-07",
         "firstName": "Jan",
         "lastName": "Zidek",
-        "birthDate": null,
+        "birthDate": "1999-12-13",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -26000,7 +26000,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26008,7 +26008,7 @@
         "id": "player-club-ourense-baloncesto-08",
         "firstName": "Martín",
         "lastName": "Iglesias",
-        "birthDate": null,
+        "birthDate": "2004-01-10",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -26073,7 +26073,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26081,7 +26081,7 @@
         "id": "player-club-ourense-baloncesto-09",
         "firstName": "Javier",
         "lastName": "Nicolau",
-        "birthDate": null,
+        "birthDate": "1997-01-21",
         "positions": [
           "Pívot"
         ],
@@ -26145,7 +26145,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26153,7 +26153,7 @@
         "id": "player-club-ourense-baloncesto-10",
         "firstName": "Eddy",
         "lastName": "Valentino Pinedo",
-        "birthDate": null,
+        "birthDate": "2004-04-07",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -26218,7 +26218,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -26321,7 +26321,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-01",
         "firstName": "Lucas",
         "lastName": "Capalbo",
-        "birthDate": null,
+        "birthDate": "2000-03-22",
         "positions": [
           "Base"
         ],
@@ -26385,7 +26385,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26393,7 +26393,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-02",
         "firstName": "Gaizka",
         "lastName": "Maiza",
-        "birthDate": null,
+        "birthDate": "1996-06-14",
         "positions": [
           "Base",
           "Escolta"
@@ -26460,7 +26460,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26468,7 +26468,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-03",
         "firstName": "Brian",
         "lastName": "Vázquez",
-        "birthDate": null,
+        "birthDate": "1994-09-08",
         "positions": [
           "Escolta"
         ],
@@ -26532,7 +26532,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26540,7 +26540,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-04",
         "firstName": "Corentin",
         "lastName": "Falcoz",
-        "birthDate": null,
+        "birthDate": "2002-11-05",
         "positions": [
           "Escolta",
           "Base"
@@ -26605,7 +26605,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26613,7 +26613,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-05",
         "firstName": "Adrià",
         "lastName": "Domènech",
-        "birthDate": null,
+        "birthDate": "2002-07-18",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -26678,7 +26678,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26686,7 +26686,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-06",
         "firstName": "Omar",
         "lastName": "Lo",
-        "birthDate": null,
+        "birthDate": "1997-07-01",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -26751,7 +26751,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26759,7 +26759,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-07",
         "firstName": "Jonas",
         "lastName": "Paukštė",
-        "birthDate": null,
+        "birthDate": "2000-09-10",
         "positions": [
           "Pívot"
         ],
@@ -26823,7 +26823,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -26831,7 +26831,7 @@
         "id": "player-inveready-askatuak-gipuzkoa-08",
         "firstName": "Matt",
         "lastName": "Van Komen",
-        "birthDate": null,
+        "birthDate": "1999-09-27",
         "positions": [
           "Pívot"
         ],
@@ -26895,7 +26895,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -26998,7 +26998,7 @@
         "id": "player-coviran-granada-01",
         "firstName": "Lluís",
         "lastName": "Costa",
-        "birthDate": null,
+        "birthDate": "1993-02-27",
         "positions": [
           "Base"
         ],
@@ -27064,7 +27064,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27072,7 +27072,7 @@
         "id": "player-coviran-granada-02",
         "firstName": "Jonathan",
         "lastName": "Rousselle",
-        "birthDate": null,
+        "birthDate": "1990-02-07",
         "positions": [
           "Base"
         ],
@@ -27138,7 +27138,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27146,7 +27146,7 @@
         "id": "player-coviran-granada-03",
         "firstName": "Gregory",
         "lastName": "Parham II",
-        "birthDate": null,
+        "birthDate": "1999-01-08",
         "positions": [
           "Escolta",
           "Base"
@@ -27211,7 +27211,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27219,7 +27219,7 @@
         "id": "player-coviran-granada-04",
         "firstName": "Jovan",
         "lastName": "Kljajic",
-        "birthDate": null,
+        "birthDate": "2001-09-11",
         "positions": [
           "Escolta",
           "Alero"
@@ -27284,7 +27284,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27292,7 +27292,7 @@
         "id": "player-coviran-granada-05",
         "firstName": "Edu",
         "lastName": "Durán",
-        "birthDate": null,
+        "birthDate": "1991-05-01",
         "positions": [
           "Escolta"
         ],
@@ -27356,7 +27356,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27364,7 +27364,7 @@
         "id": "player-coviran-granada-06",
         "firstName": "Mathieu",
         "lastName": "Kamba",
-        "birthDate": null,
+        "birthDate": "1995-10-05",
         "positions": [
           "Alero",
           "Escolta"
@@ -27429,7 +27429,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27437,7 +27437,7 @@
         "id": "player-coviran-granada-07",
         "firstName": "Pere",
         "lastName": "Tomàs",
-        "birthDate": null,
+        "birthDate": "1989-09-05",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -27504,7 +27504,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27512,7 +27512,7 @@
         "id": "player-coviran-granada-08",
         "firstName": "Andy",
         "lastName": "Van Vliet",
-        "birthDate": null,
+        "birthDate": "1995-07-27",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -27577,7 +27577,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27585,7 +27585,7 @@
         "id": "player-coviran-granada-09",
         "firstName": "Tanner",
         "lastName": "McGrew",
-        "birthDate": null,
+        "birthDate": "1993-02-16",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -27650,7 +27650,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27658,7 +27658,7 @@
         "id": "player-coviran-granada-10",
         "firstName": "Fallou",
         "lastName": "Niang",
-        "birthDate": null,
+        "birthDate": "2001-08-22",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -27723,7 +27723,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27731,7 +27731,7 @@
         "id": "player-coviran-granada-11",
         "firstName": "Abdou",
         "lastName": "Thiam",
-        "birthDate": null,
+        "birthDate": "1998-02-13",
         "positions": [
           "Pívot"
         ],
@@ -27795,7 +27795,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -27803,7 +27803,7 @@
         "id": "player-coviran-granada-12",
         "firstName": "Mouhamed",
         "lastName": "Barro",
-        "birthDate": null,
+        "birthDate": "1995-05-10",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -27868,7 +27868,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -27971,7 +27971,7 @@
         "id": "player-hla-alicante-01",
         "firstName": "Mike",
         "lastName": "Torres",
-        "birthDate": null,
+        "birthDate": "1994-11-24",
         "positions": [
           "Base"
         ],
@@ -28035,7 +28035,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28043,7 +28043,7 @@
         "id": "player-hla-alicante-02",
         "firstName": "Rafael",
         "lastName": "Lisboa",
-        "birthDate": null,
+        "birthDate": "1999-11-27",
         "positions": [
           "Base"
         ],
@@ -28107,7 +28107,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28115,7 +28115,7 @@
         "id": "player-hla-alicante-03",
         "firstName": "Dani",
         "lastName": "Manchón",
-        "birthDate": null,
+        "birthDate": "1998-01-29",
         "positions": [
           "Escolta",
           "Base"
@@ -28180,7 +28180,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28188,7 +28188,7 @@
         "id": "player-hla-alicante-04",
         "firstName": "Macio",
         "lastName": "Teague",
-        "birthDate": null,
+        "birthDate": "1997-06-11",
         "positions": [
           "Escolta",
           "Alero"
@@ -28253,7 +28253,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28261,7 +28261,7 @@
         "id": "player-hla-alicante-05",
         "firstName": "Kristinn",
         "lastName": "Pálsson",
-        "birthDate": null,
+        "birthDate": "1997-03-13",
         "positions": [
           "Alero",
           "Escolta"
@@ -28326,7 +28326,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28334,7 +28334,7 @@
         "id": "player-hla-alicante-06",
         "firstName": "Sediq",
         "lastName": "Garuba",
-        "birthDate": null,
+        "birthDate": "2004-02-02",
         "positions": [
           "Alero",
           "Escolta"
@@ -28399,7 +28399,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28407,7 +28407,7 @@
         "id": "player-hla-alicante-07",
         "firstName": "Tamenang",
         "lastName": "Choh",
-        "birthDate": null,
+        "birthDate": "1998-07-17",
         "positions": [
           "Alero",
           "Ala-pívot",
@@ -28473,7 +28473,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28481,7 +28481,7 @@
         "id": "player-hla-alicante-08",
         "firstName": "Wesley",
         "lastName": "Dreamer",
-        "birthDate": null,
+        "birthDate": "2000-11-03",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -28546,7 +28546,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28554,7 +28554,7 @@
         "id": "player-hla-alicante-09",
         "firstName": "Giorgi",
         "lastName": "Korsantia",
-        "birthDate": null,
+        "birthDate": "1998-01-11",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -28619,7 +28619,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28627,7 +28627,7 @@
         "id": "player-hla-alicante-10",
         "firstName": "Arnau",
         "lastName": "Parrado",
-        "birthDate": null,
+        "birthDate": "2000-06-24",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -28692,7 +28692,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28700,7 +28700,7 @@
         "id": "player-hla-alicante-11",
         "firstName": "Mikhail",
         "lastName": "Mikhailov",
-        "birthDate": null,
+        "birthDate": "2002-12-14",
         "positions": [
           "Pívot"
         ],
@@ -28764,7 +28764,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -28772,7 +28772,7 @@
         "id": "player-hla-alicante-12",
         "firstName": "Romaro",
         "lastName": "Gill",
-        "birthDate": null,
+        "birthDate": "1994-10-02",
         "positions": [
           "Pívot"
         ],
@@ -28838,7 +28838,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -28941,7 +28941,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-01",
         "firstName": "Hugo",
         "lastName": "Ferreira",
-        "birthDate": null,
+        "birthDate": "2001-07-28",
         "positions": [
           "Base"
         ],
@@ -29005,7 +29005,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29013,7 +29013,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-02",
         "firstName": "Adrià",
         "lastName": "Moncanut",
-        "birthDate": null,
+        "birthDate": "2002-10-06",
         "positions": [
           "Base"
         ],
@@ -29077,7 +29077,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29085,7 +29085,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-03",
         "firstName": "Lysander",
         "lastName": "Bracey",
-        "birthDate": null,
+        "birthDate": "1996-11-01",
         "positions": [
           "Base",
           "Escolta"
@@ -29150,7 +29150,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29158,7 +29158,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-04",
         "firstName": "Jaume",
         "lastName": "Lobo",
-        "birthDate": null,
+        "birthDate": "1997-07-31",
         "positions": [
           "Escolta"
         ],
@@ -29222,7 +29222,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29230,7 +29230,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-05",
         "firstName": "Sergi",
         "lastName": "Huguet",
-        "birthDate": null,
+        "birthDate": "2002-08-31",
         "positions": [
           "Escolta",
           "Alero"
@@ -29295,7 +29295,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29303,7 +29303,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-06",
         "firstName": "Osvaldas",
         "lastName": "Matulionis",
-        "birthDate": null,
+        "birthDate": "1991-08-19",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -29370,7 +29370,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29378,7 +29378,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-07",
         "firstName": "Xabi",
         "lastName": "Beraza",
-        "birthDate": null,
+        "birthDate": "1999-01-26",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -29443,7 +29443,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29451,7 +29451,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-08",
         "firstName": "Alessandro",
         "lastName": "Scariolo",
-        "birthDate": null,
+        "birthDate": "2001-10-21",
         "positions": [
           "Alero",
           "Escolta"
@@ -29516,7 +29516,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29524,7 +29524,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-09",
         "firstName": "Đorđe",
         "lastName": "Simeunović",
-        "birthDate": null,
+        "birthDate": "1995-04-26",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -29589,7 +29589,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29597,7 +29597,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-10",
         "firstName": "Garmine",
         "lastName": "Kande",
-        "birthDate": null,
+        "birthDate": "1999-08-24",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -29662,7 +29662,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29670,7 +29670,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-11",
         "firstName": "Osaretin",
         "lastName": "Cerdá",
-        "birthDate": null,
+        "birthDate": "2005-06-04",
         "positions": [
           "Pívot"
         ],
@@ -29734,7 +29734,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29742,7 +29742,7 @@
         "id": "player-fibwi-mallorca-basquet-palma-12",
         "firstName": "Shilo",
         "lastName": "Jackson",
-        "birthDate": null,
+        "birthDate": "2003-06-25",
         "positions": [
           "Pívot"
         ],
@@ -29806,7 +29806,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -29909,7 +29909,7 @@
         "id": "player-movistar-estudiantes-01",
         "firstName": "Fernando",
         "lastName": "Zurbriggen",
-        "birthDate": null,
+        "birthDate": "1997-10-20",
         "positions": [
           "Base",
           "Escolta"
@@ -29976,7 +29976,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -29984,7 +29984,7 @@
         "id": "player-movistar-estudiantes-02",
         "firstName": "Micah",
         "lastName": "Speight",
-        "birthDate": null,
+        "birthDate": "1998-06-26",
         "positions": [
           "Base"
         ],
@@ -30048,7 +30048,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30056,7 +30056,7 @@
         "id": "player-movistar-estudiantes-03",
         "firstName": "Jordan",
         "lastName": "Walker",
-        "birthDate": null,
+        "birthDate": "1997-10-19",
         "positions": [
           "Escolta",
           "Base"
@@ -30121,7 +30121,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30129,7 +30129,7 @@
         "id": "player-movistar-estudiantes-04",
         "firstName": "Omar",
         "lastName": "Silverio",
-        "birthDate": null,
+        "birthDate": "1998-11-05",
         "positions": [
           "Escolta"
         ],
@@ -30195,7 +30195,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30203,7 +30203,7 @@
         "id": "player-movistar-estudiantes-05",
         "firstName": "Lucas",
         "lastName": "Giovannetti",
-        "birthDate": null,
+        "birthDate": "2005-06-14",
         "positions": [
           "Alero",
           "Escolta"
@@ -30268,7 +30268,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30276,7 +30276,7 @@
         "id": "player-movistar-estudiantes-06",
         "firstName": "Millán",
         "lastName": "Jiménez",
-        "birthDate": null,
+        "birthDate": "2002-09-16",
         "positions": [
           "Alero",
           "Escolta"
@@ -30341,7 +30341,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30349,7 +30349,7 @@
         "id": "player-movistar-estudiantes-07",
         "firstName": "Travis",
         "lastName": "Munnings",
-        "birthDate": null,
+        "birthDate": "1994-09-14",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -30414,7 +30414,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30422,7 +30422,7 @@
         "id": "player-movistar-estudiantes-08",
         "firstName": "Juampi",
         "lastName": "Vaulet",
-        "birthDate": null,
+        "birthDate": "1996-03-22",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -30487,7 +30487,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30495,7 +30495,7 @@
         "id": "player-movistar-estudiantes-09",
         "firstName": "Kaspar",
         "lastName": "Treier",
-        "birthDate": null,
+        "birthDate": "1999-09-19",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -30560,7 +30560,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30568,7 +30568,7 @@
         "id": "player-movistar-estudiantes-10",
         "firstName": "Iván",
         "lastName": "Aurrecoechea",
-        "birthDate": null,
+        "birthDate": "1995-11-19",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -30635,7 +30635,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30643,7 +30643,7 @@
         "id": "player-movistar-estudiantes-11",
         "firstName": "Mamadou",
         "lastName": "Niang",
-        "birthDate": null,
+        "birthDate": "1994-01-01",
         "positions": [
           "Pívot"
         ],
@@ -30707,7 +30707,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30715,7 +30715,7 @@
         "id": "player-movistar-estudiantes-12",
         "firstName": "Jehyve",
         "lastName": "Floyd",
-        "birthDate": null,
+        "birthDate": "1997-06-27",
         "positions": [
           "Pívot"
         ],
@@ -30781,7 +30781,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -30884,7 +30884,7 @@
         "id": "player-flexicar-fuenlabrada-01",
         "firstName": "Mateo",
         "lastName": "Díaz",
-        "birthDate": null,
+        "birthDate": "2002-03-06",
         "positions": [
           "Base"
         ],
@@ -30948,7 +30948,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -30956,7 +30956,7 @@
         "id": "player-flexicar-fuenlabrada-02",
         "firstName": "Javi",
         "lastName": "López",
-        "birthDate": null,
+        "birthDate": "1999-05-06",
         "positions": [
           "Base"
         ],
@@ -31020,7 +31020,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31028,7 +31028,7 @@
         "id": "player-flexicar-fuenlabrada-03",
         "firstName": "Vitor",
         "lastName": "Benite",
-        "birthDate": null,
+        "birthDate": "1990-02-20",
         "positions": [
           "Escolta"
         ],
@@ -31095,7 +31095,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31103,7 +31103,7 @@
         "id": "player-flexicar-fuenlabrada-04",
         "firstName": "Romaric",
         "lastName": "Belemene",
-        "birthDate": null,
+        "birthDate": "1997-02-19",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -31168,7 +31168,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31176,7 +31176,7 @@
         "id": "player-flexicar-fuenlabrada-05",
         "firstName": "Iván",
         "lastName": "Cruz",
-        "birthDate": null,
+        "birthDate": "1991-10-24",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -31241,7 +31241,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31569,7 +31569,7 @@
         "id": "player-palmer-basket-mallorca-palma-01",
         "firstName": "Kevin",
         "lastName": "Torres",
-        "birthDate": null,
+        "birthDate": "2003-07-22",
         "positions": [
           "Escolta",
           "Base"
@@ -31634,7 +31634,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31642,7 +31642,7 @@
         "id": "player-palmer-basket-mallorca-palma-02",
         "firstName": "Álex",
         "lastName": "Blanco",
-        "birthDate": null,
+        "birthDate": "2007-03-14",
         "positions": [
           "Base",
           "Escolta"
@@ -31707,7 +31707,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31715,7 +31715,7 @@
         "id": "player-palmer-basket-mallorca-palma-03",
         "firstName": "Joan",
         "lastName": "Feliu",
-        "birthDate": null,
+        "birthDate": "1999-10-12",
         "positions": [
           "Escolta",
           "Alero"
@@ -31780,7 +31780,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31788,7 +31788,7 @@
         "id": "player-palmer-basket-mallorca-palma-04",
         "firstName": "David",
         "lastName": "Jolinder",
-        "birthDate": null,
+        "birthDate": "2001-11-05",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -31853,7 +31853,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31861,7 +31861,7 @@
         "id": "player-palmer-basket-mallorca-palma-05",
         "firstName": "Octavio",
         "lastName": "Brito",
-        "birthDate": null,
+        "birthDate": "2003-03-08",
         "positions": [
           "Alero",
           "Escolta"
@@ -31926,7 +31926,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -31934,7 +31934,7 @@
         "id": "player-palmer-basket-mallorca-palma-06",
         "firstName": "Ángel",
         "lastName": "Comendador",
-        "birthDate": null,
+        "birthDate": "2001-07-22",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -31999,7 +31999,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32007,7 +32007,7 @@
         "id": "player-palmer-basket-mallorca-palma-07",
         "firstName": "Emil",
         "lastName": "Stoilov",
-        "birthDate": null,
+        "birthDate": "2002-02-07",
         "positions": [
           "Pívot"
         ],
@@ -32071,7 +32071,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32249,7 +32249,7 @@
         "id": "player-gran-canaria-01",
         "firstName": "Carlos",
         "lastName": "Alocén",
-        "birthDate": null,
+        "birthDate": "2000-12-30",
         "positions": [
           "Base"
         ],
@@ -32313,7 +32313,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32321,7 +32321,7 @@
         "id": "player-gran-canaria-02",
         "firstName": "Christian",
         "lastName": "Díaz",
-        "birthDate": null,
+        "birthDate": "1992-03-23",
         "positions": [
           "Base"
         ],
@@ -32385,7 +32385,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32393,7 +32393,7 @@
         "id": "player-gran-canaria-03",
         "firstName": "Jón",
         "lastName": "Axel Gudmundsson",
-        "birthDate": null,
+        "birthDate": "1996-10-27",
         "positions": [
           "Base",
           "Escolta"
@@ -32460,7 +32460,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32468,7 +32468,7 @@
         "id": "player-gran-canaria-04",
         "firstName": "Marques",
         "lastName": "Townes",
-        "birthDate": null,
+        "birthDate": "1995-09-03",
         "positions": [
           "Escolta",
           "Base"
@@ -32535,7 +32535,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32543,7 +32543,7 @@
         "id": "player-gran-canaria-05",
         "firstName": "Joe",
         "lastName": "Cremo",
-        "birthDate": null,
+        "birthDate": "1996-01-05",
         "positions": [
           "Escolta",
           "Alero"
@@ -32608,7 +32608,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32616,7 +32616,7 @@
         "id": "player-gran-canaria-06",
         "firstName": "Joaquín",
         "lastName": "Rodríguez",
-        "birthDate": null,
+        "birthDate": "1999-07-08",
         "positions": [
           "Escolta",
           "Alero"
@@ -32683,7 +32683,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32691,7 +32691,7 @@
         "id": "player-gran-canaria-07",
         "firstName": "Miquel",
         "lastName": "Salvó",
-        "birthDate": null,
+        "birthDate": "1994-11-03",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -32756,7 +32756,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32764,7 +32764,7 @@
         "id": "player-gran-canaria-08",
         "firstName": "Roberts",
         "lastName": "Stumbris",
-        "birthDate": null,
+        "birthDate": "1993-07-09",
         "positions": [
           "Ala-pívot",
           "Alero"
@@ -32829,7 +32829,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32837,7 +32837,7 @@
         "id": "player-gran-canaria-09",
         "firstName": "Pierre",
         "lastName": "Pelos",
-        "birthDate": null,
+        "birthDate": "1992-08-16",
         "positions": [
           "Ala-pívot",
           "Pívot"
@@ -32902,7 +32902,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -32910,7 +32910,7 @@
         "id": "player-gran-canaria-10",
         "firstName": "Luke",
         "lastName": "Fischer",
-        "birthDate": null,
+        "birthDate": "1994-10-29",
         "positions": [
           "Pívot"
         ],
@@ -32976,7 +32976,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }
@@ -33079,7 +33079,7 @@
         "id": "player-palencia-baloncesto-01",
         "firstName": "Dani",
         "lastName": "Rodríguez",
-        "birthDate": null,
+        "birthDate": "1984-02-17",
         "positions": [
           "Base"
         ],
@@ -33145,7 +33145,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33153,7 +33153,7 @@
         "id": "player-palencia-baloncesto-02",
         "firstName": "Álex",
         "lastName": "Hernández",
-        "birthDate": null,
+        "birthDate": "1990-07-15",
         "positions": [
           "Base"
         ],
@@ -33219,7 +33219,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33227,7 +33227,7 @@
         "id": "player-palencia-baloncesto-03",
         "firstName": "Manu",
         "lastName": "Rodríguez",
-        "birthDate": null,
+        "birthDate": "1991-10-17",
         "positions": [
           "Escolta"
         ],
@@ -33293,7 +33293,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33301,7 +33301,7 @@
         "id": "player-palencia-baloncesto-04",
         "firstName": "Mathieu",
         "lastName": "Kamba",
-        "birthDate": null,
+        "birthDate": "1995-10-05",
         "positions": [
           "Escolta",
           "Alero"
@@ -33366,7 +33366,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33374,7 +33374,7 @@
         "id": "player-palencia-baloncesto-05",
         "firstName": "Chema",
         "lastName": "González",
-        "birthDate": null,
+        "birthDate": "1991-07-15",
         "positions": [
           "Alero",
           "Ala-pívot"
@@ -33441,7 +33441,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33449,7 +33449,7 @@
         "id": "player-palencia-baloncesto-06",
         "firstName": "Alec",
         "lastName": "Wintering",
-        "birthDate": null,
+        "birthDate": "1995-04-26",
         "positions": [
           "Base"
         ],
@@ -33515,7 +33515,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33523,7 +33523,7 @@
         "id": "player-palencia-baloncesto-07",
         "firstName": "Vasilije",
         "lastName": "Vucetic",
-        "birthDate": null,
+        "birthDate": "1996-05-14",
         "positions": [
           "Pívot"
         ],
@@ -33587,7 +33587,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33595,7 +33595,7 @@
         "id": "player-palencia-baloncesto-08",
         "firstName": "Lucas",
         "lastName": "Langarita",
-        "birthDate": null,
+        "birthDate": "2005-01-30",
         "positions": [
           "Escolta",
           "Alero"
@@ -33660,7 +33660,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33668,7 +33668,7 @@
         "id": "player-palencia-baloncesto-09",
         "firstName": "Dimitar",
         "lastName": "Dimitrov",
-        "birthDate": null,
+        "birthDate": "1993-03-07",
         "positions": [
           "Ala-pívot"
         ],
@@ -33732,7 +33732,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33740,7 +33740,7 @@
         "id": "player-palencia-baloncesto-10",
         "firstName": "Tanner",
         "lastName": "McGrew",
-        "birthDate": null,
+        "birthDate": "1993-02-16",
         "positions": [
           "Pívot",
           "Ala-pívot"
@@ -33807,7 +33807,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       },
@@ -33815,7 +33815,7 @@
         "id": "player-palencia-baloncesto-11",
         "firstName": "Alec",
         "lastName": "Wintering",
-        "birthDate": null,
+        "birthDate": "1995-04-26",
         "positions": [
           "Base"
         ],
@@ -33881,7 +33881,7 @@
         },
         "dataSource": {
           "type": "estimated",
-          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+          "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
           "confidence": "medium"
         }
       }

@@ -11,7 +11,7 @@
       "id": "player-coviran-granada-01",
       "firstName": "Lluís",
       "lastName": "Costa",
-      "birthDate": null,
+      "birthDate": "1993-02-27",
       "positions": [
         "Base"
       ],
@@ -77,7 +77,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -85,7 +85,7 @@
       "id": "player-coviran-granada-02",
       "firstName": "Jonathan",
       "lastName": "Rousselle",
-      "birthDate": null,
+      "birthDate": "1990-02-07",
       "positions": [
         "Base"
       ],
@@ -151,7 +151,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -159,7 +159,7 @@
       "id": "player-coviran-granada-03",
       "firstName": "Gregory",
       "lastName": "Parham II",
-      "birthDate": null,
+      "birthDate": "1999-01-08",
       "positions": [
         "Escolta",
         "Base"
@@ -224,7 +224,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -232,7 +232,7 @@
       "id": "player-coviran-granada-04",
       "firstName": "Jovan",
       "lastName": "Kljajic",
-      "birthDate": null,
+      "birthDate": "2001-09-11",
       "positions": [
         "Escolta",
         "Alero"
@@ -297,7 +297,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -305,7 +305,7 @@
       "id": "player-coviran-granada-05",
       "firstName": "Edu",
       "lastName": "Durán",
-      "birthDate": null,
+      "birthDate": "1991-05-01",
       "positions": [
         "Escolta"
       ],
@@ -369,7 +369,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -377,7 +377,7 @@
       "id": "player-coviran-granada-06",
       "firstName": "Mathieu",
       "lastName": "Kamba",
-      "birthDate": null,
+      "birthDate": "1995-10-05",
       "positions": [
         "Alero",
         "Escolta"
@@ -442,7 +442,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -450,7 +450,7 @@
       "id": "player-coviran-granada-07",
       "firstName": "Pere",
       "lastName": "Tomàs",
-      "birthDate": null,
+      "birthDate": "1989-09-05",
       "positions": [
         "Alero",
         "Ala-pívot"
@@ -517,7 +517,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -525,7 +525,7 @@
       "id": "player-coviran-granada-08",
       "firstName": "Andy",
       "lastName": "Van Vliet",
-      "birthDate": null,
+      "birthDate": "1995-07-27",
       "positions": [
         "Ala-pívot",
         "Pívot"
@@ -590,7 +590,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -598,7 +598,7 @@
       "id": "player-coviran-granada-09",
       "firstName": "Tanner",
       "lastName": "McGrew",
-      "birthDate": null,
+      "birthDate": "1993-02-16",
       "positions": [
         "Ala-pívot",
         "Pívot"
@@ -663,7 +663,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -671,7 +671,7 @@
       "id": "player-coviran-granada-10",
       "firstName": "Fallou",
       "lastName": "Niang",
-      "birthDate": null,
+      "birthDate": "2001-08-22",
       "positions": [
         "Ala-pívot",
         "Pívot"
@@ -736,7 +736,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -744,7 +744,7 @@
       "id": "player-coviran-granada-11",
       "firstName": "Abdou",
       "lastName": "Thiam",
-      "birthDate": null,
+      "birthDate": "1998-02-13",
       "positions": [
         "Pívot"
       ],
@@ -808,7 +808,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -816,7 +816,7 @@
       "id": "player-coviran-granada-12",
       "firstName": "Mouhamed",
       "lastName": "Barro",
-      "birthDate": null,
+      "birthDate": "1995-05-10",
       "positions": [
         "Pívot",
         "Ala-pívot"
@@ -881,7 +881,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     }

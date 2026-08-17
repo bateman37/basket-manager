@@ -11,7 +11,7 @@
       "id": "player-cajasol-coto-cordoba-01",
       "firstName": "Gonzalo",
       "lastName": "Orozco",
-      "birthDate": null,
+      "birthDate": "2002-05-07",
       "positions": [
         "Base"
       ],
@@ -75,7 +75,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -83,7 +83,7 @@
       "id": "player-cajasol-coto-cordoba-02",
       "firstName": "Fernando",
       "lastName": "Bello",
-      "birthDate": null,
+      "birthDate": "2003-06-25",
       "positions": [
         "Alero",
         "Escolta"
@@ -148,7 +148,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -156,7 +156,7 @@
       "id": "player-cajasol-coto-cordoba-03",
       "firstName": "Nuha",
       "lastName": "Sagnia",
-      "birthDate": null,
+      "birthDate": "2000-08-01",
       "positions": [
         "Pívot"
       ],
@@ -220,7 +220,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -228,7 +228,7 @@
       "id": "player-cajasol-coto-cordoba-04",
       "firstName": "Alejandro",
       "lastName": "Rodríguez",
-      "birthDate": null,
+      "birthDate": "1998-01-19",
       "positions": [
         "Ala-pívot",
         "Alero"
@@ -293,7 +293,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -301,7 +301,7 @@
       "id": "player-cajasol-coto-cordoba-05",
       "firstName": "Jalen",
       "lastName": "Cone",
-      "birthDate": null,
+      "birthDate": "2000-12-14",
       "positions": [
         "Escolta",
         "Base"
@@ -366,7 +366,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -374,7 +374,7 @@
       "id": "player-cajasol-coto-cordoba-06",
       "firstName": "Manuel",
       "lastName": "Trujillo",
-      "birthDate": null,
+      "birthDate": "2007-03-20",
       "positions": [
         "Base",
         "Escolta"
@@ -439,7 +439,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -447,7 +447,7 @@
       "id": "player-cajasol-coto-cordoba-07",
       "firstName": "Tyler",
       "lastName": "Stephenson-Moore",
-      "birthDate": null,
+      "birthDate": "2001-08-19",
       "positions": [
         "Escolta",
         "Alero"
@@ -512,7 +512,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -520,7 +520,7 @@
       "id": "player-cajasol-coto-cordoba-08",
       "firstName": "Mike",
       "lastName": "Nuga",
-      "birthDate": null,
+      "birthDate": "1997-12-27",
       "positions": [
         "Escolta",
         "Base"
@@ -585,7 +585,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -593,7 +593,7 @@
       "id": "player-cajasol-coto-cordoba-09",
       "firstName": "Pau",
       "lastName": "Treviño",
-      "birthDate": null,
+      "birthDate": "2001-09-04",
       "positions": [
         "Alero",
         "Ala-pívot"
@@ -658,7 +658,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -666,7 +666,7 @@
       "id": "player-cajasol-coto-cordoba-10",
       "firstName": "Ignacio",
       "lastName": "Rosa",
-      "birthDate": null,
+      "birthDate": "1999-07-01",
       "positions": [
         "Ala-pívot",
         "Pívot"
@@ -731,7 +731,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -739,7 +739,7 @@
       "id": "player-cajasol-coto-cordoba-11",
       "firstName": "Mladen",
       "lastName": "Armus",
-      "birthDate": null,
+      "birthDate": "1997-03-26",
       "positions": [
         "Pívot"
       ],
@@ -803,7 +803,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -811,7 +811,7 @@
       "id": "player-cajasol-coto-cordoba-12",
       "firstName": "Leslie",
       "lastName": "Nkereuwem",
-      "birthDate": null,
+      "birthDate": "2000-12-08",
       "positions": [
         "Ala-pívot",
         "Pívot"
@@ -876,7 +876,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     }

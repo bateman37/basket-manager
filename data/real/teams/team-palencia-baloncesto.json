@@ -11,7 +11,7 @@
       "id": "player-palencia-baloncesto-01",
       "firstName": "Dani",
       "lastName": "Rodríguez",
-      "birthDate": null,
+      "birthDate": "1984-02-17",
       "positions": [
         "Base"
       ],
@@ -77,7 +77,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -85,7 +85,7 @@
       "id": "player-palencia-baloncesto-02",
       "firstName": "Álex",
       "lastName": "Hernández",
-      "birthDate": null,
+      "birthDate": "1990-07-15",
       "positions": [
         "Base"
       ],
@@ -151,7 +151,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -159,7 +159,7 @@
       "id": "player-palencia-baloncesto-03",
       "firstName": "Manu",
       "lastName": "Rodríguez",
-      "birthDate": null,
+      "birthDate": "1991-10-17",
       "positions": [
         "Escolta"
       ],
@@ -225,7 +225,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -233,7 +233,7 @@
       "id": "player-palencia-baloncesto-04",
       "firstName": "Mathieu",
       "lastName": "Kamba",
-      "birthDate": null,
+      "birthDate": "1995-10-05",
       "positions": [
         "Escolta",
         "Alero"
@@ -298,7 +298,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -306,7 +306,7 @@
       "id": "player-palencia-baloncesto-05",
       "firstName": "Chema",
       "lastName": "González",
-      "birthDate": null,
+      "birthDate": "1991-07-15",
       "positions": [
         "Alero",
         "Ala-pívot"
@@ -373,7 +373,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -381,7 +381,7 @@
       "id": "player-palencia-baloncesto-06",
       "firstName": "Alec",
       "lastName": "Wintering",
-      "birthDate": null,
+      "birthDate": "1995-04-26",
       "positions": [
         "Base"
       ],
@@ -447,7 +447,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -455,7 +455,7 @@
       "id": "player-palencia-baloncesto-07",
       "firstName": "Vasilije",
       "lastName": "Vucetic",
-      "birthDate": null,
+      "birthDate": "1996-05-14",
       "positions": [
         "Pívot"
       ],
@@ -519,7 +519,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -527,7 +527,7 @@
       "id": "player-palencia-baloncesto-08",
       "firstName": "Lucas",
       "lastName": "Langarita",
-      "birthDate": null,
+      "birthDate": "2005-01-30",
       "positions": [
         "Escolta",
         "Alero"
@@ -592,7 +592,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -600,7 +600,7 @@
       "id": "player-palencia-baloncesto-09",
       "firstName": "Dimitar",
       "lastName": "Dimitrov",
-      "birthDate": null,
+      "birthDate": "1993-03-07",
       "positions": [
         "Ala-pívot"
       ],
@@ -664,7 +664,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -672,7 +672,7 @@
       "id": "player-palencia-baloncesto-10",
       "firstName": "Tanner",
       "lastName": "McGrew",
-      "birthDate": null,
+      "birthDate": "1993-02-16",
       "positions": [
         "Pívot",
         "Ala-pívot"
@@ -739,7 +739,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     },
@@ -747,7 +747,7 @@
       "id": "player-palencia-baloncesto-11",
       "firstName": "Alec",
       "lastName": "Wintering",
-      "birthDate": null,
+      "birthDate": "1995-04-26",
       "positions": [
         "Base"
       ],
@@ -813,7 +813,7 @@
       },
       "dataSource": {
         "type": "estimated",
-        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento no recuperada con seguridad en esta consolidación y se deja vacía; medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
+        "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
       }
     }
