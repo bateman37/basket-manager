@@ -107,108 +107,12 @@ posteriores, ver pendientes al final de esta sección).
   división no afecta, por ahora, a la participación europea de estos
   clubes fijos.
 
-### 3.2 Playoffs, Copa y Playoff de ascenso — Fase 2 (implementación)
-
-Formatos investigados y confirmados contra el reglamento real (ACB y
-Primera FEB), con las adaptaciones necesarias donde el juego todavía no
-tiene la pieza equivalente (ej. "equipo anfitrión" de la Copa real).
-
-#### 3.2.1 Playoffs por el título (1ª división)
-
-- Al terminar las 34 jornadas de liga regular, los **8 primeros**
-  clasificados disputan el playoff por el título.
-- **Bracket fijo, sin repesca** (igual que el real): 1º vs 8º, 2º vs 7º,
-  3º vs 6º, 4º vs 5º. Las semifinales enfrentan a los ganadores
-  manteniendo el bracket fijo (no se reordena por resultado).
-- **Cuartos de final**: al mejor de 3 partidos, formato de campo **1-1-1**
-  (el mejor clasificado de la pareja juega el 1º y 3er partido en casa,
-  si hace falta 3er partido).
-- **Semifinales y Final**: al mejor de 5 partidos, formato de campo
-  **2-2-1** (dos partidos en casa del mejor clasificado, dos en casa del
-  rival, quinto si hace falta en casa del mejor clasificado).
-- **Cada partido de la serie es un partido real** simulado con
-  `MatchEngine.simulateMatch()` — no se simula la serie de golpe. La
-  entidad de playoff expone una función para jugar el siguiente partido
-  pendiente de la serie activa y consultar el marcador de series en vivo
-  (ej. "2-1").
-- Ventaja de campo en cada ronda: siempre el equipo mejor clasificado en
-  la liga regular de los dos, no el ganador de la ronda anterior en la
-  otra llave (esto es fiel al formato real: el bracket ya fija de
-  antemano quién es local en cada partido de cada ronda, según su
-  posición de partida en la liga regular, aunque el rival cambie ronda a
-  ronda).
-
-#### 3.2.2 Copa
-
-- Se dispara **a mitad de temporada**, al completarse la jornada 17 (fin
-  de la ida).
-- Participan los **8 primeros** clasificados en ese momento de la
-  temporada. **Adaptación respecto al formato real**: la Copa real de
-  ACB reserva una plaza para el equipo anfitrión de la sede si no
-  entraría por clasificación — como el juego no tiene el concepto de
-  sede/anfitrión, se simplifica a los 8 primeros sin excepción.
-- **Todo a partido único**: cuartos de final, semifinales y final, cada
-  ronda se resuelve con un solo partido (sin ida/vuelta), fiel al
-  formato real de la Copa ACB ("final a ocho").
-- Bracket fijo por seeding de la clasificación en el momento del corte
-  (1 vs 8, 2 vs 7, 3 vs 6, 4 vs 5), sin repesca.
-- La liga regular se pausa mientras dura la Copa (4 jornadas de calendario
-  de golpe, ver Parte de implementación) y se retoma después en la
-  jornada 18 con normalidad.
-
-#### 3.2.3 Playoff de ascenso — sobre una 2ª división ficticia mínima
-
-**Adaptación necesaria para esta fase**: el playoff de ascenso real
-conecta 1ª y 2ª división, pero el proyecto todavía no tiene 2ª división
-implementada como parte del modo de juego real (no está en el alcance
-de esta fase tener plantillas, finanzas, instalaciones, etc. para 18
-equipos más). Para poder tener el playoff de ascenso funcionando ya
-(decisión de Dennis: implementarlo ahora, no aplazarlo), se genera una
-**2ª división ficticia mínima**: 18 equipos generados igual que los de
-prueba de 1ª división (mismo generador ficticio ya existente), con su
-propia instancia de `League` (se reutiliza `League.js` tal cual, sin
-modificarlo) para tener calendario y clasificación real de esa segunda
-liga. Esta 2ª división ficticia es una pieza de infraestructura para
-que el playoff de ascenso tenga con qué alimentarse — no sustituye ni
-adelanta el diseño completo de la 2ª división jugable (economía,
-plantillas reales, etc.), que sigue pendiente como pieza aparte.
-
-- Al terminar la liga regular de la 2ª división ficticia (34 jornadas,
-  igual que 1ª):
-  - El **1º clasificado asciende directo** (no participa en el playoff
-    de ascenso).
-  - Los clasificados **2º a 9º** (8 equipos) disputan el playoff de
-    ascenso por la segunda plaza.
-- **Cuartos de final**: al mejor de 5 partidos, formato de campo
-  **2-2-1**. Cruces por clasificación regular: 2º vs 9º, 3º vs 8º, 4º vs
-  7º, 5º vs 6º.
-- **Final Four**: los 4 ganadores de cuartos juegan semifinales y final,
-  **ambas a partido único**, en sede única (conceptual — no afecta a la
-  simulación). Cruces de semifinal también por clasificación regular
-  entre los 4 clasificados para la Final Four (mejor puesto de liga
-  regular de los 4 contra el peor, el otro cruce entre los dos
-  intermedios) — no sorteo.
-- El **ganador de la Final Four asciende** junto al 1º de liga regular
-  de la 2ª división ficticia.
-- **Fuera de alcance de esta fase** (ver Pendiente): la ventaja de
-  cuadro del subcampeón de la Copa de 2ª división en este playoff (la
-  Copa de 2ª división no está diseñada todavía), y el descenso real de
-  1ª a 2ª división (esta fase no conecta todavía ambas ligas con
-  ascensos/descensos reales entre partidas — ver 3.2, Pendiente).
-
-#### Pendiente para sesiones de diseño futuras (Playoffs/Copa/Ascenso)
-- 2ª división como modo de juego real (plantillas, economía,
-  instalaciones) — la de esta fase es solo una liga ficticia mínima de
-  soporte para el playoff de ascenso.
-- Descensos reales de 1ª a 2ª división (los 2 últimos de 1ª) conectando
-  ambas ligas entre temporadas.
-- Copa de 2ª división (formato completo) y su efecto de ventaja de
-  cuadro sobre el playoff de ascenso.
+### Pendiente para sesiones de diseño futuras (Liga/Calendario)
+- 2ª división en el calendario (Fase 1 solo implementa 1ª división).
+- Playoffs por el título (top 8, bracket sin repesca).
+- Ascensos/descensos y playoff de ascenso (cuartos + Final Four).
+- Copa (1ª división, top 8 a mitad de temporada) y Copa de 2ª división.
 - Supercopa y competición europea.
-- Revisar si la 2ª división ficticia mínima de 3.2.3 se sustituye más
-  adelante por la 2ª división real sin tener que rehacer la lógica del
-  playoff de ascenso (debería ser un simple cambio de qué `League` se le
-  pasa, si se diseña bien desde el principio).
 
 ## 4. Inicio de partida
 
@@ -249,6 +153,32 @@ baloncesto. Todos los atributos numéricos en **escala 1-20**.
 
 **Posiciones**: cada jugador tiene mínimo 1 y hasta 5 posiciones
 (Base, Escolta, Alero, Ala-pívot, Pívot), reflejando polivalencia real.
+
+**Actualización (sesión de diseño de Alineaciones/Rotación, ver 7.11)**:
+el campo deja de ser una lista plana de posiciones habilitadas y pasa a
+tener **nivel de competencia por posición**, necesario para calcular la
+penalización por polivalencia de emergencia (7.11):
+
+- **Posición principal**: exactamente 1. Nivel fijo implícito de 20 (no
+  se almacena como número variable — un jugador siempre rinde al 100%
+  de su capacidad en su posición principal, por definición).
+- **Posiciones secundarias**: de 0 a 4 adicionales (el total de
+  posiciones habilitadas sigue sin superar 5). Cada una lleva un
+  **nivel explícito en escala 1-20**, coherente con el resto de la
+  ficha — no es una etiqueta plana de "habilitada/no habilitada", sino
+  un grado real de competencia en esa posición (ej. un base con
+  Escolta de secundaria a nivel 16 se defiende mucho mejor ahí que uno
+  a nivel 6).
+- Las posiciones **no habilitadas en absoluto** (ni como principal ni
+  como secundaria) no tienen nivel almacenado; si el motor necesita
+  usar a ese jugador ahí en emergencia total (7.11), se trata como
+  nivel 1 por defecto, nunca bloqueando la jugada.
+- El generador de jugadores (real o ficticio) decide cuántas
+  secundarias tiene cada jugador y a qué nivel, según coherencia
+  posicional (ej. una secundaria de Pívot en un Base sería posible pero
+  rara, y se generaría con nivel bajo) — el criterio exacto de
+  generación se deja para cuando se trabaje esa parte del generador,
+  no bloquea el uso del campo en el motor de partido.
 
 #### Datos Físicos Corporales (reales, no en escala 1-20)
 Distintos de los Atributos Físicos de abajo (que son habilidad/capacidad
@@ -342,7 +272,9 @@ significa oculto en la UI, nunca que el dato no exista o no se simule.
 - Roles tácticos con valoración en estrellas (ej. "Base organizador",
   "Anotador de banquillo"), similar a los roles de FM — se definirá junto
   al módulo de tácticas, ya que depende de cómo se diseñen las tácticas
-  del equipo.
+  del equipo. **Nota**: esto es distinto de la posición en pista por
+  partido, ya resuelta en 7.11 — los roles tácticos son un refinamiento
+  adicional sobre esa posición, no un reemplazo.
 - Sistema de lesiones (relacionado con Durabilidad) — se definirá junto
   al módulo de progresión/entrenamiento.
 
@@ -761,10 +693,17 @@ más variable posesión a posesión, a veces mucho mejor y a veces mucho
 peor de lo esperado (σ alto).
 
 **Fatiga** — mecanismo real conectado a Energía (estado dinámico de
-6.1), antes solo mencionado conceptualmente:
-- **Consumo**: cada posesión que un jugador está en pista consume una
-  pequeña cantidad de Energía, modulada por su atributo Resistencia
-  (mayor Resistencia = consume menos Energía por posesión).
+6.1), antes solo mencionado conceptualmente. **Modelo de consumo
+detallado y cerrado en la sesión de Alineaciones/Rotación (ver 7.11,
+que es la referencia completa)**; resumen aquí para no perder la
+conexión con Presión de Momento y el catálogo de acciones:
+- **Consumo en dos componentes** (detalle completo en 7.11): un
+  **desgaste general** por estar en pista (el componente mayor,
+  con jerarquía según la posición que el jugador ocupa EN ESA JUGADA
+  concreta — base > ala > interior) más un **desgaste menor** por
+  intervenir activamente en la acción que resuelve esa posesión
+  concreta (7.6). Ambos modulados por el atributo Resistencia (mayor
+  Resistencia = consume menos Energía por la misma carga).
 - **Efecto**: afecta con **impacto leve** a las acciones de precisión de
   tiro (Tiro exterior, Tiro media distancia, Tiro interior, Bandeja) y
   con **impacto mayor** a las acciones físicas puras (Salto, Velocidad,
@@ -772,10 +711,10 @@ peor de lo esperado (σ alto).
 - **Conexión con Falta defensiva (7.6, Bloque B)**: la Fatiga también
   sube la `TendenciaAFalta` efectiva de un defensor — un jugador cansado
   llega tarde a las ayudas y comete más faltas.
-- **Recuperación**: fuera del ámbito de un partido concreto — pertenece
-  al ciclo de calendario/temporada (cuánto tarda en reponerse ENTRE
-  partidos), no a este bucle de posesión. Pendiente de detalle en el
-  módulo de calendario/temporada.
+- **Recuperación entre partidos**: cerrada en 7.11 (curva no lineal
+  modulada por el atributo Recuperación, con gancho pendiente al futuro
+  tipo de entrenamiento) — ya no es un hueco de diseño abierto, aunque
+  el módulo de Entrenamiento en sí siga pendiente (sección 9).
 
 ### 7.6 Catálogo completo de acciones
 
@@ -959,16 +898,188 @@ FIBA/ACB:
   **siguen acumulando sin resetearse** — son de partido completo, no por
   período.
 
+### 7.11 Alineaciones, Rotación y Desgaste/Energía
+
+Sesión de diseño dedicada: el motor asumía (7.1, 7.5-bis) que existía
+una asignación de minutos/posición en pista por jugador, sin haberla
+definido nunca formalmente. Esta sección la cierra, junto con el modelo
+de desgaste y recuperación de Energía que depende directamente de ella.
+
+#### 7.11.1 Convocatoria y posición declarada
+
+- La convocatoria de partido sigue la regla ya fijada en 6.2 (mínimo 8,
+  máximo 12 jugadores de la plantilla total).
+- Para cada jugador convocado, el usuario declara **una posición para
+  ese partido concreto**, elegida entre las posiciones habilitadas de
+  ese jugador (principal o alguna secundaria, ver 6.1). Un jugador
+  polivalente puede así jugar en una posición distinta a su principal
+  en un partido dado (ej. por baja de otro jugador en esa posición),
+  sin que eso sea una "emergencia" — es una elección deliberada del
+  usuario, distinta de la polivalencia de emergencia de 7.11.3, que es
+  una decisión automática del motor durante el partido.
+
+#### 7.11.2 Rotación: cuotas de minutos + quintetos fijos
+
+- El usuario asigna a cada convocado una **cuota de minutos objetivo**
+  (0 a 40, duración FIBA/ACB de `CONFIG_BASE`).
+- **Validación estricta antes de poder guardar/jugar la alineación**:
+  para cada una de las 5 posiciones, la suma de minutos de los
+  jugadores declarados en esa posición debe ser exactamente 40. Si
+  alguna posición no cuadra, el sistema **bloquea el guardado** y
+  señala qué posición(es) están descuadradas y en cuánto — no hay
+  normalización automática ni aceptación de un desajuste silencioso.
+- Opcionalmente, el usuario puede fijar **quintetos concretos por
+  franja** del partido (ej. "este quinteto de cierre en el último
+  cuarto si vamos ganando"). Mientras una franja fija esté activa,
+  **congela** el reparto automático de rotación; al salir de la franja,
+  el reparto automático se retoma con normalidad.
+- Fuera de las franjas fijadas, el motor reparte las sustituciones
+  automáticamente para intentar cumplir la cuota de minutos de cada
+  jugador, respetando en todo momento que las 5 posiciones estén
+  cubiertas en pista.
+- **Ventanas de sustitución automática**: el motor no sustituye a mitad
+  de una jugada viva. Las sustituciones automáticas solo se evalúan en
+  **fin de cuarto** y en **paradas de juego** (falta o violación,
+  Bloque B de 7.6) — puntos de corte naturales del partido real. Dentro
+  de esas ventanas, el motor prioriza sacar a quien más se haya
+  alejado (por encima) de su ritmo de cuota esperado a esa altura del
+  partido, y meter a quien más por debajo esté.
+
+#### 7.11.3 Polivalencia de emergencia
+
+Cuando, durante el reparto automático de rotación, una posición se
+queda sin cobertura (los jugadores asignados a ella agotaron su cuota,
+o no hay convocados suficientes en ella):
+
+- El motor busca, entre los convocados que **todavía tengan minutos
+  disponibles**, el que tenga esa posición habilitada (como principal o
+  secundaria, 6.1) con la **menor distancia posicional** a la posición
+  vacía. La distancia se mide como diferencia de índice en el espectro
+  Base(1)–Escolta(2)–Alero(3)–Ala-pívot(4)–Pívot(5) (ej. Alero→Ala-pívot
+  = distancia 1; Base→Pívot = distancia 4).
+- **Desempate**: si hay varios candidatos a la misma distancia mínima,
+  gana el que tenga más cuota de minutos restante.
+- Si ningún convocado tiene esa posición habilitada en absoluto, se usa
+  igualmente al candidato de menor distancia, tratando su nivel en esa
+  posición como **1** (emergencia total) — el motor nunca se bloquea
+  por falta de cobertura, siempre encuentra una salida, por penalizada
+  que esté.
+
+**Penalización por polivalencia**: un jugador que cubre una posición
+distinta a la que se le declaró (7.11.1) sufre una penalización de
+rendimiento en esa jugada:
+
+`penalización_final = penalización_base(distancia_posicional) ×
+(1 − nivel_del_jugador_en_esa_posición / 20)`
+
+- `penalización_base` crece con la distancia posicional (a calibrar en
+  CONFIG, como el resto de fórmulas del motor).
+- El nivel usado es el de la ficha actualizada de 6.1: 20 si fuera su
+  posición principal (caso que no debería darse aquí, ya que si es su
+  principal no hay emergencia), el nivel explícito 1-20 si es una
+  secundaria habilitada, o 1 si no la tiene habilitada en absoluto.
+- Efecto práctico: un jugador con nivel alto en la posición de
+  emergencia apenas sufre penalización (tiene sentido, básicamente ya
+  sabe jugar ahí); un jugador sin esa posición habilitada sufre la
+  penalización casi completa.
+
+#### 7.11.4 Desgaste de Energía dentro del partido
+
+Amplía el mecanismo de Fatiga de 7.5-bis con el modelo acordado:
+
+- **Dos componentes por posesión, para cada uno de los 5 jugadores en
+  pista de un equipo** (los 5 desgastan siempre algo, no solo quien
+  interviene directamente en la acción resuelta por el motor):
+  1. **Desgaste general** (componente **mayor**) — por el solo hecho de
+     estar en pista corriendo, marcando sin balón, replegando, etc.
+     Lleva una **jerarquía según la posición que el jugador ocupa EN
+     ESA JUGADA** (no su posición principal fija): posiciones más
+     exteriores desgastan más que las interiores (base > ala > pívot),
+     reflejando el mayor recorrido/carga de los exteriores en el juego
+     real. Esta jerarquía vive como multiplicador en CONFIG (coherente
+     con 7.2: cada fórmula vive como datos, no como lógica aparte).
+  2. **Desgaste por intervención** (componente **menor**) — extra
+     aplicado solo a los jugadores directamente implicados como
+     atributo en la acción que el motor resuelve esa posesión (7.6):
+     quien tira, quien defiende el tiro, quien lucha el rebote, etc.
+- **Modulación por Resistencia**: el desgaste bruto (general +
+  intervención) se reduce según el atributo Resistencia del jugador
+  (1-20) — más Resistencia, menor pérdida de Energía por la misma
+  carga de juego. Fórmula estructural:
+
+  `pérdida_energía_posesión = [desgaste_general(posición_en_jugada) +
+  desgaste_intervención(acción)] × (1 − factor_resistencia)`
+
+  con `factor_resistencia` acotado (nunca reduce el desgaste a cero;
+  hasta el jugador con mejor físico se cansa jugando 40 minutos reales).
+- Los números exactos de ambos componentes y de `factor_resistencia`
+  quedan, como el resto del catálogo de 7.6, como estructura fijada
+  pendiente de calibración final tras pruebas de simulación.
+
+#### 7.11.5 Recuperación de Energía entre partidos
+
+Cierra el hueco que 7.5-bis dejaba explícitamente pendiente ("fuera del
+ámbito de un partido concreto"):
+
+- **Curva no lineal**: la Energía perdida se recupera más rápido en el
+  primer día de descanso y progresivamente más despacio en los días
+  siguientes (modelo tipo decaimiento exponencial inverso sobre el
+  hueco de energía restante) — no es una recuperación lineal fija por
+  día.
+- **Atributo Recuperación (1-20)** actúa como **multiplicador de
+  velocidad** sobre esa misma curva, no como una curva distinta de
+  forma: un jugador con Recuperación alta avanza más rápido por la
+  misma curva (llega antes al mismo punto de energía repuesta), no
+  tiene una forma de curva diferente a la de otro jugador.
+- **Gancho pendiente explícito hacia el futuro módulo de Entrenamiento**
+  (sección 9, aún sin diseñar en detalle): el tipo de entrenamiento que
+  el club realice modulará esta curva como un trade-off — un
+  entrenamiento de recuperación acelerará el cierre del hueco de
+  energía pero reducirá la ganancia de progresión técnica/física de
+  esa sesión; un entrenamiento intenso hará lo contrario (mejor
+  progresión, recuperación de Energía más lenta). La mecánica exacta de
+  tipos de entrenamiento (qué opciones existen, cómo se eligen, qué
+  otros efectos tienen) se diseñará en la sesión dedicada a Progresión/
+  Entrenamiento — aquí solo queda fijado que esta palanca existirá y
+  cómo interactúa con la curva de recuperación.
+
+#### 7.11.6 Requisito de frontend — pantalla de alineación
+
+La pantalla de alineación (aún por construir) debe mostrar, por cada
+jugador convocado, junto a su asignación de quinteto/banquillo, minutos
+previstos y posición deseada para ese partido (7.11.1, 7.11.2):
+
+- **Valoración Técnica**: media de los 14 Atributos Técnicos (6.1),
+  escala 1-20.
+- **Valoración Física**: media de los Atributos Físicos (6.1), escala
+  1-20.
+- **Valoración Mental**: media de los Atributos Mentales (6.1), escala
+  1-20.
+- **Resistencia**: atributo directo (1-20), ya visible según 6.1.
+- **Energía actual**: estado dinámico ya visible según 6.1 — dato clave
+  para decidir minutos y quinteto, se muestra en esta misma pantalla.
+- **Forma** (Ritmo de competición, 6.1): este estado está clasificado
+  como semi-visible en 6.1 (no se expone el número interno exacto).
+  **Excepción explícita a esa regla, solo para esta pantalla**: se
+  muestra traducido a una escala de **1 a 5 estrellas**, manteniendo el
+  espíritu semi-visible (no da el dato crudo) pero ofreciendo una señal
+  clara y consistente para decidir la alineación.
+
 ### Pendiente para sesiones de diseño futuras (Simulación)
 - Pesos numéricos finales calibrados de las 21 piezas del catálogo
-  (7.6) — la estructura está fijada, faltan los números definitivos
+  (7.6), y de los componentes de desgaste/penalización de polivalencia
+  de 7.11 — la estructura está fijada, faltan los números definitivos
   tras pruebas de simulación masiva.
 - Bloqueo/pick-and-roll, Tiempo muerto táctico, Falta táctica
   intencionada — pendientes del futuro módulo de Tácticas (7.6).
+- Roles tácticos con valoración en estrellas (distintos de la posición
+  en pista, ya resuelta en 7.11) — pendientes del futuro módulo de
+  Tácticas (6.1).
 - Constantes exactas del `CONFIG_MODIFIERS_NBA` — pendiente hasta que se
   aborde esa parte del proyecto.
-- Detalle exacto de Recuperación (ciclo de calendario/temporada, fuera
-  del bucle de un partido concreto) — ver 7.5-bis.
+- Mecánica completa de tipos de Entrenamiento (más allá de su efecto en
+  la curva de recuperación de Energía, ya fijado en 7.11.5) — pendiente
+  del módulo de Progresión/Entrenamiento (sección 9).
 - Detalle exacto del sistema de lesiones dentro del bucle de posesión.
 - Mecanismo exacto de escalado a expulsión por faltas técnicas
   repetidas (acción 21).
