@@ -688,24 +688,24 @@
         "midRangeShot": 9,
         "insideShot": 18,
         "freeThrows": 12,
-        "layup": 19,
+        "layup": 18,
         "passing": 10,
         "ballHandling": 7,
         "offensiveRebound": 18,
-        "defensiveRebound": 19,
+        "defensiveRebound": 18,
         "blocking": 18,
         "stealing": 9,
         "foulTendency": 17,
         "perimeterDefense": 8,
-        "interiorDefense": 20
+        "interiorDefense": 19
       },
       "physical": {
         "topSpeed": 10,
         "acceleration": 11,
         "jumping": 16,
-        "strength": 19,
+        "strength": 18,
         "agility": 11,
-        "balance": 19,
+        "balance": 18,
         "stamina": 16,
         "recovery": 16,
         "durability": 18
@@ -716,12 +716,12 @@
         "aggressiveness": 18,
         "concentration": 17,
         "leadership": 14,
-        "teamwork": 19,
+        "teamwork": 18,
         "temperament": 17,
         "consistency": 15,
-        "anticipation": 19,
+        "anticipation": 18,
         "positioning": 18,
-        "workRate": 19
+        "workRate": 18
       },
       "traits": [
         "Especialista defensivo"
