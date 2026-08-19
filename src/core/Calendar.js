@@ -32,11 +32,37 @@
     }
 
     // Fechas de las 3 rondas de Copa (cuartos, semifinal, final), dentro
-    // del hueco entre la jornada 17 y la 18.
+    // del hueco entre la jornada 17 y la 18. DESIGN.md 3.3.2, reglas duras:
+    // (1) el hueco total de Copa es SIEMPRE el mismo que separa la jornada
+    // 17 de la 18 (daysBetweenRounds, no una duración derivada de sumar
+    // cupRoundGapDays × rondas); (2) mínimo cupFinalCushionDays de descanso
+    // real entre la final de Copa y la jornada 18. `cupRoundGapDays` es
+    // solo la separación ORIENTATIVA entre rondas — se comprime (nunca se
+    // alarga el hueco total ni se reduce el colchón mínimo) cuando no cabe.
+    //
+    // Corrección de calibración (bug real de la sesión anterior): con
+    // daysBetweenRounds=7 y cupRoundGapDays=3, la 3ª fecha caía en +9,
+    // 2 días DESPUÉS de la jornada 18 (+7) en vez de antes. Ahora el hueco
+    // disponible para las 3 fechas es siempre gapDays - cupFinalCushionDays,
+    // y solo se comprime la separación entre rondas lo mínimo necesario
+    // para que la final quepa dentro de ese margen (empezando por el hueco
+    // cuartos->semis, luego semis->final si aún no cupiera).
     cupRoundDates() {
       const round17Date = this.leagueRoundDate(17);
-      const { cupRoundGapDays } = this.config.calendar;
-      return [1, 2, 3].map((i) => addDays(round17Date, i * cupRoundGapDays));
+      const { cupRoundGapDays, cupFinalCushionDays, daysBetweenRounds } = this.config.calendar;
+      const maxLastOffset = daysBetweenRounds - cupFinalCushionDays;
+
+      const offsets = [cupRoundGapDays, 2 * cupRoundGapDays, 3 * cupRoundGapDays];
+      if (offsets[2] > maxLastOffset) {
+        offsets[2] = maxLastOffset;
+      }
+      if (offsets[1] >= offsets[2]) {
+        offsets[1] = Math.max(1, offsets[2] - 1);
+      }
+      if (offsets[0] >= offsets[1]) {
+        offsets[0] = Math.max(1, offsets[1] - 1);
+      }
+      return offsets.map((offset) => addDays(round17Date, offset));
     }
 
     // Resolver de fechas para un Bracket completo: `(roundIndex,

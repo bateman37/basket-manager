@@ -190,18 +190,18 @@
   // recuperación de Energía pendiente de cada jugador que jugó minutos, y
   // registra la fecha de este partido como su nuevo `lastMatchDate`.
   //
-  // LIMITACIÓN REAL señalada explícitamente (no un olvido): `result.rotation`
-  // (de dónde sale qué jugador jugó cuántos minutos) solo existe cuando ESE
-  // lado del partido tuvo una alineación real (`options.home/awayLineup` a
-  // MatchEngine.simulateMatch) — ver MatchEngine.js. Hoy
-  // buildLineupMatchOptionsResolver() solo construye esa alineación para el
-  // EQUIPO DEL USUARIO, nunca para el rival ni para el resto de partidos de
-  // la jornada (equipos IA). Por tanto, esta integración solo puede
-  // actualizar `lastMatchDate`/aplicar recuperación al equipo del usuario
-  // cuando ha configurado alineación — el resto de la liga (los otros 17
-  // equipos) no tiene manera de saber quién jugó cuántos minutos todavía,
-  // así que sencillamente no se les toca nada (no se inventa un reparto de
-  // minutos "quinteto titular fijo" ni parecido, que no pidió esta tarea).
+  // `result.rotation` (de dónde sale qué jugador jugó cuántos minutos)
+  // solo existe cuando ESE lado del partido tuvo una alineación real
+  // (`options.home/awayLineup` a MatchEngine.simulateMatch) — ver
+  // MatchEngine.js. LIMITACIÓN REAL ya cerrada (DESIGN.md 7.11.7,
+  // CpuLineup.js): antes, buildLineupMatchOptionsResolver() solo
+  // construía esa alineación para el EQUIPO DEL USUARIO, así que esta
+  // función nunca podía tocar al resto de la liga. Ahora
+  // buildLineupMatchOptionsResolver() construye una alineación real (CPU
+  // o de usuario) para AMBOS lados de CUALQUIER partido, así que esta
+  // función se aplica igual a los 36 equipos. El único `if (!rotation)`
+  // que queda abajo es defensivo, para los puntos del "modo prueba" que
+  // sigan llamando a simulateMatch sin ninguna alineación (ver CLAUDE.md).
   function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date) {
     if (!date || !result.rotation) return;
     const { applyRestRecovery, CONFIG_BASE } = BM;
@@ -1165,25 +1165,57 @@
     return { squad, lineup };
   }
 
+  // Construye la alineación real de un equipo CPU para UN partido concreto
+  // (DESIGN.md 7.11.7) — cierra el hueco que dejaba explícitamente 7.11.5:
+  // sin esto, cualquier lado del partido que no fuera el equipo del usuario
+  // caía en `selectOnCourtFive` (sin reparto de minutos por jugador), así
+  // que Recovery.js nunca podía actualizar su `lastMatchDate`. `opponent`
+  // es siempre el OTRO equipo del partido, desde la perspectiva de `team`
+  // (cada lado calcula su propia importancia de partido, pueden diferir).
+  // `competition`: 'league' evalúa objetivo de temporada/clasificación;
+  // cualquier otro valor ('bracket', usado abajo) es siempre clave.
+  function buildCpuSideOptions(team, opponent, competition) {
+    const { buildCpuLineup, computeMatchImportance, CONFIG_BASE } = BM;
+    const standingsTable = state.league.getStandingsTable();
+    const matchImportance = computeMatchImportance(team, opponent, competition, standingsTable, CONFIG_BASE);
+    return buildCpuLineup(team, matchImportance, CONFIG_BASE);
+  }
+
   // Construye, a partir de la última alineación guardada por el usuario
-  // (state.lineup), los dos resolvers de opciones de MatchEngine para su
-  // lado del partido — punto único compartido por Home, la pantalla de
-  // Alineación y los botones de bracket, para no duplicar esta lógica
-  // (DESIGN.md 7.11.6). resolveMatchOptions tiene el shape que espera
+  // (state.lineup), los dos resolvers de opciones de MatchEngine — punto
+  // único compartido por Home, la pantalla de Alineación y los botones de
+  // bracket, para no duplicar esta lógica (DESIGN.md 7.11.6). El lado del
+  // equipo del usuario usa siempre su alineación guardada; CUALQUIER OTRO
+  // lado (el rival directo del usuario, y los dos lados de cualquier otro
+  // partido de la misma jornada/bracket que no lo involucre) usa ahora
+  // CpuLineup.buildCpuLineup (DESIGN.md 7.11.7) — antes de esta sesión esos
+  // partidos recibían `undefined` y caían en el placeholder sin rotación
+  // real. resolveMatchOptions tiene el shape que espera
   // League.simulateNextRound(match); resolveBracketOptions, el que espera
   // Bracket.playNextGame(homeEntry, awayEntry).
   function buildLineupMatchOptionsResolver(team) {
     const { squad, lineup } = buildUserSideOptions(team);
+
+    function sideOptions(sideTeam, opponentTeam, isHome, competition) {
+      if (sideTeam.id === team.id) {
+        return isHome ? { homeSquad: squad, homeLineup: lineup } : { awaySquad: squad, awayLineup: lineup };
+      }
+      const cpu = buildCpuSideOptions(sideTeam, opponentTeam, competition);
+      return isHome ? { homeSquad: cpu.squad, homeLineup: cpu.lineup } : { awaySquad: cpu.squad, awayLineup: cpu.lineup };
+    }
+
     return {
       resolveMatchOptions(match) {
-        if (match.homeTeam.id === team.id) return { homeSquad: squad, homeLineup: lineup };
-        if (match.awayTeam.id === team.id) return { awaySquad: squad, awayLineup: lineup };
-        return undefined;
+        return {
+          ...sideOptions(match.homeTeam, match.awayTeam, true, 'league'),
+          ...sideOptions(match.awayTeam, match.homeTeam, false, 'league'),
+        };
       },
       resolveBracketOptions(homeEntry, awayEntry) {
-        if (homeEntry.team.id === team.id) return { homeSquad: squad, homeLineup: lineup };
-        if (awayEntry.team.id === team.id) return { awaySquad: squad, awayLineup: lineup };
-        return undefined;
+        return {
+          ...sideOptions(homeEntry.team, awayEntry.team, true, 'bracket'),
+          ...sideOptions(awayEntry.team, homeEntry.team, false, 'bracket'),
+        };
       },
     };
   }
