@@ -1028,6 +1028,43 @@ de desgaste y recuperación de Energía que depende directamente de ella.
   alejado (por encima) de su ritmo de cuota esperado a esa altura del
   partido, y meter a quien más por debajo esté.
 
+#### 7.11.2-bis Minutos de la basura ("garbage time")
+
+Excepción explícita a la validación estricta de cuotas de 7.11.2,
+activable/desactivable por el usuario.
+
+- **Checkbox "Permitir minutos de la basura"**: vive **por partido, en
+  la pantalla de alineación** (no es una config global del usuario). Si
+  está desactivado, esta norma no se aplica nunca y rige solo la lógica
+  normal de rotación de 7.11.2. Si está activado, se aplican las
+  condiciones siguientes. La alineación ya fijada por el usuario
+  (titulares, suplentes, cuotas) **se mantiene siempre** — esta norma
+  solo decide cuándo se ignora temporalmente esa cuota, nunca cambia
+  quién está convocado ni en qué slot.
+- **Condición de activación — equipo que va ganando**: desde la mitad
+  del 3er cuarto en adelante, si la diferencia de puntos a su favor
+  llega a **20 o más**.
+- **Condición de activación — equipo que va perdiendo**: desde la mitad
+  del 4º cuarto en adelante, si la diferencia de puntos en su contra
+  llega a **20 o más**. El umbral de tiempo es más tardío que el del
+  ganador de forma deliberada: un equipo que va perdiendo debe seguir
+  intentando remontar mientras quede margen real de partido, y solo
+  entra en minutos de la basura cuando ya apenas queda tiempo para
+  lograrlo.
+- **Mientras está activa** para un equipo: ese equipo deja de exigir
+  el cumplimiento de la cuota de 40 minutos por posición (7.11.2) y da
+  minutos a su banquillo, con este orden de entrada dentro de cada
+  posición: primero el **segundo slot de suplente** (el último), luego
+  el **primer slot de suplente**; si ninguno de los dos puede entrar
+  (p. ej. lesión, expulsión, o sin cuota restante), se queda el
+  **titular** en pista en vez de dejar la posición sin cubrir.
+- **Desactivación (histéresis)**: una vez activa, se mantiene activa
+  aunque la diferencia fluctúe, hasta que la diferencia se reduzca a
+  **10 puntos o menos** — en ese momento ese equipo vuelve a la lógica
+  normal de rotación/cuotas de 7.11.2. Cada equipo evalúa su propia
+  activación/desactivación de forma independiente (uno puede estar en
+  minutos de la basura mientras el otro sigue en rotación normal).
+
 #### 7.11.3 Polivalencia de emergencia
 
 Cuando, durante el reparto automático de rotación, una posición se
@@ -1148,6 +1185,38 @@ previstos y posición deseada para ese partido (7.11.1, 7.11.2):
   muestra traducido a una escala de **1 a 5 estrellas**, manteniendo el
   espíritu semi-visible (no da el dato crudo) pero ofreciendo una señal
   clara y consistente para decidir la alineación.
+
+**Ampliación — dos pantallas separadas** (sesión de diseño de frontend,
+referencia visual: esquema clásico de manager de texto tipo
+BuzzerBeater con posiciones fijas y dropdowns):
+
+- **Pantalla de convocatoria**: lista de jugadores de plantilla con las
+  valoraciones ya definidas arriba (Técnica, Física, Mental,
+  Resistencia, Energía, Forma en estrellas) y un simple toggle Sí/No
+  por jugador para marcarlo convocado — en vez de un selector de dos
+  columnas con botón de mover.
+- **Pantalla de quintetos**: 5 filas fijas por posición (Base, Escolta,
+  Alero, Ala-pívot, Pívot). Cada fila tiene exactamente **1 slot de
+  titular + 2 slots de suplente** para esa posición (3 slots por fila,
+  15 en total). Cada slot es un par dropdown de jugador + campo de
+  minutos independiente.
+  - Un mismo jugador convocado puede ocupar más de un slot (ej. titular
+    en Base y suplente en Escolta), coherente con que la posición
+    declarada (7.11.1) es una elección libre del usuario por partido.
+  - **Los minutos de cada slot se validan por separado** contra la
+    regla de 40 minutos por posición (7.11.2): el minutaje del slot
+    "Base titular" y el del slot "ese mismo jugador como suplente de
+    Escolta" no comparten validación entre sí — cada fila/posición
+    cuadra sus propios 40 minutos de forma independiente.
+  - **Los minutos de un mismo jugador SÍ se suman entre todos sus
+    slots** hacia su total de minutos de partido — esa suma total (no
+    el minutaje de un slot aislado) es la magnitud real que consume su
+    Energía (7.11.4).
+  - **Contador en vivo por posición**: mientras el usuario edita, cada
+    una de las 5 filas muestra la suma actual de minutos de sus 3 slots
+    frente a los 40 requeridos (ej. "35/40" vs "40/40"), actualizado al
+    momento sin esperar a guardar. El bloqueo real de guardado
+    (7.11.2) se mantiene igual, evaluado al confirmar la alineación.
 
 ### Pendiente para sesiones de diseño futuras (Simulación)
 - Pesos numéricos finales calibrados de las 21 piezas del catálogo
