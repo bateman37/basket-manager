@@ -87,15 +87,16 @@
 
     // Juega el siguiente partido pendiente de todo el playoff de ascenso:
     // primero termina cuartos: luego arma y juega la Final Four.
-    playNextGame(config) {
+    // `resolveOptions`: ver Bracket.playNextGame — se reenvía tal cual.
+    playNextGame(config, resolveOptions) {
       if (!this.isQuarterFinalsComplete) {
-        return this.quarterFinals.playNextGame(config);
+        return this.quarterFinals.playNextGame(config, resolveOptions);
       }
       this.ensureFinalFour();
       if (this.finalFour.isComplete) {
         throw new Error('PromotionPlayoff.playNextGame: el playoff de ascenso ya está completo');
       }
-      return this.finalFour.playNextGame(config);
+      return this.finalFour.playNextGame(config, resolveOptions);
     }
 
     getStatus() {

@@ -28,7 +28,7 @@
   // (CLAUDE.md: localStorage llegará más adelante, no es parte de esto).
   // ---------------------------------------------------------------------
   const state = {
-    screen: 'team-select', // 'team-select' | 'home' | 'calendar' | 'competitions' | 'stats' | 'match'
+    screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'calendar' | 'competitions' | 'stats' | 'match'
     division: '1ª',
     userTeamId: null,
     league: null, // instancia de League (1ª o 2ª según el equipo elegido)
@@ -39,6 +39,19 @@
     pendingUserMatch: null, // { match } — partido del usuario de la jornada recién simulada, pendiente de revelar en pantalla de partido
     matchReveal: null, // estado de revelado progresivo por cuartos de la pantalla de partido
     statsCompetition: 'league', // 'league' | 'cup' | 'playoffs' — selector de la pantalla de estadísticas
+    // Alineación (DESIGN.md 7.11.6) — construida por el usuario en la pantalla
+    // "Alineación", opcional: si se deja vacía/incompleta, el partido se juega
+    // igual que hasta ahora (placeholder sin lineup real, ver MatchEngine.js).
+    // Decisión de producto NO fijada en DESIGN.md, señalada aquí: la
+    // alineación persiste entre jornadas (no se resetea tras cada partido)
+    // para no obligar a reconstruirla partido a partido — el usuario puede
+    // volver a esta pantalla y ajustarla cuando quiera.
+    lineup: {
+      squadIds: [], // ids de convocados (8-12)
+      entries: {}, // playerId -> { declaredPosition, minutesQuota }
+      fixedSegments: [], // opcional, C.2
+      segmentDraft: null, // formulario en curso de un quinteto fijo nuevo
+    },
   };
 
   function byId(id) { return document.getElementById(id); }
@@ -126,6 +139,7 @@
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
     state.matchReveal = null;
+    state.lineup = { squadIds: [], entries: {}, fixedSegments: [], segmentDraft: null };
 
     goToScreen('home');
   }
@@ -141,12 +155,17 @@
   // regular (título en 1ª, ascenso en 2ª) — todo reutilizando Playoffs.js/
   // Cup.js/Promotion.js tal cual, sin tocarlos.
   // ---------------------------------------------------------------------
-  function simulateNextRound() {
+  // `resolveMatchOptions` (opcional, DESIGN.md 7.11.6): callback que recibe
+  // el `match` de liga y devuelve las `options` de MatchEngine para el
+  // equipo del usuario si le toca jugar esta jornada — ver
+  // buildLineupMatchOptionsResolver() más abajo. Sin argumento, la jornada
+  // se juega exactamente igual que hasta ahora (sin alineación real).
+  function simulateNextRound(resolveMatchOptions) {
     const { createTitlePlayoff, createCup, PromotionPlayoff, CUP_TRIGGER_ROUND } = BM;
     const league = state.league;
     if (league.isSeasonComplete) return;
 
-    const matches = league.simulateNextRound();
+    const matches = league.simulateNextRound(undefined, resolveMatchOptions);
     state.lastRoundMatches = matches;
 
     // Copa: se dispara automáticamente justo al completar la jornada 17,
@@ -224,8 +243,11 @@
   // igual que ya se hace con state.pendingUserMatch para partidos de liga
   // — así todo partido de bracket se revela cuarto a cuarto igual que uno
   // de liga, sin tocar Bracket.js/Cup.js/Playoffs.js/Promotion.js.
-  function playBracketGameWithReveal(bracket) {
-    const game = bracket.playNextGame();
+  // `resolveOptions` (opcional, DESIGN.md 7.11.6): ver
+  // buildLineupMatchOptionsResolver() más abajo — se reenvía tal cual a
+  // Bracket.playNextGame(). Sin argumento, comportamiento idéntico a antes.
+  function playBracketGameWithReveal(bracket, resolveOptions) {
+    const game = bracket.playNextGame(undefined, resolveOptions);
     state.pendingUserMatch = {
       homeTeam: game.homeEntry.team,
       awayTeam: game.awayEntry.team,
@@ -271,6 +293,7 @@
           <h3>${activeBracket.title} — ${activeBracket.roundLabel}</h3>
           <p class="gm-muted">Competición en marcha. La liga regular espera a que termine.</p>
           <button id="gm-play-bracket-btn" class="gm-btn gm-btn--primary">Jugar siguiente partido</button>
+          <button id="gm-goto-lineup-btn" class="gm-btn">Configurar alineación</button>
         </div>`
       : `
         <div class="gm-card">
@@ -279,6 +302,7 @@
           <button id="gm-play-round-btn" class="gm-btn gm-btn--primary" ${league.isSeasonComplete ? 'disabled' : ''}>
             ${league.isSeasonComplete ? 'Temporada regular terminada' : 'Jugar siguiente jornada'}
           </button>
+          ${league.isSeasonComplete ? '' : '<button id="gm-goto-lineup-btn" class="gm-btn">Configurar alineación</button>'}
         </div>`;
 
     container.innerHTML = `
@@ -320,6 +344,11 @@
           renderHomeScreen();
         }
       });
+    }
+
+    const gotoLineupBtn = byId('gm-goto-lineup-btn');
+    if (gotoLineupBtn) {
+      gotoLineupBtn.addEventListener('click', () => goToScreen('lineup'));
     }
   }
 
@@ -613,9 +642,338 @@
   }
 
   // ---------------------------------------------------------------------
+  // Pantalla: Alineación (DESIGN.md 7.11.6) — capa de presentación pura
+  // sobre src/core/Rotation.js: esta pantalla NO decide nada de rotación
+  // por sí misma, solo construye el objeto `lineup` con el shape exacto
+  // que espera Rotation.js y lo valida con Rotation.validateLineup() antes
+  // de permitir jugar. El quinteto titular/banquillo que se muestra aquí es
+  // solo informativo (mayor cuota declarada por posición) — Rotation.js
+  // resuelve el quinteto inicial real internamente, de forma independiente.
+  // ---------------------------------------------------------------------
+
+  // Ritmo de competición (0-100, semi-visible según DESIGN.md 6.1) traducido
+  // a 1-5 estrellas — excepción explícita de 7.11.6, solo para esta
+  // pantalla. Nunca se expone el número crudo en ningún sitio de aquí.
+  function competitionRhythmToStars(rhythm) {
+    const stars = Math.max(1, Math.min(5, Math.ceil(rhythm / 20)));
+    return '★'.repeat(stars) + '☆'.repeat(5 - stars);
+  }
+
+  // Quinteto titular informativo: por cada una de las 5 posiciones, el
+  // convocado declarado en ella con mayor cuota de minutos (mismo criterio
+  // que usa Rotation.buildRotationState() para el quinteto inicial real,
+  // pero calculado aquí solo para mostrarlo, no para decidir nada).
+  function computeInformativeStarters(lineup) {
+    const bestByPosition = {};
+    Object.entries(lineup.entries).forEach(([playerId, entry]) => {
+      const current = bestByPosition[entry.declaredPosition];
+      if (!current || entry.minutesQuota > lineup.entries[current].minutesQuota) {
+        bestByPosition[entry.declaredPosition] = playerId;
+      }
+    });
+    return new Set(Object.values(bestByPosition));
+  }
+
+  // Validación completa: tamaño de convocatoria (reutiliza
+  // Team.buildMatchSquad(), que ya valida 8-12 y pertenencia a plantilla —
+  // DESIGN.md 6.2) + Rotation.validateLineup (cuotas de minutos por
+  // posición). Ambas deben cumplirse para poder jugar/guardar.
+  function getLineupValidity(team) {
+    const { CONFIG_BASE, validateLineup, describeValidationErrors } = BM;
+    try {
+      team.buildMatchSquad(state.lineup.squadIds);
+    } catch (err) {
+      return { valid: false, message: err.message };
+    }
+    const validation = validateLineup(
+      { entries: state.lineup.entries, fixedSegments: state.lineup.fixedSegments },
+      CONFIG_BASE,
+    );
+    if (!validation.valid) {
+      return { valid: false, message: describeValidationErrors(validation.errors) };
+    }
+    return { valid: true, message: null };
+  }
+
+  function toggleSquadMember(team, playerId) {
+    const lineup = state.lineup;
+    const idx = lineup.squadIds.indexOf(playerId);
+    if (idx >= 0) {
+      lineup.squadIds.splice(idx, 1);
+      delete lineup.entries[playerId];
+    } else {
+      if (lineup.squadIds.length >= 12) return; // máximo de convocatoria (6.2)
+      const player = team.roster.find((p) => p.id === playerId);
+      lineup.squadIds.push(playerId);
+      lineup.entries[playerId] = { declaredPosition: player.primaryPosition, minutesQuota: 0 };
+    }
+    renderLineupScreen();
+  }
+
+  function updateEntryPosition(playerId, position) {
+    state.lineup.entries[playerId].declaredPosition = position;
+    renderLineupScreen();
+  }
+
+  function updateEntryMinutes(playerId, minutes, durationMinutes) {
+    const clamped = Math.max(0, Math.min(durationMinutes, Number(minutes) || 0));
+    state.lineup.entries[playerId].minutesQuota = clamped;
+    renderLineupScreen();
+  }
+
+  function addFixedSegment(team) {
+    const draft = state.lineup.segmentDraft;
+    const five = {};
+    BM.POSITIONS.forEach((pos) => {
+      if (draft.five[pos]) five[pos] = draft.five[pos];
+    });
+    state.lineup.fixedSegments.push({
+      label: draft.label.trim() || `Quinteto fijo ${state.lineup.fixedSegments.length + 1}`,
+      trigger: { fromPeriod: draft.fromPeriod, scoreCondition: draft.scoreCondition },
+      five,
+    });
+    state.lineup.segmentDraft = null;
+    renderLineupScreen();
+  }
+
+  function removeFixedSegment(index) {
+    state.lineup.fixedSegments.splice(index, 1);
+    renderLineupScreen();
+  }
+
+  function renderLineupScreen() {
+    const container = byId('gm-lineup');
+    const team = getUserTeam();
+    if (!team) { container.innerHTML = ''; return; }
+
+    const { CONFIG_BASE, POSITIONS } = BM;
+    const durationMinutes = CONFIG_BASE.match.durationMinutes;
+    const lineup = state.lineup;
+    const activeBracket = getActiveBracket();
+
+    // Mismo criterio que Home para identificar "el próximo partido" — ver
+    // getActiveBracket() (Bloque B), reutilizado tal cual.
+    const nextMatchHtml = activeBracket
+      ? `<p>${activeBracket.title} — ${activeBracket.roundLabel}</p>`
+      : (() => {
+        const nextMatches = state.league.isSeasonComplete ? [] : state.league.getCurrentRoundMatches();
+        const userNextMatch = nextMatches.find((m) => m.homeTeam.id === team.id || m.awayTeam.id === team.id);
+        return state.league.isSeasonComplete
+          ? '<p class="gm-muted">Liga regular terminada.</p>'
+          : userNextMatch
+            ? `<p>${matchLabel(userNextMatch, team.id)}</p>`
+            : '<p class="gm-muted">Tu equipo descansa esta jornada.</p>';
+      })();
+
+    const sortedRoster = [...team.roster].sort((a, b) => {
+      const posDiff = POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition);
+      return posDiff !== 0 ? posDiff : a.fullName.localeCompare(b.fullName, 'es');
+    });
+
+    const squadPickerHtml = sortedRoster.map((player) => `
+      <label class="squad-picker__item">
+        <input type="checkbox" class="squad-checkbox" data-player-id="${player.id}"
+          ${lineup.squadIds.includes(player.id) ? 'checked' : ''}>
+        <span class="squad-picker__name">${player.fullName}</span>
+        <span class="squad-picker__pos">${player.primaryPosition}</span>
+      </label>`).join('');
+
+    const starters = computeInformativeStarters(lineup);
+    const convocated = lineup.squadIds
+      .map((id) => team.roster.find((p) => p.id === id))
+      .filter(Boolean)
+      .sort((a, b) => POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition));
+
+    const rosterCardsHtml = convocated.map((player) => {
+      const entry = lineup.entries[player.id];
+      const positionOptions = POSITIONS.map((pos) => `
+        <option value="${pos}" ${pos === entry.declaredPosition ? 'selected' : ''}>${pos} (${player.positionLevel(pos)})</option>`).join('');
+      const isStarter = starters.has(player.id);
+      return `
+        <div class="lineup-card">
+          <div class="lineup-card__header">
+            <span class="lineup-card__name">${player.fullName}</span>
+            <span class="gm-badge ${isStarter ? 'gm-badge--done' : ''}">${isStarter ? 'Titular' : 'Banquillo'}</span>
+          </div>
+          <div class="lineup-card__ratings">
+            <span>T ${player.technicalAverage.toFixed(1)}</span>
+            <span>F ${player.physicalAverage.toFixed(1)}</span>
+            <span>M ${player.mentalAverage.toFixed(1)}</span>
+            <span>Resistencia ${player.physical.stamina}</span>
+            <span>Energía ${Math.round(player.dynamicState.energy)}</span>
+            <span class="lineup-card__form">Forma ${competitionRhythmToStars(player.dynamicState.competitionRhythm)}</span>
+          </div>
+          <div class="lineup-card__controls">
+            <label>Posición
+              <select class="lineup-position-select" data-player-id="${player.id}">${positionOptions}</select>
+            </label>
+            <label>Minutos
+              <input type="number" class="lineup-minutes-input" data-player-id="${player.id}"
+                min="0" max="${durationMinutes}" step="1" value="${entry.minutesQuota}">
+            </label>
+          </div>
+        </div>`;
+    }).join('');
+
+    const validity = getLineupValidity(team);
+
+    const draft = lineup.segmentDraft;
+    const segmentFormHtml = draft ? `
+      <div class="segment-form">
+        <label>Etiqueta <input type="text" id="segment-label-input" value="${draft.label}" placeholder="Quinteto de cierre"></label>
+        <label>Desde el período <input type="number" id="segment-period-input" min="1" value="${draft.fromPeriod}"></label>
+        <label>Condición
+          <select id="segment-condition-select">
+            <option value="any" ${draft.scoreCondition === 'any' ? 'selected' : ''}>Cualquiera</option>
+            <option value="ahead" ${draft.scoreCondition === 'ahead' ? 'selected' : ''}>Si vamos ganando</option>
+            <option value="behind" ${draft.scoreCondition === 'behind' ? 'selected' : ''}>Si vamos perdiendo</option>
+          </select>
+        </label>
+        <div class="segment-form__five">
+          ${POSITIONS.map((pos) => `
+            <label>${pos}
+              <select class="segment-five-select" data-position="${pos}">
+                <option value="">— sin fijar —</option>
+                ${convocated.map((p) => `<option value="${p.id}" ${draft.five[pos] === p.id ? 'selected' : ''}>${p.fullName}</option>`).join('')}
+              </select>
+            </label>`).join('')}
+        </div>
+        <button id="segment-confirm-btn" class="gm-btn gm-btn--primary" ${convocated.length === 0 ? 'disabled' : ''}>Añadir quinteto fijo</button>
+        <button id="segment-cancel-btn" class="gm-btn">Cancelar</button>
+      </div>`
+      : `<button id="segment-start-btn" class="gm-btn" ${convocated.length === 0 ? 'disabled' : ''}>+ Añadir quinteto fijo</button>`;
+
+    const segmentsListHtml = lineup.fixedSegments.map((segment, index) => {
+      const fiveText = POSITIONS
+        .filter((pos) => segment.five[pos])
+        .map((pos) => `${pos}: ${(team.roster.find((p) => p.id === segment.five[pos]) || {}).fullName || '?'}`)
+        .join(' · ') || 'sin jugadores fijados';
+      const conditionText = { any: 'siempre', ahead: 'ganando', behind: 'perdiendo' }[segment.trigger.scoreCondition];
+      return `
+        <div class="segment-line">
+          <div>
+            <strong>${segment.label}</strong>
+            <span class="gm-muted">— desde período ${segment.trigger.fromPeriod}, ${conditionText}</span>
+            <div class="gm-muted">${fiveText}</div>
+          </div>
+          <button class="gm-btn segment-remove-btn" data-index="${index}">Quitar</button>
+        </div>`;
+    }).join('');
+
+    container.innerHTML = `
+      <h2>Alineación</h2>
+      <div class="gm-card">${nextMatchHtml}</div>
+
+      <div class="gm-card">
+        <h3>Convocatoria (${lineup.squadIds.length}/12, mínimo 8)</h3>
+        <div class="squad-picker">${squadPickerHtml}</div>
+      </div>
+
+      <div class="gm-card">
+        <h3>Convocados</h3>
+        ${convocated.length ? `<div class="lineup-cards">${rosterCardsHtml}</div>` : '<p class="gm-muted">Selecciona al menos 8 jugadores en la convocatoria.</p>'}
+      </div>
+
+      <div class="gm-card">
+        <h3>Quintetos fijos (opcional)</h3>
+        ${segmentsListHtml}
+        ${segmentFormHtml}
+      </div>
+
+      <div class="gm-card">
+        <p class="${validity.valid ? 'lineup-status lineup-status--ok' : 'lineup-status lineup-status--error'}">
+          ${validity.valid ? '✔ Alineación válida.' : `✖ ${validity.message}`}
+        </p>
+        <button id="gm-play-with-lineup-btn" class="gm-btn gm-btn--primary" ${validity.valid ? '' : 'disabled'}>
+          Jugar partido con esta alineación
+        </button>
+      </div>
+    `;
+
+    container.querySelectorAll('.squad-checkbox').forEach((el) => {
+      el.addEventListener('change', () => toggleSquadMember(team, el.dataset.playerId));
+    });
+    container.querySelectorAll('.lineup-position-select').forEach((el) => {
+      el.addEventListener('change', () => updateEntryPosition(el.dataset.playerId, el.value));
+    });
+    container.querySelectorAll('.lineup-minutes-input').forEach((el) => {
+      el.addEventListener('change', () => updateEntryMinutes(el.dataset.playerId, el.value, durationMinutes));
+    });
+
+    const segmentStartBtn = byId('segment-start-btn');
+    if (segmentStartBtn) {
+      segmentStartBtn.addEventListener('click', () => {
+        state.lineup.segmentDraft = { label: '', fromPeriod: 4, scoreCondition: 'any', five: {} };
+        renderLineupScreen();
+      });
+    }
+    const segmentCancelBtn = byId('segment-cancel-btn');
+    if (segmentCancelBtn) {
+      segmentCancelBtn.addEventListener('click', () => { state.lineup.segmentDraft = null; renderLineupScreen(); });
+    }
+    const segmentConfirmBtn = byId('segment-confirm-btn');
+    if (segmentConfirmBtn) {
+      segmentConfirmBtn.addEventListener('click', () => addFixedSegment(team));
+    }
+    const labelInput = byId('segment-label-input');
+    if (labelInput) labelInput.addEventListener('change', () => { state.lineup.segmentDraft.label = labelInput.value; });
+    const periodInput = byId('segment-period-input');
+    if (periodInput) periodInput.addEventListener('change', () => { state.lineup.segmentDraft.fromPeriod = Number(periodInput.value) || 1; });
+    const conditionSelect = byId('segment-condition-select');
+    if (conditionSelect) conditionSelect.addEventListener('change', () => { state.lineup.segmentDraft.scoreCondition = conditionSelect.value; });
+    container.querySelectorAll('.segment-five-select').forEach((el) => {
+      el.addEventListener('change', () => { state.lineup.segmentDraft.five[el.dataset.position] = el.value || null; });
+    });
+    container.querySelectorAll('.segment-remove-btn').forEach((el) => {
+      el.addEventListener('click', () => removeFixedSegment(Number(el.dataset.index)));
+    });
+
+    const playBtn = byId('gm-play-with-lineup-btn');
+    if (playBtn) playBtn.addEventListener('click', () => playNextMatchWithLineup(team));
+  }
+
+  // Construye el `{ homeSquad/awaySquad, homeLineup/awayLineup }` de
+  // MatchEngine solo para el LADO del equipo del usuario, reenviando
+  // `undefined` para el resto — así el rival (u otros partidos de la
+  // jornada/bracket) siguen exactamente igual que hasta ahora.
+  function buildUserSideOptions(team) {
+    const squad = team.buildMatchSquad(state.lineup.squadIds);
+    const lineup = { entries: state.lineup.entries, fixedSegments: state.lineup.fixedSegments };
+    return { squad, lineup };
+  }
+
+  function playNextMatchWithLineup(team) {
+    if (!getLineupValidity(team).valid) return; // el botón ya está deshabilitado; defensa extra
+    const { squad, lineup } = buildUserSideOptions(team);
+    const activeBracket = getActiveBracket();
+
+    if (activeBracket) {
+      const resolveOptions = (homeEntry, awayEntry) => {
+        if (homeEntry.team.id === team.id) return { homeSquad: squad, homeLineup: lineup };
+        if (awayEntry.team.id === team.id) return { awaySquad: squad, awayLineup: lineup };
+        return undefined;
+      };
+      playBracketGameWithReveal(activeBracket.bracket, resolveOptions);
+      return;
+    }
+
+    const resolveMatchOptions = (match) => {
+      if (match.homeTeam.id === team.id) return { homeSquad: squad, homeLineup: lineup };
+      if (match.awayTeam.id === team.id) return { awaySquad: squad, awayLineup: lineup };
+      return undefined;
+    };
+    simulateNextRound(resolveMatchOptions);
+    if (state.pendingUserMatch) {
+      goToScreen('match');
+    } else {
+      goToScreen('home');
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
-  const SCREENS = ['team-select', 'home', 'calendar', 'competitions', 'stats', 'match'];
+  const SCREENS = ['team-select', 'home', 'lineup', 'calendar', 'competitions', 'stats', 'match'];
 
   function goToScreen(screen) {
     state.screen = screen;
@@ -628,6 +986,7 @@
     });
 
     if (screen === 'home') renderHomeScreen();
+    if (screen === 'lineup') renderLineupScreen();
     if (screen === 'calendar') renderCalendarScreen();
     if (screen === 'competitions') renderCompetitionsScreen();
     if (screen === 'stats') renderStatsScreen();

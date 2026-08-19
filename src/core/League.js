@@ -303,13 +303,19 @@
     // (reutiliza MatchEngine.simulateMatch para cada uno), actualiza la
     // clasificación y avanza el puntero a la siguiente jornada. Devuelve
     // los partidos recién jugados (ya con `result` relleno).
-    simulateNextRound(config) {
+    //
+    // `resolveMatchOptions` (opcional, DESIGN.md 7.11.6 — pantalla de
+    // Alineación): callback `(match) => options|undefined` que permite
+    // pasar `options.home/awaySquad`+`home/awayLineup` a MatchEngine para
+    // el partido concreto del usuario, sin afectar al resto de la jornada.
+    simulateNextRound(config, resolveMatchOptions) {
       if (this.isSeasonComplete) {
         throw new Error('La temporada ya ha terminado: no quedan jornadas por simular');
       }
       const matches = this.getCurrentRoundMatches();
       matches.forEach((match) => {
-        const result = simulateMatch(match.homeTeam, match.awayTeam, config);
+        const options = resolveMatchOptions ? resolveMatchOptions(match) : undefined;
+        const result = simulateMatch(match.homeTeam, match.awayTeam, config, options);
         match.status = 'played';
         match.result = result;
         this.recordResult(match.homeTeam, match.awayTeam, result.finalScore.home, result.finalScore.away);

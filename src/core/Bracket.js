@@ -59,7 +59,12 @@
 
     // Juega el siguiente partido pendiente de la serie, simulándolo de
     // verdad con MatchEngine.simulateMatch (nunca en bloque).
-    playNextGame(config) {
+    //
+    // `resolveOptions` (opcional, DESIGN.md 7.11.6 — pantalla de
+    // Alineación): callback `(homeEntry, awayEntry) => options|undefined`
+    // que permite pasar `options.home/awaySquad`+`home/awayLineup` para el
+    // equipo del usuario cuando le toque jugar dentro del bracket.
+    playNextGame(config, resolveOptions) {
       if (this.isDecided) {
         throw new Error('Series.playNextGame: la serie ya tiene ganador, no quedan partidos por jugar');
       }
@@ -67,7 +72,8 @@
       const homeSide = this.pattern[gameIndex];
       const homeEntry = homeSide === 'better' ? this.betterEntry : this.worseEntry;
       const awayEntry = homeSide === 'better' ? this.worseEntry : this.betterEntry;
-      const result = simulateMatch(homeEntry.team, awayEntry.team, config);
+      const options = resolveOptions ? resolveOptions(homeEntry, awayEntry) : undefined;
+      const result = simulateMatch(homeEntry.team, awayEntry.team, config, options);
       const homeWon = result.finalScore.home > result.finalScore.away;
       const winnerSide = homeWon === (homeSide === 'better') ? 'better' : 'worse';
       this.wins[winnerSide] += 1;
@@ -155,14 +161,15 @@
 
     // Juega el siguiente partido pendiente de TODO el bracket (detecta en
     // qué serie/ronda toca) y avanza de ronda automáticamente en cuanto
-    // corresponda.
-    playNextGame(config) {
+    // corresponda. `resolveOptions`: ver Series.playNextGame — se reenvía
+    // tal cual a la serie que le toque jugar.
+    playNextGame(config, resolveOptions) {
       this.advanceIfPossible();
       const pendingSeries = this.currentRound.find((series) => !series.isDecided);
       if (!pendingSeries) {
         throw new Error('Bracket.playNextGame: el bracket ya está completo (hay campeón)');
       }
-      const game = pendingSeries.playNextGame(config);
+      const game = pendingSeries.playNextGame(config, resolveOptions);
       this.advanceIfPossible();
       return game;
     }
