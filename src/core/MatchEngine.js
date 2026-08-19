@@ -24,9 +24,16 @@
   const ConfigCore = (typeof module !== 'undefined' && module.exports)
     ? require('./MatchConfig.js')
     : global.BasketManager;
+  const RotationCore = (typeof module !== 'undefined' && module.exports)
+    ? require('./Rotation.js')
+    : global.BasketManager;
 
-  const { TECHNICAL_ATTRIBUTES, PHYSICAL_ATTRIBUTES, MENTAL_ATTRIBUTES } = PlayerCore;
+  const { TECHNICAL_ATTRIBUTES, PHYSICAL_ATTRIBUTES, MENTAL_ATTRIBUTES, POSITIONS } = PlayerCore;
   const { CONFIG_BASE, NEUTRAL_ATTRIBUTE } = ConfigCore;
+  const {
+    validateLineup, describeValidationErrors, buildRotationState, getOnCourtFive, accumulatePlayedTime,
+    runSubstitutionWindow, isDeadBallStoppage, getPenalty,
+  } = RotationCore;
 
   // --- Lectura de atributos: cada nombre de MatchConfig se busca en el
   // grupo (technical/physical/mental) al que pertenece en Player.js, sin
@@ -94,14 +101,43 @@
     return rawValue;
   }
 
-  // Consumo de Energía por los 10 jugadores en pista en esta iteración,
-  // modulado por Resistencia (7.5-bis). Recuperación entre partidos queda
-  // fuera de esta tarea (pertenece al ciclo de calendario/temporada).
-  function applyFatigueConsumption(players, config) {
+  // factor_resistencia (7.11.4): acotado por debajo de 1 (config.fatigue.
+  // resistanceFactorMax) para que el desgaste nunca llegue a cero, ni con
+  // Resistencia (stamina) máxima.
+  function resistanceFactor(player, config) {
+    const stamina = getAttribute(player, 'stamina');
+    return ((stamina - 1) / 19) * config.fatigue.resistanceFactorMax;
+  }
+
+  // Consumo GENERAL de Energía (componente mayor, 7.11.4) por los 10
+  // jugadores en pista en esta posesión, modulado por Resistencia y — SOLO
+  // cuando hay una alineación real (Rotation.js) que sabe qué posición
+  // ocupa cada jugador en esta jugada — por un multiplicador según esa
+  // posición (más exterior desgasta más). Sin alineación (equipos IA sin
+  // lineup, comportamiento de siempre), `positionLookup` es null y el
+  // multiplicador queda neutro (1). Recuperación entre partidos queda fuera
+  // de esta función (ver Recovery.js, ciclo de calendario/temporada).
+  function applyFatigueConsumption(players, config, positionLookup) {
     players.forEach((player) => {
-      const stamina = getAttribute(player, 'stamina');
-      const consumption = config.fatigue.baseEnergyPerPossession * (NEUTRAL_ATTRIBUTE / Math.max(stamina, 1));
-      player.adjustEnergy(-consumption);
+      const slot = positionLookup ? positionLookup(player.id) : null;
+      const positionMultiplier = (slot && config.fatigue.positionWearMultiplier[slot] !== undefined)
+        ? config.fatigue.positionWearMultiplier[slot] : 1;
+      const wear = config.fatigue.baseEnergyPerPossession * positionMultiplier * (1 - resistanceFactor(player, config));
+      player.adjustEnergy(-wear);
+    });
+  }
+
+  // Consumo por INTERVENCIÓN (componente menor, 7.11.4): extra solo para
+  // los jugadores que son atributo directo en la acción resuelta esa
+  // posesión (ballHandler/onBallDefender siempre; shotDefender y
+  // reboteadores cuando aplican — ver simulatePossession).
+  function applyInterventionWear(participantIds, playersById, config) {
+    participantIds.forEach((id) => {
+      const player = playersById.get(id);
+      if (!player) return;
+      const wear = config.fatigue.baseEnergyPerPossession * config.fatigue.interventionWearMultiplier
+        * (1 - resistanceFactor(player, config));
+      player.adjustEnergy(-wear);
     });
   }
 
@@ -127,7 +163,9 @@
   // valor de cada atributo) y Presión (reponderación de mentales relevantes
   // + bonus de Experiencia acotado). `overrides` permite sustituir en
   // tiempo de ejecución una clave "comodín" del mix (ej. 'shotAttribute').
-  function computeMixRating(player, mix, config, pressure, overrides) {
+  // `penalty` (7.11.3, C.3): puntos de rating restados al final — jugador
+  // cubriendo una posición de emergencia (Rotation.js); 0 si no aplica.
+  function computeMixRating(player, mix, config, pressure, overrides, penalty) {
     let weightedSum = 0;
     let weightTotal = 0;
     Object.entries(mix).forEach(([attrName, baseWeight]) => {
@@ -149,7 +187,8 @@
       weightedSum += value * weight;
       weightTotal += weight;
     });
-    return weightTotal > 0 ? weightedSum / weightTotal : NEUTRAL_ATTRIBUTE;
+    const rating = weightTotal > 0 ? weightedSum / weightTotal : NEUTRAL_ATTRIBUTE;
+    return rating - (penalty || 0);
   }
 
   // --- 7.4: Modificador de Altura/Envergadura/Peso ---
@@ -212,18 +251,20 @@
 
   // Método "resta" (7.3): tiros. Aplica modificadores de altura tras la
   // mezcla base, y ruido de Consistencia sobre el resultado final.
-  function subtractProbability(action, primaryPlayer, secondaryPlayer, config, pressure, extraAdjustment) {
-    let primaryRating = computeMixRating(primaryPlayer, action.primary, config, pressure);
+  // `penalties` (7.11.3, opcional): { primary, secondary } en puntos de
+  // rating, para jugadores cubriendo una posición de emergencia.
+  function subtractProbability(action, primaryPlayer, secondaryPlayer, config, pressure, extraAdjustment, penalties) {
+    let primaryRating = computeMixRating(primaryPlayer, action.primary, config, pressure, undefined, penalties && penalties.primary);
     primaryRating = applyHeightAxisModifiers(primaryRating, primaryPlayer, action, 'primary', config);
-    let secondaryRating = computeMixRating(secondaryPlayer, action.secondary, config, pressure);
+    let secondaryRating = computeMixRating(secondaryPlayer, action.secondary, config, pressure, undefined, penalties && penalties.secondary);
     secondaryRating = applyHeightAxisModifiers(secondaryRating, secondaryPlayer, action, 'secondary', config);
     const base = action.intercept + action.sensitivity * (primaryRating - secondaryRating) + (extraAdjustment || 0);
     return applyConsistencyNoise(clampShotProbability(base), primaryPlayer, config, clampShotProbability);
   }
 
   // Tiro libre: sin defensor, referencia el rating neutro de la escala 1-20.
-  function directProbability(action, player, config, pressure) {
-    const primaryRating = computeMixRating(player, action.primary, config, pressure);
+  function directProbability(action, player, config, pressure, penalty) {
+    const primaryRating = computeMixRating(player, action.primary, config, pressure, undefined, penalty);
     const base = action.intercept + action.sensitivity * (primaryRating - NEUTRAL_ATTRIBUTE);
     return applyConsistencyNoise(clampShotProbability(base), player, config, clampShotProbability);
   }
@@ -239,10 +280,10 @@
   // baseProbability, y escala proporcionalmente por encima/debajo según la
   // ventaja de atributos de cada lado. `favors` indica cuál de los dos
   // lados corresponde al suceso que se está preguntando.
-  function computeEventProbability(action, primaryPlayer, secondaryPlayer, config, pressure, overrides, extraAdjustment) {
-    let primaryRating = computeMixRating(primaryPlayer, action.primary, config, pressure, overrides && overrides.primary);
+  function computeEventProbability(action, primaryPlayer, secondaryPlayer, config, pressure, overrides, extraAdjustment, penalties) {
+    let primaryRating = computeMixRating(primaryPlayer, action.primary, config, pressure, overrides && overrides.primary, penalties && penalties.primary);
     primaryRating = applyHeightAxisModifiers(primaryRating, primaryPlayer, action, 'primary', config);
-    let secondaryRating = computeMixRating(secondaryPlayer, action.secondary, config, pressure, overrides && overrides.secondary);
+    let secondaryRating = computeMixRating(secondaryPlayer, action.secondary, config, pressure, overrides && overrides.secondary, penalties && penalties.secondary);
     secondaryRating = applyHeightAxisModifiers(secondaryRating, secondaryPlayer, action, 'secondary', config);
 
     const primaryShare = primaryRating / (primaryRating + secondaryRating);
@@ -292,6 +333,19 @@
       pool.splice(pickedIndex, 1);
     }
     return chosen;
+  }
+
+  // Traduce el `onCourt` de un RotationState (Rotation.js) a un lookup
+  // playerId -> posición ocupada EN ESA JUGADA (7.11.4, C.4) — null si el
+  // equipo no tiene alineación real (placeholder de siempre, sin rotación).
+  function buildPositionLookup(rotationState) {
+    if (!rotationState) return null;
+    const map = new Map();
+    POSITIONS.forEach((pos) => {
+      const id = rotationState.onCourt[pos];
+      if (id) map.set(id, pos);
+    });
+    return (playerId) => map.get(playerId);
   }
 
   // "Quién lleva el balón": ponderado por manejo/visión/tiro — placeholder
@@ -419,19 +473,21 @@
 
   // --- Bloque A: acciones individuales ---
 
-  function rollTurnover(ballHandler, defender, config, pressure) {
+  function rollTurnover(ballHandler, defender, config, pressure, penalties) {
     const action = config.actions.turnover;
-    return Math.random() < computeEventProbability(action, ballHandler, defender, config, pressure);
+    return Math.random() < computeEventProbability(action, ballHandler, defender, config, pressure, undefined, undefined, penalties);
   }
 
-  function rollSteal(defender, ballHandler, config, pressure) {
+  function rollSteal(defender, ballHandler, config, pressure, penalties) {
     const action = config.actions.steal;
-    return Math.random() < computeEventProbability(action, defender, ballHandler, config, pressure);
+    return Math.random() < computeEventProbability(action, defender, ballHandler, config, pressure, undefined, undefined, penalties);
   }
 
-  function rollBlock(blocker, shooter, shotType, config, pressure) {
+  function rollBlock(blocker, shooter, shotType, config, pressure, penalties) {
     const action = config.actions.block;
-    const p = computeEventProbability(action, blocker, shooter, config, pressure, { secondary: { shotAttribute: shotType } });
+    const p = computeEventProbability(
+      action, blocker, shooter, config, pressure, { secondary: { shotAttribute: shotType } }, undefined, penalties,
+    );
     return Math.random() < p;
   }
 
@@ -441,27 +497,34 @@
   // También clasifica el rebote defensivo como "largo" o no (7.6.14,
   // criterio propio: DESIGN.md no da una regla exacta, solo la idea de
   // "se aleja del aro" — aquí se aproxima como una probabilidad fija).
-  function resolveReboundContest(offenseFive, defenseFive, boxScore, config, pressure) {
+  // `offenseRotationState`/`defenseRotationState` (7.11.3, opcionales): cada
+  // reboteador se penaliza según SU PROPIO equipo/estado — no basta una sola
+  // función de penalización, offRebounder y defRebounder pertenecen a
+  // rotaciones distintas.
+  function resolveReboundContest(offenseFive, defenseFive, boxScore, config, pressure, offenseRotationState, defenseRotationState) {
     const offRebounder = pickWeighted(offenseFive, (p) => getAttribute(p, 'offensiveRebound')
       + getAttribute(p, 'jumping') * 0.5 + getAttribute(p, 'strength') * 0.5 + 1);
     const defRebounder = pickWeighted(defenseFive, (p) => getAttribute(p, 'defensiveRebound')
       + getAttribute(p, 'jumping') * 0.5 + getAttribute(p, 'positioning') * 0.5 + 1);
+    const penalties = (offenseRotationState || defenseRotationState)
+      ? { primary: getPenalty(offenseRotationState, offRebounder.id), secondary: getPenalty(defenseRotationState, defRebounder.id) }
+      : undefined;
 
     const looseBallAction = config.actions.looseBall;
     let offenseWins;
     if (Math.random() < looseBallAction.triggerProbability) {
-      offenseWins = Math.random() < computeEventProbability(looseBallAction, offRebounder, defRebounder, config, pressure);
+      offenseWins = Math.random() < computeEventProbability(looseBallAction, offRebounder, defRebounder, config, pressure, undefined, undefined, penalties);
     } else {
-      offenseWins = Math.random() < computeEventProbability(config.actions.rebound, offRebounder, defRebounder, config, pressure);
+      offenseWins = Math.random() < computeEventProbability(config.actions.rebound, offRebounder, defRebounder, config, pressure, undefined, undefined, penalties);
     }
 
     if (offenseWins) {
       recordRebound(boxScore, offRebounder, 'offensive');
-      return { offensiveRebound: true, isLongRebound: false };
+      return { offensiveRebound: true, isLongRebound: false, participantIds: [offRebounder.id, defRebounder.id] };
     }
     recordRebound(boxScore, defRebounder, 'defensive');
     const isLongRebound = Math.random() < config.fastBreak.longReboundProbability;
-    return { offensiveRebound: false, isLongRebound };
+    return { offensiveRebound: false, isLongRebound, participantIds: [offRebounder.id, defRebounder.id] };
   }
 
   // --- Bloque B: caminos de reglamento ---
@@ -469,25 +532,27 @@
   // 11. Falta defensiva (fuera de tiro). Sin mezcla secundaria (no depende
   // del atacante) — se escala directamente por foulTendency (ya con Fatiga
   // aplicada dentro de computeMixRating) respecto al valor neutro.
-  function rollDefensiveFoul(defender, config, pressure) {
+  function rollDefensiveFoul(defender, config, pressure, penalty) {
     const action = config.actions.defensiveFoul;
-    const rating = computeMixRating(defender, action.primary, config, pressure);
+    const rating = computeMixRating(defender, action.primary, config, pressure, undefined, penalty);
     const scaled = action.baseProbability * (rating / NEUTRAL_ATTRIBUTE);
     return Math.random() < clampEventProbability(scaled);
   }
 
-  function rollShootingFoul(defender, attacker, config, pressure) {
+  function rollShootingFoul(defender, attacker, config, pressure, penalties) {
     const action = config.actions.shootingFoul;
-    return Math.random() < computeEventProbability(action, defender, attacker, config, pressure);
+    return Math.random() < computeEventProbability(action, defender, attacker, config, pressure, undefined, undefined, penalties);
   }
 
   // Tiros libres en cadena (bonus, and-one, o falta en tiro con 2/3 tl).
-  function resolveFreeThrowsSequence(shooter, count, boxScore, config, pressure) {
+  // `penalty` (7.11.3, opcional): el tirador cubriendo una posición de
+  // emergencia también tira sus libres penalizado.
+  function resolveFreeThrowsSequence(shooter, count, boxScore, config, pressure, penalty) {
     const action = config.actions.freeThrow;
     let pointsMade = 0;
     let lastMade = false;
     for (let i = 0; i < count; i++) {
-      const made = Math.random() < directProbability(action, shooter, config, pressure);
+      const made = Math.random() < directProbability(action, shooter, config, pressure, penalty);
       recordFreeThrowAttempt(boxScore, shooter, made);
       if (made) pointsMade += 1;
       lastMade = made;
@@ -497,13 +562,18 @@
 
   // Tras cualquier secuencia de tiros libres: si el último entra, la
   // posesión cambia; si falla, se disputa un rebote (regla real: solo el
-  // último libre está "vivo" para rebote).
-  function handleFreeThrowSequence(shooter, count, offenseFive, defenseFive, boxScore, config, pressure) {
-    const ft = resolveFreeThrowsSequence(shooter, count, boxScore, config, pressure);
+  // último libre está "vivo" para rebote). `shooterPenalty`/rotationStates
+  // (7.11.3, opcionales): se reenvían tal cual a los tiros libres y al
+  // rebote consiguiente.
+  function handleFreeThrowSequence(
+    shooter, count, offenseFive, defenseFive, boxScore, config, pressure,
+    shooterPenalty, offenseRotationState, defenseRotationState,
+  ) {
+    const ft = resolveFreeThrowsSequence(shooter, count, boxScore, config, pressure, shooterPenalty);
     if (ft.lastMade) {
       return { pointsMade: ft.pointsMade, timeSpent: ft.timeSpent, possessionContinues: false };
     }
-    const rebound = resolveReboundContest(offenseFive, defenseFive, boxScore, config, pressure);
+    const rebound = resolveReboundContest(offenseFive, defenseFive, boxScore, config, pressure, offenseRotationState, defenseRotationState);
     return {
       pointsMade: ft.pointsMade,
       timeSpent: ft.timeSpent,
@@ -544,22 +614,35 @@
   const MAX_POSSESSION_ITERATIONS = 12; // guarda de seguridad anti-bucle-infinito
 
   // `context`: { pressure, quarterClockRemaining, fastBreakEligible,
-  // offenseTempoBias, scoringRunActiveSide, offenseSide, defenseSide }.
+  // offenseTempoBias, scoringRunActiveSide, offenseSide, defenseSide,
+  // offenseRotationState, defenseRotationState }. Las dos últimas (7.11,
+  // opcionales): si un equipo no aporta alineación real (Rotation.js), su
+  // rotationState es `null` y el comportamiento es el de siempre
+  // (selectOnCourtFive placeholder, sin penalización de polivalencia).
   function simulatePossession(offenseTeam, defenseTeam, offenseSquad, defenseSquad, teamFouls, config, boxScore, context) {
     let shotClock = config.match.shotClockSeconds;
     let elapsedTotal = 0;
     let pointsScored = 0;
     let defensePoints = 0; // puntos para el equipo defensor (solo vía falta técnica del atacante)
     const events = [];
-    const { pressure } = context;
+    const { pressure, offenseRotationState, defenseRotationState } = context;
 
     for (let iteration = 0; iteration < MAX_POSSESSION_ITERATIONS; iteration++) {
-      const offenseFive = selectOnCourtFive(offenseSquad);
-      const defenseFive = selectOnCourtFive(defenseSquad);
-      applyFatigueConsumption(offenseFive.concat(defenseFive), config); // 7.5-bis: consumo de Energía
+      const offenseFive = offenseRotationState ? getOnCourtFive(offenseRotationState) : selectOnCourtFive(offenseSquad);
+      const defenseFive = defenseRotationState ? getOnCourtFive(defenseRotationState) : selectOnCourtFive(defenseSquad);
+      // 7.11.4 (C.4): desgaste GENERAL de los 5 en pista, con jerarquía por
+      // posición ocupada EN ESTA JUGADA cuando hay alineación real; sin ella,
+      // multiplicador neutro (comportamiento de siempre, 7.5-bis).
+      applyFatigueConsumption(offenseFive, config, buildPositionLookup(offenseRotationState));
+      applyFatigueConsumption(defenseFive, config, buildPositionLookup(defenseRotationState));
 
       const ballHandler = pickWeighted(offenseFive, usageWeight);
       const onBallDefender = pickWeighted(defenseFive, onBallDefenderWeight);
+      // 7.11.3 (C.3): penalización activa de cada uno si está cubriendo una
+      // posición de emergencia — 0 si no hay alineación o no aplica.
+      const ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
+      const onBallDefenderPenalty = getPenalty(defenseRotationState, onBallDefender.id);
+      const playersById = new Map(offenseFive.concat(defenseFive).map((p) => [p.id, p]));
 
       // 7.6.19: últimos segundos de cuarto sin tiempo de jugada completa —
       // fuerza un paso corto (no da tiempo a desarrollar la jugada normal).
@@ -577,6 +660,7 @@
         elapsedTotal += shotClock;
         recordTurnover(boxScore, ballHandler);
         events.push({ type: 'shotClockViolation', playerId: ballHandler.id });
+        applyInterventionWear([ballHandler.id], playersById, config);
         return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true };
       }
       elapsedTotal += step;
@@ -595,13 +679,16 @@
       }
 
       // 11. Falta defensiva (fuera de tiro)
-      if (rollDefensiveFoul(onBallDefender, config, pressure)) {
+      if (rollDefensiveFoul(onBallDefender, config, pressure, onBallDefenderPenalty)) {
         teamFouls[defenseTeam.id] = (teamFouls[defenseTeam.id] || 0) + 1;
         recordPersonalFoul(boxScore, onBallDefender);
         events.push({ type: 'defensiveFoul', playerId: onBallDefender.id });
 
         if (teamFouls[defenseTeam.id] >= config.match.teamFoulBonusThreshold) {
-          const result = handleFreeThrowSequence(ballHandler, 2, offenseFive, defenseFive, boxScore, config, pressure);
+          const result = handleFreeThrowSequence(
+            ballHandler, 2, offenseFive, defenseFive, boxScore, config, pressure,
+            ballHandlerPenalty, offenseRotationState, defenseRotationState,
+          );
           pointsScored += result.pointsMade;
           elapsedTotal += result.timeSpent;
           if (result.possessionContinues) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
@@ -614,14 +701,15 @@
       }
 
       // 6. Pérdida de balón (+ 7. Robo, sub-tirada)
-      if (rollTurnover(ballHandler, onBallDefender, config, pressure)) {
-        if (rollSteal(onBallDefender, ballHandler, config, pressure)) {
+      if (rollTurnover(ballHandler, onBallDefender, config, pressure, { primary: ballHandlerPenalty, secondary: onBallDefenderPenalty })) {
+        if (rollSteal(onBallDefender, ballHandler, config, pressure, { primary: onBallDefenderPenalty, secondary: ballHandlerPenalty })) {
           recordSteal(boxScore, onBallDefender);
           events.push({ type: 'steal', playerId: onBallDefender.id });
         } else {
           events.push({ type: 'turnover', playerId: ballHandler.id });
         }
         recordTurnover(boxScore, ballHandler);
+        applyInterventionWear([ballHandler.id, onBallDefender.id], playersById, config);
         return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true };
       }
 
@@ -632,6 +720,7 @@
       const shotDefender = isPerimeterShot
         ? pickWeighted(defenseFive, (p) => getAttribute(p, 'perimeterDefense') + 1)
         : pickWeighted(defenseFive, (p) => getAttribute(p, 'interiorDefense') + 1);
+      const shotDefenderPenalty = getPenalty(defenseRotationState, shotDefender.id);
 
       // 7.6.14: Contraataque — solo en la primera iteración de una posesión
       // nueva elegible, dentro de la ventana de segundos configurada.
@@ -665,20 +754,21 @@
 
       // 12. Falta en tiro (se decide antes de resolver el tiro, para saber
       // si cabe tapón o el contacto ya se resuelve como falta)
-      const hasShootingFoul = rollShootingFoul(shotDefender, ballHandler, config, shotPressure);
+      const shootingFoulPenalties = { primary: shotDefenderPenalty, secondary: ballHandlerPenalty };
+      const hasShootingFoul = rollShootingFoul(shotDefender, ballHandler, config, shotPressure, shootingFoulPenalties);
 
       let blocked = false;
       if (!hasShootingFoul && !isPerimeterShot) {
         // 9. Tapón (solo Tiro interior/Bandeja)
-        blocked = rollBlock(shotDefender, ballHandler, shotType, config, shotPressure);
+        blocked = rollBlock(shotDefender, ballHandler, shotType, config, shotPressure, shootingFoulPenalties);
         if (blocked) {
           // 7.6.15: Tapón con mate — margen amplio del compuesto = evento de
           // alta notabilidad, sin cambiar la fórmula. Aproximación: compara
           // el rating del taponador contra el del finalizador; si la
           // diferencia es grande, se marca. TODO Fase 3: sistema real de
           // notabilidad (7.7), esto solo deja el flag preparado.
-          const blockerRating = computeMixRating(shotDefender, config.actions.block.primary, config, shotPressure);
-          const shooterRating = computeMixRating(ballHandler, config.actions.block.secondary, config, shotPressure, { shotAttribute: shotType });
+          const blockerRating = computeMixRating(shotDefender, config.actions.block.primary, config, shotPressure, undefined, shotDefenderPenalty);
+          const shooterRating = computeMixRating(ballHandler, config.actions.block.secondary, config, shotPressure, { shotAttribute: shotType }, ballHandlerPenalty);
           if (blockerRating - shooterRating > config.dunkBlock.ratingMargin) {
             events.push({ type: 'dunkBlock', playerId: shotDefender.id }); // TODO Fase 3: notabilidad
           }
@@ -686,12 +776,14 @@
       }
 
       const shotAction = config.actions[shotType];
-      const made = !blocked && Math.random() < subtractProbability(shotAction, ballHandler, shotDefender, config, shotPressure, shotAdjustment);
+      const shotPenalties = { primary: ballHandlerPenalty, secondary: shotDefenderPenalty };
+      const made = !blocked && Math.random() < subtractProbability(shotAction, ballHandler, shotDefender, config, shotPressure, shotAdjustment, shotPenalties);
       recordFieldGoalAttempt(boxScore, ballHandler, shotType, made);
       if (blocked) {
         recordBlock(boxScore, shotDefender);
         events.push({ type: 'blockedShot', playerId: ballHandler.id, defenderId: shotDefender.id, shotType });
       }
+      applyInterventionWear([ballHandler.id, shotDefender.id], playersById, config);
 
       if (hasShootingFoul) {
         recordPersonalFoul(boxScore, shotDefender);
@@ -704,14 +796,20 @@
         if (made) {
           // "And-one": la canasta sube y se añade 1 tiro libre extra.
           pointsScored += isThree ? 3 : 2;
-          const result = handleFreeThrowSequence(ballHandler, 1, offenseFive, defenseFive, boxScore, config, pressure);
+          const result = handleFreeThrowSequence(
+            ballHandler, 1, offenseFive, defenseFive, boxScore, config, pressure,
+            ballHandlerPenalty, offenseRotationState, defenseRotationState,
+          );
           pointsScored += result.pointsMade;
           elapsedTotal += result.timeSpent;
           events.push({ type: 'shootingFoulAndOne', playerId: ballHandler.id });
           if (result.possessionContinues) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
           return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
         }
-        const result = handleFreeThrowSequence(ballHandler, isThree ? 3 : 2, offenseFive, defenseFive, boxScore, config, pressure);
+        const result = handleFreeThrowSequence(
+          ballHandler, isThree ? 3 : 2, offenseFive, defenseFive, boxScore, config, pressure,
+          ballHandlerPenalty, offenseRotationState, defenseRotationState,
+        );
         pointsScored += result.pointsMade;
         elapsedTotal += result.timeSpent;
         events.push({ type: 'shootingFoul', playerId: ballHandler.id });
@@ -727,7 +825,7 @@
 
       // Fallo (limpio o taponado): se disputa el rebote.
       events.push({ type: 'fieldGoalMiss', playerId: ballHandler.id, shotType });
-      const rebound = resolveReboundContest(offenseFive, defenseFive, boxScore, config, pressure);
+      const rebound = resolveReboundContest(offenseFive, defenseFive, boxScore, config, pressure, offenseRotationState, defenseRotationState);
       if (rebound.offensiveRebound) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
       return {
         elapsed: elapsedTotal,
@@ -770,14 +868,48 @@
     scoringRun.activeSide = scoringRun.points >= config.scoringRun.threshold ? scoringRun.side : null;
   }
 
+  // Resumen de rotación expuesto en el resultado (7.11, solo informativo/
+  // verificación): minutos jugados por jugador y quinteto en pista al
+  // terminar el partido. `null` si el equipo no aportó alineación real.
+  function rotationSummary(rotationState) {
+    if (!rotationState) return null;
+    return {
+      playedSeconds: Object.fromEntries(rotationState.playedSeconds),
+      onCourt: { ...rotationState.onCourt },
+    };
+  }
+
   // --- Partido completo ---
   // `options.homeSquad`/`options.awaySquad` permiten pasar una convocatoria
   // ya construida (ej. Team.buildMatchSquadExcludingPosition(), para
   // pruebas de estrés) en vez de la convocatoria por defecto de
   // defaultMatchSquad() — si se omiten, el comportamiento es el de siempre.
+  // `options.homeLineup`/`options.awayLineup` (7.11, opcionales): alineación
+  // real construida con Rotation.js ({entries, fixedSegments}) — activa
+  // cuotas de minutos por posición, sustitución automática y polivalencia
+  // de emergencia para ese equipo. Se valida antes de simular (lanza un
+  // error descriptivo si no cuadra, Rotation.describeValidationErrors) en
+  // vez de aceptar una alineación inconsistente en silencio. Si se omite,
+  // el equipo se comporta exactamente como hasta ahora (selectOnCourtFive
+  // placeholder, sin rotación real).
   function simulateMatch(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
     const homeSquad = options.homeSquad || defaultMatchSquad(homeTeam);
     const awaySquad = options.awaySquad || defaultMatchSquad(awayTeam);
+
+    [
+      { lineup: options.homeLineup, label: `local (${homeTeam.fullName})` },
+      { lineup: options.awayLineup, label: `visitante (${awayTeam.fullName})` },
+    ].forEach(({ lineup, label }) => {
+      if (!lineup) return;
+      const validation = validateLineup(lineup, config);
+      if (!validation.valid) {
+        throw new Error(`Alineación del equipo ${label} inválida: ${describeValidationErrors(validation.errors)}`);
+      }
+    });
+    const homeRotationState = options.homeLineup ? buildRotationState(options.homeLineup, homeSquad, config) : null;
+    const awayRotationState = options.awayLineup ? buildRotationState(options.awayLineup, awaySquad, config) : null;
+    let totalElapsedSeconds = 0;
+
     const boxScore = new Map();
     const quarterScores = { home: [], away: [] };
     const runningScore = { home: 0, away: 0 };
@@ -843,6 +975,8 @@
           scoringRunActiveSide: scoringRun.activeSide,
           offenseSide,
           defenseSide,
+          offenseRotationState: offenseSide === 'home' ? homeRotationState : awayRotationState,
+          defenseRotationState: offenseSide === 'home' ? awayRotationState : homeRotationState,
         };
 
         const result = simulatePossession(
@@ -852,11 +986,19 @@
         // Simplificación de Fase 1: el final de período solo se comprueba
         // ENTRE posesiones, no dentro de una posesión en curso.
         clockRemaining -= result.elapsed;
+        totalElapsedSeconds += result.elapsed;
         periodPoints[offenseSide] += result.points;
         periodPoints[defenseSide] += result.defensePoints;
         runningScore[offenseSide] += result.points;
         runningScore[defenseSide] += result.defensePoints;
         possessionCount[offenseSide] += 1;
+
+        // 7.11.2 (C.2): minutos acumulados del quinteto que estuvo en pista
+        // durante esta posesión — no cambia a mitad de jugada viva (las
+        // sustituciones automáticas solo se evalúan más abajo, en fin de
+        // cuarto o parada de juego), así que basta una vez por posesión.
+        if (homeRotationState) accumulatePlayedTime(homeRotationState, result.elapsed);
+        if (awayRotationState) accumulatePlayedTime(awayRotationState, result.elapsed);
 
         updateScoringRun(scoringRun, offenseSide, result.points, config);
         if (result.defensePoints > 0) updateScoringRun(scoringRun, defenseSide, result.defensePoints, config);
@@ -871,7 +1013,31 @@
           eventLog.push({ ...event, period, offenseSide });
         });
 
+        // 7.11.2 (C.2): ventana de sustitución automática — SOLO en paradas
+        // de juego reales (falta/violación, nunca a mitad de jugada viva).
+        // El fin de cuarto se cubre aparte, después de este bucle.
+        if (isDeadBallStoppage(result.events)) {
+          const homeScoreDiff = runningScore.home - runningScore.away;
+          if (homeRotationState) {
+            runSubstitutionWindow(homeRotationState, { period, scoreDiff: homeScoreDiff, elapsedSeconds: totalElapsedSeconds });
+          }
+          if (awayRotationState) {
+            runSubstitutionWindow(awayRotationState, { period, scoreDiff: -homeScoreDiff, elapsedSeconds: totalElapsedSeconds });
+          }
+        }
+
         offenseSide = defenseSide;
+      }
+
+      // 7.11.2 (C.2): ventana de sustitución de fin de cuarto — punto de
+      // corte natural del partido real, además de las paradas de juego de
+      // dentro del bucle.
+      const homeScoreDiffAtPeriodEnd = runningScore.home - runningScore.away;
+      if (homeRotationState) {
+        runSubstitutionWindow(homeRotationState, { period, scoreDiff: homeScoreDiffAtPeriodEnd, elapsedSeconds: totalElapsedSeconds });
+      }
+      if (awayRotationState) {
+        runSubstitutionWindow(awayRotationState, { period, scoreDiff: -homeScoreDiffAtPeriodEnd, elapsedSeconds: totalElapsedSeconds });
       }
 
       quarterScores.home.push(periodPoints.home);
@@ -894,6 +1060,7 @@
         away: awaySquad.map((player) => getStatLine(boxScore, player)),
       },
       eventLog,
+      rotation: { home: rotationSummary(homeRotationState), away: rotationSummary(awayRotationState) },
     };
   }
 

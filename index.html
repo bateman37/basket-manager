@@ -199,6 +199,8 @@
   <script src="src/utils/skewedTeamGenerator.js"></script>
   <script src="data/real/real-data-bundle.js"></script>
   <script src="src/core/MatchConfig.js"></script>
+  <script src="src/core/Rotation.js"></script>
+  <script src="src/core/Recovery.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script src="src/core/League.js"></script>
   <script src="src/core/Bracket.js"></script>
@@ -240,7 +242,7 @@
       console.log('Jugadores ficticios de prueba generados:', players);
 
       const output = players.map((player) => [
-        `${player.fullName} (${player.age} años) — ${player.positions.join(', ')}`,
+        `${player.fullName} (${player.age} años) — ${player.primaryPosition} (mapa: ${JSON.stringify(player.positions)})`,
         `  Altura/Envergadura/Peso: ${player.bodyMeasurements.height}cm / ${player.bodyMeasurements.wingspan}cm / ${player.bodyMeasurements.weight}kg`,
         `  Técnicos: ${JSON.stringify(player.technical)}`,
         `  Físicos: ${JSON.stringify(player.physical)}`,
@@ -269,7 +271,7 @@
           .join('\n    ');
 
         const rosterSummary = team.roster
-          .map((player) => `${player.fullName} (${player.positions.join('/')})`)
+          .map((player) => `${player.fullName} (${player.primaryPosition})`)
           .join('\n    ');
 
         return [

@@ -12,10 +12,13 @@
       "firstName": "Pau",
       "lastName": "Isern",
       "birthDate": "2001-11-13",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 186,
@@ -87,10 +90,13 @@
       "firstName": "Jacob",
       "lastName": "Round",
       "birthDate": "2000-04-03",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 193,
@@ -160,10 +166,13 @@
       "firstName": "David",
       "lastName": "Kristensen",
       "birthDate": "1998-08-25",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 204,
@@ -233,10 +242,13 @@
       "firstName": "Oskar",
       "lastName": "Palmquist",
       "birthDate": "2000-05-05",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 199,
@@ -306,9 +318,13 @@
       "firstName": "Biram",
       "lastName": "Faye",
       "birthDate": "2000-03-10",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 211,
@@ -378,10 +394,13 @@
       "firstName": "Jesús",
       "lastName": "Carralero",
       "birthDate": "2000-07-24",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 201,
@@ -451,9 +470,13 @@
       "firstName": "Javier",
       "lastName": "Bravo Tapia",
       "birthDate": "2002-09-17",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 210,
@@ -525,10 +548,13 @@
       "firstName": "Mario",
       "lastName": "Molina Tapia",
       "birthDate": "2007-05-06",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
         "height": 199,

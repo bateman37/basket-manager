@@ -12,9 +12,13 @@
       "firstName": "Brandon",
       "lastName": "Childress",
       "birthDate": "1997-08-31",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 184,
@@ -86,10 +90,13 @@
       "firstName": "Alex",
       "lastName": "Barcello",
       "birthDate": "1998-08-31",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 191,
@@ -159,10 +166,13 @@
       "firstName": "Caleb",
       "lastName": "Agada",
       "birthDate": "1994-08-31",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 192,
@@ -232,10 +242,13 @@
       "firstName": "Diogo",
       "lastName": "Brito",
       "birthDate": "1997-04-24",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 194,
@@ -305,10 +318,13 @@
       "firstName": "Olle",
       "lastName": "Lundqvist",
       "birthDate": "1999-11-21",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 194,
@@ -378,10 +394,13 @@
       "firstName": "Sergi",
       "lastName": "Quintela",
       "birthDate": "1996-04-21",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 195,
@@ -451,9 +470,13 @@
       "firstName": "Leo",
       "lastName": "Meindl",
       "birthDate": "1993-03-20",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 197,
@@ -523,10 +546,13 @@
       "firstName": "Yunio",
       "lastName": "Barrueta",
       "birthDate": "1993-04-15",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 199,
@@ -596,9 +622,13 @@
       "firstName": "Alejandro",
       "lastName": "Galán",
       "birthDate": "1999-09-12",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 202,
@@ -668,10 +698,13 @@
       "firstName": "Alonso",
       "lastName": "Faure",
       "birthDate": "2002-02-20",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 204,
@@ -741,10 +774,13 @@
       "firstName": "Efe",
       "lastName": "Abogidi",
       "birthDate": "2001-10-11",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 205,
@@ -814,9 +850,13 @@
       "firstName": "Felipe",
       "lastName": "dos Anjos",
       "birthDate": "1998-04-30",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 208,
@@ -888,9 +928,13 @@
       "firstName": "Joel",
       "lastName": "Soriano",
       "birthDate": "2000-01-30",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-monbus-obradoiro",
       "bodyMeasurements": {
         "height": 211,

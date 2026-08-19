@@ -146,51 +146,73 @@
     return new Date(year, month, day);
   }
 
-  // Elige 1 posición principal y, con un 30% de probabilidad, una segunda
-  // posición adyacente (ej. Base+Escolta), para reflejar la polivalencia
-  // real sin generar combinaciones poco realistas (ej. Base+Pívot).
-  function pickPositions() {
-    const primaryIndex = Math.floor(Math.random() * POSITIONS.length);
-    const positions = [POSITIONS[primaryIndex]];
-    if (Math.random() < 0.3) {
-      const neighborOffsets = [-1, 1].filter((offset) => POSITIONS[primaryIndex + offset]);
-      const offset = randomFrom(neighborOffsets);
-      positions.push(POSITIONS[primaryIndex + offset]);
-    }
-    return positions;
+  // Genera el mapa de 5 posiciones (DESIGN.md 6.1 actualizado): una
+  // principal (nivel 20, `forcedPrimary` si se indica, si no al azar) y las
+  // 4 restantes con un nivel que depende de la DISTANCIA a la principal
+  // (Base=0, Escolta=1, Alero=2, Ala-pívot=3, Pívot=4 — índice del array
+  // POSITIONS): adyacente (distancia 1) = competencia media con variación,
+  // el resto = competencia baja. Heurística propia de este generador de
+  // prueba, NO una regla de diseño acordada (DESIGN.md 6.1 solo exige que
+  // las 5 claves existan siempre con nivel 1-20 y una única principal).
+  const ADJACENT_LEVEL_BASE = 10;
+  const ADJACENT_LEVEL_SPREAD = 6;
+  const DISTANT_LEVEL_BASE = 3;
+  const DISTANT_LEVEL_SPREAD = 2;
+
+  function generatePositionMap(forcedPrimary) {
+    const primaryIndex = forcedPrimary ? POSITIONS.indexOf(forcedPrimary) : Math.floor(Math.random() * POSITIONS.length);
+    const map = {};
+    POSITIONS.forEach((pos, index) => {
+      if (index === primaryIndex) {
+        map[pos] = ATTRIBUTE_MAX;
+        return;
+      }
+      const distance = Math.abs(index - primaryIndex);
+      const base = distance === 1 ? ADJACENT_LEVEL_BASE : DISTANT_LEVEL_BASE;
+      const spread = distance === 1 ? ADJACENT_LEVEL_SPREAD : DISTANT_LEVEL_SPREAD;
+      map[pos] = clamp(Math.round(base + randomNoise(spread)), ATTRIBUTE_MIN, ATTRIBUTE_MAX - 1);
+    });
+    return map;
   }
 
-  // Promedia los deltas de perfil de todas las posiciones del jugador.
-  function blendProfiles(positions) {
+  // Promedia los deltas de perfil de las 5 posiciones, PONDERADO por el
+  // nivel de cada una en el mapa de posiciones (en vez de una lista plana de
+  // 1-2 posiciones "activas") — un jugador Base(20)/Escolta(14) pesa sobre
+  // todo como Base, pero con influencia real de Escolta, igual con el resto
+  // de posiciones de nivel bajo (su peso residual es pequeño, no nulo).
+  function blendProfiles(positionMap) {
     const blended = { technical: {}, physical: {}, mental: {} };
+    const totalWeight = POSITIONS.reduce((sum, pos) => sum + positionMap[pos], 0);
     ['technical', 'physical', 'mental'].forEach((group) => {
       const keys = new Set();
-      positions.forEach((pos) => Object.keys(POSITION_PROFILES[pos][group]).forEach((k) => keys.add(k)));
+      POSITIONS.forEach((pos) => Object.keys(POSITION_PROFILES[pos][group]).forEach((k) => keys.add(k)));
       keys.forEach((key) => {
-        const total = positions.reduce((sum, pos) => sum + (POSITION_PROFILES[pos][group][key] || 0), 0);
-        blended[group][key] = total / positions.length;
+        const total = POSITIONS.reduce(
+          (sum, pos) => sum + (POSITION_PROFILES[pos][group][key] || 0) * positionMap[pos], 0,
+        );
+        blended[group][key] = total / totalWeight;
       });
     });
     return blended;
   }
 
-  // Promedia el rango [min, max] de la dimensión (height/weight) de todas
-  // las posiciones del jugador, igual que blendProfiles() hace con los
-  // atributos — un jugador Base/Escolta usa un rango intermedio entre ambos.
-  function blendBodyRange(positions, dimension) {
-    const mins = positions.map((pos) => POSITION_BODY_PROFILES[pos][dimension][0]);
-    const maxs = positions.map((pos) => POSITION_BODY_PROFILES[pos][dimension][1]);
-    const min = mins.reduce((sum, value) => sum + value, 0) / mins.length;
-    const max = maxs.reduce((sum, value) => sum + value, 0) / maxs.length;
-    return [min, max];
+  // Promedia el rango [min, max] de la dimensión (height/weight) de las 5
+  // posiciones, ponderado igual que blendProfiles() por el nivel de cada
+  // posición en el mapa.
+  function blendBodyRange(positionMap, dimension) {
+    const totalWeight = POSITIONS.reduce((sum, pos) => sum + positionMap[pos], 0);
+    const weightedSum = (bound) => POSITIONS.reduce(
+      (sum, pos) => sum + POSITION_BODY_PROFILES[pos][dimension][bound] * positionMap[pos], 0,
+    );
+    return [weightedSum(0) / totalWeight, weightedSum(1) / totalWeight];
   }
 
   // Datos Físicos Corporales (DESIGN.md 6.1) — reales, no en escala 1-20.
-  function randomBodyMeasurements(positions) {
-    const [heightMin, heightMax] = blendBodyRange(positions, 'height');
+  function randomBodyMeasurements(positionMap) {
+    const [heightMin, heightMax] = blendBodyRange(positionMap, 'height');
     const height = Math.round(heightMin + Math.random() * (heightMax - heightMin));
 
-    const [weightMin, weightMax] = blendBodyRange(positions, 'weight');
+    const [weightMin, weightMax] = blendBodyRange(positionMap, 'weight');
     const weight = Math.round(weightMin + Math.random() * (weightMax - weightMin));
 
     // Envergadura: no hay fórmula validada con Dennis todavía — aproximación
@@ -282,15 +304,15 @@
   // generateSkewedAttributeGroup) en vez del rango habitual. Los atributos
   // ocultos (potencial/profesionalidad/ambición) NO se ven afectados por
   // `attributeRange` — no forman parte de "Técnicos/Físicos/Mentales".
-  // `options.positions` fuerza las posiciones del jugador en vez de
-  // sortearlas con pickPositions() — usado por el script de importación de
+  // `options.primaryPosition` fuerza la posición PRINCIPAL del jugador (nivel
+  // 20) en vez de sortearla al azar — usado por el script de importación de
   // datos reales (scripts/import-real-data.js) para completar de forma
   // dirigida las posiciones que le falten a una plantilla incompleta.
   function generateFictionalPlayer(options = {}) {
     const minAge = options.minAge !== undefined ? options.minAge : 18;
     const maxAge = options.maxAge !== undefined ? options.maxAge : 36;
     const { attributeRange } = options;
-    const positions = options.positions ? Player.validatePositions(options.positions) : pickPositions();
+    const positions = generatePositionMap(options.primaryPosition);
     const { firstName, lastName } = generateFictionalName();
     const birthDate = randomBirthDate(minAge, maxAge);
     const age = Core.calculateAge(birthDate);

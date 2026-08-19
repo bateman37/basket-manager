@@ -12,9 +12,13 @@
       "firstName": "Dani",
       "lastName": "Rodríguez",
       "birthDate": "1984-02-17",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 185,
@@ -86,9 +90,13 @@
       "firstName": "Álex",
       "lastName": "Hernández",
       "birthDate": "1990-07-15",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 188,
@@ -160,9 +168,13 @@
       "firstName": "Manu",
       "lastName": "Rodríguez",
       "birthDate": "1991-10-17",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 195,
@@ -234,10 +246,13 @@
       "firstName": "Mathieu",
       "lastName": "Kamba",
       "birthDate": "1995-10-05",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 193,
@@ -307,10 +322,13 @@
       "firstName": "Chema",
       "lastName": "González",
       "birthDate": "1991-07-15",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 199,
@@ -382,9 +400,13 @@
       "firstName": "Alec",
       "lastName": "Wintering",
       "birthDate": "1995-04-26",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 186,
@@ -456,9 +478,13 @@
       "firstName": "Vasilije",
       "lastName": "Vucetic",
       "birthDate": "1996-05-14",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 209,
@@ -528,10 +554,13 @@
       "firstName": "Lucas",
       "lastName": "Langarita",
       "birthDate": "2005-01-30",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 191,
@@ -601,9 +630,13 @@
       "firstName": "Dimitar",
       "lastName": "Dimitrov",
       "birthDate": "1993-03-07",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 206,
@@ -673,10 +706,13 @@
       "firstName": "Tanner",
       "lastName": "McGrew",
       "birthDate": "1993-02-16",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 210,
@@ -748,9 +784,13 @@
       "firstName": "Alec",
       "lastName": "Wintering",
       "birthDate": "1995-04-26",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
         "height": 186,

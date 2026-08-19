@@ -12,9 +12,13 @@
       "firstName": "Sebastian",
       "lastName": "Aris",
       "birthDate": "1995-12-09",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 186,
@@ -84,9 +88,13 @@
       "firstName": "Alberto",
       "lastName": "Cabrera",
       "birthDate": "1998-10-05",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 187,
@@ -156,10 +164,13 @@
       "firstName": "Andy",
       "lastName": "Huelves",
       "birthDate": "2007-03-10",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 186,
@@ -231,10 +242,13 @@
       "firstName": "Jalen",
       "lastName": "Tate",
       "birthDate": "1998-06-18",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 191,
@@ -304,10 +318,13 @@
       "firstName": "Gerard",
       "lastName": "Jofresa",
       "birthDate": "2001-03-20",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 192,
@@ -377,10 +394,13 @@
       "firstName": "Ander",
       "lastName": "Urdiain",
       "birthDate": "2000-11-16",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 201,
@@ -450,10 +470,13 @@
       "firstName": "Chris",
       "lastName": "Czerapowicz",
       "birthDate": "1991-09-15",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 198,
@@ -523,10 +546,13 @@
       "firstName": "Totte",
       "lastName": "Alonso",
       "birthDate": "2001-04-01",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 201,
@@ -596,10 +622,13 @@
       "firstName": "Pablo",
       "lastName": "Hernández",
       "birthDate": "1997-02-17",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 199,
@@ -669,10 +698,13 @@
       "firstName": "Aleksandre",
       "lastName": "Phevadze",
       "birthDate": "1998-04-15",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 199,
@@ -742,10 +774,13 @@
       "firstName": "Niko",
       "lastName": "Rocak",
       "birthDate": "2001-02-21",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 204,
@@ -815,9 +850,13 @@
       "firstName": "Javonte",
       "lastName": "Brown",
       "birthDate": "2002-09-19",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 209,
@@ -887,10 +926,13 @@
       "firstName": "Chris",
       "lastName": "Echui",
       "birthDate": "2008-11-03",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
         "height": 191,

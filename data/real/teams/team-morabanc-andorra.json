@@ -12,9 +12,13 @@
       "firstName": "James",
       "lastName": "Akinjo",
       "birthDate": "2000-11-27",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 184,
@@ -86,9 +90,13 @@
       "firstName": "Luka",
       "lastName": "Bottiroli",
       "birthDate": "2009-01-10",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 188,
@@ -160,9 +168,13 @@
       "firstName": "Rafa",
       "lastName": "Luz",
       "birthDate": "1992-02-11",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 186,
@@ -234,10 +246,13 @@
       "firstName": "Aaron",
       "lastName": "Best",
       "birthDate": "1992-09-01",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 194,
@@ -307,10 +322,13 @@
       "firstName": "Chumi",
       "lastName": "Ortega",
       "birthDate": "1997-08-13",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 191,
@@ -380,9 +398,13 @@
       "firstName": "Kassius",
       "lastName": "Robertson",
       "birthDate": "1994-04-20",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 193,
@@ -452,9 +474,13 @@
       "firstName": "Kyle",
       "lastName": "Kuric",
       "birthDate": "1989-08-25",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 194,
@@ -524,9 +550,13 @@
       "firstName": "Kostas",
       "lastName": "Kostadinov",
       "birthDate": "2003-03-25",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 199,
@@ -596,10 +626,13 @@
       "firstName": "Lazar",
       "lastName": "Mutic",
       "birthDate": "1999-01-06",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 199,
@@ -669,9 +702,13 @@
       "firstName": "Wes",
       "lastName": "Iwundu",
       "birthDate": "1994-12-20",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 200,
@@ -741,9 +778,13 @@
       "firstName": "Cameron",
       "lastName": "McGriff",
       "birthDate": "1997-09-30",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 206,
@@ -813,10 +854,13 @@
       "firstName": "Owen",
       "lastName": "Aquino",
       "birthDate": "2003-01-08",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 204,
@@ -886,9 +930,13 @@
       "firstName": "Artem",
       "lastName": "Pustovyi",
       "birthDate": "1992-06-25",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 210,
@@ -958,10 +1006,13 @@
       "firstName": "Leon",
       "lastName": "Radosevic",
       "birthDate": "1990-02-26",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
         "height": 210,

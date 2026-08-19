@@ -12,9 +12,13 @@
       "firstName": "Carlos",
       "lastName": "Alocén",
       "birthDate": "2000-12-30",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 186,
@@ -84,9 +88,13 @@
       "firstName": "Christian",
       "lastName": "Díaz",
       "birthDate": "1992-03-23",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 185,
@@ -156,10 +164,13 @@
       "firstName": "Jón",
       "lastName": "Axel Gudmundsson",
       "birthDate": "1996-10-27",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 186,
@@ -231,10 +242,13 @@
       "firstName": "Marques",
       "lastName": "Townes",
       "birthDate": "1995-09-03",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 193,
@@ -306,10 +320,13 @@
       "firstName": "Joe",
       "lastName": "Cremo",
       "birthDate": "1996-01-05",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 191,
@@ -379,10 +396,13 @@
       "firstName": "Joaquín",
       "lastName": "Rodríguez",
       "birthDate": "1999-07-08",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 194,
@@ -454,10 +474,13 @@
       "firstName": "Miquel",
       "lastName": "Salvó",
       "birthDate": "1994-11-03",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 201,
@@ -527,10 +550,13 @@
       "firstName": "Roberts",
       "lastName": "Stumbris",
       "birthDate": "1993-07-09",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 205,
@@ -600,10 +626,13 @@
       "firstName": "Pierre",
       "lastName": "Pelos",
       "birthDate": "1992-08-16",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 204,
@@ -673,9 +702,13 @@
       "firstName": "Luke",
       "lastName": "Fischer",
       "birthDate": "1994-10-29",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
         "height": 210,

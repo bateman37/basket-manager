@@ -3,9 +3,13 @@
   "firstName": "Boogie",
   "lastName": "Ellis",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 186,
@@ -78,9 +82,13 @@
   "firstName": "Ludde",
   "lastName": "Hakanson",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 186,
@@ -151,10 +159,13 @@
   "firstName": "Nico",
   "lastName": "Laprovittola",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 186,
@@ -228,9 +239,13 @@
   "firstName": "Ricky",
   "lastName": "Rubio",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 186,
@@ -305,10 +320,13 @@
   "firstName": "Isaac",
   "lastName": "Nogués",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 191,
@@ -379,9 +397,13 @@
   "firstName": "Alex",
   "lastName": "Reyes",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 199,
@@ -452,9 +474,13 @@
   "firstName": "Yannick",
   "lastName": "Kraag",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 201,
@@ -525,10 +551,13 @@
   "firstName": "Emir",
   "lastName": "Sulejmanovic",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 203,
@@ -599,9 +628,13 @@
   "firstName": "Kwan",
   "lastName": "Cheatham",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 206,
@@ -672,10 +705,13 @@
   "firstName": "Michael",
   "lastName": "Ruzic",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 204,
@@ -746,9 +782,13 @@
   "firstName": "Ante",
   "lastName": "Tomic",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 208,
@@ -822,9 +862,13 @@
   "firstName": "Simon",
   "lastName": "Birgander",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-asisa-joventut",
   "bodyMeasurements": {
     "height": 209,
@@ -897,9 +941,13 @@
   "firstName": "Juan",
   "lastName": "Núñez",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 185,
@@ -972,9 +1020,13 @@
   "firstName": "Justin",
   "lastName": "Robinson",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 184,
@@ -1047,10 +1099,13 @@
   "firstName": "Umoja",
   "lastName": "Gibson",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 188,
@@ -1123,10 +1178,13 @@
   "firstName": "Darío",
   "lastName": "Brizuela",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 193,
@@ -1197,9 +1255,13 @@
   "firstName": "Kevin",
   "lastName": "Punter",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 193,
@@ -1273,10 +1335,13 @@
   "firstName": "Agustín",
   "lastName": "Ubal",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 200,
@@ -1347,10 +1412,13 @@
   "firstName": "Joel",
   "lastName": "Parra",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 200,
@@ -1421,9 +1489,13 @@
   "firstName": "Stanley",
   "lastName": "Umude",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 199,
@@ -1494,10 +1566,13 @@
   "firstName": "Tyrese",
   "lastName": "Martin",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 199,
@@ -1568,9 +1643,13 @@
   "firstName": "Olivier",
   "lastName": "Nkamhoua",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 204,
@@ -1641,10 +1720,13 @@
   "firstName": "Tosan",
   "lastName": "Evbuomwan",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 203,
@@ -1715,9 +1797,13 @@
   "firstName": "Josh",
   "lastName": "Nebo",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 210,
@@ -1790,9 +1876,13 @@
   "firstName": "Olek",
   "lastName": "Balcerowski",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-barca",
   "bodyMeasurements": {
     "height": 208,
@@ -1865,9 +1955,13 @@
   "firstName": "Guillem",
   "lastName": "Vives",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 186,
@@ -1940,9 +2034,13 @@
   "firstName": "Sergi",
   "lastName": "García",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 188,
@@ -2015,9 +2113,13 @@
   "firstName": "Trae",
   "lastName": "Bell-Haynes",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 185,
@@ -2090,10 +2192,13 @@
   "firstName": "Justin",
   "lastName": "Jaworski",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 193,
@@ -2166,10 +2271,13 @@
   "firstName": "Miguel",
   "lastName": "González",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 195,
@@ -2240,10 +2348,13 @@
   "firstName": "Caleb",
   "lastName": "Homesley",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 197,
@@ -2314,9 +2425,13 @@
   "firstName": "Nico",
   "lastName": "Brussino",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 200,
@@ -2387,10 +2502,13 @@
   "firstName": "Jaime",
   "lastName": "Fernández",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 206,
@@ -2461,9 +2579,13 @@
   "firstName": "Roberts",
   "lastName": "Blumbergs",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 206,
@@ -2534,9 +2656,13 @@
   "firstName": "Gabriel",
   "lastName": "Olaseni",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 210,
@@ -2609,9 +2735,13 @@
   "firstName": "Laurynas",
   "lastName": "Birutis",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-casademont-zaragoza",
   "bodyMeasurements": {
     "height": 212,
@@ -2684,9 +2814,13 @@
   "firstName": "Andrzej",
   "lastName": "Pluta",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 188,
@@ -2759,9 +2893,13 @@
   "firstName": "Isaac",
   "lastName": "Vázquez",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 186,
@@ -2834,10 +2972,13 @@
   "firstName": "Mac",
   "lastName": "McClung",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 186,
@@ -2910,10 +3051,13 @@
   "firstName": "Stanley",
   "lastName": "Whittaker",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 185,
@@ -2986,10 +3130,13 @@
   "firstName": "Maxi",
   "lastName": "Fjellerup",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 193,
@@ -3062,10 +3209,13 @@
   "firstName": "Pep",
   "lastName": "Busquets",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 194,
@@ -3136,10 +3286,13 @@
   "firstName": "Sergi",
   "lastName": "Martínez",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 199,
@@ -3210,9 +3363,13 @@
   "firstName": "David",
   "lastName": "N'Guessan",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 206,
@@ -3283,10 +3440,13 @@
   "firstName": "Nikola",
   "lastName": "Maric",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 202,
@@ -3357,9 +3517,13 @@
   "firstName": "Aljaz",
   "lastName": "Kunc",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 211,
@@ -3432,9 +3596,13 @@
   "firstName": "Martinas",
   "lastName": "Geben",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-fiatc-girona",
   "bodyMeasurements": {
     "height": 210,
@@ -3507,9 +3675,13 @@
   "firstName": "Dani",
   "lastName": "García",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 184,
@@ -3580,10 +3752,13 @@
   "firstName": "Darius",
   "lastName": "McGhee",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 186,
@@ -3656,10 +3831,13 @@
   "firstName": "James",
   "lastName": "Batemon",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 195,
@@ -3732,9 +3910,13 @@
   "firstName": "Mark",
   "lastName": "Hughes",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 191,
@@ -3805,10 +3987,13 @@
   "firstName": "Mikel",
   "lastName": "Sanz",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 199,
@@ -3879,10 +4064,13 @@
   "firstName": "Oriol",
   "lastName": "Paulí",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 199,
@@ -3953,10 +4141,13 @@
   "firstName": "John",
   "lastName": "Shurna",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 203,
@@ -4027,10 +4218,13 @@
   "firstName": "Melvin",
   "lastName": "Ejim",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 205,
@@ -4101,9 +4295,13 @@
   "firstName": "Atoumane",
   "lastName": "Diagne",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 210,
@@ -4174,9 +4372,13 @@
   "firstName": "Kur",
   "lastName": "Kuath",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 212,
@@ -4249,10 +4451,13 @@
   "firstName": "Zacharie",
   "lastName": "Perrin",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-ilerna-lleida",
   "bodyMeasurements": {
     "height": 209,
@@ -4325,9 +4530,13 @@
   "firstName": "Ferran",
   "lastName": "Bassas",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 187,
@@ -4400,9 +4609,13 @@
   "firstName": "Hugo",
   "lastName": "Benítez",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 186,
@@ -4475,10 +4688,13 @@
   "firstName": "Lucas",
   "lastName": "Beaufort",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 187,
@@ -4551,10 +4767,13 @@
   "firstName": "Rafa",
   "lastName": "Villar",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 186,
@@ -4627,10 +4846,13 @@
   "firstName": "Lukasz",
   "lastName": "Kolenda",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 193,
@@ -4701,10 +4923,13 @@
   "firstName": "Chibuzo",
   "lastName": "Agbo",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 198,
@@ -4775,9 +5000,13 @@
   "firstName": "Pablo",
   "lastName": "Tamba",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 199,
@@ -4848,10 +5077,13 @@
   "firstName": "Eric",
   "lastName": "Vila",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 204,
@@ -4922,10 +5154,13 @@
   "firstName": "Timmy",
   "lastName": "Allen",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 203,
@@ -4996,9 +5231,13 @@
   "firstName": "Yordan",
   "lastName": "Minchev",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 205,
@@ -5069,9 +5308,13 @@
   "firstName": "Nick",
   "lastName": "Ongenda",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 210,
@@ -5144,10 +5387,13 @@
   "firstName": "Pierre",
   "lastName": "Oriola",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-kids-and-us-manresa",
   "bodyMeasurements": {
     "height": 211,
@@ -5220,10 +5466,13 @@
   "firstName": "Damion",
   "lastName": "Baugh",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 186,
@@ -5296,9 +5545,13 @@
   "firstName": "Kobi",
   "lastName": "Simmons",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 184,
@@ -5371,10 +5624,13 @@
   "firstName": "Markus",
   "lastName": "Howard",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 193,
@@ -5448,10 +5704,13 @@
   "firstName": "Matteo",
   "lastName": "Spagnolo",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 194,
@@ -5522,10 +5781,13 @@
   "firstName": "AJ",
   "lastName": "Lawson",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 199,
@@ -5596,10 +5858,13 @@
   "firstName": "Chris",
   "lastName": "Duarte",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 199,
@@ -5670,9 +5935,13 @@
   "firstName": "Dewayne",
   "lastName": "Stewart Jr",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 199,
@@ -5743,10 +6012,13 @@
   "firstName": "Rodions",
   "lastName": "Kurucs",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 199,
@@ -5817,10 +6089,13 @@
   "firstName": "Tadas",
   "lastName": "Sedekerskis",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 201,
@@ -5891,9 +6166,13 @@
   "firstName": "Clement",
   "lastName": "Frisch",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 203,
@@ -5964,9 +6243,13 @@
   "firstName": "Khalifa",
   "lastName": "Diop",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-kosner-baskonia",
   "bodyMeasurements": {
     "height": 209,
@@ -6039,10 +6322,13 @@
   "firstName": "Arturs",
   "lastName": "Kurucs",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 186,
@@ -6115,9 +6401,13 @@
   "firstName": "Bruno",
   "lastName": "Fitipaldo",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 188,
@@ -6188,9 +6478,13 @@
   "firstName": "Marcelinho",
   "lastName": "Huertas",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 184,
@@ -6265,10 +6559,13 @@
   "firstName": "Jaime",
   "lastName": "Fernández",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 193,
@@ -6339,9 +6636,13 @@
   "firstName": "Kyle",
   "lastName": "Guy",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 193,
@@ -6414,10 +6715,13 @@
   "firstName": "TJ",
   "lastName": "Bamba",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 193,
@@ -6488,10 +6792,13 @@
   "firstName": "Wesley",
   "lastName": "Van Beck",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 192,
@@ -6562,10 +6869,13 @@
   "firstName": "Héctor",
   "lastName": "Alderete",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 197,
@@ -6636,9 +6946,13 @@
   "firstName": "Rokas",
   "lastName": "Giedraitis",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 199,
@@ -6709,10 +7023,13 @@
   "firstName": "Xabi",
   "lastName": "López-Arostegui",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 199,
@@ -6783,10 +7100,13 @@
   "firstName": "Aaron",
   "lastName": "Doornekamp",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 203,
@@ -6859,9 +7179,13 @@
   "firstName": "Tim",
   "lastName": "Abromaitis",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 202,
@@ -6934,9 +7258,13 @@
   "firstName": "Ethan",
   "lastName": "Happ",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 212,
@@ -7009,9 +7337,13 @@
   "firstName": "Giorgi",
   "lastName": "Shermadini",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-la-laguna-tenerife",
   "bodyMeasurements": {
     "height": 211,
@@ -7084,10 +7416,13 @@
   "firstName": "Alonzo",
   "lastName": "Verge Jr.",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 186,
@@ -7160,9 +7495,13 @@
   "firstName": "Caio",
   "lastName": "Pacheco",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 188,
@@ -7235,9 +7574,13 @@
   "firstName": "Didac",
   "lastName": "Cuevas",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 188,
@@ -7310,10 +7653,13 @@
   "firstName": "Paul",
   "lastName": "Jorgensen",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 193,
@@ -7384,10 +7730,13 @@
   "firstName": "Tomas",
   "lastName": "Dimsa",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 191,
@@ -7458,10 +7807,13 @@
   "firstName": "Guillem",
   "lastName": "Jou",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 197,
@@ -7532,10 +7884,13 @@
   "firstName": "Jacobo",
   "lastName": "Díaz",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 199,
@@ -7606,9 +7961,13 @@
   "firstName": "Lukas",
   "lastName": "Uleckas",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 197,
@@ -7679,10 +8038,13 @@
   "firstName": "Dino",
   "lastName": "Radoncic",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 202,
@@ -7753,9 +8115,13 @@
   "firstName": "Dmytro",
   "lastName": "Skapintsev",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 208,
@@ -7828,9 +8194,13 @@
   "firstName": "George",
   "lastName": "Conditt IV",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 208,
@@ -7901,9 +8271,13 @@
   "firstName": "Karlis",
   "lastName": "Silins",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-leyma-coruna",
   "bodyMeasurements": {
     "height": 209,
@@ -7976,9 +8350,13 @@
   "firstName": "Brandon",
   "lastName": "Childress",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 184,
@@ -8051,10 +8429,13 @@
   "firstName": "Alex",
   "lastName": "Barcello",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 191,
@@ -8125,10 +8506,13 @@
   "firstName": "Caleb",
   "lastName": "Agada",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 192,
@@ -8199,10 +8583,13 @@
   "firstName": "Diogo",
   "lastName": "Brito",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 194,
@@ -8273,10 +8660,13 @@
   "firstName": "Olle",
   "lastName": "Lundqvist",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 194,
@@ -8347,10 +8737,13 @@
   "firstName": "Sergi",
   "lastName": "Quintela",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 195,
@@ -8421,9 +8814,13 @@
   "firstName": "Leo",
   "lastName": "Meindl",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 197,
@@ -8494,10 +8891,13 @@
   "firstName": "Yunio",
   "lastName": "Barrueta",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 199,
@@ -8568,9 +8968,13 @@
   "firstName": "Alejandro",
   "lastName": "Galán",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 202,
@@ -8641,10 +9045,13 @@
   "firstName": "Alonso",
   "lastName": "Faure",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 204,
@@ -8715,10 +9122,13 @@
   "firstName": "Efe",
   "lastName": "Abogidi",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 205,
@@ -8789,9 +9199,13 @@
   "firstName": "Felipe",
   "lastName": "dos Anjos",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 208,
@@ -8864,9 +9278,13 @@
   "firstName": "Joel",
   "lastName": "Soriano",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-monbus-obradoiro",
   "bodyMeasurements": {
     "height": 211,
@@ -8939,9 +9357,13 @@
   "firstName": "James",
   "lastName": "Akinjo",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 184,
@@ -9014,9 +9436,13 @@
   "firstName": "Luka",
   "lastName": "Bottiroli",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 188,
@@ -9089,9 +9515,13 @@
   "firstName": "Rafa",
   "lastName": "Luz",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 186,
@@ -9164,10 +9594,13 @@
   "firstName": "Aaron",
   "lastName": "Best",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 194,
@@ -9238,10 +9671,13 @@
   "firstName": "Chumi",
   "lastName": "Ortega",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 191,
@@ -9312,9 +9748,13 @@
   "firstName": "Kassius",
   "lastName": "Robertson",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 193,
@@ -9385,9 +9825,13 @@
   "firstName": "Kyle",
   "lastName": "Kuric",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 194,
@@ -9458,9 +9902,13 @@
   "firstName": "Kostas",
   "lastName": "Kostadinov",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 199,
@@ -9531,10 +9979,13 @@
   "firstName": "Lazar",
   "lastName": "Mutic",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 199,
@@ -9605,9 +10056,13 @@
   "firstName": "Wes",
   "lastName": "Iwundu",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 200,
@@ -9678,9 +10133,13 @@
   "firstName": "Cameron",
   "lastName": "McGriff",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 206,
@@ -9751,10 +10210,13 @@
   "firstName": "Owen",
   "lastName": "Aquino",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 204,
@@ -9825,9 +10287,13 @@
   "firstName": "Artem",
   "lastName": "Pustovyi",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 210,
@@ -9898,10 +10364,13 @@
   "firstName": "Leon",
   "lastName": "Radosevic",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-morabanc-andorra",
   "bodyMeasurements": {
     "height": 210,
@@ -9974,9 +10443,13 @@
   "firstName": "Andrés",
   "lastName": "Feliz",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 188,
@@ -10047,9 +10520,13 @@
   "firstName": "Facu",
   "lastName": "Campazzo",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 186,
@@ -10123,10 +10600,13 @@
   "firstName": "Theo",
   "lastName": "Maledon",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 187,
@@ -10199,10 +10679,13 @@
   "firstName": "Max",
   "lastName": "Shulga",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 195,
@@ -10275,10 +10758,13 @@
   "firstName": "Sergio",
   "lastName": "Llull",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 192,
@@ -10353,10 +10839,13 @@
   "firstName": "Alberto",
   "lastName": "Abalde",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 199,
@@ -10427,9 +10916,13 @@
   "firstName": "Gabriele",
   "lastName": "Procida",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 199,
@@ -10500,10 +10993,13 @@
   "firstName": "Gaby",
   "lastName": "Deck",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 199,
@@ -10574,10 +11070,13 @@
   "firstName": "Timothé",
   "lastName": "Luwawu-Cabarrot",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 200,
@@ -10648,10 +11147,13 @@
   "firstName": "Chuma",
   "lastName": "Okeke",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 203,
@@ -10722,10 +11224,13 @@
   "firstName": "Izan",
   "lastName": "Almansa",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 204,
@@ -10796,10 +11301,13 @@
   "firstName": "Jaime",
   "lastName": "Pradilla",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 205,
@@ -10870,9 +11378,13 @@
   "firstName": "Mikael",
   "lastName": "Jantunen",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 204,
@@ -10943,10 +11455,13 @@
   "firstName": "Usman",
   "lastName": "Garuba",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 202,
@@ -11017,9 +11532,13 @@
   "firstName": "Edy",
   "lastName": "Tavares",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 210,
@@ -11092,9 +11611,13 @@
   "firstName": "Olivier",
   "lastName": "Sarr",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-real-madrid",
   "bodyMeasurements": {
     "height": 209,
@@ -11167,10 +11690,13 @@
   "firstName": "DJ",
   "lastName": "Steward",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 186,
@@ -11243,9 +11769,13 @@
   "firstName": "Ziga",
   "lastName": "Samar",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 187,
@@ -11318,10 +11848,13 @@
   "firstName": "Chase",
   "lastName": "Audige",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 193,
@@ -11392,9 +11925,13 @@
   "firstName": "Raúl",
   "lastName": "Lobaco",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 193,
@@ -11465,10 +12002,13 @@
   "firstName": "Retin",
   "lastName": "Obasohan",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 193,
@@ -11539,9 +12079,13 @@
   "firstName": "Dusan",
   "lastName": "Radosavljevic",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 199,
@@ -11612,9 +12156,13 @@
   "firstName": "Pablo",
   "lastName": "Almazán",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 199,
@@ -11685,10 +12233,13 @@
   "firstName": "Vlatko",
   "lastName": "Cancar",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 201,
@@ -11759,9 +12310,13 @@
   "firstName": "Christian",
   "lastName": "Sengfelder",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 206,
@@ -11832,10 +12387,13 @@
   "firstName": "Dani",
   "lastName": "Díez",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 204,
@@ -11906,9 +12464,13 @@
   "firstName": "Balsa",
   "lastName": "Koprivica",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 212,
@@ -11981,9 +12543,13 @@
   "firstName": "Rubén",
   "lastName": "Guerrero",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-recoletas-salud-san-pablo-burgos",
   "bodyMeasurements": {
     "height": 210,
@@ -12056,9 +12622,13 @@
   "firstName": "Dominik",
   "lastName": "Mavra",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 186,
@@ -12129,9 +12699,13 @@
   "firstName": "Erik",
   "lastName": "Quintela",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 186,
@@ -12204,10 +12778,13 @@
   "firstName": "Rasir",
   "lastName": "Bolton",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 187,
@@ -12280,9 +12857,13 @@
   "firstName": "Francis",
   "lastName": "Alonso",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 193,
@@ -12353,10 +12934,13 @@
   "firstName": "Josep",
   "lastName": "Peris",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 192,
@@ -12427,10 +13011,13 @@
   "firstName": "Aleksandar",
   "lastName": "Aranitovic",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 201,
@@ -12501,10 +13088,13 @@
   "firstName": "Tevin",
   "lastName": "Brown",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 198,
@@ -12575,10 +13165,13 @@
   "firstName": "Andersson",
   "lastName": "García",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 204,
@@ -12649,10 +13242,13 @@
   "firstName": "Edgar",
   "lastName": "Vicedo",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 204,
@@ -12723,9 +13319,13 @@
   "firstName": "Mihajlo",
   "lastName": "Andric",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 203,
@@ -12796,10 +13396,13 @@
   "firstName": "Aleksa",
   "lastName": "Ilic",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 210,
@@ -12872,9 +13475,13 @@
   "firstName": "Danko",
   "lastName": "Brankovic",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 210,
@@ -12945,9 +13552,13 @@
   "firstName": "Jonathan",
   "lastName": "Kasibabu",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-rio-breogan",
   "bodyMeasurements": {
     "height": 208,
@@ -13018,9 +13629,13 @@
   "firstName": "Adam",
   "lastName": "Somogyi",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 184,
@@ -13093,9 +13708,13 @@
   "firstName": "Dan",
   "lastName": "Duščak",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 188,
@@ -13168,9 +13787,13 @@
   "firstName": "Harald",
   "lastName": "Frey",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 186,
@@ -13243,10 +13866,13 @@
   "firstName": "Aleix",
   "lastName": "Font",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 195,
@@ -13317,10 +13943,13 @@
   "firstName": "Darrun",
   "lastName": "Hilliard",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 193,
@@ -13393,10 +14022,13 @@
   "firstName": "Margiris",
   "lastName": "Normantas",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 195,
@@ -13467,9 +14099,13 @@
   "firstName": "Nate",
   "lastName": "Darling",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 192,
@@ -13540,9 +14176,13 @@
   "firstName": "Manex",
   "lastName": "Ansorregi",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 197,
@@ -13613,9 +14253,13 @@
   "firstName": "Luke",
   "lastName": "Petrasek",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 202,
@@ -13686,10 +14330,13 @@
   "firstName": "Martin",
   "lastName": "Krampelj",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 204,
@@ -13760,9 +14407,13 @@
   "firstName": "Bastien",
   "lastName": "Vautier",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 208,
@@ -13835,9 +14486,13 @@
   "firstName": "Ondřej",
   "lastName": "Husták",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 209,
@@ -13910,9 +14565,13 @@
   "firstName": "Tryggvi",
   "lastName": "Hlinason",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-surne-bilbao-basket",
   "bodyMeasurements": {
     "height": 210,
@@ -13985,9 +14644,13 @@
   "firstName": "David",
   "lastName": "DeJulius",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 186,
@@ -14058,10 +14721,13 @@
   "firstName": "Jonah",
   "lastName": "Radebaugh",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 187,
@@ -14134,9 +14800,13 @@
   "firstName": "Juani",
   "lastName": "Marcos",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 184,
@@ -14209,10 +14879,13 @@
   "firstName": "Michael",
   "lastName": "Forrest",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 186,
@@ -14285,10 +14958,13 @@
   "firstName": "Dylan",
   "lastName": "Ennis",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 191,
@@ -14359,9 +15035,13 @@
   "firstName": "Wilhelm",
   "lastName": "Falk",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 194,
@@ -14432,10 +15112,13 @@
   "firstName": "Howard",
   "lastName": "Sant-Roos",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 197,
@@ -14506,9 +15189,13 @@
   "firstName": "Sander",
   "lastName": "Raieste",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 199,
@@ -14579,10 +15266,13 @@
   "firstName": "Souley",
   "lastName": "Boum",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 199,
@@ -14653,9 +15343,13 @@
   "firstName": "Toni",
   "lastName": "Nakic",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 199,
@@ -14726,10 +15420,13 @@
   "firstName": "Kaiser",
   "lastName": "Gates",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 203,
@@ -14800,9 +15497,13 @@
   "firstName": "Marcis",
   "lastName": "Steinbergs",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 205,
@@ -14873,9 +15574,13 @@
   "firstName": "Rubén",
   "lastName": "López de la Torre",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 204,
@@ -14946,9 +15651,13 @@
   "firstName": "Emmanuel",
   "lastName": "Cate",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 209,
@@ -15021,9 +15730,13 @@
   "firstName": "Jean-Marc",
   "lastName": "Pansa",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 208,
@@ -15096,9 +15809,13 @@
   "firstName": "Moussa",
   "lastName": "Diagne",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-ucam-murcia",
   "bodyMeasurements": {
     "height": 210,
@@ -15171,9 +15888,13 @@
   "firstName": "Alberto",
   "lastName": "Díaz",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 187,
@@ -15248,9 +15969,13 @@
   "firstName": "Kendrick",
   "lastName": "Perry",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 186,
@@ -15324,10 +16049,13 @@
   "firstName": "Melwin",
   "lastName": "Pantzar",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 185,
@@ -15400,10 +16128,13 @@
   "firstName": "Cameron",
   "lastName": "Hunt",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 191,
@@ -15474,10 +16205,13 @@
   "firstName": "Nihad",
   "lastName": "Djedovic",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 193,
@@ -15550,9 +16284,13 @@
   "firstName": "Tyler",
   "lastName": "Kalinoski",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 193,
@@ -15625,10 +16363,13 @@
   "firstName": "Ignas",
   "lastName": "Brazdeikis",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 197,
@@ -15699,10 +16440,13 @@
   "firstName": "Jonathan",
   "lastName": "Barreiro",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 199,
@@ -15773,9 +16517,13 @@
   "firstName": "Amine",
   "lastName": "Noua",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 205,
@@ -15846,9 +16594,13 @@
   "firstName": "Tyson",
   "lastName": "Pérez",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 205,
@@ -15919,9 +16671,13 @@
   "firstName": "David",
   "lastName": "Kravish",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 210,
@@ -15994,9 +16750,13 @@
   "firstName": "Willy",
   "lastName": "Hernangómez",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 212,
@@ -16069,9 +16829,13 @@
   "firstName": "Yannick",
   "lastName": "Nzosa",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-unicaja",
   "bodyMeasurements": {
     "height": 210,
@@ -16142,9 +16906,13 @@
   "firstName": "Álvaro",
   "lastName": "Cárdenas",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 188,
@@ -16217,10 +16985,13 @@
   "firstName": "Mario",
   "lastName": "Saint-Supéry",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 187,
@@ -16293,9 +17064,13 @@
   "firstName": "TJ",
   "lastName": "Shorts",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 185,
@@ -16369,9 +17144,13 @@
   "firstName": "Armoni",
   "lastName": "Brooks",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 194,
@@ -16442,10 +17221,13 @@
   "firstName": "Gonzalo",
   "lastName": "Corbalán",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 192,
@@ -16516,10 +17298,13 @@
   "firstName": "Josep",
   "lastName": "Puerto",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 191,
@@ -16590,10 +17375,13 @@
   "firstName": "Lucas",
   "lastName": "Marí",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 193,
@@ -16664,11 +17452,13 @@
   "firstName": "Omari",
   "lastName": "Moore",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 186,
@@ -16741,9 +17531,13 @@
   "firstName": "Elias",
   "lastName": "Valtonen",
   "birthDate": "",
-  "positions": [
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 200,
@@ -16814,10 +17608,13 @@
   "firstName": "Kameron",
   "lastName": "Taylor",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 199,
@@ -16888,10 +17685,13 @@
   "firstName": "Dylan",
   "lastName": "Osetkowski",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 204,
@@ -16962,10 +17762,13 @@
   "firstName": "Mo",
   "lastName": "Gueye",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 203,
@@ -17036,10 +17839,13 @@
   "firstName": "Nate",
   "lastName": "Reuvers",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 202,
@@ -17110,9 +17916,13 @@
   "firstName": "Neal",
   "lastName": "Sako",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 209,
@@ -17185,9 +17995,13 @@
   "firstName": "Yankuba",
   "lastName": "Sima",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-valencia-basket",
   "bodyMeasurements": {
     "height": 212,
@@ -17260,10 +18074,13 @@
   "firstName": "PJay",
   "lastName": "Smith Jr.",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 186,
@@ -17334,10 +18151,13 @@
   "firstName": "Félix",
   "lastName": "Terins",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 186,
@@ -17408,10 +18228,13 @@
   "firstName": "Zaire",
   "lastName": "Williams",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 192,
@@ -17482,10 +18305,13 @@
   "firstName": "Brycen",
   "lastName": "Goodine",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 193,
@@ -17556,10 +18382,13 @@
   "firstName": "Sander",
   "lastName": "Hollanders",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 193,
@@ -17630,10 +18459,13 @@
   "firstName": "Danilo",
   "lastName": "Brnovic",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 197,
@@ -17704,10 +18536,13 @@
   "firstName": "Jorge",
   "lastName": "Arias",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 197,
@@ -17778,10 +18613,13 @@
   "firstName": "Francis",
   "lastName": "Nwaokorie",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 204,
@@ -17852,10 +18690,13 @@
   "firstName": "Daniil",
   "lastName": "Shelist",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 203,
@@ -17926,10 +18767,13 @@
   "firstName": "Brock",
   "lastName": "Wisne",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 210,
@@ -18000,10 +18844,13 @@
   "firstName": "Mouhamed",
   "lastName": "Barro",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 209,
@@ -18074,9 +18921,13 @@
   "firstName": "Djigui",
   "lastName": "Diarra",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-alimerka-oviedo",
   "bodyMeasurements": {
     "height": 209,
@@ -18147,9 +18998,13 @@
   "firstName": "Alec",
   "lastName": "Wintering",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 188,
@@ -18222,9 +19077,13 @@
   "firstName": "Guillem",
   "lastName": "Ferrando",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 185,
@@ -18295,10 +19154,13 @@
   "firstName": "Germán",
   "lastName": "Martínez",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 195,
@@ -18369,10 +19231,13 @@
   "firstName": "KJ",
   "lastName": "Jenkins",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 193,
@@ -18443,10 +19308,13 @@
   "firstName": "Miha",
   "lastName": "Lapornik",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 195,
@@ -18517,10 +19385,13 @@
   "firstName": "Rodrigo",
   "lastName": "Seoane",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 200,
@@ -18591,10 +19462,13 @@
   "firstName": "Diego",
   "lastName": "Alderete",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 200,
@@ -18665,9 +19539,13 @@
   "firstName": "Samuel",
   "lastName": "Rodríguez",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 205,
@@ -18738,10 +19616,13 @@
   "firstName": "Danilo",
   "lastName": "Ostojić",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-grupo-alega-cantabria",
   "bodyMeasurements": {
     "height": 208,
@@ -18812,10 +19693,13 @@
   "firstName": "Silvano",
   "lastName": "Merlo",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-bueno-arenas-albacete",
   "bodyMeasurements": {
     "height": 184,
@@ -18886,9 +19770,13 @@
   "firstName": "José",
   "lastName": "Luis González",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-bueno-arenas-albacete",
   "bodyMeasurements": {
     "height": 191,
@@ -18959,10 +19847,13 @@
   "firstName": "Nick",
   "lastName": "Reid",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-bueno-arenas-albacete",
   "bodyMeasurements": {
     "height": 197,
@@ -19033,10 +19924,13 @@
   "firstName": "Jan",
   "lastName": "Zemljic",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-bueno-arenas-albacete",
   "bodyMeasurements": {
     "height": 186,
@@ -19107,9 +20001,13 @@
   "firstName": "Bernat",
   "lastName": "Vanaclocha",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-bueno-arenas-albacete",
   "bodyMeasurements": {
     "height": 210,
@@ -19180,9 +20078,13 @@
   "firstName": "Sebastian",
   "lastName": "Aris",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 186,
@@ -19253,9 +20155,13 @@
   "firstName": "Alberto",
   "lastName": "Cabrera",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 187,
@@ -19326,10 +20232,13 @@
   "firstName": "Andy",
   "lastName": "Huelves",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 186,
@@ -19402,10 +20311,13 @@
   "firstName": "Jalen",
   "lastName": "Tate",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 191,
@@ -19476,10 +20388,13 @@
   "firstName": "Gerard",
   "lastName": "Jofresa",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 192,
@@ -19550,10 +20465,13 @@
   "firstName": "Ander",
   "lastName": "Urdiain",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 201,
@@ -19624,10 +20542,13 @@
   "firstName": "Chris",
   "lastName": "Czerapowicz",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 198,
@@ -19698,10 +20619,13 @@
   "firstName": "Totte",
   "lastName": "Alonso",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 201,
@@ -19772,10 +20696,13 @@
   "firstName": "Pablo",
   "lastName": "Hernández",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 199,
@@ -19846,10 +20773,13 @@
   "firstName": "Aleksandre",
   "lastName": "Phevadze",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 199,
@@ -19920,10 +20850,13 @@
   "firstName": "Niko",
   "lastName": "Rocak",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 204,
@@ -19994,9 +20927,13 @@
   "firstName": "Javonte",
   "lastName": "Brown",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 209,
@@ -20067,10 +21004,13 @@
   "firstName": "Chris",
   "lastName": "Echui",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-grupo-ureta-tizona-burgos",
   "bodyMeasurements": {
     "height": 191,
@@ -20141,10 +21081,13 @@
   "firstName": "Pau",
   "lastName": "Isern",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-caja-rural-cb-zamora",
   "bodyMeasurements": {
     "height": 186,
@@ -20217,10 +21160,13 @@
   "firstName": "Jacob",
   "lastName": "Round",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-caja-rural-cb-zamora",
   "bodyMeasurements": {
     "height": 193,
@@ -20291,10 +21237,13 @@
   "firstName": "David",
   "lastName": "Kristensen",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-caja-rural-cb-zamora",
   "bodyMeasurements": {
     "height": 204,
@@ -20365,10 +21314,13 @@
   "firstName": "Oskar",
   "lastName": "Palmquist",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-caja-rural-cb-zamora",
   "bodyMeasurements": {
     "height": 199,
@@ -20439,9 +21391,13 @@
   "firstName": "Biram",
   "lastName": "Faye",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-caja-rural-cb-zamora",
   "bodyMeasurements": {
     "height": 211,
@@ -20512,10 +21468,13 @@
   "firstName": "Jesús",
   "lastName": "Carralero",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-caja-rural-cb-zamora",
   "bodyMeasurements": {
     "height": 201,
@@ -20586,9 +21545,13 @@
   "firstName": "Pol",
   "lastName": "Figueras",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 186,
@@ -20659,10 +21622,13 @@
   "firstName": "AJ",
   "lastName": "Slaughter",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 192,
@@ -20735,10 +21701,13 @@
   "firstName": "Adams",
   "lastName": "Sola",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 192,
@@ -20809,10 +21778,13 @@
   "firstName": "Kyle",
   "lastName": "Greeley",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 193,
@@ -20883,10 +21855,13 @@
   "firstName": "Marc",
   "lastName": "Martí",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 204,
@@ -20957,10 +21932,13 @@
   "firstName": "Iñaki",
   "lastName": "Ordóñez",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 203,
@@ -21031,9 +22009,13 @@
   "firstName": "Adam",
   "lastName": "Kejval",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 211,
@@ -21104,9 +22086,13 @@
   "firstName": "Wildens",
   "lastName": "Leveque",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-basquet-menorca",
   "bodyMeasurements": {
     "height": 212,
@@ -21177,9 +22163,13 @@
   "firstName": "Gonzalo",
   "lastName": "Orozco",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 185,
@@ -21250,10 +22240,13 @@
   "firstName": "Fernando",
   "lastName": "Bello",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 198,
@@ -21324,9 +22317,13 @@
   "firstName": "Nuha",
   "lastName": "Sagnia",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 211,
@@ -21397,10 +22394,13 @@
   "firstName": "Alejandro",
   "lastName": "Rodríguez",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 202,
@@ -21471,10 +22471,13 @@
   "firstName": "Jalen",
   "lastName": "Cone",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 192,
@@ -21545,10 +22548,13 @@
   "firstName": "Manuel",
   "lastName": "Trujillo",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 186,
@@ -21619,10 +22625,13 @@
   "firstName": "Tyler",
   "lastName": "Stephenson-Moore",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 195,
@@ -21693,10 +22702,13 @@
   "firstName": "Mike",
   "lastName": "Nuga",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 195,
@@ -21767,10 +22779,13 @@
   "firstName": "Pau",
   "lastName": "Treviño",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 201,
@@ -21841,10 +22856,13 @@
   "firstName": "Ignacio",
   "lastName": "Rosa",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 204,
@@ -21915,9 +22933,13 @@
   "firstName": "Mladen",
   "lastName": "Armus",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 210,
@@ -21988,10 +23010,13 @@
   "firstName": "Leslie",
   "lastName": "Nkereuwem",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-cajasol-coto-cordoba",
   "bodyMeasurements": {
     "height": 202,
@@ -22062,9 +23087,13 @@
   "firstName": "Nacho",
   "lastName": "Varela",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 188,
@@ -22135,10 +23164,13 @@
   "firstName": "Aanen",
   "lastName": "Moody",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 193,
@@ -22209,10 +23241,13 @@
   "firstName": "Ezekiel",
   "lastName": "Soumbey-Alley",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 192,
@@ -22283,10 +23318,13 @@
   "firstName": "Sergio",
   "lastName": "Cecilia",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 197,
@@ -22357,10 +23395,13 @@
   "firstName": "Unai",
   "lastName": "Mendikote",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 200,
@@ -22431,10 +23472,13 @@
   "firstName": "Nedim",
   "lastName": "Dedovic",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 201,
@@ -22505,10 +23549,13 @@
   "firstName": "Ramón",
   "lastName": "Vilà",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 209,
@@ -22579,9 +23626,13 @@
   "firstName": "Archange",
   "lastName": "Izaw-Bolavie",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 210,
@@ -22652,9 +23703,13 @@
   "firstName": "Adrián",
   "lastName": "Latorre",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-insolac-caja87",
   "bodyMeasurements": {
     "height": 208,
@@ -22725,10 +23780,13 @@
   "firstName": "Xabi",
   "lastName": "Oroz",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 184,
@@ -22799,10 +23857,13 @@
   "firstName": "Toms",
   "lastName": "Leimanis",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 186,
@@ -22873,10 +23934,13 @@
   "firstName": "Sesan",
   "lastName": "Russell",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 186,
@@ -22947,10 +24011,13 @@
   "firstName": "Martín",
   "lastName": "Fernández",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 192,
@@ -23021,10 +24088,13 @@
   "firstName": "Diogo",
   "lastName": "Seixas",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 200,
@@ -23095,10 +24165,13 @@
   "firstName": "Sean",
   "lastName": "McDonnell",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 199,
@@ -23169,10 +24242,13 @@
   "firstName": "Jan",
   "lastName": "Zidek",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 203,
@@ -23243,10 +24319,13 @@
   "firstName": "Martín",
   "lastName": "Iglesias",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 206,
@@ -23317,9 +24396,13 @@
   "firstName": "Javier",
   "lastName": "Nicolau",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 210,
@@ -23390,10 +24473,13 @@
   "firstName": "Eddy",
   "lastName": "Valentino Pinedo",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-club-ourense-baloncesto",
   "bodyMeasurements": {
     "height": 203,
@@ -23464,9 +24550,13 @@
   "firstName": "Lucas",
   "lastName": "Capalbo",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 184,
@@ -23537,10 +24627,13 @@
   "firstName": "Gaizka",
   "lastName": "Maiza",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 186,
@@ -23613,9 +24706,13 @@
   "firstName": "Brian",
   "lastName": "Vázquez",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 193,
@@ -23686,10 +24783,13 @@
   "firstName": "Corentin",
   "lastName": "Falcoz",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 194,
@@ -23760,10 +24860,13 @@
   "firstName": "Adrià",
   "lastName": "Domènech",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 204,
@@ -23834,10 +24937,13 @@
   "firstName": "Omar",
   "lastName": "Lo",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 204,
@@ -23908,9 +25014,13 @@
   "firstName": "Jonas",
   "lastName": "Paukštė",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 211,
@@ -23981,9 +25091,13 @@
   "firstName": "Matt",
   "lastName": "Van Komen",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-inveready-askatuak-gipuzkoa",
   "bodyMeasurements": {
     "height": 210,
@@ -24054,9 +25168,13 @@
   "firstName": "Lluís",
   "lastName": "Costa",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 186,
@@ -24129,9 +25247,13 @@
   "firstName": "Jonathan",
   "lastName": "Rousselle",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 187,
@@ -24204,10 +25326,13 @@
   "firstName": "Gregory",
   "lastName": "Parham II",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 195,
@@ -24278,10 +25403,13 @@
   "firstName": "Jovan",
   "lastName": "Kljajic",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 195,
@@ -24352,9 +25480,13 @@
   "firstName": "Edu",
   "lastName": "Durán",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 193,
@@ -24425,10 +25557,13 @@
   "firstName": "Mathieu",
   "lastName": "Kamba",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 199,
@@ -24499,10 +25634,13 @@
   "firstName": "Pere",
   "lastName": "Tomàs",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 199,
@@ -24575,10 +25713,13 @@
   "firstName": "Andy",
   "lastName": "Van Vliet",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 202,
@@ -24649,10 +25790,13 @@
   "firstName": "Tanner",
   "lastName": "McGrew",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 206,
@@ -24723,10 +25867,13 @@
   "firstName": "Fallou",
   "lastName": "Niang",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 203,
@@ -24797,9 +25944,13 @@
   "firstName": "Abdou",
   "lastName": "Thiam",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 210,
@@ -24870,10 +26021,13 @@
   "firstName": "Mouhamed",
   "lastName": "Barro",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-coviran-granada",
   "bodyMeasurements": {
     "height": 212,
@@ -24944,9 +26098,13 @@
   "firstName": "Mike",
   "lastName": "Torres",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 186,
@@ -25017,9 +26175,13 @@
   "firstName": "Rafael",
   "lastName": "Lisboa",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 185,
@@ -25090,10 +26252,13 @@
   "firstName": "Dani",
   "lastName": "Manchón",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 193,
@@ -25164,10 +26329,13 @@
   "firstName": "Macio",
   "lastName": "Teague",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 192,
@@ -25238,10 +26406,13 @@
   "firstName": "Kristinn",
   "lastName": "Pálsson",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 200,
@@ -25312,10 +26483,13 @@
   "firstName": "Sediq",
   "lastName": "Garuba",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 200,
@@ -25386,11 +26560,13 @@
   "firstName": "Tamenang",
   "lastName": "Choh",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 197,
@@ -25461,10 +26637,13 @@
   "firstName": "Wesley",
   "lastName": "Dreamer",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 203,
@@ -25535,10 +26714,13 @@
   "firstName": "Giorgi",
   "lastName": "Korsantia",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 203,
@@ -25609,10 +26791,13 @@
   "firstName": "Arnau",
   "lastName": "Parrado",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 202,
@@ -25683,9 +26868,13 @@
   "firstName": "Mikhail",
   "lastName": "Mikhailov",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 212,
@@ -25756,9 +26945,13 @@
   "firstName": "Romaro",
   "lastName": "Gill",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-hla-alicante",
   "bodyMeasurements": {
     "height": 208,
@@ -25831,9 +27024,13 @@
   "firstName": "Hugo",
   "lastName": "Ferreira",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 186,
@@ -25904,9 +27101,13 @@
   "firstName": "Adrià",
   "lastName": "Moncanut",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 187,
@@ -25977,10 +27178,13 @@
   "firstName": "Lysander",
   "lastName": "Bracey",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 186,
@@ -26051,9 +27255,13 @@
   "firstName": "Jaume",
   "lastName": "Lobo",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 193,
@@ -26124,10 +27332,13 @@
   "firstName": "Sergi",
   "lastName": "Huguet",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 193,
@@ -26198,10 +27409,13 @@
   "firstName": "Osvaldas",
   "lastName": "Matulionis",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 198,
@@ -26274,10 +27488,13 @@
   "firstName": "Xabi",
   "lastName": "Beraza",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 199,
@@ -26348,10 +27565,13 @@
   "firstName": "Alessandro",
   "lastName": "Scariolo",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 201,
@@ -26422,10 +27642,13 @@
   "firstName": "Đorđe",
   "lastName": "Simeunović",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 205,
@@ -26496,10 +27719,13 @@
   "firstName": "Garmine",
   "lastName": "Kande",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 203,
@@ -26570,9 +27796,13 @@
   "firstName": "Osaretin",
   "lastName": "Cerdá",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 211,
@@ -26643,9 +27873,13 @@
   "firstName": "Shilo",
   "lastName": "Jackson",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-fibwi-mallorca-basquet-palma",
   "bodyMeasurements": {
     "height": 210,
@@ -26716,10 +27950,13 @@
   "firstName": "Fernando",
   "lastName": "Zurbriggen",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 185,
@@ -26792,9 +28029,13 @@
   "firstName": "Micah",
   "lastName": "Speight",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 188,
@@ -26865,10 +28106,13 @@
   "firstName": "Jordan",
   "lastName": "Walker",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 194,
@@ -26939,9 +28183,13 @@
   "firstName": "Omar",
   "lastName": "Silverio",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 193,
@@ -27014,10 +28262,13 @@
   "firstName": "Lucas",
   "lastName": "Giovannetti",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 199,
@@ -27088,10 +28339,13 @@
   "firstName": "Millán",
   "lastName": "Jiménez",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 201,
@@ -27162,10 +28416,13 @@
   "firstName": "Travis",
   "lastName": "Munnings",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 201,
@@ -27236,10 +28493,13 @@
   "firstName": "Juampi",
   "lastName": "Vaulet",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 202,
@@ -27310,10 +28570,13 @@
   "firstName": "Kaspar",
   "lastName": "Treier",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 204,
@@ -27384,10 +28647,13 @@
   "firstName": "Iván",
   "lastName": "Aurrecoechea",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 208,
@@ -27460,9 +28726,13 @@
   "firstName": "Mamadou",
   "lastName": "Niang",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 210,
@@ -27533,9 +28803,13 @@
   "firstName": "Jehyve",
   "lastName": "Floyd",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-movistar-estudiantes",
   "bodyMeasurements": {
     "height": 210,
@@ -27608,9 +28882,13 @@
   "firstName": "Mateo",
   "lastName": "Díaz",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-flexicar-fuenlabrada",
   "bodyMeasurements": {
     "height": 184,
@@ -27681,9 +28959,13 @@
   "firstName": "Javi",
   "lastName": "López",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-flexicar-fuenlabrada",
   "bodyMeasurements": {
     "height": 186,
@@ -27754,9 +29036,13 @@
   "firstName": "Vitor",
   "lastName": "Benite",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-flexicar-fuenlabrada",
   "bodyMeasurements": {
     "height": 193,
@@ -27830,10 +29116,13 @@
   "firstName": "Romaric",
   "lastName": "Belemene",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-flexicar-fuenlabrada",
   "bodyMeasurements": {
     "height": 198,
@@ -27904,10 +29193,13 @@
   "firstName": "Iván",
   "lastName": "Cruz",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-flexicar-fuenlabrada",
   "bodyMeasurements": {
     "height": 204,
@@ -27978,10 +29270,13 @@
   "firstName": "Kevin",
   "lastName": "Torres",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palmer-basket-mallorca-palma",
   "bodyMeasurements": {
     "height": 191,
@@ -28052,10 +29347,13 @@
   "firstName": "Álex",
   "lastName": "Blanco",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palmer-basket-mallorca-palma",
   "bodyMeasurements": {
     "height": 186,
@@ -28126,10 +29424,13 @@
   "firstName": "Joan",
   "lastName": "Feliu",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palmer-basket-mallorca-palma",
   "bodyMeasurements": {
     "height": 195,
@@ -28200,10 +29501,13 @@
   "firstName": "David",
   "lastName": "Jolinder",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-palmer-basket-mallorca-palma",
   "bodyMeasurements": {
     "height": 201,
@@ -28274,10 +29578,13 @@
   "firstName": "Octavio",
   "lastName": "Brito",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 12,
+    "Alero": 20,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palmer-basket-mallorca-palma",
   "bodyMeasurements": {
     "height": 199,
@@ -28348,10 +29655,13 @@
   "firstName": "Ángel",
   "lastName": "Comendador",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-palmer-basket-mallorca-palma",
   "bodyMeasurements": {
     "height": 197,
@@ -28422,9 +29732,13 @@
   "firstName": "Emil",
   "lastName": "Stoilov",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-palmer-basket-mallorca-palma",
   "bodyMeasurements": {
     "height": 208,
@@ -28495,9 +29809,13 @@
   "firstName": "Carlos",
   "lastName": "Alocén",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 186,
@@ -28568,9 +29886,13 @@
   "firstName": "Christian",
   "lastName": "Díaz",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 185,
@@ -28641,10 +29963,13 @@
   "firstName": "Jón",
   "lastName": "Axel Gudmundsson",
   "birthDate": "",
-  "positions": [
-    "Base",
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 12,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 186,
@@ -28717,10 +30042,13 @@
   "firstName": "Marques",
   "lastName": "Townes",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Base"
-  ],
+  "positions": {
+    "Base": 12,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 193,
@@ -28793,10 +30121,13 @@
   "firstName": "Joe",
   "lastName": "Cremo",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 191,
@@ -28867,10 +30198,13 @@
   "firstName": "Joaquín",
   "lastName": "Rodríguez",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 194,
@@ -28943,10 +30277,13 @@
   "firstName": "Miquel",
   "lastName": "Salvó",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 201,
@@ -29017,10 +30354,13 @@
   "firstName": "Roberts",
   "lastName": "Stumbris",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 12,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 205,
@@ -29091,10 +30431,13 @@
   "firstName": "Pierre",
   "lastName": "Pelos",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot",
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 12
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 204,
@@ -29165,9 +30508,13 @@
   "firstName": "Luke",
   "lastName": "Fischer",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-gran-canaria",
   "bodyMeasurements": {
     "height": 210,
@@ -29240,9 +30587,13 @@
   "firstName": "Dani",
   "lastName": "Rodríguez",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 185,
@@ -29315,9 +30666,13 @@
   "firstName": "Álex",
   "lastName": "Hernández",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 188,
@@ -29390,9 +30745,13 @@
   "firstName": "Manu",
   "lastName": "Rodríguez",
   "birthDate": "",
-  "positions": [
-    "Escolta"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 195,
@@ -29465,10 +30824,13 @@
   "firstName": "Mathieu",
   "lastName": "Kamba",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 193,
@@ -29539,10 +30901,13 @@
   "firstName": "Chema",
   "lastName": "González",
   "birthDate": "",
-  "positions": [
-    "Alero",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 20,
+    "Ala-pívot": 12,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 199,
@@ -29615,9 +30980,13 @@
   "firstName": "Alec",
   "lastName": "Wintering",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 186,
@@ -29690,9 +31059,13 @@
   "firstName": "Vasilije",
   "lastName": "Vucetic",
   "birthDate": "",
-  "positions": [
-    "Pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 20
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 209,
@@ -29763,10 +31136,13 @@
   "firstName": "Lucas",
   "lastName": "Langarita",
   "birthDate": "",
-  "positions": [
-    "Escolta",
-    "Alero"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 20,
+    "Alero": 12,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 191,
@@ -29837,9 +31213,13 @@
   "firstName": "Dimitar",
   "lastName": "Dimitrov",
   "birthDate": "",
-  "positions": [
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 20,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 206,
@@ -29910,10 +31290,13 @@
   "firstName": "Tanner",
   "lastName": "McGrew",
   "birthDate": "",
-  "positions": [
-    "Pívot",
-    "Ala-pívot"
-  ],
+  "positions": {
+    "Base": 2,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 12,
+    "Pívot": 20
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 210,
@@ -29986,9 +31369,13 @@
   "firstName": "Alec",
   "lastName": "Wintering",
   "birthDate": "",
-  "positions": [
-    "Base"
-  ],
+  "positions": {
+    "Base": 20,
+    "Escolta": 2,
+    "Alero": 2,
+    "Ala-pívot": 2,
+    "Pívot": 2
+  },
   "teamId": "team-palencia-baloncesto",
   "bodyMeasurements": {
     "height": 186,

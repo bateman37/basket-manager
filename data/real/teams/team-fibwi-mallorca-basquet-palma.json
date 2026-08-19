@@ -12,9 +12,13 @@
       "firstName": "Hugo",
       "lastName": "Ferreira",
       "birthDate": "2001-07-28",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 186,
@@ -84,9 +88,13 @@
       "firstName": "Adrià",
       "lastName": "Moncanut",
       "birthDate": "2002-10-06",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 187,
@@ -156,10 +164,13 @@
       "firstName": "Lysander",
       "lastName": "Bracey",
       "birthDate": "1996-11-01",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 186,
@@ -229,9 +240,13 @@
       "firstName": "Jaume",
       "lastName": "Lobo",
       "birthDate": "1997-07-31",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 193,
@@ -301,10 +316,13 @@
       "firstName": "Sergi",
       "lastName": "Huguet",
       "birthDate": "2002-08-31",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 193,
@@ -374,10 +392,13 @@
       "firstName": "Osvaldas",
       "lastName": "Matulionis",
       "birthDate": "1991-08-19",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 198,
@@ -449,10 +470,13 @@
       "firstName": "Xabi",
       "lastName": "Beraza",
       "birthDate": "1999-01-26",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 199,
@@ -522,10 +546,13 @@
       "firstName": "Alessandro",
       "lastName": "Scariolo",
       "birthDate": "2001-10-21",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 201,
@@ -595,10 +622,13 @@
       "firstName": "Đorđe",
       "lastName": "Simeunović",
       "birthDate": "1995-04-26",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 205,
@@ -668,10 +698,13 @@
       "firstName": "Garmine",
       "lastName": "Kande",
       "birthDate": "1999-08-24",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 203,
@@ -741,9 +774,13 @@
       "firstName": "Osaretin",
       "lastName": "Cerdá",
       "birthDate": "2005-06-04",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 211,
@@ -813,9 +850,13 @@
       "firstName": "Shilo",
       "lastName": "Jackson",
       "birthDate": "2003-06-25",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
         "height": 210,

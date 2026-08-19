@@ -12,10 +12,13 @@
       "firstName": "Arturs",
       "lastName": "Kurucs",
       "birthDate": "2000-01-19",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 186,
@@ -87,9 +90,13 @@
       "firstName": "Bruno",
       "lastName": "Fitipaldo",
       "birthDate": "1991-08-02",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 188,
@@ -159,9 +166,13 @@
       "firstName": "Marcelinho",
       "lastName": "Huertas",
       "birthDate": "1983-05-25",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 184,
@@ -235,10 +246,13 @@
       "firstName": "Jaime",
       "lastName": "Fernández",
       "birthDate": "2000-07-15",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 193,
@@ -308,9 +322,13 @@
       "firstName": "Kyle",
       "lastName": "Guy",
       "birthDate": "1997-08-11",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 193,
@@ -382,10 +400,13 @@
       "firstName": "TJ",
       "lastName": "Bamba",
       "birthDate": "2001-01-06",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 193,
@@ -455,10 +476,13 @@
       "firstName": "Wesley",
       "lastName": "Van Beck",
       "birthDate": "1996-01-22",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 192,
@@ -528,10 +552,13 @@
       "firstName": "Héctor",
       "lastName": "Alderete",
       "birthDate": "2002-03-06",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 197,
@@ -601,9 +628,13 @@
       "firstName": "Rokas",
       "lastName": "Giedraitis",
       "birthDate": "1992-08-16",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 199,
@@ -673,10 +704,13 @@
       "firstName": "Xabi",
       "lastName": "López-Arostegui",
       "birthDate": "1997-05-19",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 199,
@@ -746,10 +780,13 @@
       "firstName": "Aaron",
       "lastName": "Doornekamp",
       "birthDate": "1985-12-05",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 203,
@@ -821,9 +858,13 @@
       "firstName": "Tim",
       "lastName": "Abromaitis",
       "birthDate": "1989-09-17",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 202,
@@ -895,9 +936,13 @@
       "firstName": "Ethan",
       "lastName": "Happ",
       "birthDate": "1996-05-07",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 212,
@@ -969,9 +1014,13 @@
       "firstName": "Giorgi",
       "lastName": "Shermadini",
       "birthDate": "1989-04-02",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
         "height": 211,

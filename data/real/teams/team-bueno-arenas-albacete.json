@@ -12,10 +12,13 @@
       "firstName": "Silvano",
       "lastName": "Merlo",
       "birthDate": "2002-08-19",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 184,
@@ -85,9 +88,13 @@
       "firstName": "José",
       "lastName": "Luis González",
       "birthDate": "1994-08-20",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 191,
@@ -157,10 +164,13 @@
       "firstName": "Nick",
       "lastName": "Reid",
       "birthDate": "2002-03-20",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 197,
@@ -230,10 +240,13 @@
       "firstName": "Jan",
       "lastName": "Zemljic",
       "birthDate": "2004-10-14",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 186,
@@ -303,9 +316,13 @@
       "firstName": "Bernat",
       "lastName": "Vanaclocha",
       "birthDate": "1998-04-16",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 210,
@@ -375,10 +392,13 @@
       "firstName": "Iván",
       "lastName": "Serrano Yuste",
       "birthDate": "2000-10-23",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 204,
@@ -451,9 +471,13 @@
       "firstName": "Marcos",
       "lastName": "Ugarte Tapia",
       "birthDate": "1999-02-17",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 199,
@@ -526,9 +550,13 @@
       "firstName": "Óscar",
       "lastName": "Lozano Nieto",
       "birthDate": "1996-10-27",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
         "height": 194,

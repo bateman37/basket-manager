@@ -12,9 +12,13 @@
       "firstName": "Pol",
       "lastName": "Figueras",
       "birthDate": "1998-03-21",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 186,
@@ -84,10 +88,13 @@
       "firstName": "AJ",
       "lastName": "Slaughter",
       "birthDate": "1987-08-03",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 192,
@@ -159,10 +166,13 @@
       "firstName": "Adams",
       "lastName": "Sola",
       "birthDate": "2000-07-27",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 192,
@@ -232,10 +242,13 @@
       "firstName": "Kyle",
       "lastName": "Greeley",
       "birthDate": "2000-05-30",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 193,
@@ -305,10 +318,13 @@
       "firstName": "Marc",
       "lastName": "Martí",
       "birthDate": "1997-06-19",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 204,
@@ -378,10 +394,13 @@
       "firstName": "Iñaki",
       "lastName": "Ordóñez",
       "birthDate": "2003-01-01",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 203,
@@ -451,9 +470,13 @@
       "firstName": "Adam",
       "lastName": "Kejval",
       "birthDate": "2002-01-21",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 211,
@@ -523,9 +546,13 @@
       "firstName": "Wildens",
       "lastName": "Leveque",
       "birthDate": "2000-06-11",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
         "height": 212,

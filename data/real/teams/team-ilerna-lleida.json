@@ -12,9 +12,13 @@
       "firstName": "Dani",
       "lastName": "García",
       "birthDate": "1998-01-30",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 184,
@@ -84,10 +88,13 @@
       "firstName": "Darius",
       "lastName": "McGhee",
       "birthDate": "1999-06-02",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 186,
@@ -159,10 +166,13 @@
       "firstName": "James",
       "lastName": "Batemon",
       "birthDate": "1997-04-08",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 195,
@@ -234,9 +244,13 @@
       "firstName": "Mark",
       "lastName": "Hughes",
       "birthDate": "1997-02-15",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 191,
@@ -306,10 +320,13 @@
       "firstName": "Mikel",
       "lastName": "Sanz",
       "birthDate": "1999-02-01",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 199,
@@ -379,10 +396,13 @@
       "firstName": "Oriol",
       "lastName": "Paulí",
       "birthDate": "1994-05-20",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 199,
@@ -452,10 +472,13 @@
       "firstName": "John",
       "lastName": "Shurna",
       "birthDate": "1990-04-30",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 203,
@@ -525,10 +548,13 @@
       "firstName": "Melvin",
       "lastName": "Ejim",
       "birthDate": "1991-03-04",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 205,
@@ -598,9 +624,13 @@
       "firstName": "Atoumane",
       "lastName": "Diagne",
       "birthDate": "1998-12-31",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 210,
@@ -670,9 +700,13 @@
       "firstName": "Kur",
       "lastName": "Kuath",
       "birthDate": "1998-08-12",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 212,
@@ -744,10 +778,13 @@
       "firstName": "Zacharie",
       "lastName": "Perrin",
       "birthDate": "2004-08-30",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
         "height": 209,

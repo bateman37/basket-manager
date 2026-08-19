@@ -12,9 +12,13 @@
       "firstName": "Mateo",
       "lastName": "Díaz",
       "birthDate": "2002-03-06",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 184,
@@ -84,9 +88,13 @@
       "firstName": "Javi",
       "lastName": "López",
       "birthDate": "1999-05-06",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 186,
@@ -156,9 +164,13 @@
       "firstName": "Vitor",
       "lastName": "Benite",
       "birthDate": "1990-02-20",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 193,
@@ -231,10 +243,13 @@
       "firstName": "Romaric",
       "lastName": "Belemene",
       "birthDate": "1997-02-19",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 198,
@@ -304,10 +319,13 @@
       "firstName": "Iván",
       "lastName": "Cruz",
       "birthDate": "1991-10-24",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 204,
@@ -377,10 +395,13 @@
       "firstName": "Diego",
       "lastName": "Vidal Ortega",
       "birthDate": "2006-06-09",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 191,
@@ -453,10 +474,13 @@
       "firstName": "Emilio",
       "lastName": "Tapia Aguilar",
       "birthDate": "2001-11-25",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 201,
@@ -526,10 +550,13 @@
       "firstName": "Marcos",
       "lastName": "Rincón Molina",
       "birthDate": "1999-12-19",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
         "height": 200,

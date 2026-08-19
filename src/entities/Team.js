@@ -256,16 +256,17 @@
       return squad;
     }
 
-    // Construye la convocatoria excluyendo a cualquier jugador cuya ÚNICA
-    // posición (o TODAS sus posiciones) sea la indicada — ej. excluir todos
-    // los "Pívot" puros, pero mantener a un jugador Ala-pívot/Pívot porque
-    // también sabe jugar de Ala-pívot. Genérico por posición: sirve igual
-    // para "sin Bases", "sin Aleros", etc., sin tocar código de nuevo.
-    // Herramienta de prueba de estrés del motor, no una regla de reglamento
-    // (no está en DESIGN.md) — reutiliza la misma validación 8-12 de
-    // buildMatchSquad().
+    // Construye la convocatoria excluyendo a cualquier jugador cuya posición
+    // PRINCIPAL (DESIGN.md 6.1: la única con valor 20 en su mapa de 5) sea
+    // la indicada — ej. excluir todos los "Pívot" puros (Pívot=20), pero
+    // mantener a un jugador cuya principal sea Ala-pívot aunque tenga
+    // también nivel alto en Pívot como secundaria. Genérico por posición:
+    // sirve igual para "sin Bases", "sin Aleros", etc., sin tocar código de
+    // nuevo. Herramienta de prueba de estrés del motor, no una regla de
+    // reglamento (no está en DESIGN.md) — reutiliza la misma validación 8-12
+    // de buildMatchSquad().
     buildMatchSquadExcludingPosition(position) {
-      const eligible = this.roster.filter((player) => !player.positions.every((p) => p === position));
+      const eligible = this.roster.filter((player) => player.primaryPosition !== position);
       if (eligible.length < MATCH_SQUAD_MIN) {
         throw new Error(
           `Tras excluir la posición "${position}" solo quedan ${eligible.length} jugadores elegibles `

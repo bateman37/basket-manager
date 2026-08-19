@@ -123,6 +123,77 @@
       lightImpactMax: 1.5, // puntos restados como máximo (a 0 energía) en atributos de tiro
       heavyImpactMax: 4, // puntos restados como máximo en atributos físicos/defensivos puros
       foulTendencyBonusMax: 2, // TendenciaAFalta efectiva sube hasta esto a 0 energía
+      // Tope del factor_resistencia de la fórmula estructural de 7.11.4
+      // (`pérdida = [general+intervención] × (1 − factor_resistencia)`) —
+      // acotado por debajo de 1 para que el desgaste NUNCA llegue a cero,
+      // ni con Resistencia=20. Pendiente de calibración.
+      resistanceFactorMax: 0.6,
+
+      // --- DESIGN.md 7.11.4 (Bloque C.4): amplía el desgaste con dos
+      // componentes nuevos, ambos SOLO activos cuando hay una alineación
+      // real (Rotation.js) que sabe qué posición ocupa cada jugador EN ESA
+      // JUGADA — sin alineación (equipos IA sin lineup todavía, ver
+      // MatchEngine) se mantiene el desgaste plano de arriba tal cual.
+      // Multiplicador de desgaste GENERAL según la posición ocupada en pista
+      // (no la principal fija del jugador): más exterior desgasta más.
+      // Cifras de partida, pendientes de calibración por playtesting.
+      positionWearMultiplier: {
+        Base: 1.3,
+        Escolta: 1.2,
+        Alero: 1.0,
+        'Ala-pívot': 0.85,
+        Pívot: 0.7,
+      },
+      // Desgaste por INTERVENCIÓN (componente menor): multiplicador extra
+      // aplicado SOLO a quien es atributo directo en la acción resuelta esa
+      // posesión (catálogo 7.6) — ej. el tirador, el defensor del tiro, el
+      // taponador, los dos reboteadores. Pendiente de calibración.
+      interventionWearMultiplier: 0.6,
+    },
+
+    // --- DESIGN.md 7.11.3 (Bloque C.3): Polivalencia de emergencia ---
+    emergencyVersatility: {
+      // Penalización BASE de rendimiento según la distancia posicional
+      // (índice 0-4: Base=0 ... Pívot=4, ver Player.POSITIONS) entre la
+      // posición que hay que cubrir y la posición asignada del jugador que
+      // la cubre de emergencia. Expresada en puntos de rating (escala 1-20,
+      // mismo orden de magnitud que los modificadores de heightAxis) — se
+      // multiplica por (1 - nivel/20) en MatchEngine. Valores de partida,
+      // pendientes de calibración; distancia 0 no debería darse nunca (si la
+      // posición coincide, no hace falta polivalencia de emergencia).
+      basePenaltyByDistance: [0, 1.5, 3, 4.5, 6],
+      // Peso de la distancia en la selección de candidato (ver
+      // Rotation.chooseEmergencyCandidate): score = nivel - distancia * este
+      // valor. Pendiente de calibración — solo fija que la distancia importe
+      // de forma comparable al nivel (escala 1-20).
+      selectionDistanceWeight: 3,
+    },
+
+    // --- DESIGN.md 7.11.2 (Bloque C.2): rotación automática ---
+    rotation: {
+      // Margen (segundos) de desviación sobre el ritmo esperado de cuota
+      // antes de que el reparto automático considere que alguien está "por
+      // encima"/"por debajo" y merece sustitución. Pendiente de calibración.
+      paceToleranceSeconds: 60,
+    },
+
+    // --- DESIGN.md 7.11.5 (Bloque C.5): recuperación de Energía entre
+    // partidos — curva de decaimiento exponencial inverso sobre el hueco de
+    // energía restante (100 - energía actual): más rápida el primer día,
+    // progresivamente más lenta. Valores de partida, pendientes de
+    // calibración por playtesting real de calendario.
+    recovery: {
+      // hueco_tras(d días) = hueco_inicial * exp(-baseDecayPerDay * velocidad * d)
+      baseDecayPerDay: 0.35,
+      // Recuperación (1-20) actúa como MULTIPLICADOR de velocidad (mismo
+      // punto final, se llega antes) — referenciado contra el valor neutro
+      // de la escala 1-20 (ver NEUTRAL_ATTRIBUTE), no como curva de forma
+      // distinta.
+      recoveryAttributeReference: NEUTRAL_ATTRIBUTE,
+      // Gancho explícito para el futuro módulo de Entrenamiento (DESIGN.md
+      // 7.11.5) — multiplicador neutro (1 = sin efecto) hasta que ese módulo
+      // exista. NO implementar el sistema de entrenamiento aquí.
+      trainingModifierDefault: 1,
     },
 
     // --- 7.6 Bloque C: parámetros de las acciones especiales ---

@@ -12,9 +12,13 @@
       "firstName": "Andrés",
       "lastName": "Feliz",
       "birthDate": "1997-07-15",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 188,
@@ -84,9 +88,13 @@
       "firstName": "Facu",
       "lastName": "Campazzo",
       "birthDate": "1991-03-23",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 186,
@@ -159,10 +167,13 @@
       "firstName": "Theo",
       "lastName": "Maledon",
       "birthDate": "2001-06-12",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 187,
@@ -234,10 +245,13 @@
       "firstName": "Max",
       "lastName": "Shulga",
       "birthDate": "2002-06-25",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 195,
@@ -309,10 +323,13 @@
       "firstName": "Sergio",
       "lastName": "Llull",
       "birthDate": "1987-11-15",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 192,
@@ -386,10 +403,13 @@
       "firstName": "Alberto",
       "lastName": "Abalde",
       "birthDate": "1995-12-15",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 199,
@@ -459,9 +479,13 @@
       "firstName": "Gabriele",
       "lastName": "Procida",
       "birthDate": "2002-06-01",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 199,
@@ -531,10 +555,13 @@
       "firstName": "Gaby",
       "lastName": "Deck",
       "birthDate": "1995-02-08",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 199,
@@ -604,10 +631,13 @@
       "firstName": "Timothé",
       "lastName": "Luwawu-Cabarrot",
       "birthDate": "1995-05-09",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 200,
@@ -677,10 +707,13 @@
       "firstName": "Chuma",
       "lastName": "Okeke",
       "birthDate": "1998-08-18",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 203,
@@ -750,10 +783,13 @@
       "firstName": "Izan",
       "lastName": "Almansa",
       "birthDate": "2005-06-07",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 204,
@@ -823,10 +859,13 @@
       "firstName": "Jaime",
       "lastName": "Pradilla",
       "birthDate": "2001-01-03",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 205,
@@ -896,9 +935,13 @@
       "firstName": "Mikael",
       "lastName": "Jantunen",
       "birthDate": "2000-04-20",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 204,
@@ -968,10 +1011,13 @@
       "firstName": "Usman",
       "lastName": "Garuba",
       "birthDate": "2002-03-09",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 202,
@@ -1041,9 +1087,13 @@
       "firstName": "Edy",
       "lastName": "Tavares",
       "birthDate": "1992-03-22",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 210,
@@ -1115,9 +1165,13 @@
       "firstName": "Olivier",
       "lastName": "Sarr",
       "birthDate": "1999-02-20",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
         "height": 209,

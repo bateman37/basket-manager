@@ -12,9 +12,13 @@
       "firstName": "Juan",
       "lastName": "Núñez",
       "birthDate": "2004-06-04",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 185,
@@ -86,9 +90,13 @@
       "firstName": "Justin",
       "lastName": "Robinson",
       "birthDate": "1997-10-12",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 184,
@@ -160,10 +168,13 @@
       "firstName": "Umoja",
       "lastName": "Gibson",
       "birthDate": "1998-07-04",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 188,
@@ -235,10 +246,13 @@
       "firstName": "Darío",
       "lastName": "Brizuela",
       "birthDate": "1994-11-08",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 193,
@@ -308,9 +322,13 @@
       "firstName": "Kevin",
       "lastName": "Punter",
       "birthDate": "1993-06-25",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 193,
@@ -383,10 +401,13 @@
       "firstName": "Agustín",
       "lastName": "Ubal",
       "birthDate": "2003-07-19",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 200,
@@ -456,10 +477,13 @@
       "firstName": "Joel",
       "lastName": "Parra",
       "birthDate": "2000-04-04",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 200,
@@ -529,9 +553,13 @@
       "firstName": "Stanley",
       "lastName": "Umude",
       "birthDate": "1999-04-12",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 199,
@@ -601,10 +629,13 @@
       "firstName": "Tyrese",
       "lastName": "Martin",
       "birthDate": "1999-03-07",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 199,
@@ -674,9 +705,13 @@
       "firstName": "Olivier",
       "lastName": "Nkamhoua",
       "birthDate": "2000-05-02",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 204,
@@ -746,10 +781,13 @@
       "firstName": "Tosan",
       "lastName": "Evbuomwan",
       "birthDate": "2001-02-16",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 203,
@@ -819,9 +857,13 @@
       "firstName": "Josh",
       "lastName": "Nebo",
       "birthDate": "1997-07-19",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 210,
@@ -893,9 +935,13 @@
       "firstName": "Olek",
       "lastName": "Balcerowski",
       "birthDate": "2000-11-19",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-barca",
       "bodyMeasurements": {
         "height": 208,

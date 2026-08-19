@@ -12,9 +12,13 @@
       "firstName": "Dominik",
       "lastName": "Mavra",
       "birthDate": "1994-06-15",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 186,
@@ -84,9 +88,13 @@
       "firstName": "Erik",
       "lastName": "Quintela",
       "birthDate": "1991-08-17",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 186,
@@ -158,10 +166,13 @@
       "firstName": "Rasir",
       "lastName": "Bolton",
       "birthDate": "1999-09-27",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 187,
@@ -233,9 +244,13 @@
       "firstName": "Francis",
       "lastName": "Alonso",
       "birthDate": "1996-05-25",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 193,
@@ -305,10 +320,13 @@
       "firstName": "Josep",
       "lastName": "Peris",
       "birthDate": "2000-08-06",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 192,
@@ -378,10 +396,13 @@
       "firstName": "Aleksandar",
       "lastName": "Aranitovic",
       "birthDate": "1998-01-24",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 201,
@@ -451,10 +472,13 @@
       "firstName": "Tevin",
       "lastName": "Brown",
       "birthDate": "1998-09-23",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 198,
@@ -524,10 +548,13 @@
       "firstName": "Andersson",
       "lastName": "García",
       "birthDate": "2000-08-23",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 204,
@@ -597,10 +624,13 @@
       "firstName": "Edgar",
       "lastName": "Vicedo",
       "birthDate": "1994-08-24",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 204,
@@ -670,9 +700,13 @@
       "firstName": "Mihajlo",
       "lastName": "Andric",
       "birthDate": "1994-01-04",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 203,
@@ -742,10 +776,13 @@
       "firstName": "Aleksa",
       "lastName": "Ilic",
       "birthDate": "1996-09-17",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 210,
@@ -817,9 +854,13 @@
       "firstName": "Danko",
       "lastName": "Brankovic",
       "birthDate": "2000-11-05",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 210,
@@ -889,9 +930,13 @@
       "firstName": "Jonathan",
       "lastName": "Kasibabu",
       "birthDate": "1996-04-24",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
         "height": 208,

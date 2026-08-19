@@ -12,9 +12,13 @@
       "firstName": "Álvaro",
       "lastName": "Cárdenas",
       "birthDate": "2002-04-29",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 188,
@@ -86,10 +90,13 @@
       "firstName": "Mario",
       "lastName": "Saint-Supéry",
       "birthDate": "2006-04-14",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 187,
@@ -161,9 +168,13 @@
       "firstName": "TJ",
       "lastName": "Shorts",
       "birthDate": "1997-10-15",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 185,
@@ -236,9 +247,13 @@
       "firstName": "Armoni",
       "lastName": "Brooks",
       "birthDate": "1998-06-05",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 194,
@@ -308,10 +323,13 @@
       "firstName": "Gonzalo",
       "lastName": "Corbalán",
       "birthDate": "2002-03-03",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 192,
@@ -381,10 +399,13 @@
       "firstName": "Josep",
       "lastName": "Puerto",
       "birthDate": "1999-03-08",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 191,
@@ -454,10 +475,13 @@
       "firstName": "Lucas",
       "lastName": "Marí",
       "birthDate": "2005-10-20",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 193,
@@ -527,11 +551,13 @@
       "firstName": "Omari",
       "lastName": "Moore",
       "birthDate": "2000-09-18",
-      "positions": [
-        "Base",
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 186,
@@ -603,9 +629,13 @@
       "firstName": "Elias",
       "lastName": "Valtonen",
       "birthDate": "1999-06-11",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 200,
@@ -675,10 +705,13 @@
       "firstName": "Kameron",
       "lastName": "Taylor",
       "birthDate": "1994-10-05",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 199,
@@ -748,10 +781,13 @@
       "firstName": "Dylan",
       "lastName": "Osetkowski",
       "birthDate": "1996-08-08",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 204,
@@ -821,10 +857,13 @@
       "firstName": "Mo",
       "lastName": "Gueye",
       "birthDate": "1998-07-08",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 203,
@@ -894,10 +933,13 @@
       "firstName": "Nate",
       "lastName": "Reuvers",
       "birthDate": "1998-09-30",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 202,
@@ -967,9 +1009,13 @@
       "firstName": "Neal",
       "lastName": "Sako",
       "birthDate": "1998-08-13",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 209,
@@ -1041,9 +1087,13 @@
       "firstName": "Yankuba",
       "lastName": "Sima",
       "birthDate": "1996-07-28",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
         "height": 212,
