@@ -766,3 +766,128 @@
     desde la UI y que el modo prueba sigue cargando sin errores. Cero
     errores de consola/página en todos los casos (aparte del ya conocido
     fallo de red a Google Fonts en este sandbox sin internet).
+
+## 2026-08-19 (2) — Alineación por slots + Minutos de la basura
+
+- **Aviso encontrado al empezar, señalado antes que nada**: el encargo de
+  esta sesión citaba `DESIGN.md` 7.11.2-bis ("Minutos de la basura") y una
+  "ampliación de 7.11.6 sobre convocatoria/quintetos" como si ya
+  existieran en el documento — no era así, `DESIGN.md` no tenía ninguna de
+  las dos antes de esta sesión (comprobado con búsqueda completa del
+  archivo). Se ha tratado la especificación del encargo como la regla
+  dictada directamente por Dennis y se ha añadido **7.11.2-bis** a
+  `DESIGN.md` con el contenido exacto pedido, para que quede fijada para
+  sesiones futuras. No se ha encontrado ni inventado ninguna "ampliación
+  de 7.11.6" — 7.11.6 queda igual que estaba.
+- **`src/core/Rotation.js` — nuevo modelo de slots** (sustituye "una
+  entrada por jugador" por "slots por posición"): `lineup.entries` pasa a
+  ser `{ [posición]: { starter, sub1, sub2 } }`, cada slot
+  `{ playerId, minutesQuota }`. Un mismo `playerId` puede repetirse en
+  varios slots/filas sin bloquearlo — el motivo original del cambio: un
+  jugador no podía antes ser titular en una posición y suplente en otra a
+  la vez, con minutos independientes que se suman a su total.
+  - `validateLineup()`: ahora suma los 3 slots de cada fila (antes sumaba
+    entradas sueltas por jugador); mismo comportamiento de bloqueo con
+    detalle de qué posición falla y en cuánto.
+  - Nueva `totalMinutesByPlayer(lineup)`: recorre las 5×3 slots y devuelve
+    el total de minutos de cada jugador sumando todas sus apariciones —
+    la usan tanto la UI (resumen de minutos totales) como el propio
+    `buildRotationState()` para `quotaSeconds`.
+  - `buildRotationState()`: `bySlot`/`quotaSeconds` adaptados al nuevo
+    shape; el quinteto inicial usa directamente el slot `starter` de cada
+    fila (ya no hace falta inferirlo por mayor cuota).
+  - **Decisión de implementación NO fijada en DESIGN.md, señalada
+    explícitamente**: `chooseEmergencyCandidate()`/
+    `considerSlotSubstitution()` ya no leen una `declaredPosition` única
+    por jugador (no existe con el modelo de slots) — se añade
+    `referencePositionForPlayer()`, que usa la fila donde el jugador tiene
+    más minutos asignados como su posición de referencia para la distancia
+    posicional de la polivalencia de emergencia (7.11.3). Empate resuelto
+    por orden de posición (Base→Pívot), también sin fijar en DESIGN.md.
+- **`src/core/Rotation.js` — Minutos de la basura (7.11.2-bis)**: nuevas
+  `updateGarbageTimeState()` (activación/desactivación por equipo, umbrales
+  de tiempo calculados en segundos totales de partido para que sigan
+  siendo válidos si hay prórroga) y `considerGarbageTimeSubstitution()`
+  (orden Suplente 2 > Suplente 1 > Titular, sin exigir cuota). Se evalúa en
+  cada `runSubstitutionWindow()`, incluso durante una franja fija activa
+  (para no perder la marca), pero un quinteto fijo sigue mandando sobre la
+  sustitución en sí mientras esté activo — **decisión de implementación no
+  fijada en DESIGN.md**, señalada explícitamente: un quinteto de cierre
+  fijado a propósito por el usuario no debería deshacerse solo porque se
+  activen minutos de la basura.
+  - **Pendiente explícito** (ya señalado en el propio 7.11.2-bis y en el
+    encargo): no existe sistema de disponibilidad por lesión/expulsión en
+    el motor — cualquier slot con jugador asignado se trata como
+    disponible.
+- **`src/core/MatchConfig.js`**: nuevo bloque `garbageTime: { marginToEnter:
+  20, marginToExit: 10 }` en `CONFIG_BASE`, en vez de números sueltos.
+- **`src/ui/game.js` — pantalla de Alineación**:
+  - La convocatoria (checkboxes de nombre + posición) se mantiene igual;
+    las valoraciones en estrellas (Técnica/Física/Mental/Resistencia/
+    Energía/Forma, DESIGN.md 7.11.6) se han trasladado aquí desde la
+    tarjeta "Convocados" que desaparece — **señalado explícitamente**: el
+    encargo decía que la convocatoria "ya" mostraba estas valoraciones y
+    debía quedar igual, pero en el código real solo vivían en la tarjeta
+    de Convocados (la que este mismo encargo pide sustituir); para no
+    perder ese dato exigido por 7.11.6 se han movido al bloque de
+    checkboxes en vez de eliminarlas.
+  - Bloque "Convocados" (una tarjeta por jugador) sustituido por una tabla
+    de 5 filas (una por posición) × 3 columnas de slot (Titular, Suplente
+    1, Suplente 2), cada slot con desplegable de convocado + minutos, sin
+    exclusión entre desplegables de la misma fila ni de otras filas.
+  - Contador en vivo "35/40"/"40/40" por fila, con clase CSS
+    `is-ok`/`is-bad`: se actualiza en el evento `input` (cada pulsación,
+    sin esperar a perder el foco) actualizando solo el nodo del contador y
+    el resumen de abajo, sin re-renderizar la pantalla entera (se perdería
+    el foco del campo mientras se escribe); el `change` (blur) sigue
+    haciendo el commit final clampado + re-render completo, para refrescar
+    la validez global y el botón de jugar.
+  - Nuevo resumen "Minutos totales por jugador" debajo de la tabla, usando
+    `Rotation.totalMinutesByPlayer()`.
+  - Quintetos fijos por franja: sin cambios funcionales, comprobados con
+    el nuevo shape de `entries` (no dependían de él, solo de IDs de
+    jugador sueltos).
+  - Nuevo checkbox "Permitir minutos de la basura" →
+    `lineup.garbageTime.enabled` (por defecto `false`, opción de partido);
+    se reenvía en `buildUserSideOptions()` junto con `entries`/
+    `fixedSegments`.
+- **`src/ui/game.css`**: estilos nuevos para la tabla de slots
+  (`.lineup-slots-table`, `.lineup-slot-cell`, `.lineup-slot-total.is-ok/
+  .is-bad`), el resumen de minutos totales y el checkbox de minutos de la
+  basura (`.gm-checkbox`); las reglas de la antigua tarjeta por jugador
+  (`.lineup-card*`) se han retirado (ya no se usan) salvo las de
+  valoraciones/forma, renombradas a `.squad-picker__ratings`/
+  `.squad-picker__form` al trasladarse al bloque de convocatoria.
+- **`CLAUDE.md`**: añadidas dos decisiones de interfaz ya tomadas a la
+  sección "Interfaz de juego" (modelo de slots de la tabla de Alineación,
+  checkbox de minutos de la basura) para que sesiones futuras no las
+  reinterpreten.
+- **Verificado**: script Node dedicado sobre `Rotation.js`/
+  `MatchConfig.js` (validación 40/40 por fila y detección de descuadre,
+  `totalMinutesByPlayer` sumando slots repetidos del mismo jugador,
+  quinteto inicial = slots `starter`, sustitución normal por cuota
+  agotada, activación/mantenimiento/desactivación de minutos de la basura
+  con los umbrales de tiempo y margen correctos para el equipo que gana y
+  para el que pierde) + Playwright headless (`file://`, sin servidor):
+  convocatoria, tabla de slots con 5 filas y desplegables repoblados,
+  contador en vivo actualizándose con el evento `input` sin blur, resumen
+  de minutos totales en vivo, checkbox de minutos de la basura, mismo
+  jugador repetido en dos slots de la misma fila sin bloquearse, y un
+  partido completo jugado de principio a fin con una alineación válida de
+  10 convocados (sin errores de consola/página, aparte del ya conocido
+  fallo de red a Google Fonts en este sandbox sin internet).
+- **Actualización tras terminar, antes de abrir el PR**: mientras se
+  trabajaba, Dennis subió directamente a `main` (commit "Add files via
+  upload") el contenido real de 7.11.2-bis y una ampliación de 7.11.6 —
+  las mismas secciones que el encargo citaba como ya existentes. Al
+  traer `main` a esta rama:
+  - Se ha retirado la versión de 7.11.2-bis añadida en este cierre (era
+    redundante, coincidía en cifras con la de Dennis) y se ha mantenido
+    la de `main` como texto canónico.
+  - La ampliación real de 7.11.6 pide **dos pantallas separadas**
+    (Convocatoria / Quintetos); esta sesión había construido **una sola
+    pantalla combinada**. Consultado con Dennis, decide mantener una
+    sola pantalla ("le parece innecesariamente engorroso" separarlas) —
+    se ha anotado esa decisión directamente en el propio DESIGN.md junto
+    a la ampliación, para que no quede una contradicción escrita entre
+    el documento y la interfaz real.

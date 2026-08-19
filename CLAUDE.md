@@ -117,6 +117,23 @@ con dos botones:
     `simulateNextRound()` en `game.js`, reutilizando `createCup`,
     `createTitlePlayoff` y `PromotionPlayoff` tal cual — no se ha tocado
     ninguno de los tres.
+  - Alineación por slots (sesión "Alineación por slots + Minutos de la
+    basura"): la tabla de "Alineación por posición" tiene 5 filas (una por
+    posición) × 3 columnas de slot (Titular, Suplente 1, Suplente 2). Cada
+    slot es un desplegable de convocado + minutos, independiente de los
+    demás — un mismo jugador puede repetirse en varios slots/filas sin
+    restricción. Esto sustituye al modelo anterior de "una entrada por
+    jugador" (una posición declarada + una cuota) tanto en
+    `src/core/Rotation.js` (`lineup.entries`) como en la pantalla. Si una
+    sesión futura toca esta pantalla, debe seguir este modelo de slots, no
+    volver al de una entrada por jugador. Las valoraciones en estrellas
+    (Técnica/Física/Mental/Resistencia/Energía/Forma, DESIGN.md 7.11.6) se
+    muestran en la lista de convocatoria (checkboxes), no en una tarjeta
+    aparte por jugador — esa tarjeta desapareció al introducir la tabla de
+    slots.
+  - Checkbox "Permitir minutos de la basura" (DESIGN.md 7.11.2-bis): vive
+    en `lineup.garbageTime.enabled`, por defecto desactivado, opción de
+    partido (no de club/global).
 
 ## Qué NO hacer sin confirmar con Dennis primero
 

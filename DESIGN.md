@@ -1186,16 +1186,23 @@ previstos y posición deseada para ese partido (7.11.1, 7.11.2):
   espíritu semi-visible (no da el dato crudo) pero ofreciendo una señal
   clara y consistente para decidir la alineación.
 
-**Ampliación — dos pantallas separadas** (sesión de diseño de frontend,
-referencia visual: esquema clásico de manager de texto tipo
-BuzzerBeater con posiciones fijas y dropdowns):
+**Ampliación** (sesión de diseño de frontend, referencia visual: esquema
+clásico de manager de texto tipo BuzzerBeater con posiciones fijas y
+dropdowns). **Decisión confirmada con Dennis al implementar esta
+ampliación**: se descarta la idea de dos pantallas separadas de más abajo
+(la convocatoria y los quintetos conviven en una única pantalla de
+Alineación, arriba y abajo respectivamente) — le parece innecesariamente
+engorroso navegar entre dos pantallas para configurar un mismo partido.
+El resto de la ampliación (checkboxes de convocatoria con las
+valoraciones, tabla de 3 slots por fila, validación y contador en vivo)
+se mantiene tal cual está descrito debajo, solo cambia que vive en una
+pantalla en vez de en dos:
 
-- **Pantalla de convocatoria**: lista de jugadores de plantilla con las
+- **Bloque de convocatoria**: lista de jugadores de plantilla con las
   valoraciones ya definidas arriba (Técnica, Física, Mental,
-  Resistencia, Energía, Forma en estrellas) y un simple toggle Sí/No
-  por jugador para marcarlo convocado — en vez de un selector de dos
-  columnas con botón de mover.
-- **Pantalla de quintetos**: 5 filas fijas por posición (Base, Escolta,
+  Resistencia, Energía, Forma en estrellas) y un checkbox por jugador
+  para marcarlo convocado.
+- **Bloque de quintetos**: 5 filas fijas por posición (Base, Escolta,
   Alero, Ala-pívot, Pívot). Cada fila tiene exactamente **1 slot de
   titular + 2 slots de suplente** para esa posición (3 slots por fila,
   15 en total). Cada slot es un par dropdown de jugador + campo de

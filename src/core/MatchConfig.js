@@ -177,6 +177,16 @@
       paceToleranceSeconds: 60,
     },
 
+    // --- DESIGN.md 7.11.2-bis: "Minutos de la basura" ---
+    // Márgenes de puntos que activan/desactivan el modo para cada equipo
+    // (ver Rotation.updateGarbageTimeState) — antes vivían como números
+    // sueltos en el código, ahora aquí como el resto de parámetros del
+    // motor (7.2).
+    garbageTime: {
+      marginToEnter: 20, // el equipo que gana lo activa a partir de esta ventaja
+      marginToExit: 10, // se desactiva al bajar a esta diferencia (o menos)
+    },
+
     // --- DESIGN.md 7.11.5 (Bloque C.5): recuperación de Energía entre
     // partidos — curva de decaimiento exponencial inverso sobre el hueco de
     // energía restante (100 - energía actual): más rápida el primer día,
