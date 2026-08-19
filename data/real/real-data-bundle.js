@@ -1,7 +1,6 @@
 // data/real/real-data-bundle.js
-// GENERADO por scripts/import-real-data.js / rescale-real-attributes.js —
-// no editar a mano, volver a ejecutar el script correspondiente si hace
-// falta actualizar estos datos.
+// GENERADO por scripts/import-real-data.js — no editar a mano, volver a
+// ejecutar el script si hace falta actualizar estos datos.
 // Expone en window.BasketManager los mismos datos que data/real/index.json
 // y data/real/teams/*.json, pero cargables con un <script> normal (index.html
 // abre vía file:// y fetch() de un JSON local falla ahí por CORS).
@@ -239,9 +238,13 @@
         "firstName": "Boogie",
         "lastName": "Ellis",
         "birthDate": "2000-12-12",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 186,
@@ -313,9 +316,13 @@
         "firstName": "Ludde",
         "lastName": "Hakanson",
         "birthDate": "1996-03-22",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 186,
@@ -385,10 +392,13 @@
         "firstName": "Nico",
         "lastName": "Laprovittola",
         "birthDate": "1990-01-31",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 186,
@@ -461,9 +471,13 @@
         "firstName": "Ricky",
         "lastName": "Rubio",
         "birthDate": "1990-10-21",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 186,
@@ -537,10 +551,13 @@
         "firstName": "Isaac",
         "lastName": "Nogués",
         "birthDate": "2004-02-10",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 191,
@@ -610,9 +627,13 @@
         "firstName": "Alex",
         "lastName": "Reyes",
         "birthDate": "1993-12-17",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 199,
@@ -682,9 +703,13 @@
         "firstName": "Yannick",
         "lastName": "Kraag",
         "birthDate": "2002-10-16",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 201,
@@ -754,10 +779,13 @@
         "firstName": "Emir",
         "lastName": "Sulejmanovic",
         "birthDate": "1995-07-13",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 203,
@@ -827,9 +855,13 @@
         "firstName": "Kwan",
         "lastName": "Cheatham",
         "birthDate": "1995-08-21",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 206,
@@ -899,10 +931,13 @@
         "firstName": "Michael",
         "lastName": "Ruzic",
         "birthDate": "2006-10-04",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 204,
@@ -972,9 +1007,13 @@
         "firstName": "Ante",
         "lastName": "Tomic",
         "birthDate": "1987-02-17",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 208,
@@ -1047,9 +1086,13 @@
         "firstName": "Simon",
         "lastName": "Birgander",
         "birthDate": "1997-10-23",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
           "height": 209,
@@ -1216,9 +1259,13 @@
         "firstName": "Juan",
         "lastName": "Núñez",
         "birthDate": "2004-06-04",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 185,
@@ -1290,9 +1337,13 @@
         "firstName": "Justin",
         "lastName": "Robinson",
         "birthDate": "1997-10-12",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 184,
@@ -1364,10 +1415,13 @@
         "firstName": "Umoja",
         "lastName": "Gibson",
         "birthDate": "1998-07-04",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 188,
@@ -1439,10 +1493,13 @@
         "firstName": "Darío",
         "lastName": "Brizuela",
         "birthDate": "1994-11-08",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 193,
@@ -1512,9 +1569,13 @@
         "firstName": "Kevin",
         "lastName": "Punter",
         "birthDate": "1993-06-25",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 193,
@@ -1587,10 +1648,13 @@
         "firstName": "Agustín",
         "lastName": "Ubal",
         "birthDate": "2003-07-19",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 200,
@@ -1660,10 +1724,13 @@
         "firstName": "Joel",
         "lastName": "Parra",
         "birthDate": "2000-04-04",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 200,
@@ -1733,9 +1800,13 @@
         "firstName": "Stanley",
         "lastName": "Umude",
         "birthDate": "1999-04-12",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 199,
@@ -1805,10 +1876,13 @@
         "firstName": "Tyrese",
         "lastName": "Martin",
         "birthDate": "1999-03-07",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 199,
@@ -1878,9 +1952,13 @@
         "firstName": "Olivier",
         "lastName": "Nkamhoua",
         "birthDate": "2000-05-02",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 204,
@@ -1950,10 +2028,13 @@
         "firstName": "Tosan",
         "lastName": "Evbuomwan",
         "birthDate": "2001-02-16",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 203,
@@ -2023,9 +2104,13 @@
         "firstName": "Josh",
         "lastName": "Nebo",
         "birthDate": "1997-07-19",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 210,
@@ -2097,9 +2182,13 @@
         "firstName": "Olek",
         "lastName": "Balcerowski",
         "birthDate": "2000-11-19",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-barca",
         "bodyMeasurements": {
           "height": 208,
@@ -2266,9 +2355,13 @@
         "firstName": "Guillem",
         "lastName": "Vives",
         "birthDate": "1993-06-16",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 186,
@@ -2340,9 +2433,13 @@
         "firstName": "Sergi",
         "lastName": "García",
         "birthDate": "1997-02-17",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 188,
@@ -2414,9 +2511,13 @@
         "firstName": "Trae",
         "lastName": "Bell-Haynes",
         "birthDate": "1995-09-05",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 185,
@@ -2488,10 +2589,13 @@
         "firstName": "Justin",
         "lastName": "Jaworski",
         "birthDate": "1999-06-21",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 193,
@@ -2563,10 +2667,13 @@
         "firstName": "Miguel",
         "lastName": "González",
         "birthDate": "1999-03-20",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 195,
@@ -2636,10 +2743,13 @@
         "firstName": "Caleb",
         "lastName": "Homesley",
         "birthDate": "1996-11-27",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 197,
@@ -2709,9 +2819,13 @@
         "firstName": "Nico",
         "lastName": "Brussino",
         "birthDate": "1993-03-02",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 200,
@@ -2781,10 +2895,13 @@
         "firstName": "Jaime",
         "lastName": "Fernández",
         "birthDate": "2000-07-15",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 206,
@@ -2854,9 +2971,13 @@
         "firstName": "Roberts",
         "lastName": "Blumbergs",
         "birthDate": "1998-04-29",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 206,
@@ -2926,9 +3047,13 @@
         "firstName": "Gabriel",
         "lastName": "Olaseni",
         "birthDate": "1991-12-29",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 210,
@@ -3000,9 +3125,13 @@
         "firstName": "Laurynas",
         "lastName": "Birutis",
         "birthDate": "1997-08-27",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
           "height": 212,
@@ -3169,9 +3298,13 @@
         "firstName": "Andrzej",
         "lastName": "Pluta",
         "birthDate": "2000-06-03",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 188,
@@ -3243,9 +3376,13 @@
         "firstName": "Isaac",
         "lastName": "Vázquez",
         "birthDate": "2004-10-10",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 186,
@@ -3317,10 +3454,13 @@
         "firstName": "Mac",
         "lastName": "McClung",
         "birthDate": "1999-01-06",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 186,
@@ -3392,10 +3532,13 @@
         "firstName": "Stanley",
         "lastName": "Whittaker",
         "birthDate": "1994-10-21",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 185,
@@ -3467,10 +3610,13 @@
         "firstName": "Maxi",
         "lastName": "Fjellerup",
         "birthDate": "1997-11-25",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 193,
@@ -3542,10 +3688,13 @@
         "firstName": "Pep",
         "lastName": "Busquets",
         "birthDate": "1999-03-02",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 194,
@@ -3615,10 +3764,13 @@
         "firstName": "Sergi",
         "lastName": "Martínez",
         "birthDate": "1999-05-10",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 199,
@@ -3688,9 +3840,13 @@
         "firstName": "David",
         "lastName": "N'Guessan",
         "birthDate": "2000-06-12",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 206,
@@ -3760,10 +3916,13 @@
         "firstName": "Nikola",
         "lastName": "Maric",
         "birthDate": "1998-12-19",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 202,
@@ -3833,9 +3992,13 @@
         "firstName": "Aljaz",
         "lastName": "Kunc",
         "birthDate": "1999-07-30",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 211,
@@ -3907,9 +4070,13 @@
         "firstName": "Martinas",
         "lastName": "Geben",
         "birthDate": "1994-10-20",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
           "height": 210,
@@ -4076,9 +4243,13 @@
         "firstName": "Dani",
         "lastName": "García",
         "birthDate": "1998-01-30",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 184,
@@ -4148,10 +4319,13 @@
         "firstName": "Darius",
         "lastName": "McGhee",
         "birthDate": "1999-06-02",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 186,
@@ -4223,10 +4397,13 @@
         "firstName": "James",
         "lastName": "Batemon",
         "birthDate": "1997-04-08",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 195,
@@ -4298,9 +4475,13 @@
         "firstName": "Mark",
         "lastName": "Hughes",
         "birthDate": "1997-02-15",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 191,
@@ -4370,10 +4551,13 @@
         "firstName": "Mikel",
         "lastName": "Sanz",
         "birthDate": "1999-02-01",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 199,
@@ -4443,10 +4627,13 @@
         "firstName": "Oriol",
         "lastName": "Paulí",
         "birthDate": "1994-05-20",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 199,
@@ -4516,10 +4703,13 @@
         "firstName": "John",
         "lastName": "Shurna",
         "birthDate": "1990-04-30",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 203,
@@ -4589,10 +4779,13 @@
         "firstName": "Melvin",
         "lastName": "Ejim",
         "birthDate": "1991-03-04",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 205,
@@ -4662,9 +4855,13 @@
         "firstName": "Atoumane",
         "lastName": "Diagne",
         "birthDate": "1998-12-31",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 210,
@@ -4734,9 +4931,13 @@
         "firstName": "Kur",
         "lastName": "Kuath",
         "birthDate": "1998-08-12",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 212,
@@ -4808,10 +5009,13 @@
         "firstName": "Zacharie",
         "lastName": "Perrin",
         "birthDate": "2004-08-30",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
           "height": 209,
@@ -4978,9 +5182,13 @@
         "firstName": "Ferran",
         "lastName": "Bassas",
         "birthDate": "1992-04-29",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 187,
@@ -5052,9 +5260,13 @@
         "firstName": "Hugo",
         "lastName": "Benítez",
         "birthDate": "2001-01-20",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 186,
@@ -5126,10 +5338,13 @@
         "firstName": "Lucas",
         "lastName": "Beaufort",
         "birthDate": "2002-05-24",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 187,
@@ -5201,10 +5416,13 @@
         "firstName": "Rafa",
         "lastName": "Villar",
         "birthDate": "2004-08-09",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 186,
@@ -5276,10 +5494,13 @@
         "firstName": "Lukasz",
         "lastName": "Kolenda",
         "birthDate": "1999-07-28",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 193,
@@ -5349,10 +5570,13 @@
         "firstName": "Chibuzo",
         "lastName": "Agbo",
         "birthDate": "2001-11-28",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 198,
@@ -5422,9 +5646,13 @@
         "firstName": "Pablo",
         "lastName": "Tamba",
         "birthDate": "2003-09-04",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 199,
@@ -5494,10 +5722,13 @@
         "firstName": "Eric",
         "lastName": "Vila",
         "birthDate": "1998-05-15",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 204,
@@ -5567,10 +5798,13 @@
         "firstName": "Timmy",
         "lastName": "Allen",
         "birthDate": "2000-01-09",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 203,
@@ -5640,9 +5874,13 @@
         "firstName": "Yordan",
         "lastName": "Minchev",
         "birthDate": "1998-10-17",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 205,
@@ -5712,9 +5950,13 @@
         "firstName": "Nick",
         "lastName": "Ongenda",
         "birthDate": "2000-09-29",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 210,
@@ -5786,10 +6028,13 @@
         "firstName": "Pierre",
         "lastName": "Oriola",
         "birthDate": "1992-09-25",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
           "height": 211,
@@ -5956,10 +6201,13 @@
         "firstName": "Damion",
         "lastName": "Baugh",
         "birthDate": "2000-08-03",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 186,
@@ -6031,9 +6279,13 @@
         "firstName": "Kobi",
         "lastName": "Simmons",
         "birthDate": "1997-07-04",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 184,
@@ -6105,10 +6357,13 @@
         "firstName": "Markus",
         "lastName": "Howard",
         "birthDate": "1999-03-03",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 193,
@@ -6181,10 +6436,13 @@
         "firstName": "Matteo",
         "lastName": "Spagnolo",
         "birthDate": "2003-01-10",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 194,
@@ -6254,10 +6512,13 @@
         "firstName": "AJ",
         "lastName": "Lawson",
         "birthDate": "2000-07-15",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 199,
@@ -6327,10 +6588,13 @@
         "firstName": "Chris",
         "lastName": "Duarte",
         "birthDate": "1997-06-13",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 199,
@@ -6400,9 +6664,13 @@
         "firstName": "Dewayne",
         "lastName": "Stewart Jr",
         "birthDate": "1999-07-28",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 199,
@@ -6472,10 +6740,13 @@
         "firstName": "Rodions",
         "lastName": "Kurucs",
         "birthDate": "1998-02-05",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 199,
@@ -6545,10 +6816,13 @@
         "firstName": "Tadas",
         "lastName": "Sedekerskis",
         "birthDate": "1998-01-17",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 201,
@@ -6618,9 +6892,13 @@
         "firstName": "Clement",
         "lastName": "Frisch",
         "birthDate": "2002-01-07",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 203,
@@ -6690,9 +6968,13 @@
         "firstName": "Khalifa",
         "lastName": "Diop",
         "birthDate": "2002-01-15",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
           "height": 209,
@@ -6859,10 +7141,13 @@
         "firstName": "Arturs",
         "lastName": "Kurucs",
         "birthDate": "2000-01-19",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 186,
@@ -6934,9 +7219,13 @@
         "firstName": "Bruno",
         "lastName": "Fitipaldo",
         "birthDate": "1991-08-02",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 188,
@@ -7006,9 +7295,13 @@
         "firstName": "Marcelinho",
         "lastName": "Huertas",
         "birthDate": "1983-05-25",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 184,
@@ -7082,10 +7375,13 @@
         "firstName": "Jaime",
         "lastName": "Fernández",
         "birthDate": "2000-07-15",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 193,
@@ -7155,9 +7451,13 @@
         "firstName": "Kyle",
         "lastName": "Guy",
         "birthDate": "1997-08-11",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 193,
@@ -7229,10 +7529,13 @@
         "firstName": "TJ",
         "lastName": "Bamba",
         "birthDate": "2001-01-06",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 193,
@@ -7302,10 +7605,13 @@
         "firstName": "Wesley",
         "lastName": "Van Beck",
         "birthDate": "1996-01-22",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 192,
@@ -7375,10 +7681,13 @@
         "firstName": "Héctor",
         "lastName": "Alderete",
         "birthDate": "2002-03-06",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 197,
@@ -7448,9 +7757,13 @@
         "firstName": "Rokas",
         "lastName": "Giedraitis",
         "birthDate": "1992-08-16",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 199,
@@ -7520,10 +7833,13 @@
         "firstName": "Xabi",
         "lastName": "López-Arostegui",
         "birthDate": "1997-05-19",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 199,
@@ -7593,10 +7909,13 @@
         "firstName": "Aaron",
         "lastName": "Doornekamp",
         "birthDate": "1985-12-05",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 203,
@@ -7668,9 +7987,13 @@
         "firstName": "Tim",
         "lastName": "Abromaitis",
         "birthDate": "1989-09-17",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 202,
@@ -7742,9 +8065,13 @@
         "firstName": "Ethan",
         "lastName": "Happ",
         "birthDate": "1996-05-07",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 212,
@@ -7816,9 +8143,13 @@
         "firstName": "Giorgi",
         "lastName": "Shermadini",
         "birthDate": "1989-04-02",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
           "height": 211,
@@ -7985,10 +8316,13 @@
         "firstName": "Alonzo",
         "lastName": "Verge Jr.",
         "birthDate": "1998-10-17",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 186,
@@ -8060,9 +8394,13 @@
         "firstName": "Caio",
         "lastName": "Pacheco",
         "birthDate": "1999-02-22",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 188,
@@ -8134,9 +8472,13 @@
         "firstName": "Didac",
         "lastName": "Cuevas",
         "birthDate": "2000-06-20",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 188,
@@ -8208,10 +8550,13 @@
         "firstName": "Paul",
         "lastName": "Jorgensen",
         "birthDate": "1996-07-21",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 193,
@@ -8281,10 +8626,13 @@
         "firstName": "Tomas",
         "lastName": "Dimsa",
         "birthDate": "1994-01-02",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 191,
@@ -8354,10 +8702,13 @@
         "firstName": "Guillem",
         "lastName": "Jou",
         "birthDate": "1997-07-15",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 197,
@@ -8427,10 +8778,13 @@
         "firstName": "Jacobo",
         "lastName": "Díaz",
         "birthDate": "1996-07-23",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 199,
@@ -8500,9 +8854,13 @@
         "firstName": "Lukas",
         "lastName": "Uleckas",
         "birthDate": "1999-08-06",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 197,
@@ -8572,10 +8930,13 @@
         "firstName": "Dino",
         "lastName": "Radoncic",
         "birthDate": "1999-01-08",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 202,
@@ -8645,9 +9006,13 @@
         "firstName": "Dmytro",
         "lastName": "Skapintsev",
         "birthDate": "1998-05-12",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 208,
@@ -8719,9 +9084,13 @@
         "firstName": "George",
         "lastName": "Conditt IV",
         "birthDate": "2000-08-22",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 208,
@@ -8791,9 +9160,13 @@
         "firstName": "Karlis",
         "lastName": "Silins",
         "birthDate": "1997-07-22",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
           "height": 209,
@@ -8960,9 +9333,13 @@
         "firstName": "Brandon",
         "lastName": "Childress",
         "birthDate": "1997-08-31",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 184,
@@ -9034,10 +9411,13 @@
         "firstName": "Alex",
         "lastName": "Barcello",
         "birthDate": "1998-08-31",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 191,
@@ -9107,10 +9487,13 @@
         "firstName": "Caleb",
         "lastName": "Agada",
         "birthDate": "1994-08-31",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 192,
@@ -9180,10 +9563,13 @@
         "firstName": "Diogo",
         "lastName": "Brito",
         "birthDate": "1997-04-24",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 194,
@@ -9253,10 +9639,13 @@
         "firstName": "Olle",
         "lastName": "Lundqvist",
         "birthDate": "1999-11-21",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 194,
@@ -9326,10 +9715,13 @@
         "firstName": "Sergi",
         "lastName": "Quintela",
         "birthDate": "1996-04-21",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 195,
@@ -9399,9 +9791,13 @@
         "firstName": "Leo",
         "lastName": "Meindl",
         "birthDate": "1993-03-20",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 197,
@@ -9471,10 +9867,13 @@
         "firstName": "Yunio",
         "lastName": "Barrueta",
         "birthDate": "1993-04-15",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 199,
@@ -9544,9 +9943,13 @@
         "firstName": "Alejandro",
         "lastName": "Galán",
         "birthDate": "1999-09-12",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 202,
@@ -9616,10 +10019,13 @@
         "firstName": "Alonso",
         "lastName": "Faure",
         "birthDate": "2002-02-20",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 204,
@@ -9689,10 +10095,13 @@
         "firstName": "Efe",
         "lastName": "Abogidi",
         "birthDate": "2001-10-11",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 205,
@@ -9762,9 +10171,13 @@
         "firstName": "Felipe",
         "lastName": "dos Anjos",
         "birthDate": "1998-04-30",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 208,
@@ -9836,9 +10249,13 @@
         "firstName": "Joel",
         "lastName": "Soriano",
         "birthDate": "2000-01-30",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
           "height": 211,
@@ -10005,9 +10422,13 @@
         "firstName": "James",
         "lastName": "Akinjo",
         "birthDate": "2000-11-27",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 184,
@@ -10079,9 +10500,13 @@
         "firstName": "Luka",
         "lastName": "Bottiroli",
         "birthDate": "2009-01-10",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 188,
@@ -10153,9 +10578,13 @@
         "firstName": "Rafa",
         "lastName": "Luz",
         "birthDate": "1992-02-11",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 186,
@@ -10227,10 +10656,13 @@
         "firstName": "Aaron",
         "lastName": "Best",
         "birthDate": "1992-09-01",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 194,
@@ -10300,10 +10732,13 @@
         "firstName": "Chumi",
         "lastName": "Ortega",
         "birthDate": "1997-08-13",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 191,
@@ -10373,9 +10808,13 @@
         "firstName": "Kassius",
         "lastName": "Robertson",
         "birthDate": "1994-04-20",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 193,
@@ -10445,9 +10884,13 @@
         "firstName": "Kyle",
         "lastName": "Kuric",
         "birthDate": "1989-08-25",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 194,
@@ -10517,9 +10960,13 @@
         "firstName": "Kostas",
         "lastName": "Kostadinov",
         "birthDate": "2003-03-25",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 199,
@@ -10589,10 +11036,13 @@
         "firstName": "Lazar",
         "lastName": "Mutic",
         "birthDate": "1999-01-06",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 199,
@@ -10662,9 +11112,13 @@
         "firstName": "Wes",
         "lastName": "Iwundu",
         "birthDate": "1994-12-20",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 200,
@@ -10734,9 +11188,13 @@
         "firstName": "Cameron",
         "lastName": "McGriff",
         "birthDate": "1997-09-30",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 206,
@@ -10806,10 +11264,13 @@
         "firstName": "Owen",
         "lastName": "Aquino",
         "birthDate": "2003-01-08",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 204,
@@ -10879,9 +11340,13 @@
         "firstName": "Artem",
         "lastName": "Pustovyi",
         "birthDate": "1992-06-25",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 210,
@@ -10951,10 +11416,13 @@
         "firstName": "Leon",
         "lastName": "Radosevic",
         "birthDate": "1990-02-26",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
           "height": 210,
@@ -11121,9 +11589,13 @@
         "firstName": "Andrés",
         "lastName": "Feliz",
         "birthDate": "1997-07-15",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 188,
@@ -11193,9 +11665,13 @@
         "firstName": "Facu",
         "lastName": "Campazzo",
         "birthDate": "1991-03-23",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 186,
@@ -11268,10 +11744,13 @@
         "firstName": "Theo",
         "lastName": "Maledon",
         "birthDate": "2001-06-12",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 187,
@@ -11343,10 +11822,13 @@
         "firstName": "Max",
         "lastName": "Shulga",
         "birthDate": "2002-06-25",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 195,
@@ -11418,10 +11900,13 @@
         "firstName": "Sergio",
         "lastName": "Llull",
         "birthDate": "1987-11-15",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 192,
@@ -11495,10 +11980,13 @@
         "firstName": "Alberto",
         "lastName": "Abalde",
         "birthDate": "1995-12-15",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 199,
@@ -11568,9 +12056,13 @@
         "firstName": "Gabriele",
         "lastName": "Procida",
         "birthDate": "2002-06-01",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 199,
@@ -11640,10 +12132,13 @@
         "firstName": "Gaby",
         "lastName": "Deck",
         "birthDate": "1995-02-08",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 199,
@@ -11713,10 +12208,13 @@
         "firstName": "Timothé",
         "lastName": "Luwawu-Cabarrot",
         "birthDate": "1995-05-09",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 200,
@@ -11786,10 +12284,13 @@
         "firstName": "Chuma",
         "lastName": "Okeke",
         "birthDate": "1998-08-18",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 203,
@@ -11859,10 +12360,13 @@
         "firstName": "Izan",
         "lastName": "Almansa",
         "birthDate": "2005-06-07",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 204,
@@ -11932,10 +12436,13 @@
         "firstName": "Jaime",
         "lastName": "Pradilla",
         "birthDate": "2001-01-03",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 205,
@@ -12005,9 +12512,13 @@
         "firstName": "Mikael",
         "lastName": "Jantunen",
         "birthDate": "2000-04-20",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 204,
@@ -12077,10 +12588,13 @@
         "firstName": "Usman",
         "lastName": "Garuba",
         "birthDate": "2002-03-09",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 202,
@@ -12150,9 +12664,13 @@
         "firstName": "Edy",
         "lastName": "Tavares",
         "birthDate": "1992-03-22",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 210,
@@ -12224,9 +12742,13 @@
         "firstName": "Olivier",
         "lastName": "Sarr",
         "birthDate": "1999-02-20",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
           "height": 209,
@@ -12393,10 +12915,13 @@
         "firstName": "DJ",
         "lastName": "Steward",
         "birthDate": "2001-10-02",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 186,
@@ -12468,9 +12993,13 @@
         "firstName": "Ziga",
         "lastName": "Samar",
         "birthDate": "2001-01-26",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 187,
@@ -12542,10 +13071,13 @@
         "firstName": "Chase",
         "lastName": "Audige",
         "birthDate": "1999-06-29",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 193,
@@ -12615,9 +13147,13 @@
         "firstName": "Raúl",
         "lastName": "Lobaco",
         "birthDate": "2000-11-29",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 193,
@@ -12687,10 +13223,13 @@
         "firstName": "Retin",
         "lastName": "Obasohan",
         "birthDate": "1993-07-06",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 193,
@@ -12760,9 +13299,13 @@
         "firstName": "Dusan",
         "lastName": "Radosavljevic",
         "birthDate": "2001-11-03",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 199,
@@ -12832,9 +13375,13 @@
         "firstName": "Pablo",
         "lastName": "Almazán",
         "birthDate": "1989-01-15",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 199,
@@ -12904,10 +13451,13 @@
         "firstName": "Vlatko",
         "lastName": "Cancar",
         "birthDate": "1997-04-10",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 201,
@@ -12977,9 +13527,13 @@
         "firstName": "Christian",
         "lastName": "Sengfelder",
         "birthDate": "1995-02-28",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 206,
@@ -13049,10 +13603,13 @@
         "firstName": "Dani",
         "lastName": "Díez",
         "birthDate": "1993-04-07",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 204,
@@ -13122,9 +13679,13 @@
         "firstName": "Balsa",
         "lastName": "Koprivica",
         "birthDate": "2000-05-01",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 212,
@@ -13196,9 +13757,13 @@
         "firstName": "Rubén",
         "lastName": "Guerrero",
         "birthDate": "1995-10-22",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
           "height": 210,
@@ -13365,9 +13930,13 @@
         "firstName": "Dominik",
         "lastName": "Mavra",
         "birthDate": "1994-06-15",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 186,
@@ -13437,9 +14006,13 @@
         "firstName": "Erik",
         "lastName": "Quintela",
         "birthDate": "1991-08-17",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 186,
@@ -13511,10 +14084,13 @@
         "firstName": "Rasir",
         "lastName": "Bolton",
         "birthDate": "1999-09-27",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 187,
@@ -13586,9 +14162,13 @@
         "firstName": "Francis",
         "lastName": "Alonso",
         "birthDate": "1996-05-25",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 193,
@@ -13658,10 +14238,13 @@
         "firstName": "Josep",
         "lastName": "Peris",
         "birthDate": "2000-08-06",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 192,
@@ -13731,10 +14314,13 @@
         "firstName": "Aleksandar",
         "lastName": "Aranitovic",
         "birthDate": "1998-01-24",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 201,
@@ -13804,10 +14390,13 @@
         "firstName": "Tevin",
         "lastName": "Brown",
         "birthDate": "1998-09-23",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 198,
@@ -13877,10 +14466,13 @@
         "firstName": "Andersson",
         "lastName": "García",
         "birthDate": "2000-08-23",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 204,
@@ -13950,10 +14542,13 @@
         "firstName": "Edgar",
         "lastName": "Vicedo",
         "birthDate": "1994-08-24",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 204,
@@ -14023,9 +14618,13 @@
         "firstName": "Mihajlo",
         "lastName": "Andric",
         "birthDate": "1994-01-04",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 203,
@@ -14095,10 +14694,13 @@
         "firstName": "Aleksa",
         "lastName": "Ilic",
         "birthDate": "1996-09-17",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 210,
@@ -14170,9 +14772,13 @@
         "firstName": "Danko",
         "lastName": "Brankovic",
         "birthDate": "2000-11-05",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 210,
@@ -14242,9 +14848,13 @@
         "firstName": "Jonathan",
         "lastName": "Kasibabu",
         "birthDate": "1996-04-24",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
           "height": 208,
@@ -14409,9 +15019,13 @@
         "firstName": "Adam",
         "lastName": "Somogyi",
         "birthDate": "2000-06-30",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 184,
@@ -14483,9 +15097,13 @@
         "firstName": "Dan",
         "lastName": "Duščak",
         "birthDate": "2002-07-02",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 188,
@@ -14557,9 +15175,13 @@
         "firstName": "Harald",
         "lastName": "Frey",
         "birthDate": "1997-05-27",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 186,
@@ -14631,10 +15253,13 @@
         "firstName": "Aleix",
         "lastName": "Font",
         "birthDate": "1998-03-11",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 195,
@@ -14704,10 +15329,13 @@
         "firstName": "Darrun",
         "lastName": "Hilliard",
         "birthDate": "1993-04-13",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 193,
@@ -14779,10 +15407,13 @@
         "firstName": "Margiris",
         "lastName": "Normantas",
         "birthDate": "1996-10-27",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 195,
@@ -14852,9 +15483,13 @@
         "firstName": "Nate",
         "lastName": "Darling",
         "birthDate": "1998-08-30",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 192,
@@ -14924,9 +15559,13 @@
         "firstName": "Manex",
         "lastName": "Ansorregi",
         "birthDate": "2002-04-11",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 197,
@@ -14996,9 +15635,13 @@
         "firstName": "Luke",
         "lastName": "Petrasek",
         "birthDate": "1995-08-17",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 202,
@@ -15068,10 +15711,13 @@
         "firstName": "Martin",
         "lastName": "Krampelj",
         "birthDate": "1995-03-10",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 204,
@@ -15141,9 +15787,13 @@
         "firstName": "Bastien",
         "lastName": "Vautier",
         "birthDate": "1998-11-15",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 208,
@@ -15215,9 +15865,13 @@
         "firstName": "Ondřej",
         "lastName": "Husták",
         "birthDate": "2003-11-04",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 209,
@@ -15289,9 +15943,13 @@
         "firstName": "Tryggvi",
         "lastName": "Hlinason",
         "birthDate": "1997-10-28",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
           "height": 210,
@@ -15458,9 +16116,13 @@
         "firstName": "David",
         "lastName": "DeJulius",
         "birthDate": "1999-08-09",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 186,
@@ -15530,10 +16192,13 @@
         "firstName": "Jonah",
         "lastName": "Radebaugh",
         "birthDate": "1997-06-17",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 187,
@@ -15605,9 +16270,13 @@
         "firstName": "Juani",
         "lastName": "Marcos",
         "birthDate": "2000-07-06",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 184,
@@ -15679,10 +16348,13 @@
         "firstName": "Michael",
         "lastName": "Forrest",
         "birthDate": "1999-12-02",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 186,
@@ -15754,10 +16426,13 @@
         "firstName": "Dylan",
         "lastName": "Ennis",
         "birthDate": "1991-12-26",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 191,
@@ -15827,9 +16502,13 @@
         "firstName": "Wilhelm",
         "lastName": "Falk",
         "birthDate": "2003-06-25",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 194,
@@ -15899,10 +16578,13 @@
         "firstName": "Howard",
         "lastName": "Sant-Roos",
         "birthDate": "1991-02-13",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 197,
@@ -15972,9 +16654,13 @@
         "firstName": "Sander",
         "lastName": "Raieste",
         "birthDate": "1999-03-31",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 199,
@@ -16044,10 +16730,13 @@
         "firstName": "Souley",
         "lastName": "Boum",
         "birthDate": "1999-01-26",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 199,
@@ -16117,9 +16806,13 @@
         "firstName": "Toni",
         "lastName": "Nakic",
         "birthDate": "1999-06-01",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 199,
@@ -16189,10 +16882,13 @@
         "firstName": "Kaiser",
         "lastName": "Gates",
         "birthDate": "1996-11-08",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 203,
@@ -16262,9 +16958,13 @@
         "firstName": "Marcis",
         "lastName": "Steinbergs",
         "birthDate": "2001-08-28",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 205,
@@ -16334,9 +17034,13 @@
         "firstName": "Rubén",
         "lastName": "López de la Torre",
         "birthDate": "2002-03-13",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 204,
@@ -16406,9 +17110,13 @@
         "firstName": "Emmanuel",
         "lastName": "Cate",
         "birthDate": "1997-07-30",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 209,
@@ -16480,9 +17188,13 @@
         "firstName": "Jean-Marc",
         "lastName": "Pansa",
         "birthDate": "1997-08-20",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 208,
@@ -16554,9 +17266,13 @@
         "firstName": "Moussa",
         "lastName": "Diagne",
         "birthDate": "1994-03-06",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
           "height": 210,
@@ -16723,9 +17439,13 @@
         "firstName": "Alberto",
         "lastName": "Díaz",
         "birthDate": "1994-04-23",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 187,
@@ -16799,9 +17519,13 @@
         "firstName": "Kendrick",
         "lastName": "Perry",
         "birthDate": "1992-12-23",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 186,
@@ -16874,10 +17598,13 @@
         "firstName": "Melwin",
         "lastName": "Pantzar",
         "birthDate": "2000-04-10",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 185,
@@ -16949,10 +17676,13 @@
         "firstName": "Cameron",
         "lastName": "Hunt",
         "birthDate": "1997-08-25",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 191,
@@ -17022,10 +17752,13 @@
         "firstName": "Nihad",
         "lastName": "Djedovic",
         "birthDate": "1990-01-12",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 193,
@@ -17097,9 +17830,13 @@
         "firstName": "Tyler",
         "lastName": "Kalinoski",
         "birthDate": "1992-12-19",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 193,
@@ -17171,10 +17908,13 @@
         "firstName": "Ignas",
         "lastName": "Brazdeikis",
         "birthDate": "1999-01-08",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 197,
@@ -17244,10 +17984,13 @@
         "firstName": "Jonathan",
         "lastName": "Barreiro",
         "birthDate": "1997-01-16",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 199,
@@ -17317,9 +18060,13 @@
         "firstName": "Amine",
         "lastName": "Noua",
         "birthDate": "1997-02-07",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 205,
@@ -17389,9 +18136,13 @@
         "firstName": "Tyson",
         "lastName": "Pérez",
         "birthDate": "1996-01-29",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 205,
@@ -17461,9 +18212,13 @@
         "firstName": "David",
         "lastName": "Kravish",
         "birthDate": "1992-09-12",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 210,
@@ -17535,9 +18290,13 @@
         "firstName": "Willy",
         "lastName": "Hernangómez",
         "birthDate": "1994-05-27",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 212,
@@ -17609,9 +18368,13 @@
         "firstName": "Yannick",
         "lastName": "Nzosa",
         "birthDate": "2003-11-15",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
           "height": 210,
@@ -17776,9 +18539,13 @@
         "firstName": "Álvaro",
         "lastName": "Cárdenas",
         "birthDate": "2002-04-29",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 188,
@@ -17850,10 +18617,13 @@
         "firstName": "Mario",
         "lastName": "Saint-Supéry",
         "birthDate": "2006-04-14",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 187,
@@ -17925,9 +18695,13 @@
         "firstName": "TJ",
         "lastName": "Shorts",
         "birthDate": "1997-10-15",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 185,
@@ -18000,9 +18774,13 @@
         "firstName": "Armoni",
         "lastName": "Brooks",
         "birthDate": "1998-06-05",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 194,
@@ -18072,10 +18850,13 @@
         "firstName": "Gonzalo",
         "lastName": "Corbalán",
         "birthDate": "2002-03-03",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 192,
@@ -18145,10 +18926,13 @@
         "firstName": "Josep",
         "lastName": "Puerto",
         "birthDate": "1999-03-08",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 191,
@@ -18218,10 +19002,13 @@
         "firstName": "Lucas",
         "lastName": "Marí",
         "birthDate": "2005-10-20",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 193,
@@ -18291,11 +19078,13 @@
         "firstName": "Omari",
         "lastName": "Moore",
         "birthDate": "2000-09-18",
-        "positions": [
-          "Base",
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 186,
@@ -18367,9 +19156,13 @@
         "firstName": "Elias",
         "lastName": "Valtonen",
         "birthDate": "1999-06-11",
-        "positions": [
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 200,
@@ -18439,10 +19232,13 @@
         "firstName": "Kameron",
         "lastName": "Taylor",
         "birthDate": "1994-10-05",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 199,
@@ -18512,10 +19308,13 @@
         "firstName": "Dylan",
         "lastName": "Osetkowski",
         "birthDate": "1996-08-08",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 204,
@@ -18585,10 +19384,13 @@
         "firstName": "Mo",
         "lastName": "Gueye",
         "birthDate": "1998-07-08",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 203,
@@ -18658,10 +19460,13 @@
         "firstName": "Nate",
         "lastName": "Reuvers",
         "birthDate": "1998-09-30",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 202,
@@ -18731,9 +19536,13 @@
         "firstName": "Neal",
         "lastName": "Sako",
         "birthDate": "1998-08-13",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 209,
@@ -18805,9 +19614,13 @@
         "firstName": "Yankuba",
         "lastName": "Sima",
         "birthDate": "1996-07-28",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
           "height": 212,
@@ -18974,10 +19787,13 @@
         "firstName": "PJay",
         "lastName": "Smith Jr.",
         "birthDate": "2003-02-13",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 186,
@@ -19047,10 +19863,13 @@
         "firstName": "Félix",
         "lastName": "Terins",
         "birthDate": "1998-04-24",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 186,
@@ -19120,10 +19939,13 @@
         "firstName": "Zaire",
         "lastName": "Williams",
         "birthDate": "2004-01-01",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 192,
@@ -19193,10 +20015,13 @@
         "firstName": "Brycen",
         "lastName": "Goodine",
         "birthDate": "1999-09-29",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 193,
@@ -19266,10 +20091,13 @@
         "firstName": "Sander",
         "lastName": "Hollanders",
         "birthDate": "2001-09-13",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 193,
@@ -19339,10 +20167,13 @@
         "firstName": "Danilo",
         "lastName": "Brnovic",
         "birthDate": "2000-08-10",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 197,
@@ -19412,10 +20243,13 @@
         "firstName": "Jorge",
         "lastName": "Arias",
         "birthDate": "2006-01-25",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 197,
@@ -19485,10 +20319,13 @@
         "firstName": "Francis",
         "lastName": "Nwaokorie",
         "birthDate": "2002-09-24",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 204,
@@ -19558,10 +20395,13 @@
         "firstName": "Daniil",
         "lastName": "Shelist",
         "birthDate": "2003-08-30",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 203,
@@ -19631,10 +20471,13 @@
         "firstName": "Brock",
         "lastName": "Wisne",
         "birthDate": "2003-09-18",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 210,
@@ -19704,10 +20547,13 @@
         "firstName": "Mouhamed",
         "lastName": "Barro",
         "birthDate": "1995-05-10",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 209,
@@ -19777,9 +20623,13 @@
         "firstName": "Djigui",
         "lastName": "Diarra",
         "birthDate": "2004-07-09",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
           "height": 209,
@@ -19944,9 +20794,13 @@
         "firstName": "Alec",
         "lastName": "Wintering",
         "birthDate": "1995-04-26",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 188,
@@ -20018,9 +20872,13 @@
         "firstName": "Guillem",
         "lastName": "Ferrando",
         "birthDate": "2002-01-08",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 185,
@@ -20090,10 +20948,13 @@
         "firstName": "Germán",
         "lastName": "Martínez",
         "birthDate": "1998-06-29",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 195,
@@ -20163,10 +21024,13 @@
         "firstName": "KJ",
         "lastName": "Jenkins",
         "birthDate": "2000-07-15",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 193,
@@ -20236,10 +21100,13 @@
         "firstName": "Miha",
         "lastName": "Lapornik",
         "birthDate": "1993-10-18",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 195,
@@ -20309,10 +21176,13 @@
         "firstName": "Rodrigo",
         "lastName": "Seoane",
         "birthDate": "1999-08-16",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 200,
@@ -20382,10 +21252,13 @@
         "firstName": "Diego",
         "lastName": "Alderete",
         "birthDate": "2000-04-22",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 200,
@@ -20455,9 +21328,13 @@
         "firstName": "Samuel",
         "lastName": "Rodríguez",
         "birthDate": "1997-08-02",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 205,
@@ -20527,10 +21404,13 @@
         "firstName": "Danilo",
         "lastName": "Ostojić",
         "birthDate": "1996-05-11",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
           "height": 208,
@@ -20695,10 +21575,13 @@
         "firstName": "Silvano",
         "lastName": "Merlo",
         "birthDate": "2002-08-19",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 184,
@@ -20768,9 +21651,13 @@
         "firstName": "José",
         "lastName": "Luis González",
         "birthDate": "1994-08-20",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 191,
@@ -20840,10 +21727,13 @@
         "firstName": "Nick",
         "lastName": "Reid",
         "birthDate": "2002-03-20",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 197,
@@ -20913,10 +21803,13 @@
         "firstName": "Jan",
         "lastName": "Zemljic",
         "birthDate": "2004-10-14",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 186,
@@ -20986,9 +21879,13 @@
         "firstName": "Bernat",
         "lastName": "Vanaclocha",
         "birthDate": "1998-04-16",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 210,
@@ -21058,10 +21955,13 @@
         "firstName": "Iván",
         "lastName": "Serrano Yuste",
         "birthDate": "2000-10-23",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 204,
@@ -21134,9 +22034,13 @@
         "firstName": "Marcos",
         "lastName": "Ugarte Tapia",
         "birthDate": "1999-02-17",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 199,
@@ -21209,9 +22113,13 @@
         "firstName": "Óscar",
         "lastName": "Lozano Nieto",
         "birthDate": "1996-10-27",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
           "height": 194,
@@ -21376,9 +22284,13 @@
         "firstName": "Sebastian",
         "lastName": "Aris",
         "birthDate": "1995-12-09",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 186,
@@ -21448,9 +22360,13 @@
         "firstName": "Alberto",
         "lastName": "Cabrera",
         "birthDate": "1998-10-05",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 187,
@@ -21520,10 +22436,13 @@
         "firstName": "Andy",
         "lastName": "Huelves",
         "birthDate": "2007-03-10",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 186,
@@ -21595,10 +22514,13 @@
         "firstName": "Jalen",
         "lastName": "Tate",
         "birthDate": "1998-06-18",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 191,
@@ -21668,10 +22590,13 @@
         "firstName": "Gerard",
         "lastName": "Jofresa",
         "birthDate": "2001-03-20",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 192,
@@ -21741,10 +22666,13 @@
         "firstName": "Ander",
         "lastName": "Urdiain",
         "birthDate": "2000-11-16",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 201,
@@ -21814,10 +22742,13 @@
         "firstName": "Chris",
         "lastName": "Czerapowicz",
         "birthDate": "1991-09-15",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 198,
@@ -21887,10 +22818,13 @@
         "firstName": "Totte",
         "lastName": "Alonso",
         "birthDate": "2001-04-01",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 201,
@@ -21960,10 +22894,13 @@
         "firstName": "Pablo",
         "lastName": "Hernández",
         "birthDate": "1997-02-17",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 199,
@@ -22033,10 +22970,13 @@
         "firstName": "Aleksandre",
         "lastName": "Phevadze",
         "birthDate": "1998-04-15",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 199,
@@ -22106,10 +23046,13 @@
         "firstName": "Niko",
         "lastName": "Rocak",
         "birthDate": "2001-02-21",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 204,
@@ -22179,9 +23122,13 @@
         "firstName": "Javonte",
         "lastName": "Brown",
         "birthDate": "2002-09-19",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 209,
@@ -22251,10 +23198,13 @@
         "firstName": "Chris",
         "lastName": "Echui",
         "birthDate": "2008-11-03",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
           "height": 191,
@@ -22419,10 +23369,13 @@
         "firstName": "Pau",
         "lastName": "Isern",
         "birthDate": "2001-11-13",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 186,
@@ -22494,10 +23447,13 @@
         "firstName": "Jacob",
         "lastName": "Round",
         "birthDate": "2000-04-03",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 193,
@@ -22567,10 +23523,13 @@
         "firstName": "David",
         "lastName": "Kristensen",
         "birthDate": "1998-08-25",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 204,
@@ -22640,10 +23599,13 @@
         "firstName": "Oskar",
         "lastName": "Palmquist",
         "birthDate": "2000-05-05",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 199,
@@ -22713,9 +23675,13 @@
         "firstName": "Biram",
         "lastName": "Faye",
         "birthDate": "2000-03-10",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 211,
@@ -22785,10 +23751,13 @@
         "firstName": "Jesús",
         "lastName": "Carralero",
         "birthDate": "2000-07-24",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 201,
@@ -22858,9 +23827,13 @@
         "firstName": "Javier",
         "lastName": "Bravo Tapia",
         "birthDate": "2002-09-17",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 210,
@@ -22932,10 +23905,13 @@
         "firstName": "Mario",
         "lastName": "Molina Tapia",
         "birthDate": "2007-05-06",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
           "height": 199,
@@ -23103,9 +24079,13 @@
         "firstName": "Pol",
         "lastName": "Figueras",
         "birthDate": "1998-03-21",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 186,
@@ -23175,10 +24155,13 @@
         "firstName": "AJ",
         "lastName": "Slaughter",
         "birthDate": "1987-08-03",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 192,
@@ -23250,10 +24233,13 @@
         "firstName": "Adams",
         "lastName": "Sola",
         "birthDate": "2000-07-27",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 192,
@@ -23323,10 +24309,13 @@
         "firstName": "Kyle",
         "lastName": "Greeley",
         "birthDate": "2000-05-30",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 193,
@@ -23396,10 +24385,13 @@
         "firstName": "Marc",
         "lastName": "Martí",
         "birthDate": "1997-06-19",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 204,
@@ -23469,10 +24461,13 @@
         "firstName": "Iñaki",
         "lastName": "Ordóñez",
         "birthDate": "2003-01-01",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 203,
@@ -23542,9 +24537,13 @@
         "firstName": "Adam",
         "lastName": "Kejval",
         "birthDate": "2002-01-21",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 211,
@@ -23614,9 +24613,13 @@
         "firstName": "Wildens",
         "lastName": "Leveque",
         "birthDate": "2000-06-11",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
           "height": 212,
@@ -23781,9 +24784,13 @@
         "firstName": "Gonzalo",
         "lastName": "Orozco",
         "birthDate": "2002-05-07",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 185,
@@ -23853,10 +24860,13 @@
         "firstName": "Fernando",
         "lastName": "Bello",
         "birthDate": "2003-06-25",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 198,
@@ -23926,9 +24936,13 @@
         "firstName": "Nuha",
         "lastName": "Sagnia",
         "birthDate": "2000-08-01",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 211,
@@ -23998,10 +25012,13 @@
         "firstName": "Alejandro",
         "lastName": "Rodríguez",
         "birthDate": "1998-01-19",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 202,
@@ -24071,10 +25088,13 @@
         "firstName": "Jalen",
         "lastName": "Cone",
         "birthDate": "2000-12-14",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 192,
@@ -24144,10 +25164,13 @@
         "firstName": "Manuel",
         "lastName": "Trujillo",
         "birthDate": "2007-03-20",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 186,
@@ -24217,10 +25240,13 @@
         "firstName": "Tyler",
         "lastName": "Stephenson-Moore",
         "birthDate": "2001-08-19",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 195,
@@ -24290,10 +25316,13 @@
         "firstName": "Mike",
         "lastName": "Nuga",
         "birthDate": "1997-12-27",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 195,
@@ -24363,10 +25392,13 @@
         "firstName": "Pau",
         "lastName": "Treviño",
         "birthDate": "2001-09-04",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 201,
@@ -24436,10 +25468,13 @@
         "firstName": "Ignacio",
         "lastName": "Rosa",
         "birthDate": "1999-07-01",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 204,
@@ -24509,9 +25544,13 @@
         "firstName": "Mladen",
         "lastName": "Armus",
         "birthDate": "1997-03-26",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 210,
@@ -24581,10 +25620,13 @@
         "firstName": "Leslie",
         "lastName": "Nkereuwem",
         "birthDate": "2000-12-08",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
           "height": 202,
@@ -24749,9 +25791,13 @@
         "firstName": "Nacho",
         "lastName": "Varela",
         "birthDate": "2000-01-24",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 188,
@@ -24821,10 +25867,13 @@
         "firstName": "Aanen",
         "lastName": "Moody",
         "birthDate": "1998-01-15",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 193,
@@ -24894,10 +25943,13 @@
         "firstName": "Ezekiel",
         "lastName": "Soumbey-Alley",
         "birthDate": "1999-02-14",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 192,
@@ -24967,10 +26019,13 @@
         "firstName": "Sergio",
         "lastName": "Cecilia",
         "birthDate": "2000-04-12",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 197,
@@ -25040,10 +26095,13 @@
         "firstName": "Unai",
         "lastName": "Mendikote",
         "birthDate": "1999-03-30",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 200,
@@ -25113,10 +26171,13 @@
         "firstName": "Nedim",
         "lastName": "Dedovic",
         "birthDate": "1997-02-16",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 201,
@@ -25186,10 +26247,13 @@
         "firstName": "Ramón",
         "lastName": "Vilà",
         "birthDate": "1997-09-11",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 209,
@@ -25259,9 +26323,13 @@
         "firstName": "Archange",
         "lastName": "Izaw-Bolavie",
         "birthDate": "2001-06-27",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 210,
@@ -25331,9 +26399,13 @@
         "firstName": "Adrián",
         "lastName": "Latorre",
         "birthDate": "2001-08-20",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
           "height": 208,
@@ -25498,10 +26570,13 @@
         "firstName": "Xabi",
         "lastName": "Oroz",
         "birthDate": "1996-01-19",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 184,
@@ -25571,10 +26646,13 @@
         "firstName": "Toms",
         "lastName": "Leimanis",
         "birthDate": "1994-08-07",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 186,
@@ -25644,10 +26722,13 @@
         "firstName": "Sesan",
         "lastName": "Russell",
         "birthDate": "1999-04-26",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 186,
@@ -25717,10 +26798,13 @@
         "firstName": "Martín",
         "lastName": "Fernández",
         "birthDate": "2001-12-05",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 192,
@@ -25790,10 +26874,13 @@
         "firstName": "Diogo",
         "lastName": "Seixas",
         "birthDate": "2004-05-11",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 200,
@@ -25863,10 +26950,13 @@
         "firstName": "Sean",
         "lastName": "McDonnell",
         "birthDate": "1995-09-13",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 199,
@@ -25936,10 +27026,13 @@
         "firstName": "Jan",
         "lastName": "Zidek",
         "birthDate": "1999-12-13",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 203,
@@ -26009,10 +27102,13 @@
         "firstName": "Martín",
         "lastName": "Iglesias",
         "birthDate": "2004-01-10",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 206,
@@ -26082,9 +27178,13 @@
         "firstName": "Javier",
         "lastName": "Nicolau",
         "birthDate": "1997-01-21",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 210,
@@ -26154,10 +27254,13 @@
         "firstName": "Eddy",
         "lastName": "Valentino Pinedo",
         "birthDate": "2004-04-07",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
           "height": 203,
@@ -26322,9 +27425,13 @@
         "firstName": "Lucas",
         "lastName": "Capalbo",
         "birthDate": "2000-03-22",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 184,
@@ -26394,10 +27501,13 @@
         "firstName": "Gaizka",
         "lastName": "Maiza",
         "birthDate": "1996-06-14",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 186,
@@ -26469,9 +27579,13 @@
         "firstName": "Brian",
         "lastName": "Vázquez",
         "birthDate": "1994-09-08",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 193,
@@ -26541,10 +27655,13 @@
         "firstName": "Corentin",
         "lastName": "Falcoz",
         "birthDate": "2002-11-05",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 194,
@@ -26614,10 +27731,13 @@
         "firstName": "Adrià",
         "lastName": "Domènech",
         "birthDate": "2002-07-18",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 204,
@@ -26687,10 +27807,13 @@
         "firstName": "Omar",
         "lastName": "Lo",
         "birthDate": "1997-07-01",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 204,
@@ -26760,9 +27883,13 @@
         "firstName": "Jonas",
         "lastName": "Paukštė",
         "birthDate": "2000-09-10",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 211,
@@ -26832,9 +27959,13 @@
         "firstName": "Matt",
         "lastName": "Van Komen",
         "birthDate": "1999-09-27",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
           "height": 210,
@@ -26999,9 +28130,13 @@
         "firstName": "Lluís",
         "lastName": "Costa",
         "birthDate": "1993-02-27",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 186,
@@ -27073,9 +28208,13 @@
         "firstName": "Jonathan",
         "lastName": "Rousselle",
         "birthDate": "1990-02-07",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 187,
@@ -27147,10 +28286,13 @@
         "firstName": "Gregory",
         "lastName": "Parham II",
         "birthDate": "1999-01-08",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 195,
@@ -27220,10 +28362,13 @@
         "firstName": "Jovan",
         "lastName": "Kljajic",
         "birthDate": "2001-09-11",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 195,
@@ -27293,9 +28438,13 @@
         "firstName": "Edu",
         "lastName": "Durán",
         "birthDate": "1991-05-01",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 193,
@@ -27365,10 +28514,13 @@
         "firstName": "Mathieu",
         "lastName": "Kamba",
         "birthDate": "1995-10-05",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 199,
@@ -27438,10 +28590,13 @@
         "firstName": "Pere",
         "lastName": "Tomàs",
         "birthDate": "1989-09-05",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 199,
@@ -27513,10 +28668,13 @@
         "firstName": "Andy",
         "lastName": "Van Vliet",
         "birthDate": "1995-07-27",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 202,
@@ -27586,10 +28744,13 @@
         "firstName": "Tanner",
         "lastName": "McGrew",
         "birthDate": "1993-02-16",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 206,
@@ -27659,10 +28820,13 @@
         "firstName": "Fallou",
         "lastName": "Niang",
         "birthDate": "2001-08-22",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 203,
@@ -27732,9 +28896,13 @@
         "firstName": "Abdou",
         "lastName": "Thiam",
         "birthDate": "1998-02-13",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 210,
@@ -27804,10 +28972,13 @@
         "firstName": "Mouhamed",
         "lastName": "Barro",
         "birthDate": "1995-05-10",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
           "height": 212,
@@ -27972,9 +29143,13 @@
         "firstName": "Mike",
         "lastName": "Torres",
         "birthDate": "1994-11-24",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 186,
@@ -28044,9 +29219,13 @@
         "firstName": "Rafael",
         "lastName": "Lisboa",
         "birthDate": "1999-11-27",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 185,
@@ -28116,10 +29295,13 @@
         "firstName": "Dani",
         "lastName": "Manchón",
         "birthDate": "1998-01-29",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 193,
@@ -28189,10 +29371,13 @@
         "firstName": "Macio",
         "lastName": "Teague",
         "birthDate": "1997-06-11",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 192,
@@ -28262,10 +29447,13 @@
         "firstName": "Kristinn",
         "lastName": "Pálsson",
         "birthDate": "1997-03-13",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 200,
@@ -28335,10 +29523,13 @@
         "firstName": "Sediq",
         "lastName": "Garuba",
         "birthDate": "2004-02-02",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 200,
@@ -28408,11 +29599,13 @@
         "firstName": "Tamenang",
         "lastName": "Choh",
         "birthDate": "1998-07-17",
-        "positions": [
-          "Alero",
-          "Ala-pívot",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 197,
@@ -28482,10 +29675,13 @@
         "firstName": "Wesley",
         "lastName": "Dreamer",
         "birthDate": "2000-11-03",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 203,
@@ -28555,10 +29751,13 @@
         "firstName": "Giorgi",
         "lastName": "Korsantia",
         "birthDate": "1998-01-11",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 203,
@@ -28628,10 +29827,13 @@
         "firstName": "Arnau",
         "lastName": "Parrado",
         "birthDate": "2000-06-24",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 202,
@@ -28701,9 +29903,13 @@
         "firstName": "Mikhail",
         "lastName": "Mikhailov",
         "birthDate": "2002-12-14",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 212,
@@ -28773,9 +29979,13 @@
         "firstName": "Romaro",
         "lastName": "Gill",
         "birthDate": "1994-10-02",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
           "height": 208,
@@ -28942,9 +30152,13 @@
         "firstName": "Hugo",
         "lastName": "Ferreira",
         "birthDate": "2001-07-28",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 186,
@@ -29014,9 +30228,13 @@
         "firstName": "Adrià",
         "lastName": "Moncanut",
         "birthDate": "2002-10-06",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 187,
@@ -29086,10 +30304,13 @@
         "firstName": "Lysander",
         "lastName": "Bracey",
         "birthDate": "1996-11-01",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 186,
@@ -29159,9 +30380,13 @@
         "firstName": "Jaume",
         "lastName": "Lobo",
         "birthDate": "1997-07-31",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 193,
@@ -29231,10 +30456,13 @@
         "firstName": "Sergi",
         "lastName": "Huguet",
         "birthDate": "2002-08-31",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 193,
@@ -29304,10 +30532,13 @@
         "firstName": "Osvaldas",
         "lastName": "Matulionis",
         "birthDate": "1991-08-19",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 198,
@@ -29379,10 +30610,13 @@
         "firstName": "Xabi",
         "lastName": "Beraza",
         "birthDate": "1999-01-26",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 199,
@@ -29452,10 +30686,13 @@
         "firstName": "Alessandro",
         "lastName": "Scariolo",
         "birthDate": "2001-10-21",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 201,
@@ -29525,10 +30762,13 @@
         "firstName": "Đorđe",
         "lastName": "Simeunović",
         "birthDate": "1995-04-26",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 205,
@@ -29598,10 +30838,13 @@
         "firstName": "Garmine",
         "lastName": "Kande",
         "birthDate": "1999-08-24",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 203,
@@ -29671,9 +30914,13 @@
         "firstName": "Osaretin",
         "lastName": "Cerdá",
         "birthDate": "2005-06-04",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 211,
@@ -29743,9 +30990,13 @@
         "firstName": "Shilo",
         "lastName": "Jackson",
         "birthDate": "2003-06-25",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
           "height": 210,
@@ -29910,10 +31161,13 @@
         "firstName": "Fernando",
         "lastName": "Zurbriggen",
         "birthDate": "1997-10-20",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 185,
@@ -29985,9 +31239,13 @@
         "firstName": "Micah",
         "lastName": "Speight",
         "birthDate": "1998-06-26",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 188,
@@ -30057,10 +31315,13 @@
         "firstName": "Jordan",
         "lastName": "Walker",
         "birthDate": "1997-10-19",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 194,
@@ -30130,9 +31391,13 @@
         "firstName": "Omar",
         "lastName": "Silverio",
         "birthDate": "1998-11-05",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 193,
@@ -30204,10 +31469,13 @@
         "firstName": "Lucas",
         "lastName": "Giovannetti",
         "birthDate": "2005-06-14",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 199,
@@ -30277,10 +31545,13 @@
         "firstName": "Millán",
         "lastName": "Jiménez",
         "birthDate": "2002-09-16",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 201,
@@ -30350,10 +31621,13 @@
         "firstName": "Travis",
         "lastName": "Munnings",
         "birthDate": "1994-09-14",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 201,
@@ -30423,10 +31697,13 @@
         "firstName": "Juampi",
         "lastName": "Vaulet",
         "birthDate": "1996-03-22",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 202,
@@ -30496,10 +31773,13 @@
         "firstName": "Kaspar",
         "lastName": "Treier",
         "birthDate": "1999-09-19",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 204,
@@ -30569,10 +31849,13 @@
         "firstName": "Iván",
         "lastName": "Aurrecoechea",
         "birthDate": "1995-11-19",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 208,
@@ -30644,9 +31927,13 @@
         "firstName": "Mamadou",
         "lastName": "Niang",
         "birthDate": "1994-01-01",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 210,
@@ -30716,9 +32003,13 @@
         "firstName": "Jehyve",
         "lastName": "Floyd",
         "birthDate": "1997-06-27",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
           "height": 210,
@@ -30885,9 +32176,13 @@
         "firstName": "Mateo",
         "lastName": "Díaz",
         "birthDate": "2002-03-06",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 184,
@@ -30957,9 +32252,13 @@
         "firstName": "Javi",
         "lastName": "López",
         "birthDate": "1999-05-06",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 186,
@@ -31029,9 +32328,13 @@
         "firstName": "Vitor",
         "lastName": "Benite",
         "birthDate": "1990-02-20",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 193,
@@ -31104,10 +32407,13 @@
         "firstName": "Romaric",
         "lastName": "Belemene",
         "birthDate": "1997-02-19",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 198,
@@ -31177,10 +32483,13 @@
         "firstName": "Iván",
         "lastName": "Cruz",
         "birthDate": "1991-10-24",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 204,
@@ -31250,10 +32559,13 @@
         "firstName": "Diego",
         "lastName": "Vidal Ortega",
         "birthDate": "2006-06-09",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 191,
@@ -31326,10 +32638,13 @@
         "firstName": "Emilio",
         "lastName": "Tapia Aguilar",
         "birthDate": "2001-11-25",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 201,
@@ -31399,10 +32714,13 @@
         "firstName": "Marcos",
         "lastName": "Rincón Molina",
         "birthDate": "1999-12-19",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
           "height": 200,
@@ -31570,10 +32888,13 @@
         "firstName": "Kevin",
         "lastName": "Torres",
         "birthDate": "2003-07-22",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 191,
@@ -31643,10 +32964,13 @@
         "firstName": "Álex",
         "lastName": "Blanco",
         "birthDate": "2007-03-14",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 186,
@@ -31716,10 +33040,13 @@
         "firstName": "Joan",
         "lastName": "Feliu",
         "birthDate": "1999-10-12",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 195,
@@ -31789,10 +33116,13 @@
         "firstName": "David",
         "lastName": "Jolinder",
         "birthDate": "2001-11-05",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 201,
@@ -31862,10 +33192,13 @@
         "firstName": "Octavio",
         "lastName": "Brito",
         "birthDate": "2003-03-08",
-        "positions": [
-          "Alero",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 12,
+          "Alero": 20,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 199,
@@ -31935,10 +33268,13 @@
         "firstName": "Ángel",
         "lastName": "Comendador",
         "birthDate": "2001-07-22",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 197,
@@ -32008,9 +33344,13 @@
         "firstName": "Emil",
         "lastName": "Stoilov",
         "birthDate": "2002-02-07",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 208,
@@ -32080,10 +33420,13 @@
         "firstName": "Raúl",
         "lastName": "Vidal Lozano",
         "birthDate": "1997-04-20",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
           "height": 206,
@@ -32250,9 +33593,13 @@
         "firstName": "Carlos",
         "lastName": "Alocén",
         "birthDate": "2000-12-30",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 186,
@@ -32322,9 +33669,13 @@
         "firstName": "Christian",
         "lastName": "Díaz",
         "birthDate": "1992-03-23",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 185,
@@ -32394,10 +33745,13 @@
         "firstName": "Jón",
         "lastName": "Axel Gudmundsson",
         "birthDate": "1996-10-27",
-        "positions": [
-          "Base",
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 12,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 186,
@@ -32469,10 +33823,13 @@
         "firstName": "Marques",
         "lastName": "Townes",
         "birthDate": "1995-09-03",
-        "positions": [
-          "Escolta",
-          "Base"
-        ],
+        "positions": {
+          "Base": 12,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 193,
@@ -32544,10 +33901,13 @@
         "firstName": "Joe",
         "lastName": "Cremo",
         "birthDate": "1996-01-05",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 191,
@@ -32617,10 +33977,13 @@
         "firstName": "Joaquín",
         "lastName": "Rodríguez",
         "birthDate": "1999-07-08",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 194,
@@ -32692,10 +34055,13 @@
         "firstName": "Miquel",
         "lastName": "Salvó",
         "birthDate": "1994-11-03",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 201,
@@ -32765,10 +34131,13 @@
         "firstName": "Roberts",
         "lastName": "Stumbris",
         "birthDate": "1993-07-09",
-        "positions": [
-          "Ala-pívot",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 12,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 205,
@@ -32838,10 +34207,13 @@
         "firstName": "Pierre",
         "lastName": "Pelos",
         "birthDate": "1992-08-16",
-        "positions": [
-          "Ala-pívot",
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 12
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 204,
@@ -32911,9 +34283,13 @@
         "firstName": "Luke",
         "lastName": "Fischer",
         "birthDate": "1994-10-29",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
           "height": 210,
@@ -33080,9 +34456,13 @@
         "firstName": "Dani",
         "lastName": "Rodríguez",
         "birthDate": "1984-02-17",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 185,
@@ -33154,9 +34534,13 @@
         "firstName": "Álex",
         "lastName": "Hernández",
         "birthDate": "1990-07-15",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 188,
@@ -33228,9 +34612,13 @@
         "firstName": "Manu",
         "lastName": "Rodríguez",
         "birthDate": "1991-10-17",
-        "positions": [
-          "Escolta"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 195,
@@ -33302,10 +34690,13 @@
         "firstName": "Mathieu",
         "lastName": "Kamba",
         "birthDate": "1995-10-05",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 193,
@@ -33375,10 +34766,13 @@
         "firstName": "Chema",
         "lastName": "González",
         "birthDate": "1991-07-15",
-        "positions": [
-          "Alero",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 20,
+          "Ala-pívot": 12,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 199,
@@ -33450,9 +34844,13 @@
         "firstName": "Alec",
         "lastName": "Wintering",
         "birthDate": "1995-04-26",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 186,
@@ -33524,9 +34922,13 @@
         "firstName": "Vasilije",
         "lastName": "Vucetic",
         "birthDate": "1996-05-14",
-        "positions": [
-          "Pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 20
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 209,
@@ -33596,10 +34998,13 @@
         "firstName": "Lucas",
         "lastName": "Langarita",
         "birthDate": "2005-01-30",
-        "positions": [
-          "Escolta",
-          "Alero"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 20,
+          "Alero": 12,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 191,
@@ -33669,9 +35074,13 @@
         "firstName": "Dimitar",
         "lastName": "Dimitrov",
         "birthDate": "1993-03-07",
-        "positions": [
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 20,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 206,
@@ -33741,10 +35150,13 @@
         "firstName": "Tanner",
         "lastName": "McGrew",
         "birthDate": "1993-02-16",
-        "positions": [
-          "Pívot",
-          "Ala-pívot"
-        ],
+        "positions": {
+          "Base": 2,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 12,
+          "Pívot": 20
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 210,
@@ -33816,9 +35228,13 @@
         "firstName": "Alec",
         "lastName": "Wintering",
         "birthDate": "1995-04-26",
-        "positions": [
-          "Base"
-        ],
+        "positions": {
+          "Base": 20,
+          "Escolta": 2,
+          "Alero": 2,
+          "Ala-pívot": 2,
+          "Pívot": 2
+        },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
           "height": 186,

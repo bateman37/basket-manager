@@ -12,9 +12,13 @@
       "firstName": "Nacho",
       "lastName": "Varela",
       "birthDate": "2000-01-24",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 188,
@@ -84,10 +88,13 @@
       "firstName": "Aanen",
       "lastName": "Moody",
       "birthDate": "1998-01-15",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 193,
@@ -157,10 +164,13 @@
       "firstName": "Ezekiel",
       "lastName": "Soumbey-Alley",
       "birthDate": "1999-02-14",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 192,
@@ -230,10 +240,13 @@
       "firstName": "Sergio",
       "lastName": "Cecilia",
       "birthDate": "2000-04-12",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 197,
@@ -303,10 +316,13 @@
       "firstName": "Unai",
       "lastName": "Mendikote",
       "birthDate": "1999-03-30",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 200,
@@ -376,10 +392,13 @@
       "firstName": "Nedim",
       "lastName": "Dedovic",
       "birthDate": "1997-02-16",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 201,
@@ -449,10 +468,13 @@
       "firstName": "Ramón",
       "lastName": "Vilà",
       "birthDate": "1997-09-11",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 209,
@@ -522,9 +544,13 @@
       "firstName": "Archange",
       "lastName": "Izaw-Bolavie",
       "birthDate": "2001-06-27",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 210,
@@ -594,9 +620,13 @@
       "firstName": "Adrián",
       "lastName": "Latorre",
       "birthDate": "2001-08-20",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
         "height": 208,

@@ -597,3 +597,99 @@
     pedido para el caso "iniciado desde Competiciones".
   - No se ha tocado `Bracket.js`, `Cup.js`, `Playoffs.js`,
     `Promotion.js` ni `League.js`.
+
+- **Bloque C: Alineaciones, Rotación y Desgaste/Energía** (DESIGN.md
+  6.1 actualizado + nueva sección 7.11). Continuación tras un corte de
+  contexto de la sesión — se retomó desde el estado en disco (3 commits
+  ya fusionados de Bloques A/B + un WIP sin terminar de este Bloque C)
+  releyendo el nuevo `DESIGN.md` como especificación.
+  - **C.0 — Posiciones como mapa** (`Player.js`): `positions` deja de
+    ser una lista de 1-5 entradas y pasa a un mapa con las 5 posiciones
+    SIEMPRE presentes, nivel 1-20 cada una, exactamente una a 20 (la
+    principal, `player.primaryPosition`). `Team.js`
+    (`buildMatchSquadExcludingPosition`) y `playerGenerator.js`
+    (`generatePositionMap`, ponderado por distancia a la principal)
+    adaptados. `scripts/migrate-positions-to-map.js` (nuevo, migración
+    de una sola vez) ya ejecutado sobre los 414 jugadores de
+    `data/real/teams/*.json` y `data/real/sources/`, regenerando
+    `real-data-bundle.js`.
+  - **C.1/C.2 — `src/core/Rotation.js`** (nuevo): convocatoria + posición
+    declarada por partido; cuota de minutos por jugador con validación
+    ESTRICTA (cada una de las 5 posiciones debe sumar exactamente la
+    duración del partido, sin normalizar en silencio); quintetos fijos
+    opcionales por franja; sustitución automática solo en ventanas
+    reales (fin de cuarto o parada de juego — falta/violación — nunca a
+    mitad de jugada viva).
+  - **C.3 — Polivalencia de emergencia**: cuando una posición se queda
+    sin cobertura, el motor elige, entre los convocados con minutos
+    disponibles, el de mayor nivel en esa posición combinado con menor
+    distancia posicional (Base–Escolta–Alero–Ala-pívot–Pívot);
+    penalización de rendimiento proporcional a la distancia y al nivel
+    real del jugador ahí (`MatchConfig.emergencyVersatility`).
+  - **C.4 — Desgaste en dos componentes** (`MatchEngine.js`/
+    `MatchConfig.js`): desgaste GENERAL (mayor) con jerarquía por la
+    posición ocupada EN CADA JUGADA (exterior desgasta más que
+    interior) + desgaste por INTERVENCIÓN (menor) para quien participa
+    directamente en la acción resuelta esa posesión; ambos modulados
+    por Resistencia, acotada para que nunca llegue a desgaste cero.
+  - **C.5 — `src/core/Recovery.js`** (nuevo): curva de recuperación de
+    Energía entre partidos, decaimiento exponencial inverso sobre el
+    hueco restante (más rápida el primer día), Recuperación (1-20) como
+    multiplicador de velocidad, con gancho neutro (`trainingModifier`)
+    para el futuro módulo de Entrenamiento.
+  - **Integración en `MatchEngine.js`** (lo que quedaba sin terminar
+    del WIP): `simulateMatch`/`simulatePossession` aceptan
+    `options.homeLineup`/`awayLineup` — TOTALMENTE OPCIONAL y
+    retrocompatible: sin alineación, el equipo se comporta exactamente
+    igual que hasta ahora (`selectOnCourtFive` placeholder, sin
+    penalización). Con alineación: valida antes de simular (error
+    descriptivo si no cuadra, nunca una simulación silenciosamente
+    incorrecta), usa el quinteto real en pista, aplica penalización de
+    polivalencia en tiros/faltas/robos/rebotes/tapones del jugador que
+    corresponda, acumula minutos jugados y dispara sustituciones en las
+    ventanas correctas. Bug encontrado y corregido durante la
+    integración: `resolveReboundContest` recibía una única función de
+    penalización para dos reboteadores de equipos (y rotaciones)
+    distintos — no podía funcionar correctamente; ahora recibe ambos
+    `rotationState` por separado. Otro bug corregido: `index.html` no
+    cargaba `Rotation.js`/`Recovery.js` con `<script>` (aunque
+    `MatchEngine.js` ya los requería) — sin esto, cualquier flujo del
+    juego real fallaba en el navegador con `getPenalty is not a
+    function`; detectado con Playwright, no solo en Node.
+  - **Deliberadamente NO incluido en este Bloque** (score de la propia
+    tarea, no un olvido):
+    - `Recovery.js` está listo y probado pero **no conectado a
+      `League.js`** — no existe todavía un concepto de "días entre
+      jornadas" en el calendario, y DESIGN.md 7.11.5 no lo fija; conectar
+      la recuperación real entre jornadas es una decisión pendiente de
+      Dennis (cadencia semanal, fechas reales, etc.), no algo que deba
+      asumir en silencio.
+    - La **pantalla de Alineación** (DESIGN.md 7.11.6, Valoración
+      Técnica/Física/Mental, Energía, Forma en estrellas) — el propio
+      DESIGN.md la marca como "aún por construir"; `game.js` sigue sin
+      lineup (comportamiento de siempre) hasta que exista esa pantalla.
+  - **Verificado con un script Node dedicado**: reparto automático de
+    minutos válido, partido completo con alineación en ambos equipos
+    (minutos totales jugados ≈ 5 × duración del partido, ningún
+    jugador se pasa de su cuota por más de unos segundos), alineación
+    inconsistente lanza el error descriptivo real (no un fallo interno
+    — se detectó y corrigió que faltaba ese caso), posición sin nadie
+    declarado detectada por `validateLineup`, curva de recuperación no
+    lineal y más rápida con mejor Recuperación. Además, re-verificados
+    sin regresiones los tests ya existentes de datos reales,
+    Bracket/Playoffs/Cup/Promotion, y toda la interfaz de juego con
+    Playwright headless (selección de equipo, jornada con reveal por
+    cuartos, calendario, competiciones, estadísticas) — cero errores de
+    consola aparte del ya conocido fallo de red a Google Fonts en este
+    sandbox sin internet.
+  - **Nota sobre `DESIGN.md`, señalada para que Dennis confirme**: la
+    misma subida que añadió 6.1/7.11 también sustituyó la sección 3.2
+    completa (Playoffs/Copa/Ascenso, ya implementada y en producción)
+    por una entrada genérica de "Pendiente" que la da por no
+    diseñada/no implementada — parece un posible descuido al subir una
+    versión desactualizada del fichero, ya que contradice el código
+    real (`Bracket.js`/`Cup.js`/`Playoffs.js`/`Promotion.js`, fusionados
+    hace tiempo, y el propio flujo unificado de Home de Bloque B). No se
+    ha tocado nada del código de Playoffs/Copa/Ascenso por esto — solo
+    se deja constancia aquí en vez de asumir en silencio que hay que
+    revertirlo.

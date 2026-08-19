@@ -12,9 +12,13 @@
       "firstName": "Mike",
       "lastName": "Torres",
       "birthDate": "1994-11-24",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 186,
@@ -84,9 +88,13 @@
       "firstName": "Rafael",
       "lastName": "Lisboa",
       "birthDate": "1999-11-27",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 185,
@@ -156,10 +164,13 @@
       "firstName": "Dani",
       "lastName": "Manchón",
       "birthDate": "1998-01-29",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 193,
@@ -229,10 +240,13 @@
       "firstName": "Macio",
       "lastName": "Teague",
       "birthDate": "1997-06-11",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 192,
@@ -302,10 +316,13 @@
       "firstName": "Kristinn",
       "lastName": "Pálsson",
       "birthDate": "1997-03-13",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 200,
@@ -375,10 +392,13 @@
       "firstName": "Sediq",
       "lastName": "Garuba",
       "birthDate": "2004-02-02",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 200,
@@ -448,11 +468,13 @@
       "firstName": "Tamenang",
       "lastName": "Choh",
       "birthDate": "1998-07-17",
-      "positions": [
-        "Alero",
-        "Ala-pívot",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 197,
@@ -522,10 +544,13 @@
       "firstName": "Wesley",
       "lastName": "Dreamer",
       "birthDate": "2000-11-03",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 203,
@@ -595,10 +620,13 @@
       "firstName": "Giorgi",
       "lastName": "Korsantia",
       "birthDate": "1998-01-11",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 203,
@@ -668,10 +696,13 @@
       "firstName": "Arnau",
       "lastName": "Parrado",
       "birthDate": "2000-06-24",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 202,
@@ -741,9 +772,13 @@
       "firstName": "Mikhail",
       "lastName": "Mikhailov",
       "birthDate": "2002-12-14",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 212,
@@ -813,9 +848,13 @@
       "firstName": "Romaro",
       "lastName": "Gill",
       "birthDate": "1994-10-02",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
         "height": 208,

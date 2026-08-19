@@ -12,9 +12,13 @@
       "firstName": "Alberto",
       "lastName": "Díaz",
       "birthDate": "1994-04-23",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 187,
@@ -88,9 +92,13 @@
       "firstName": "Kendrick",
       "lastName": "Perry",
       "birthDate": "1992-12-23",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 186,
@@ -163,10 +171,13 @@
       "firstName": "Melwin",
       "lastName": "Pantzar",
       "birthDate": "2000-04-10",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 185,
@@ -238,10 +249,13 @@
       "firstName": "Cameron",
       "lastName": "Hunt",
       "birthDate": "1997-08-25",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 191,
@@ -311,10 +325,13 @@
       "firstName": "Nihad",
       "lastName": "Djedovic",
       "birthDate": "1990-01-12",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 193,
@@ -386,9 +403,13 @@
       "firstName": "Tyler",
       "lastName": "Kalinoski",
       "birthDate": "1992-12-19",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 193,
@@ -460,10 +481,13 @@
       "firstName": "Ignas",
       "lastName": "Brazdeikis",
       "birthDate": "1999-01-08",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 197,
@@ -533,10 +557,13 @@
       "firstName": "Jonathan",
       "lastName": "Barreiro",
       "birthDate": "1997-01-16",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 199,
@@ -606,9 +633,13 @@
       "firstName": "Amine",
       "lastName": "Noua",
       "birthDate": "1997-02-07",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 205,
@@ -678,9 +709,13 @@
       "firstName": "Tyson",
       "lastName": "Pérez",
       "birthDate": "1996-01-29",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 205,
@@ -750,9 +785,13 @@
       "firstName": "David",
       "lastName": "Kravish",
       "birthDate": "1992-09-12",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 210,
@@ -824,9 +863,13 @@
       "firstName": "Willy",
       "lastName": "Hernangómez",
       "birthDate": "1994-05-27",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 212,
@@ -898,9 +941,13 @@
       "firstName": "Yannick",
       "lastName": "Nzosa",
       "birthDate": "2003-11-15",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
         "height": 210,

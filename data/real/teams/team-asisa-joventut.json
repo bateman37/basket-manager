@@ -12,9 +12,13 @@
       "firstName": "Boogie",
       "lastName": "Ellis",
       "birthDate": "2000-12-12",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 186,
@@ -86,9 +90,13 @@
       "firstName": "Ludde",
       "lastName": "Hakanson",
       "birthDate": "1996-03-22",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 186,
@@ -158,10 +166,13 @@
       "firstName": "Nico",
       "lastName": "Laprovittola",
       "birthDate": "1990-01-31",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 186,
@@ -234,9 +245,13 @@
       "firstName": "Ricky",
       "lastName": "Rubio",
       "birthDate": "1990-10-21",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 186,
@@ -310,10 +325,13 @@
       "firstName": "Isaac",
       "lastName": "Nogués",
       "birthDate": "2004-02-10",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 191,
@@ -383,9 +401,13 @@
       "firstName": "Alex",
       "lastName": "Reyes",
       "birthDate": "1993-12-17",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 199,
@@ -455,9 +477,13 @@
       "firstName": "Yannick",
       "lastName": "Kraag",
       "birthDate": "2002-10-16",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 201,
@@ -527,10 +553,13 @@
       "firstName": "Emir",
       "lastName": "Sulejmanovic",
       "birthDate": "1995-07-13",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 203,
@@ -600,9 +629,13 @@
       "firstName": "Kwan",
       "lastName": "Cheatham",
       "birthDate": "1995-08-21",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 206,
@@ -672,10 +705,13 @@
       "firstName": "Michael",
       "lastName": "Ruzic",
       "birthDate": "2006-10-04",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 204,
@@ -745,9 +781,13 @@
       "firstName": "Ante",
       "lastName": "Tomic",
       "birthDate": "1987-02-17",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 208,
@@ -820,9 +860,13 @@
       "firstName": "Simon",
       "lastName": "Birgander",
       "birthDate": "1997-10-23",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
         "height": 209,

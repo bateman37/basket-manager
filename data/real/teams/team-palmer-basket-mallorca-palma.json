@@ -12,10 +12,13 @@
       "firstName": "Kevin",
       "lastName": "Torres",
       "birthDate": "2003-07-22",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 191,
@@ -85,10 +88,13 @@
       "firstName": "Álex",
       "lastName": "Blanco",
       "birthDate": "2007-03-14",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 186,
@@ -158,10 +164,13 @@
       "firstName": "Joan",
       "lastName": "Feliu",
       "birthDate": "1999-10-12",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 195,
@@ -231,10 +240,13 @@
       "firstName": "David",
       "lastName": "Jolinder",
       "birthDate": "2001-11-05",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 201,
@@ -304,10 +316,13 @@
       "firstName": "Octavio",
       "lastName": "Brito",
       "birthDate": "2003-03-08",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 199,
@@ -377,10 +392,13 @@
       "firstName": "Ángel",
       "lastName": "Comendador",
       "birthDate": "2001-07-22",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 197,
@@ -450,9 +468,13 @@
       "firstName": "Emil",
       "lastName": "Stoilov",
       "birthDate": "2002-02-07",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 208,
@@ -522,10 +544,13 @@
       "firstName": "Raúl",
       "lastName": "Vidal Lozano",
       "birthDate": "1997-04-20",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
         "height": 206,

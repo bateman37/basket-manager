@@ -12,10 +12,13 @@
       "firstName": "Alonzo",
       "lastName": "Verge Jr.",
       "birthDate": "1998-10-17",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 186,
@@ -87,9 +90,13 @@
       "firstName": "Caio",
       "lastName": "Pacheco",
       "birthDate": "1999-02-22",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 188,
@@ -161,9 +168,13 @@
       "firstName": "Didac",
       "lastName": "Cuevas",
       "birthDate": "2000-06-20",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 188,
@@ -235,10 +246,13 @@
       "firstName": "Paul",
       "lastName": "Jorgensen",
       "birthDate": "1996-07-21",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 193,
@@ -308,10 +322,13 @@
       "firstName": "Tomas",
       "lastName": "Dimsa",
       "birthDate": "1994-01-02",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 191,
@@ -381,10 +398,13 @@
       "firstName": "Guillem",
       "lastName": "Jou",
       "birthDate": "1997-07-15",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 197,
@@ -454,10 +474,13 @@
       "firstName": "Jacobo",
       "lastName": "Díaz",
       "birthDate": "1996-07-23",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 199,
@@ -527,9 +550,13 @@
       "firstName": "Lukas",
       "lastName": "Uleckas",
       "birthDate": "1999-08-06",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 197,
@@ -599,10 +626,13 @@
       "firstName": "Dino",
       "lastName": "Radoncic",
       "birthDate": "1999-01-08",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 202,
@@ -672,9 +702,13 @@
       "firstName": "Dmytro",
       "lastName": "Skapintsev",
       "birthDate": "1998-05-12",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 208,
@@ -746,9 +780,13 @@
       "firstName": "George",
       "lastName": "Conditt IV",
       "birthDate": "2000-08-22",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 208,
@@ -818,9 +856,13 @@
       "firstName": "Karlis",
       "lastName": "Silins",
       "birthDate": "1997-07-22",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
         "height": 209,

@@ -12,9 +12,13 @@
       "firstName": "Gonzalo",
       "lastName": "Orozco",
       "birthDate": "2002-05-07",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 185,
@@ -84,10 +88,13 @@
       "firstName": "Fernando",
       "lastName": "Bello",
       "birthDate": "2003-06-25",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 198,
@@ -157,9 +164,13 @@
       "firstName": "Nuha",
       "lastName": "Sagnia",
       "birthDate": "2000-08-01",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 211,
@@ -229,10 +240,13 @@
       "firstName": "Alejandro",
       "lastName": "Rodríguez",
       "birthDate": "1998-01-19",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 202,
@@ -302,10 +316,13 @@
       "firstName": "Jalen",
       "lastName": "Cone",
       "birthDate": "2000-12-14",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 192,
@@ -375,10 +392,13 @@
       "firstName": "Manuel",
       "lastName": "Trujillo",
       "birthDate": "2007-03-20",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 186,
@@ -448,10 +468,13 @@
       "firstName": "Tyler",
       "lastName": "Stephenson-Moore",
       "birthDate": "2001-08-19",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 195,
@@ -521,10 +544,13 @@
       "firstName": "Mike",
       "lastName": "Nuga",
       "birthDate": "1997-12-27",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 195,
@@ -594,10 +620,13 @@
       "firstName": "Pau",
       "lastName": "Treviño",
       "birthDate": "2001-09-04",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 201,
@@ -667,10 +696,13 @@
       "firstName": "Ignacio",
       "lastName": "Rosa",
       "birthDate": "1999-07-01",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 204,
@@ -740,9 +772,13 @@
       "firstName": "Mladen",
       "lastName": "Armus",
       "birthDate": "1997-03-26",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 210,
@@ -812,10 +848,13 @@
       "firstName": "Leslie",
       "lastName": "Nkereuwem",
       "birthDate": "2000-12-08",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
         "height": 202,

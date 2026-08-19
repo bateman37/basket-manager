@@ -90,11 +90,12 @@ function markAsPlaceholder(player) {
 // posición — solo se rellenan los huecos genuinos.
 function patchRosterToMinimum(roster, minimum) {
   const added = [];
-  const coveredPositions = new Set();
-  roster.forEach((player) => player.positions.forEach((pos) => coveredPositions.add(pos)));
+  // "Cubierta" = alguna posición PRINCIPAL (mapa de 5, DESIGN.md 6.1) ya
+  // presente en la plantilla real — no basta con tener nivel bajo ahí.
+  const coveredPositions = new Set(roster.map((player) => player.primaryPosition));
 
   POSITIONS.filter((pos) => !coveredPositions.has(pos)).forEach((position) => {
-    const player = markAsPlaceholder(generateFictionalPlayer({ positions: [position] }));
+    const player = markAsPlaceholder(generateFictionalPlayer({ primaryPosition: position }));
     roster.push(player);
     added.push(player);
   });

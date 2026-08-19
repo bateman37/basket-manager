@@ -12,10 +12,13 @@
       "firstName": "Fernando",
       "lastName": "Zurbriggen",
       "birthDate": "1997-10-20",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 185,
@@ -87,9 +90,13 @@
       "firstName": "Micah",
       "lastName": "Speight",
       "birthDate": "1998-06-26",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 188,
@@ -159,10 +166,13 @@
       "firstName": "Jordan",
       "lastName": "Walker",
       "birthDate": "1997-10-19",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 194,
@@ -232,9 +242,13 @@
       "firstName": "Omar",
       "lastName": "Silverio",
       "birthDate": "1998-11-05",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 193,
@@ -306,10 +320,13 @@
       "firstName": "Lucas",
       "lastName": "Giovannetti",
       "birthDate": "2005-06-14",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 199,
@@ -379,10 +396,13 @@
       "firstName": "Millán",
       "lastName": "Jiménez",
       "birthDate": "2002-09-16",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 201,
@@ -452,10 +472,13 @@
       "firstName": "Travis",
       "lastName": "Munnings",
       "birthDate": "1994-09-14",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 201,
@@ -525,10 +548,13 @@
       "firstName": "Juampi",
       "lastName": "Vaulet",
       "birthDate": "1996-03-22",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 202,
@@ -598,10 +624,13 @@
       "firstName": "Kaspar",
       "lastName": "Treier",
       "birthDate": "1999-09-19",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 204,
@@ -671,10 +700,13 @@
       "firstName": "Iván",
       "lastName": "Aurrecoechea",
       "birthDate": "1995-11-19",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 208,
@@ -746,9 +778,13 @@
       "firstName": "Mamadou",
       "lastName": "Niang",
       "birthDate": "1994-01-01",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 210,
@@ -818,9 +854,13 @@
       "firstName": "Jehyve",
       "lastName": "Floyd",
       "birthDate": "1997-06-27",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
         "height": 210,

@@ -12,10 +12,13 @@
       "firstName": "Damion",
       "lastName": "Baugh",
       "birthDate": "2000-08-03",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 186,
@@ -87,9 +90,13 @@
       "firstName": "Kobi",
       "lastName": "Simmons",
       "birthDate": "1997-07-04",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 184,
@@ -161,10 +168,13 @@
       "firstName": "Markus",
       "lastName": "Howard",
       "birthDate": "1999-03-03",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 193,
@@ -237,10 +247,13 @@
       "firstName": "Matteo",
       "lastName": "Spagnolo",
       "birthDate": "2003-01-10",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 194,
@@ -310,10 +323,13 @@
       "firstName": "AJ",
       "lastName": "Lawson",
       "birthDate": "2000-07-15",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 199,
@@ -383,10 +399,13 @@
       "firstName": "Chris",
       "lastName": "Duarte",
       "birthDate": "1997-06-13",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 199,
@@ -456,9 +475,13 @@
       "firstName": "Dewayne",
       "lastName": "Stewart Jr",
       "birthDate": "1999-07-28",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 199,
@@ -528,10 +551,13 @@
       "firstName": "Rodions",
       "lastName": "Kurucs",
       "birthDate": "1998-02-05",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 199,
@@ -601,10 +627,13 @@
       "firstName": "Tadas",
       "lastName": "Sedekerskis",
       "birthDate": "1998-01-17",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 201,
@@ -674,9 +703,13 @@
       "firstName": "Clement",
       "lastName": "Frisch",
       "birthDate": "2002-01-07",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 203,
@@ -746,9 +779,13 @@
       "firstName": "Khalifa",
       "lastName": "Diop",
       "birthDate": "2002-01-15",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
         "height": 209,

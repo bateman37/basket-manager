@@ -12,10 +12,13 @@
       "firstName": "DJ",
       "lastName": "Steward",
       "birthDate": "2001-10-02",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 186,
@@ -87,9 +90,13 @@
       "firstName": "Ziga",
       "lastName": "Samar",
       "birthDate": "2001-01-26",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 187,
@@ -161,10 +168,13 @@
       "firstName": "Chase",
       "lastName": "Audige",
       "birthDate": "1999-06-29",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 193,
@@ -234,9 +244,13 @@
       "firstName": "Raúl",
       "lastName": "Lobaco",
       "birthDate": "2000-11-29",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 193,
@@ -306,10 +320,13 @@
       "firstName": "Retin",
       "lastName": "Obasohan",
       "birthDate": "1993-07-06",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 193,
@@ -379,9 +396,13 @@
       "firstName": "Dusan",
       "lastName": "Radosavljevic",
       "birthDate": "2001-11-03",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 199,
@@ -451,9 +472,13 @@
       "firstName": "Pablo",
       "lastName": "Almazán",
       "birthDate": "1989-01-15",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 199,
@@ -523,10 +548,13 @@
       "firstName": "Vlatko",
       "lastName": "Cancar",
       "birthDate": "1997-04-10",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 201,
@@ -596,9 +624,13 @@
       "firstName": "Christian",
       "lastName": "Sengfelder",
       "birthDate": "1995-02-28",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 206,
@@ -668,10 +700,13 @@
       "firstName": "Dani",
       "lastName": "Díez",
       "birthDate": "1993-04-07",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 204,
@@ -741,9 +776,13 @@
       "firstName": "Balsa",
       "lastName": "Koprivica",
       "birthDate": "2000-05-01",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 212,
@@ -815,9 +854,13 @@
       "firstName": "Rubén",
       "lastName": "Guerrero",
       "birthDate": "1995-10-22",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
         "height": 210,

@@ -12,9 +12,13 @@
       "firstName": "Lucas",
       "lastName": "Capalbo",
       "birthDate": "2000-03-22",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 184,
@@ -84,10 +88,13 @@
       "firstName": "Gaizka",
       "lastName": "Maiza",
       "birthDate": "1996-06-14",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 186,
@@ -159,9 +166,13 @@
       "firstName": "Brian",
       "lastName": "Vázquez",
       "birthDate": "1994-09-08",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 193,
@@ -231,10 +242,13 @@
       "firstName": "Corentin",
       "lastName": "Falcoz",
       "birthDate": "2002-11-05",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 194,
@@ -304,10 +318,13 @@
       "firstName": "Adrià",
       "lastName": "Domènech",
       "birthDate": "2002-07-18",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 204,
@@ -377,10 +394,13 @@
       "firstName": "Omar",
       "lastName": "Lo",
       "birthDate": "1997-07-01",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 204,
@@ -450,9 +470,13 @@
       "firstName": "Jonas",
       "lastName": "Paukštė",
       "birthDate": "2000-09-10",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 211,
@@ -522,9 +546,13 @@
       "firstName": "Matt",
       "lastName": "Van Komen",
       "birthDate": "1999-09-27",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
         "height": 210,

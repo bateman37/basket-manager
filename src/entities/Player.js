@@ -6,8 +6,12 @@
   const ATTRIBUTE_MIN = 1;
   const ATTRIBUTE_MAX = 20;
 
-  // Posiciones válidas — DESIGN.md 6.1: cada jugador tiene entre 1 y 5.
+  // Posiciones — DESIGN.md 6.1 (actualizado): cada jugador tiene un MAPA con
+  // nivel 1-20 para las 5, SIEMPRE presentes (nunca una lista variable de 1
+  // a 5 entradas como antes). La posición principal se deduce de cuál de
+  // las 5 tiene valor 20 (exactamente una, por definición).
   const POSITIONS = ['Base', 'Escolta', 'Alero', 'Ala-pívot', 'Pívot'];
+  const PRIMARY_POSITION_LEVEL = 20;
 
   // Rasgos citados como ejemplo en DESIGN.md 6.1. No es una lista cerrada:
   // son etiquetas no numéricas, se puede añadir cualquier otra con addTrait().
@@ -135,7 +139,7 @@
       this.firstName = data.firstName || '';
       this.lastName = data.lastName || '';
       this.birthDate = data.birthDate ? new Date(data.birthDate) : null;
-      this.positions = Player.validatePositions(data.positions);
+      this.positions = Player.buildPositionMap(data.positions);
 
       // Relación con Team: id del equipo al que pertenece, o null si no
       // tiene equipo (ej. generación aislada, o futuros agentes libres).
@@ -189,17 +193,51 @@
       };
     }
 
-    static validatePositions(positions) {
-      const list = Array.isArray(positions) ? positions : [positions];
-      const valid = [...new Set(list.filter((p) => POSITIONS.includes(p)))];
-      if (valid.length === 0) {
-        throw new Error('Un jugador debe tener entre 1 y 5 posiciones válidas: ' + POSITIONS.join(', '));
+    // Construye/valida el mapa de 5 posiciones (DESIGN.md 6.1 actualizado):
+    // las 5 claves SIEMPRE presentes, nivel 1-20 cada una, y exactamente una
+    // con valor 20 (la principal). `positions` debe ser ya un mapa completo
+    // — el generador y cualquier código que cree jugadores es responsable de
+    // construirlo así (no se acepta la lista plana antigua ni se completa
+    // aquí con valores por defecto silenciosos).
+    static buildPositionMap(positions) {
+      if (!positions || typeof positions !== 'object' || Array.isArray(positions)) {
+        throw new Error(
+          'positions debe ser un mapa con las 5 posiciones y nivel 1-20 cada una (DESIGN.md 6.1): '
+          + POSITIONS.join(', '),
+        );
       }
-      return valid.slice(0, 5);
+      const map = {};
+      let primaryCount = 0;
+      POSITIONS.forEach((pos) => {
+        const raw = positions[pos];
+        if (raw === undefined || raw === null) {
+          throw new Error(`positions no incluye la posición "${pos}" — las 5 deben estar siempre presentes`);
+        }
+        const level = clampAttribute(raw);
+        map[pos] = level;
+        if (level === PRIMARY_POSITION_LEVEL) primaryCount += 1;
+      });
+      if (primaryCount !== 1) {
+        throw new Error(
+          `positions debe tener EXACTAMENTE una posición con valor ${PRIMARY_POSITION_LEVEL} (principal); `
+          + `se encontraron ${primaryCount}`,
+        );
+      }
+      return map;
     }
 
     get fullName() {
       return `${this.firstName} ${this.lastName}`.trim();
+    }
+
+    // Posición principal (DESIGN.md 6.1): la única con valor 20 en el mapa.
+    get primaryPosition() {
+      return POSITIONS.find((pos) => this.positions[pos] === PRIMARY_POSITION_LEVEL);
+    }
+
+    // Nivel de competencia (1-20) del jugador en una posición concreta.
+    positionLevel(position) {
+      return this.positions[position];
     }
 
     get age() {
@@ -261,6 +299,7 @@
   const exportsObj = {
     Player,
     POSITIONS,
+    PRIMARY_POSITION_LEVEL,
     TRAITS,
     TECHNICAL_ATTRIBUTES,
     PHYSICAL_ATTRIBUTES,

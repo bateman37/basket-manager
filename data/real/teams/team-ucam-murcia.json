@@ -12,9 +12,13 @@
       "firstName": "David",
       "lastName": "DeJulius",
       "birthDate": "1999-08-09",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 186,
@@ -84,10 +88,13 @@
       "firstName": "Jonah",
       "lastName": "Radebaugh",
       "birthDate": "1997-06-17",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 187,
@@ -159,9 +166,13 @@
       "firstName": "Juani",
       "lastName": "Marcos",
       "birthDate": "2000-07-06",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 184,
@@ -233,10 +244,13 @@
       "firstName": "Michael",
       "lastName": "Forrest",
       "birthDate": "1999-12-02",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 186,
@@ -308,10 +322,13 @@
       "firstName": "Dylan",
       "lastName": "Ennis",
       "birthDate": "1991-12-26",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 191,
@@ -381,9 +398,13 @@
       "firstName": "Wilhelm",
       "lastName": "Falk",
       "birthDate": "2003-06-25",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 194,
@@ -453,10 +474,13 @@
       "firstName": "Howard",
       "lastName": "Sant-Roos",
       "birthDate": "1991-02-13",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 197,
@@ -526,9 +550,13 @@
       "firstName": "Sander",
       "lastName": "Raieste",
       "birthDate": "1999-03-31",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 199,
@@ -598,10 +626,13 @@
       "firstName": "Souley",
       "lastName": "Boum",
       "birthDate": "1999-01-26",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 199,
@@ -671,9 +702,13 @@
       "firstName": "Toni",
       "lastName": "Nakic",
       "birthDate": "1999-06-01",
-      "positions": [
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 199,
@@ -743,10 +778,13 @@
       "firstName": "Kaiser",
       "lastName": "Gates",
       "birthDate": "1996-11-08",
-      "positions": [
-        "Ala-pívot",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 12,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 203,
@@ -816,9 +854,13 @@
       "firstName": "Marcis",
       "lastName": "Steinbergs",
       "birthDate": "2001-08-28",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 205,
@@ -888,9 +930,13 @@
       "firstName": "Rubén",
       "lastName": "López de la Torre",
       "birthDate": "2002-03-13",
-      "positions": [
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 2
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 204,
@@ -960,9 +1006,13 @@
       "firstName": "Emmanuel",
       "lastName": "Cate",
       "birthDate": "1997-07-30",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 209,
@@ -1034,9 +1084,13 @@
       "firstName": "Jean-Marc",
       "lastName": "Pansa",
       "birthDate": "1997-08-20",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 208,
@@ -1108,9 +1162,13 @@
       "firstName": "Moussa",
       "lastName": "Diagne",
       "birthDate": "1994-03-06",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
         "height": 210,

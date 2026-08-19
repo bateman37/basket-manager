@@ -12,10 +12,13 @@
       "firstName": "Xabi",
       "lastName": "Oroz",
       "birthDate": "1996-01-19",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 184,
@@ -85,10 +88,13 @@
       "firstName": "Toms",
       "lastName": "Leimanis",
       "birthDate": "1994-08-07",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 186,
@@ -158,10 +164,13 @@
       "firstName": "Sesan",
       "lastName": "Russell",
       "birthDate": "1999-04-26",
-      "positions": [
-        "Base",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 12,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 186,
@@ -231,10 +240,13 @@
       "firstName": "Martín",
       "lastName": "Fernández",
       "birthDate": "2001-12-05",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 192,
@@ -304,10 +316,13 @@
       "firstName": "Diogo",
       "lastName": "Seixas",
       "birthDate": "2004-05-11",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 200,
@@ -377,10 +392,13 @@
       "firstName": "Sean",
       "lastName": "McDonnell",
       "birthDate": "1995-09-13",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 199,
@@ -450,10 +468,13 @@
       "firstName": "Jan",
       "lastName": "Zidek",
       "birthDate": "1999-12-13",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 203,
@@ -523,10 +544,13 @@
       "firstName": "Martín",
       "lastName": "Iglesias",
       "birthDate": "2004-01-10",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 206,
@@ -596,9 +620,13 @@
       "firstName": "Javier",
       "lastName": "Nicolau",
       "birthDate": "1997-01-21",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 210,
@@ -668,10 +696,13 @@
       "firstName": "Eddy",
       "lastName": "Valentino Pinedo",
       "birthDate": "2004-04-07",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
         "height": 203,

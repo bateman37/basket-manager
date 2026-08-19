@@ -12,9 +12,13 @@
       "firstName": "Lluís",
       "lastName": "Costa",
       "birthDate": "1993-02-27",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 186,
@@ -86,9 +90,13 @@
       "firstName": "Jonathan",
       "lastName": "Rousselle",
       "birthDate": "1990-02-07",
-      "positions": [
-        "Base"
-      ],
+      "positions": {
+        "Base": 20,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 187,
@@ -160,10 +168,13 @@
       "firstName": "Gregory",
       "lastName": "Parham II",
       "birthDate": "1999-01-08",
-      "positions": [
-        "Escolta",
-        "Base"
-      ],
+      "positions": {
+        "Base": 12,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 195,
@@ -233,10 +244,13 @@
       "firstName": "Jovan",
       "lastName": "Kljajic",
       "birthDate": "2001-09-11",
-      "positions": [
-        "Escolta",
-        "Alero"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 12,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 195,
@@ -306,9 +320,13 @@
       "firstName": "Edu",
       "lastName": "Durán",
       "birthDate": "1991-05-01",
-      "positions": [
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 20,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 193,
@@ -378,10 +396,13 @@
       "firstName": "Mathieu",
       "lastName": "Kamba",
       "birthDate": "1995-10-05",
-      "positions": [
-        "Alero",
-        "Escolta"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 12,
+        "Alero": 20,
+        "Ala-pívot": 2,
+        "Pívot": 2
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 199,
@@ -451,10 +472,13 @@
       "firstName": "Pere",
       "lastName": "Tomàs",
       "birthDate": "1989-09-05",
-      "positions": [
-        "Alero",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 20,
+        "Ala-pívot": 12,
+        "Pívot": 2
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 199,
@@ -526,10 +550,13 @@
       "firstName": "Andy",
       "lastName": "Van Vliet",
       "birthDate": "1995-07-27",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 202,
@@ -599,10 +626,13 @@
       "firstName": "Tanner",
       "lastName": "McGrew",
       "birthDate": "1993-02-16",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 206,
@@ -672,10 +702,13 @@
       "firstName": "Fallou",
       "lastName": "Niang",
       "birthDate": "2001-08-22",
-      "positions": [
-        "Ala-pívot",
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 20,
+        "Pívot": 12
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 203,
@@ -745,9 +778,13 @@
       "firstName": "Abdou",
       "lastName": "Thiam",
       "birthDate": "1998-02-13",
-      "positions": [
-        "Pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 2,
+        "Pívot": 20
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 210,
@@ -817,10 +854,13 @@
       "firstName": "Mouhamed",
       "lastName": "Barro",
       "birthDate": "1995-05-10",
-      "positions": [
-        "Pívot",
-        "Ala-pívot"
-      ],
+      "positions": {
+        "Base": 2,
+        "Escolta": 2,
+        "Alero": 2,
+        "Ala-pívot": 12,
+        "Pívot": 20
+      },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
         "height": 212,
