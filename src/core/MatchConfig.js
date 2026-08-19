@@ -206,6 +206,20 @@
       trainingModifierDefault: 1,
     },
 
+    // --- DESIGN.md 3.3 (Entidad Calendario) — fecha real de cada partido
+    // de las 4 competiciones, para poder calcular días de descanso reales
+    // (7.11.5) en vez de solo un número de jornada/ronda abstracto. Valores
+    // de partida razonables, NO cifras cerradas — pendientes de ajuste.
+    calendar: {
+      seasonStartMonth: 9, // octubre (0-indexed, como Date de JS)
+      seasonStartDay: 3, // ajustar al primer sábado de octubre real del año de inicio
+      daysBetweenRounds: 7, // separación entre jornadas de liga regular
+      cupRoundGapDays: 3, // separación entre rondas de la Copa (cuartos->semi->final)
+      seriesGameGapDays: 2, // separación entre partidos de una misma Series (playoff/ascenso)
+      seriesRoundGapDays: 5, // separación entre rondas de un Bracket (cuartos->semis, etc.)
+      seasonEndToPlayoffGapDays: 10, // hueco entre fin de jornada 34 y playoff por el título
+    },
+
     // --- 7.6 Bloque C: parámetros de las acciones especiales ---
     fastBreak: {
       windowSeconds: 3, // 7.6.14: primeros 3s de la posesión nueva

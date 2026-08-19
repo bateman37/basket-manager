@@ -932,3 +932,115 @@
 - No se ha tocado `MatchEngine.simulateMatch()` ni el bucle de
   posesión, ni se ha añadido ningún fallback propio de convocatoria o
   minutos.
+
+## 2026-08-19 (4) — Entidad Calendario + integración de Recovery.js (DESIGN.md 3.3 / 7.11.5)
+
+- **Nota previa señalada, no asumida en silencio**: el prompt de esta
+  tarea decía que `DESIGN.md` ya tenía escrita y aprobada la sección
+  3.3 ("Entidad Calendario") y una actualización de 7.11.5 ("Cierre de
+  integración"). Comprobado antes de tocar nada: **ninguna de las dos
+  existe hoy en `DESIGN.md`** (la sección 3 solo llega hasta 3.2, y
+  7.11.5 sigue con el texto de la sesión anterior). No se ha bloqueado
+  el trabajo por esto — el propio prompt traía suficiente detalle
+  operativo (claves de `CONFIG_BASE.calendar` con valores, forma de la
+  API de `Calendar`, puntos de integración exactos) para implementar sin
+  inventar reglas de diseño no confirmadas — pero Dennis debería subir
+  esas dos secciones a `DESIGN.md` para que quede como fuente de verdad
+  real, no solo en este CHANGELOG.
+- **`src/core/Calendar.js`** (nuevo): asigna fecha real (`Date`) a
+  cualquier partido de las 4 competiciones. `leagueRoundDate(round)`,
+  `cupRoundDates()` (3 fechas en el hueco entre jornada 17 y 18),
+  `titlePlayoffStartDate(fechaFinLigaRegular)`, y
+  `buildBracketDateResolver(startDate, roundPatterns)`.
+  - **Desviación deliberada de la firma sugerida en el prompt**:
+    `buildBracketDateResolver` recibe también `roundPatterns` (no solo
+    `startDate`) — sin conocer cuántos partidos puede llegar a tener
+    cada ronda (1, 3 o 5 según el patrón de campo), una ronda siguiente
+    fija a `roundIndex * seriesRoundGapDays` podría empezar ANTES de que
+    la ronda anterior hubiera podido terminar en su desarrollo más
+    largo. Comportamiento pedido (separación entre partidos de una
+    Series y entre rondas) preservado igual; solo cambia qué necesita
+    para calcularlo bien — documentado en el propio archivo.
+  - `MatchConfig.js` gana el bloque `calendar` (año/mes de inicio de
+    temporada, separación entre jornadas, huecos de Copa/Series/Playoff)
+    — valores de partida razonables, **no cifras cerradas**, pendientes
+    de calibración.
+  - **Nota de calibración detectada por el test dedicado**: con los
+    valores de partida `daysBetweenRounds: 7` y `cupRoundGapDays: 3`,
+    las 3 rondas de Copa (cuartos+3+3+3 días) no caben enteras antes de
+    la jornada 18 — la final de Copa cae 2 días después. No es un fallo
+    de `Calendar.js`: es que esos dos valores de partida no encajan
+    entre sí con 3 rondas. Pendiente de que Dennis los recalibre.
+  - **Integrado en las 4 competiciones**, todas con el mismo patrón:
+    parámetro nuevo OPCIONAL (`dateResolver`/`cupDates`), sin `date`
+    queda en `null` — comportamiento retrocompatible, ninguna llamada
+    existente `new League(teams)`/`new Bracket(...)` se rompe:
+    - `League.js`: `createMatch`/`generateSchedule`/`new League(teams,
+      dateResolver)` — 2º parámetro nuevo del constructor.
+    - `Cup.js`: `createCup(league, cupDates)`.
+    - `Bracket.js`: `Series`/`Bracket` ganan `dateResolver`; cada
+      `game.date` sale del resolver ligado a su ronda.
+    - `Playoffs.js`/`Promotion.js`: `createTitlePlayoff(league,
+      dateResolver)` / `new PromotionPlayoff(league, dateResolver)`.
+      Exportan `TITLE_PLAYOFF_ROUND_PATTERNS`/`PROMOTION_ROUND_PATTERNS`
+      para que quien construye el resolver no duplique los patrones.
+      **Bug evitado antes de que llegara a pasar**: ambos módulos
+      exportaban originalmente una constante `ROUND_PATTERNS` con el
+      mismo nombre — en el navegador (`global.BasketManager` compartido)
+      la que cargara segunda habría pisado a la primera. Renombradas
+      antes de que ninguna sesión llegara a depender del nombre
+      colisionado.
+    - `Promotion.js` en concreto: la Final Four (creada más tarde, al
+      completar cuartos) reutiliza el MISMO resolver desplazando
+      `roundIndex + 1`, para que sus fechas sigan la numeración continua
+      de rondas del playoff completo en vez de reiniciar desde cero.
+- **`Player.js`**: nuevo `dynamicState.lastMatchDate` (`Date | null`,
+  `null` hasta el debut) y `player.recordMatchDate(date)`. Serializado
+  en `toJSON()` como fecha simple (`YYYY-MM-DD`, igual que `birthDate`),
+  no como ISO completo con hora — para no romper la consistencia de
+  guardado con el resto de la ficha.
+- **Enganche real de `Recovery.js`** (el hueco que llevaba huérfano
+  desde que se escribió — confirmado con `grep` antes de empezar: cero
+  llamadas a `applyRestRecovery`/`computeRecoveredEnergy` fuera de su
+  propio archivo): nueva función `applyRecoveryForResolvedMatch()` en
+  `src/ui/game.js`, llamada tras CADA partido resuelto de las 4
+  competiciones (jornada de liga completa, no solo el partido del
+  usuario; y cada partido de bracket de Copa/Playoff/Ascenso). Por cada
+  jugador con minutos > 0 en ese partido: si ya tenía `lastMatchDate`,
+  aplica `Recovery.applyRestRecovery` con los días reales transcurridos
+  desde su ÚLTIMO partido jugado (no desde la última jornada del
+  calendario); actualiza `lastMatchDate` en cualquier caso. Los
+  convocados sin minutos (o no convocados) NO actualizan su fecha — su
+  descanso se sigue midiendo desde su último partido real la próxima
+  vez que juegue, sea cuando sea (DESIGN.md 3.3.4), en vez de
+  recalcularse jornada a jornada sin que hayan jugado.
+  - **Limitación real señalada, no un olvido**: `result.rotation` (de
+    donde sale qué jugador jugó cuántos minutos) solo existe cuando ESE
+    lado del partido tuvo una alineación real. Hoy
+    `buildLineupMatchOptionsResolver()` solo construye alineación para
+    el EQUIPO DEL USUARIO — nunca para el rival ni para el resto de
+    partidos de la jornada (17 equipos IA). Por tanto, esta integración
+    de momento solo puede aplicar recuperación real al equipo del
+    usuario cuando tiene alineación configurada; el resto de la liga no
+    actualiza `lastMatchDate` todavía, porque no hay manera de saber
+    quién jugó cuántos minutos sin inventar un reparto que nadie ha
+    pedido.
+- `src/ui/game.js`: `state.seasonStartYear` (año real en que empieza la
+  partida, decisión no fijada en `DESIGN.md`: se usa el año en curso al
+  llamar a `startSeason()`) y `state.calendar` (instancia de
+  `Calendar`), construidos en `startSeason()` y usados para pasar
+  `dateResolver` a `League`/`Cup`/`Playoffs`/`Promotion` en los puntos
+  donde ya se creaban. `renderCalendarScreen()` gana una columna
+  "Fecha" (encajaba de forma trivial, sin rediseñar la pantalla).
+- **Verificado con dos scripts Node dedicados**: fechas de jornada 1,
+  17, 18 y 34 correctas; hueco de Copa/Series/Playoff con la separación
+  configurada; Final Four del ascenso con `startDate` propio,
+  independiente del playoff de 1ª división; y el escenario de
+  integración pedido — un jugador que juega jornada tras jornada
+  termina con MÁS energía almacenada que uno que descansa pero no
+  vuelve a jugar dentro de la ventana observada (su valor queda
+  congelado hasta que juega de nuevo, momento en el que se recalcula de
+  golpe con todo el hueco acumulado). Confirmado con `grep`/`diff` que
+  `MatchEngine.js`, `Rotation.js` y la pantalla de Alineación no se han
+  tocado. Sin regresiones en los tests existentes (Bracket/Playoffs/
+  Cup/Promotion, datos reales, Playwright de toda la interfaz).

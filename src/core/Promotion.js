@@ -29,6 +29,13 @@
   // 2v9/3v8/4v7/5v6 que pide DESIGN.md 3.2.3.
   const QUARTERFINAL_PAIRING = [[2, 9], [3, 8], [4, 7], [5, 6]];
 
+  // Los 3 "rondas" reales del playoff de ascenso (cuartos + las 2 de la
+  // Final Four), en el mismo orden en que se juegan — se exporta para que
+  // quien construye el `dateResolver` (DESIGN.md 3.3,
+  // `Calendar.buildBracketDateResolver(startDate, PROMOTION_ROUND_PATTERNS)`) no
+  // tenga que duplicar estos patrones a mano.
+  const PROMOTION_ROUND_PATTERNS = [VENUE_PATTERNS.BEST_OF_5_2_2_1, VENUE_PATTERNS.SINGLE_GAME, VENUE_PATTERNS.SINGLE_GAME];
+
   // Reordena los 4 ganadores de cuartos por su seed ORIGINAL de liga
   // regular (no por posición de bracket) y arma el cruce de semifinal:
   // mejor de los 4 vs peor de los 4, y los dos intermedios entre sí.
@@ -44,7 +51,15 @@
   class PromotionPlayoff {
     // `league`: instancia de League de la 2ª división ficticia, con la
     // temporada regular ya completa (league.isSeasonComplete === true).
-    constructor(league) {
+    // `dateResolver` (opcional, DESIGN.md 3.3): `(roundIndex,
+    // gameIndexInSeries) => Date`, construido con
+    // `Calendar.buildBracketDateResolver(startDate, PROMOTION_ROUND_PATTERNS)`
+    // (`startDate` propio de esta 2ª división — DESIGN.md 3.3.3, "startDate
+    // independiente del de 1ª división"). Los cuartos usan roundIndex=0 de
+    // ese resolver tal cual; la Final Four (creada más tarde, en
+    // ensureFinalFour) desplaza el roundIndex +1 para seguir la misma
+    // numeración continua de rondas (semis=1, final=2).
+    constructor(league, dateResolver) {
       if (!league.isSeasonComplete) {
         throw new Error('PromotionPlayoff: la liga regular de 2ª división todavía no ha terminado');
       }
@@ -58,7 +73,8 @@
         team: standing.team,
         seed: index + 2, // 2º a 9º
       }));
-      this.quarterFinals = new Bracket(qualifiers, QUARTERFINAL_PAIRING, [VENUE_PATTERNS.BEST_OF_5_2_2_1]);
+      this.dateResolver = dateResolver || null;
+      this.quarterFinals = new Bracket(qualifiers, QUARTERFINAL_PAIRING, [VENUE_PATTERNS.BEST_OF_5_2_2_1], dateResolver);
       this.finalFour = null; // se crea al completar cuartos, con el cruce reordenado
     }
 
@@ -72,7 +88,14 @@
       if (this.finalFour || !this.isQuarterFinalsComplete) return;
       const winners = this.quarterFinals.currentRound.map((series) => series.winner);
       const { entries, pairing } = buildFinalFourPairing(winners);
-      this.finalFour = new Bracket(entries, pairing, [VENUE_PATTERNS.SINGLE_GAME, VENUE_PATTERNS.SINGLE_GAME]);
+      // La Final Four ocupó las rondas 1 y 2 del resolver compartido (los
+      // cuartos ya consumieron la ronda 0) — se desplaza aquí en vez de en
+      // Calendar.js, que no sabe nada de esta reordenación específica de
+      // Promotion.js.
+      const finalFourDateResolver = this.dateResolver
+        ? (roundIndex, gameIndexInSeries) => this.dateResolver(roundIndex + 1, gameIndexInSeries)
+        : undefined;
+      this.finalFour = new Bracket(entries, pairing, [VENUE_PATTERNS.SINGLE_GAME, VENUE_PATTERNS.SINGLE_GAME], finalFourDateResolver);
     }
 
     // 2º equipo ascendido = campeón de la Final Four (null hasta que se
@@ -111,7 +134,7 @@
     }
   }
 
-  const exportsObj = { PromotionPlayoff };
+  const exportsObj = { PromotionPlayoff, PROMOTION_ROUND_PATTERNS };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

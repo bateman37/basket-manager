@@ -31,6 +31,15 @@
     screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'calendar' | 'competitions' | 'stats' | 'match'
     division: '1ª',
     userTeamId: null,
+    // Año real de inicio de temporada (DESIGN.md 3.3, Entidad Calendario) —
+    // no existía ningún concepto de fecha real en el estado de partida
+    // antes de esto. Decisión NO fijada en DESIGN.md, señalada aquí: se usa
+    // el año en curso en el momento de empezar la partida (new Date() al
+    // llamar a startSeason()), no un año fijo — así cada partida nueva
+    // arranca en la temporada "actual" real en vez de quedar anclada a una
+    // fecha de cuando se escribió este código.
+    seasonStartYear: null,
+    calendar: null, // instancia de Calendar (ver Calendar.js), construida en startSeason()
     league: null, // instancia de League (1ª o 2ª según el equipo elegido)
     titlePlayoff: null, // Bracket | null (1ª división, tras jornada 34)
     cup: null, // Bracket | null (Copa, se crea automáticamente en jornada 17→18)
@@ -146,11 +155,13 @@
   // Arranque de temporada
   // ---------------------------------------------------------------------
   function startSeason(teamId, division) {
-    const { League } = BM;
+    const { League, Calendar, CONFIG_BASE } = BM;
     const teams = getRealTeamsByDivision(division);
     state.division = division;
     state.userTeamId = teamId;
-    state.league = new League(teams);
+    state.seasonStartYear = new Date().getFullYear();
+    state.calendar = new Calendar(state.seasonStartYear, CONFIG_BASE);
+    state.league = new League(teams, (round) => state.calendar.leagueRoundDate(round));
     state.titlePlayoff = null;
     state.cup = null;
     state.promotionPlayoff = null;
@@ -174,6 +185,42 @@
   }
 
   // ---------------------------------------------------------------------
+  // Cierre de integración de Recovery.js (DESIGN.md 7.11.5): tras resolver
+  // CUALQUIER partido de cualquiera de las 4 competiciones, aplica la
+  // recuperación de Energía pendiente de cada jugador que jugó minutos, y
+  // registra la fecha de este partido como su nuevo `lastMatchDate`.
+  //
+  // LIMITACIÓN REAL señalada explícitamente (no un olvido): `result.rotation`
+  // (de dónde sale qué jugador jugó cuántos minutos) solo existe cuando ESE
+  // lado del partido tuvo una alineación real (`options.home/awayLineup` a
+  // MatchEngine.simulateMatch) — ver MatchEngine.js. Hoy
+  // buildLineupMatchOptionsResolver() solo construye esa alineación para el
+  // EQUIPO DEL USUARIO, nunca para el rival ni para el resto de partidos de
+  // la jornada (equipos IA). Por tanto, esta integración solo puede
+  // actualizar `lastMatchDate`/aplicar recuperación al equipo del usuario
+  // cuando ha configurado alineación — el resto de la liga (los otros 17
+  // equipos) no tiene manera de saber quién jugó cuántos minutos todavía,
+  // así que sencillamente no se les toca nada (no se inventa un reparto de
+  // minutos "quinteto titular fijo" ni parecido, que no pidió esta tarea).
+  function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date) {
+    if (!date || !result.rotation) return;
+    const { applyRestRecovery, CONFIG_BASE } = BM;
+    [{ team: homeTeam, rotation: result.rotation.home }, { team: awayTeam, rotation: result.rotation.away }]
+      .forEach(({ team, rotation }) => {
+        if (!rotation) return; // este lado no tenía alineación real — sin datos de minutos, no se toca
+        team.roster.forEach((player) => {
+          const playedSeconds = rotation.playedSeconds[player.id] || 0;
+          if (playedSeconds <= 0) return; // convocado sin minutos o no convocado — no se actualiza (DESIGN.md 3.3.4)
+          if (player.dynamicState.lastMatchDate) {
+            const days = Math.round((date - player.dynamicState.lastMatchDate) / (1000 * 60 * 60 * 24));
+            if (days > 0) applyRestRecovery([player], days, CONFIG_BASE);
+          }
+          player.recordMatchDate(date);
+        });
+      });
+  }
+
+  // ---------------------------------------------------------------------
   // Progresión de temporada: simular jornada, disparar Copa (jornada
   // 17→18, solo 1ª división) y construir playoffs al terminar la liga
   // regular (título en 1ª, ascenso en 2ª) — todo reutilizando Playoffs.js/
@@ -185,26 +232,50 @@
   // buildLineupMatchOptionsResolver() más abajo. Sin argumento, la jornada
   // se juega exactamente igual que hasta ahora (sin alineación real).
   function simulateNextRound(resolveMatchOptions) {
-    const { createTitlePlayoff, createCup, PromotionPlayoff, CUP_TRIGGER_ROUND } = BM;
+    const {
+      createTitlePlayoff, createCup, PromotionPlayoff, CUP_TRIGGER_ROUND,
+      TITLE_PLAYOFF_ROUND_PATTERNS, PROMOTION_ROUND_PATTERNS,
+    } = BM;
     const league = state.league;
     if (league.isSeasonComplete) return;
 
     const matches = league.simulateNextRound(undefined, resolveMatchOptions);
     state.lastRoundMatches = matches;
 
+    // DESIGN.md 7.11.5 (cierre de integración): recuperación de Energía
+    // para cada partido de la jornada recién jugada (no solo el del
+    // usuario) — ver limitación real explicada arriba.
+    matches.forEach((match) => {
+      applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
+    });
+
     // Copa: se dispara automáticamente justo al completar la jornada 17,
     // solo en 1ª división (DESIGN.md 3.2.2) — createCup() exige el valor
     // EXACTO de currentRound, así que solo puede llamarse aquí, en el
     // instante justo tras jugarla.
     if (state.division === '1ª' && league.currentRound === CUP_TRIGGER_ROUND + 1 && !state.cup) {
-      state.cup = createCup(league);
+      const cupDates = state.calendar ? state.calendar.cupRoundDates() : undefined;
+      state.cup = createCup(league, cupDates);
     }
 
     if (league.isSeasonComplete) {
+      // DESIGN.md 3.3.3: startDate del playoff = fecha de la última jornada
+      // de ESTA liga (1ª o 2ª, la que corresponda) + el hueco configurado —
+      // "independiente" de la otra división simplemente porque cada una
+      // calcula la suya a partir de SU PROPIO calendario, nunca del ajeno.
+      const playoffStartDate = state.calendar
+        ? state.calendar.titlePlayoffStartDate(state.calendar.leagueRoundDate(league.totalRounds))
+        : undefined;
       if (state.division === '1ª') {
-        state.titlePlayoff = createTitlePlayoff(league);
+        const dateResolver = state.calendar
+          ? state.calendar.buildBracketDateResolver(playoffStartDate, TITLE_PLAYOFF_ROUND_PATTERNS)
+          : undefined;
+        state.titlePlayoff = createTitlePlayoff(league, dateResolver);
       } else {
-        state.promotionPlayoff = new PromotionPlayoff(league);
+        const dateResolver = state.calendar
+          ? state.calendar.buildBracketDateResolver(playoffStartDate, PROMOTION_ROUND_PATTERNS)
+          : undefined;
+        state.promotionPlayoff = new PromotionPlayoff(league, dateResolver);
       }
     }
 
@@ -272,6 +343,9 @@
   // Bracket.playNextGame(). Sin argumento, comportamiento idéntico a antes.
   function playBracketGameWithReveal(bracket, resolveOptions) {
     const game = bracket.playNextGame(undefined, resolveOptions);
+    // DESIGN.md 7.11.5 (cierre de integración): igual que en simulateNextRound(),
+    // recuperación de Energía para los dos equipos de este partido de bracket.
+    applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date);
     state.pendingUserMatch = {
       homeTeam: game.homeEntry.team,
       awayTeam: game.awayEntry.team,
@@ -399,6 +473,13 @@
   // ---------------------------------------------------------------------
   // Pantalla: calendario (próximos partidos y resultados pasados)
   // ---------------------------------------------------------------------
+  // DESIGN.md 3.3 (Entidad Calendario): fecha real del partido, si la Liga
+  // se construyó con un dateResolver de Calendar.js — '—' si no (siempre
+  // debería haberlo desde startSeason(), pero se protege igual).
+  function formatMatchDate(date) {
+    return date ? date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—';
+  }
+
   function renderCalendarScreen() {
     const container = byId('gm-calendar');
     const league = state.league;
@@ -422,6 +503,7 @@
       return `
         <tr class="${outcomeClass}">
           <td>${m.round}</td>
+          <td>${formatMatchDate(m.date)}</td>
           <td>${venue}</td>
           <td>${opponent.fullName}</td>
           <td>${resultText}</td>
@@ -431,7 +513,7 @@
     container.innerHTML = `
       <h2>Calendario — ${team.fullName}</h2>
       <table class="gm-table">
-        <thead><tr><th>Jornada</th><th>Sede</th><th>Rival</th><th>Resultado</th></tr></thead>
+        <thead><tr><th>Jornada</th><th>Fecha</th><th>Sede</th><th>Rival</th><th>Resultado</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     `;
