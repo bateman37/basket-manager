@@ -17,25 +17,31 @@
 
   // DESIGN.md 3.2.1: cuartos al mejor de 3 (1-1-1), semis y final al
   // mejor de 5 (2-2-1).
-  const ROUND_PATTERNS = [
+  const TITLE_PLAYOFF_ROUND_PATTERNS = [
     VENUE_PATTERNS.BEST_OF_3_1_1_1,
     VENUE_PATTERNS.BEST_OF_5_2_2_1,
     VENUE_PATTERNS.BEST_OF_5_2_2_1,
   ];
 
   // `league`: instancia de League con la temporada regular ya completa
-  // (league.isSeasonComplete === true). Devuelve un Bracket ya listo para
-  // jugar con Bracket.playNextGame(config)/getStatus().
-  function createTitlePlayoff(league) {
+  // (league.isSeasonComplete === true). `dateResolver` (opcional,
+  // DESIGN.md 3.3): `(roundIndex, gameIndexInSeries) => Date`, construido
+  // por quien llama con `Calendar.buildBracketDateResolver(startDate,
+  // TITLE_PLAYOFF_ROUND_PATTERNS)` — se exporta este último array justo
+  // para eso, y así no hay que duplicarlo en dos sitios. Sin `dateResolver`,
+  // las fechas de los partidos quedan en null (comportamiento de siempre).
+  // Devuelve un Bracket ya listo para jugar con
+  // Bracket.playNextGame(config)/getStatus().
+  function createTitlePlayoff(league, dateResolver) {
     if (!league.isSeasonComplete) {
       throw new Error('createTitlePlayoff: la liga regular todavía no ha terminado (faltan jornadas)');
     }
     const top8 = league.getStandingsTable().slice(0, 8);
     const entries = top8.map((standing, index) => ({ team: standing.team, seed: index + 1 }));
-    return new Bracket(entries, FIRST_ROUND_PAIRING, ROUND_PATTERNS);
+    return new Bracket(entries, FIRST_ROUND_PAIRING, TITLE_PLAYOFF_ROUND_PATTERNS, dateResolver);
   }
 
-  const exportsObj = { createTitlePlayoff };
+  const exportsObj = { createTitlePlayoff, TITLE_PLAYOFF_ROUND_PATTERNS };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

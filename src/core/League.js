@@ -56,20 +56,25 @@
     return rounds; // array de (teamCount-1) jornadas, cada una con (teamCount/2) pares {homeIndex, awayIndex}
   }
 
-  function createMatch(round, homeTeam, awayTeam) {
+  // `dateResolver` (opcional, DESIGN.md 3.3 — Entidad Calendario):
+  // `(round) => Date`, normalmente `Calendar.leagueRoundDate` ya ligado a
+  // una instancia. Sin él, `date` queda en `null` — comportamiento idéntico
+  // al de antes de existir Calendar.js.
+  function createMatch(round, homeTeam, awayTeam, dateResolver) {
     return {
       round,
       homeTeam,
       awayTeam,
       status: 'pending', // 'pending' | 'played'
       result: null, // se rellena con el resultado completo de MatchEngine.simulateMatch()
+      date: dateResolver ? dateResolver(round) : null,
     };
   }
 
   // Calendario completo: 34 jornadas (17 ida + 17 vuelta) — DESIGN.md 3.1.
   // La vuelta repite exactamente los mismos enfrentamientos de la ida con
   // local/visitante invertido.
-  function generateSchedule(teams) {
+  function generateSchedule(teams, dateResolver) {
     if (teams.length !== TEAM_COUNT) {
       throw new Error(`El calendario de Fase 1 requiere exactamente ${TEAM_COUNT} equipos (recibidos: ${teams.length})`);
     }
@@ -79,13 +84,13 @@
 
     firstLegRounds.forEach((pairs) => {
       pairs.forEach(({ homeIndex, awayIndex }) => {
-        schedule.push(createMatch(roundNumber, teams[homeIndex], teams[awayIndex]));
+        schedule.push(createMatch(roundNumber, teams[homeIndex], teams[awayIndex], dateResolver));
       });
       roundNumber += 1;
     });
     firstLegRounds.forEach((pairs) => {
       pairs.forEach(({ homeIndex, awayIndex }) => {
-        schedule.push(createMatch(roundNumber, teams[awayIndex], teams[homeIndex])); // vuelta: local/visitante invertido
+        schedule.push(createMatch(roundNumber, teams[awayIndex], teams[homeIndex], dateResolver)); // vuelta: local/visitante invertido
       });
       roundNumber += 1;
     });
@@ -258,9 +263,12 @@
   // --- Liga ---
 
   class League {
-    constructor(teams) {
+    // `dateResolver` (opcional, DESIGN.md 3.3): ver createMatch() arriba.
+    // Añadido como 2º parámetro nuevo — no rompe ninguna llamada existente
+    // `new League(teams)`, que sigue funcionando igual (fechas a null).
+    constructor(teams, dateResolver) {
       this.teams = teams;
-      this.schedule = generateSchedule(teams);
+      this.schedule = generateSchedule(teams, dateResolver);
       this.totalRounds = (teams.length - 1) * 2; // 34
       this.currentRound = 1;
 

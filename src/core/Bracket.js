@@ -34,13 +34,16 @@
     // origen (liga regular u otra fuente), 1 = mejor. La ventaja de campo
     // en cada partido la decide `pattern`, siempre en términos relativos
     // a quién es "better"/"worse", nunca en términos de un equipo fijo.
-    constructor(betterEntry, worseEntry, pattern) {
+    // `dateResolver` (opcional, DESIGN.md 3.3): `(gameIndexInSeries) =>
+    // Date`, ya fijado a la ronda de esta Series por Bracket.buildRound().
+    constructor(betterEntry, worseEntry, pattern, dateResolver) {
       this.betterEntry = betterEntry;
       this.worseEntry = worseEntry;
       this.pattern = pattern;
       this.gamesNeededToWin = Math.ceil(pattern.length / 2);
-      this.games = []; // { gameNumber, homeEntry, awayEntry, result }
+      this.games = []; // { gameNumber, homeEntry, awayEntry, result, date }
       this.wins = { better: 0, worse: 0 };
+      this.dateResolver = dateResolver || null;
     }
 
     get isDecided() {
@@ -78,7 +81,13 @@
       const winnerSide = homeWon === (homeSide === 'better') ? 'better' : 'worse';
       this.wins[winnerSide] += 1;
       const game = {
-        gameNumber: gameIndex + 1, homeEntry, awayEntry, result,
+        gameNumber: gameIndex + 1,
+        homeEntry,
+        awayEntry,
+        result,
+        // DESIGN.md 3.3: fecha real del partido, si el Bracket recibió un
+        // dateResolver (Calendar.buildBracketDateResolver) — null si no.
+        date: this.dateResolver ? this.dateResolver(gameIndex) : null,
       };
       this.games.push(game);
       return game;
@@ -110,9 +119,15 @@
   // `roundPatterns`: array de VENUE_PATTERNS.*, uno por ronda, en el orden
   // en que se van a jugar (ej. [BEST_OF_3_1_1_1, BEST_OF_5_2_2_1, BEST_OF_5_2_2_1]).
   class Bracket {
-    constructor(entries, firstRoundPairing, roundPatterns) {
+    // `dateResolver` (opcional, DESIGN.md 3.3): `(roundIndex,
+    // gameIndexInSeries) => Date`, normalmente
+    // `Calendar.buildBracketDateResolver(startDate, roundPatterns)`. Sin
+    // él, todas las `date` de los partidos quedan en `null` — igual que
+    // antes de existir Calendar.js.
+    constructor(entries, firstRoundPairing, roundPatterns, dateResolver) {
       const bySeed = new Map(entries.map((entry) => [entry.seed, entry]));
       this.roundPatterns = roundPatterns;
+      this.dateResolver = dateResolver || null;
       const firstRoundEntryPairs = firstRoundPairing.map(
         ([seedA, seedB]) => [bySeed.get(seedA), bySeed.get(seedB)],
       );
@@ -121,10 +136,13 @@
 
     buildRound(entryPairs, roundIndex) {
       const pattern = this.roundPatterns[roundIndex];
+      const seriesDateResolver = this.dateResolver
+        ? (gameIndexInSeries) => this.dateResolver(roundIndex, gameIndexInSeries)
+        : null;
       return entryPairs.map(([entryA, entryB]) => {
         const better = entryA.seed <= entryB.seed ? entryA : entryB;
         const worse = entryA.seed <= entryB.seed ? entryB : entryA;
-        return new Series(better, worse, pattern);
+        return new Series(better, worse, pattern, seriesDateResolver);
       });
     }
 

@@ -932,3 +932,228 @@
 - No se ha tocado `MatchEngine.simulateMatch()` ni el bucle de
   posesión, ni se ha añadido ningún fallback propio de convocatoria o
   minutos.
+
+## 2026-08-19 (4) — Entidad Calendario + integración de Recovery.js (DESIGN.md 3.3 / 7.11.5)
+
+- **Nota previa señalada, no asumida en silencio**: el prompt de esta
+  tarea decía que `DESIGN.md` ya tenía escrita y aprobada la sección
+  3.3 ("Entidad Calendario") y una actualización de 7.11.5 ("Cierre de
+  integración"). Comprobado antes de tocar nada: **ninguna de las dos
+  existe hoy en `DESIGN.md`** (la sección 3 solo llega hasta 3.2, y
+  7.11.5 sigue con el texto de la sesión anterior). No se ha bloqueado
+  el trabajo por esto — el propio prompt traía suficiente detalle
+  operativo (claves de `CONFIG_BASE.calendar` con valores, forma de la
+  API de `Calendar`, puntos de integración exactos) para implementar sin
+  inventar reglas de diseño no confirmadas — pero Dennis debería subir
+  esas dos secciones a `DESIGN.md` para que quede como fuente de verdad
+  real, no solo en este CHANGELOG.
+- **`src/core/Calendar.js`** (nuevo): asigna fecha real (`Date`) a
+  cualquier partido de las 4 competiciones. `leagueRoundDate(round)`,
+  `cupRoundDates()` (3 fechas en el hueco entre jornada 17 y 18),
+  `titlePlayoffStartDate(fechaFinLigaRegular)`, y
+  `buildBracketDateResolver(startDate, roundPatterns)`.
+  - **Desviación deliberada de la firma sugerida en el prompt**:
+    `buildBracketDateResolver` recibe también `roundPatterns` (no solo
+    `startDate`) — sin conocer cuántos partidos puede llegar a tener
+    cada ronda (1, 3 o 5 según el patrón de campo), una ronda siguiente
+    fija a `roundIndex * seriesRoundGapDays` podría empezar ANTES de que
+    la ronda anterior hubiera podido terminar en su desarrollo más
+    largo. Comportamiento pedido (separación entre partidos de una
+    Series y entre rondas) preservado igual; solo cambia qué necesita
+    para calcularlo bien — documentado en el propio archivo.
+  - `MatchConfig.js` gana el bloque `calendar` (año/mes de inicio de
+    temporada, separación entre jornadas, huecos de Copa/Series/Playoff)
+    — valores de partida razonables, **no cifras cerradas**, pendientes
+    de calibración.
+  - **Nota de calibración detectada por el test dedicado**: con los
+    valores de partida `daysBetweenRounds: 7` y `cupRoundGapDays: 3`,
+    las 3 rondas de Copa (cuartos+3+3+3 días) no caben enteras antes de
+    la jornada 18 — la final de Copa cae 2 días después. No es un fallo
+    de `Calendar.js`: es que esos dos valores de partida no encajan
+    entre sí con 3 rondas. Pendiente de que Dennis los recalibre.
+  - **Integrado en las 4 competiciones**, todas con el mismo patrón:
+    parámetro nuevo OPCIONAL (`dateResolver`/`cupDates`), sin `date`
+    queda en `null` — comportamiento retrocompatible, ninguna llamada
+    existente `new League(teams)`/`new Bracket(...)` se rompe:
+    - `League.js`: `createMatch`/`generateSchedule`/`new League(teams,
+      dateResolver)` — 2º parámetro nuevo del constructor.
+    - `Cup.js`: `createCup(league, cupDates)`.
+    - `Bracket.js`: `Series`/`Bracket` ganan `dateResolver`; cada
+      `game.date` sale del resolver ligado a su ronda.
+    - `Playoffs.js`/`Promotion.js`: `createTitlePlayoff(league,
+      dateResolver)` / `new PromotionPlayoff(league, dateResolver)`.
+      Exportan `TITLE_PLAYOFF_ROUND_PATTERNS`/`PROMOTION_ROUND_PATTERNS`
+      para que quien construye el resolver no duplique los patrones.
+      **Bug evitado antes de que llegara a pasar**: ambos módulos
+      exportaban originalmente una constante `ROUND_PATTERNS` con el
+      mismo nombre — en el navegador (`global.BasketManager` compartido)
+      la que cargara segunda habría pisado a la primera. Renombradas
+      antes de que ninguna sesión llegara a depender del nombre
+      colisionado.
+    - `Promotion.js` en concreto: la Final Four (creada más tarde, al
+      completar cuartos) reutiliza el MISMO resolver desplazando
+      `roundIndex + 1`, para que sus fechas sigan la numeración continua
+      de rondas del playoff completo en vez de reiniciar desde cero.
+- **`Player.js`**: nuevo `dynamicState.lastMatchDate` (`Date | null`,
+  `null` hasta el debut) y `player.recordMatchDate(date)`. Serializado
+  en `toJSON()` como fecha simple (`YYYY-MM-DD`, igual que `birthDate`),
+  no como ISO completo con hora — para no romper la consistencia de
+  guardado con el resto de la ficha.
+- **Enganche real de `Recovery.js`** (el hueco que llevaba huérfano
+  desde que se escribió — confirmado con `grep` antes de empezar: cero
+  llamadas a `applyRestRecovery`/`computeRecoveredEnergy` fuera de su
+  propio archivo): nueva función `applyRecoveryForResolvedMatch()` en
+  `src/ui/game.js`, llamada tras CADA partido resuelto de las 4
+  competiciones (jornada de liga completa, no solo el partido del
+  usuario; y cada partido de bracket de Copa/Playoff/Ascenso). Por cada
+  jugador con minutos > 0 en ese partido: si ya tenía `lastMatchDate`,
+  aplica `Recovery.applyRestRecovery` con los días reales transcurridos
+  desde su ÚLTIMO partido jugado (no desde la última jornada del
+  calendario); actualiza `lastMatchDate` en cualquier caso. Los
+  convocados sin minutos (o no convocados) NO actualizan su fecha — su
+  descanso se sigue midiendo desde su último partido real la próxima
+  vez que juegue, sea cuando sea (DESIGN.md 3.3.4), en vez de
+  recalcularse jornada a jornada sin que hayan jugado.
+  - **Limitación real señalada, no un olvido**: `result.rotation` (de
+    donde sale qué jugador jugó cuántos minutos) solo existe cuando ESE
+    lado del partido tuvo una alineación real. Hoy
+    `buildLineupMatchOptionsResolver()` solo construye alineación para
+    el EQUIPO DEL USUARIO — nunca para el rival ni para el resto de
+    partidos de la jornada (17 equipos IA). Por tanto, esta integración
+    de momento solo puede aplicar recuperación real al equipo del
+    usuario cuando tiene alineación configurada; el resto de la liga no
+    actualiza `lastMatchDate` todavía, porque no hay manera de saber
+    quién jugó cuántos minutos sin inventar un reparto que nadie ha
+    pedido.
+- `src/ui/game.js`: `state.seasonStartYear` (año real en que empieza la
+  partida, decisión no fijada en `DESIGN.md`: se usa el año en curso al
+  llamar a `startSeason()`) y `state.calendar` (instancia de
+  `Calendar`), construidos en `startSeason()` y usados para pasar
+  `dateResolver` a `League`/`Cup`/`Playoffs`/`Promotion` en los puntos
+  donde ya se creaban. `renderCalendarScreen()` gana una columna
+  "Fecha" (encajaba de forma trivial, sin rediseñar la pantalla).
+- **Verificado con dos scripts Node dedicados**: fechas de jornada 1,
+  17, 18 y 34 correctas; hueco de Copa/Series/Playoff con la separación
+  configurada; Final Four del ascenso con `startDate` propio,
+  independiente del playoff de 1ª división; y el escenario de
+  integración pedido — un jugador que juega jornada tras jornada
+  termina con MÁS energía almacenada que uno que descansa pero no
+  vuelve a jugar dentro de la ventana observada (su valor queda
+  congelado hasta que juega de nuevo, momento en el que se recalcula de
+  golpe con todo el hueco acumulado). Confirmado con `grep`/`diff` que
+  `MatchEngine.js`, `Rotation.js` y la pantalla de Alineación no se han
+  tocado. Sin regresiones en los tests existentes (Bracket/Playoffs/
+  Cup/Promotion, datos reales, Playwright de toda la interfaz).
+
+## 2026-08-19 (5) — Corrección de calibración de Copa + IA de alineación CPU (DESIGN.md 3.3.2 / 7.11.7)
+
+- **Corrección de calibración de Copa** (`Calendar.cupRoundDates()`): el
+  bug real señalado en la sesión anterior (con `daysBetweenRounds: 7` y
+  `cupRoundGapDays: 3`, la 3ª fecha de Copa caía 2 días DESPUÉS de la
+  jornada 18) queda corregido. Ahora el hueco total de Copa es siempre
+  exactamente el mismo que separa la jornada 17 de la 18 (no una
+  duración derivada de sumar `cupRoundGapDays` × rondas), y se garantiza
+  un mínimo de `cupFinalCushionDays` (2, nueva constante de `CONFIG`)
+  días de descanso real entre la final de Copa y la jornada 18 —
+  comprimiendo la separación entre rondas de Copa cuando no cabe, nunca
+  alargando el hueco total ni reduciendo el colchón mínimo. Con los
+  valores de partida, el reparto resultante es cuartos +3, semis +4,
+  final +5 (jornada 18 en +7) — reparto distinto al ejemplo ilustrativo
+  del encargo (+2/+4/+5), pero cumple igual las dos reglas duras; el
+  propio DESIGN.md señala que no es la única distribución válida.
+  Verificado con el script Node dedicado a `Calendar.js` (caso de Copa
+  actualizado: fechas crecientes, dentro del hueco fijo, con el colchón
+  mínimo respetado).
+- **Nuevo módulo `src/core/CpuLineup.js`** (DESIGN.md 7.11.7):
+  alineación automática para los equipos que el usuario no controla —
+  cierra la limitación señalada explícitamente en el cierre de 7.11.5 de
+  la sesión anterior (sin esto, cualquier lado de un partido que no
+  fuera el equipo del usuario caía en `MatchEngine.selectOnCourtFive`,
+  sin reparto de minutos por jugador, así que Recovery.js nunca podía
+  actualizar su `lastMatchDate`).
+  - `buildCpuLineup(team, matchImportance, config)`: construye
+    convocatoria (garantiza el mejor jugador de cada una de las 5
+    posiciones, completa hasta 12 por calidad general) y el
+    `lineup.entries` de 5 posiciones × 3 slots (mismo shape que ya
+    valida `Rotation.validateLineup`, no se inventa uno nuevo). El
+    quinteto titular usa 5 jugadores distintos (invariante real: nadie
+    puede empezar el partido en dos posiciones a la vez); los slots de
+    banquillo pueden repetir jugador entre filas, igual que ya acepta la
+    pantalla de Alineación humana (ver CLAUDE.md). Selección por sorteo
+    ponderado entre los 2-3 mejores candidatos de cada slot (variedad
+    partido a partido, menos aleatoriedad en partido clave). Reparto de
+    minutos por fila (60/25/15% en partido normal, 70/20/10% en partido
+    clave — constantes de `CONFIG.cpuLineup`, valores de partida
+    pendientes de calibración) y reducción de cuota de un titular con
+    Energía por debajo de `lowEnergyThreshold` (30) en partido NO clave,
+    en favor del siguiente candidato.
+  - `computeMatchImportance(team, opponent, competition, standingsTable, config)`:
+    booleano (decisión de implementación — 7.11.7 deja elegir entre
+    booleano simple o 0-1 graduado; se elige booleano porque el propio
+    diseño solo describe dos comportamientos discretos). Copa (desde
+    cuartos), Playoff por el título y Playoff de ascenso son SIEMPRE
+    clave. En liga regular, cruza `team.board.sportingGoal` (mapeado a
+    la zona alta de tabla — corte de Copa/Playoff, posición 8 — o la
+    zona baja — corte de descenso, penúltima posición) con la distancia
+    en la tabla entre ambos equipos y esa frontera (banda configurable,
+    `CONFIG.cpuMatchImportance.standingsBandSize`, 4 posiciones).
+  - **Integración real** (`src/ui/game.js`,
+    `buildLineupMatchOptionsResolver`): antes, esta función solo
+    construía alineación para el lado del equipo del usuario y devolvía
+    `undefined` para cualquier otro; ahora construye siempre una
+    alineación real para AMBOS lados de CUALQUIER partido (liga, Copa,
+    Playoff, Ascenso) — la del usuario si le toca, o una de
+    `CpuLineup.buildCpuLineup` en cualquier otro caso. No hizo falta
+    tocar `League.simulateNextRound` ni `Bracket.playNextGame`: ambos ya
+    reenviaban un `resolveOptions`/`resolveMatchOptions` por partido
+    desde antes de esta sesión; el hueco estaba solo en que el resolver
+    de `game.js` ignoraba los lados que no eran del usuario.
+- **Mismatches con DESIGN.md señalados explícitamente** (no resueltos
+  aquí por decisión de diseño ajena a esta tarea):
+  - 7.11.7 pide reutilizar "el mismo criterio ya usado para las
+    valoraciones en estrellas de 7.11.6" para la calidad de un jugador —
+    pero 7.11.6 no tiene ninguna fórmula compuesta de la que extraer
+    nada: la pantalla de Alineación muestra Técnica/Física/Mental como 3
+    medias SEPARADAS (`Player.technicalAverage/physicalAverage/mentalAverage`),
+    sin combinarlas en un único número; solo "Forma" se convierte a
+    estrellas. `CpuLineup.playerQualityScore()` es una función NUEVA
+    (media de esas 3 medias ya existentes), no una extracción de código
+    que ya existiera.
+  - El cruce con `team.board.sportingGoal` está implementado tal cual lo
+    describe 7.11.7, pero hoy es una señal INERTE para una partida real:
+    los equipos reales (los únicos seleccionables desde "Empezar
+    temporada") no traen `board` en los datos importados, así que
+    `Team.js` les asigna a TODOS el mismo valor por defecto
+    (`'Permanencia'` — que ni siquiera pertenece al vocabulario de 4
+    valores de `teamGenerator.js`). Con los datos de hoy, todo equipo
+    real cae en la misma zona ("baja") frente a cualquier rival cercano
+    al corte de descenso. Asignar objetivos de temporada reales por
+    equipo es una decisión de diseño/económica que no corresponde tomar
+    en esta tarea — señalada para que Dennis la confirme, no asumida.
+- **Verificado**:
+  - Script Node dedicado a `CpuLineup.js`: 8 lineups generados pasan
+    `Rotation.validateLineup`; 7 de 8 quintetos titulares distintos
+    (variedad real); cuota media de minutos de titulares sube en
+    partido clave frente a no clave; `computeMatchImportance` correcto
+    en los 3 escenarios (clave por banda de tabla, no clave por
+    distancia, siempre clave en Copa/Playoff/Ascenso).
+  - Script Node de integración: simulada una temporada CPU vs CPU (sin
+    ningún equipo de usuario) durante 3 jornadas — los 18 equipos
+    (no solo uno) terminan con al menos un jugador con `lastMatchDate`
+    actualizado, y ningún partido jugado se queda con `result.rotation`
+    a `null` en ningún lado.
+  - `grep` confirma que `MatchEngine.selectOnCourtFive` ya solo es
+    alcanzable cuando no se pasa ninguna alineación — el "modo prueba"
+    (motor sin tocar, ver CLAUDE.md), nunca el camino normal de
+    Liga/Copa/Playoff/Ascenso.
+  - Confirmado con `git diff` que `MatchEngine.js` y `Rotation.js` NO se
+    han tocado en absoluto (ni siquiera lo mínimo que se esperaba para
+    aceptar `homeLineup`/`awayLineup` en partidos donde antes no se
+    pasaban — ya lo aceptaban desde antes, para cualquier partido).
+  - Playwright: creada partida, convocados 10 jugadores, alineación de 5
+    titulares distintos con 40 minutos cada uno, y partido jugado con
+    esa alineación real contra un rival con su propia alineación CPU —
+    sin errores de consola ni de página (aparte del error de red, ya
+    conocido y no relacionado, al bloquear la carga de Google Fonts en
+    este entorno). La pantalla de Alineación del usuario, no tocada en
+    esta sesión, sigue funcionando exactamente igual.

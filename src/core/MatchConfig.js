@@ -206,6 +206,62 @@
       trainingModifierDefault: 1,
     },
 
+    // --- DESIGN.md 3.3 (Entidad Calendario) — fecha real de cada partido
+    // de las 4 competiciones, para poder calcular días de descanso reales
+    // (7.11.5) en vez de solo un número de jornada/ronda abstracto. Valores
+    // de partida razonables, NO cifras cerradas — pendientes de ajuste.
+    calendar: {
+      seasonStartMonth: 9, // octubre (0-indexed, como Date de JS)
+      seasonStartDay: 3, // ajustar al primer sábado de octubre real del año de inicio
+      daysBetweenRounds: 7, // separación entre jornadas de liga regular
+      cupRoundGapDays: 3, // separación ORIENTATIVA entre rondas de Copa — se comprime si no cabe en el hueco fijo de 7 días (ver DESIGN.md 3.3.2)
+      cupFinalCushionDays: 2, // regla dura (DESIGN.md 3.3.2): mínimo de días entre la final de Copa y la jornada 18
+      seriesGameGapDays: 2, // separación entre partidos de una misma Series (playoff/ascenso)
+      seriesRoundGapDays: 5, // separación entre rondas de un Bracket (cuartos->semis, etc.)
+      seasonEndToPlayoffGapDays: 10, // hueco entre fin de jornada 34 y playoff por el título
+    },
+
+    // --- DESIGN.md 7.11.7 (Alineación automática de equipos CPU) ---
+    // Banda de posiciones alrededor de la frontera del objetivo de
+    // temporada propio (corte de Copa/Playoff = posición 8, corte de
+    // descenso = penúltima posición) dentro de la que un partido de liga
+    // regular se considera "clave" para ese equipo. Valor de partida,
+    // pendiente de calibración (DESIGN.md: "banda configurable, ej. ±3-4").
+    cpuMatchImportance: {
+      standingsBandSize: 4,
+    },
+
+    // Generación de quinteto/rotación para equipos gestionados por la CPU
+    // (DESIGN.md 7.11.7). Pesos y bandas de partida, pendientes de
+    // calibración — el criterio (qué señales entran y en qué dirección) es
+    // lo fijado en el diseño, no estos números finales.
+    cpuLineup: {
+      // Combinación de afinidad posicional (Player.positionLevel, 1-20),
+      // calidad general (media de las 3 medias de atributos, 1-20) y
+      // Energía actual (escalada a 1-20) para puntuar a un jugador en una
+      // posición concreta. Deben sumar 1.
+      ratingWeights: { affinity: 0.5, quality: 0.3, energy: 0.2 },
+      // Reparto de minutos por fila (starter/sub1/sub2) en partido NO
+      // clave vs. partido clave — en partido clave se prioriza más al
+      // titular (DESIGN.md: "acepta jugar con más minutos a titulares").
+      minutesSplit: { starter: 0.6, sub1: 0.25, sub2: 0.15 },
+      minutesSplitKeyMatch: { starter: 0.7, sub1: 0.2, sub2: 0.1 },
+      // Tamaño del grupo de candidatos entre los que se elige de forma
+      // aleatoria ponderada para cada slot — más pequeño en partido clave
+      // (menos variedad, más peso a la valoración pura), más amplio en
+      // partido no clave (más variedad partido a partido).
+      candidatePoolSize: 3,
+      keyMatchCandidatePoolSize: 2,
+      // Pesos del sorteo ponderado dentro del grupo de candidatos (más
+      // peso al mejor situado, no determinista) — se recorta al tamaño
+      // real del grupo si hay menos candidatos disponibles.
+      candidatePoolWeights: [3, 2, 1],
+      // Energía por debajo de la cual, en partido NO clave, se reduce la
+      // cuota de un titular seleccionado en favor del siguiente candidato
+      // (DESIGN.md: "banda a definir, ej. por debajo de 30").
+      lowEnergyThreshold: 30,
+    },
+
     // --- 7.6 Bloque C: parámetros de las acciones especiales ---
     fastBreak: {
       windowSeconds: 3, // 7.6.14: primeros 3s de la posesión nueva

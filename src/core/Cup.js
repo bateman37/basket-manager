@@ -30,13 +30,17 @@
   // ">= 18", para no capturar por error la clasificación de un momento
   // posterior de la temporada si se llama tarde.
   //
+  // `cupDates` (opcional, DESIGN.md 3.3): array de 3 Date, normalmente
+  // `Calendar.cupRoundDates()` — una por ronda (cuartos/semis/final),
+  // todas a partido único. Sin él, las fechas de los partidos quedan null.
+  //
   // Nota de implementación: DESIGN.md no especifica quién es local en cada
   // partido de Copa (a diferencia de los playoffs, que sí lo dicen
   // explícitamente). Aquí se asume, por coherencia con el resto de 3.2,
   // que el mejor clasificado en ese momento hace de local en cada ronda.
   // Es una interpretación de implementación, no una regla confirmada por
   // Dennis — señalado también en el resumen final.
-  function createCup(league) {
+  function createCup(league, cupDates) {
     if (league.currentRound !== CUP_TRIGGER_ROUND + 1) {
       throw new Error(
         `createCup: la liga debe tener la jornada ${CUP_TRIGGER_ROUND} recién completada (currentRound esperado: ${CUP_TRIGGER_ROUND + 1}, actual: ${league.currentRound})`,
@@ -44,7 +48,8 @@
     }
     const top8 = league.getStandingsTable().slice(0, 8);
     const entries = top8.map((standing, index) => ({ team: standing.team, seed: index + 1 }));
-    return new Bracket(entries, FIRST_ROUND_PAIRING, ROUND_PATTERNS);
+    const dateResolver = cupDates ? (roundIndex) => cupDates[roundIndex] : undefined;
+    return new Bracket(entries, FIRST_ROUND_PAIRING, ROUND_PATTERNS, dateResolver);
   }
 
   const exportsObj = { createCup, CUP_TRIGGER_ROUND };

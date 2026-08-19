@@ -190,6 +190,12 @@
         energy: clamp(dynamicState.energy !== undefined ? dynamicState.energy : 100, 0, 100),
         competitionRhythm: clamp(dynamicState.competitionRhythm !== undefined ? dynamicState.competitionRhythm : 50, 0, 100),
         momentum: clamp(dynamicState.momentum !== undefined ? dynamicState.momentum : 0, -100, 100),
+        // Fecha real del último partido jugado (DESIGN.md 7.11.5, cierre de
+        // integración) — null hasta que el jugador debuta en la temporada.
+        // La usa Recovery.js/game.js para calcular los días de descanso
+        // reales entre partidos de CADA jugador (no de la jornada del
+        // calendario, que puede no coincidir si el jugador se saltó alguna).
+        lastMatchDate: dynamicState.lastMatchDate ? new Date(dynamicState.lastMatchDate) : null,
       };
     }
 
@@ -289,6 +295,15 @@
       this.dynamicState.momentum = clamp(this.dynamicState.momentum + delta, -100, 100);
     }
 
+    // Registra la fecha real del partido que el jugador ACABA de jugar
+    // (DESIGN.md 7.11.5, cierre de integración) — la llama game.js tras
+    // resolver cada partido, para cada jugador con minutos jugados. No hace
+    // ningún cálculo de recuperación aquí (eso es Recovery.js, ciclo de
+    // calendario/temporada, no una acción del propio jugador).
+    recordMatchDate(date) {
+      this.dynamicState.lastMatchDate = date;
+    }
+
     // Representación plana, útil para guardar partidas (saves/) más adelante.
     toJSON() {
       return {
@@ -305,7 +320,12 @@
         traits: this.traits,
         experience: this._experience,
         hidden: this.hidden,
-        dynamicState: this.dynamicState,
+        dynamicState: {
+          ...this.dynamicState,
+          // Serializado como fecha simple (mismo formato que birthDate),
+          // no como ISO completo con hora — consistencia de guardado.
+          lastMatchDate: this.dynamicState.lastMatchDate ? this.dynamicState.lastMatchDate.toISOString().slice(0, 10) : null,
+        },
       };
     }
   }
