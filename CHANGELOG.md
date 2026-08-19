@@ -693,3 +693,76 @@
     ha tocado nada del código de Playoffs/Copa/Ascenso por esto — solo
     se deja constancia aquí en vez de asumir en silencio que hay que
     revertirlo.
+
+## 2026-08-19
+
+- **Cierre del Bloque C: pantalla de Alineación** (DESIGN.md 7.11.6) — la
+  única pieza que quedaba pendiente de Bloque C. Usa `src/core/Rotation.js`
+  tal cual (nueva pantalla en `src/ui/game.js`, sin reimplementar nada de
+  su lógica), añadida a la navegación existente (`SCREENS`, `gm-nav`,
+  `index.html`).
+  - **Convocatoria**: selector de 8-12 jugadores de la plantilla real del
+    usuario, reutilizando la validación de `Team.buildMatchSquad()` tal
+    cual (no se reimplementa el rango 8-12 en la UI).
+  - **Por convocado**: selector de posición declarada entre las 5 del mapa
+    (`Player.POSITIONS`), mostrando el nivel del jugador en cada una;
+    cuota de minutos (0 a `config.match.durationMinutes`, nunca 40 fijo);
+    marcado informativo de titular/banquillo (mayor cuota declarada por
+    posición) — no bloqueante, `Rotation.js` resuelve el quinteto real
+    internamente.
+  - **Datos mostrados por convocado (7.11.6)**: Valoración Técnica/Física/
+    Mental (nuevos getters `technicalAverage`/`physicalAverage`/
+    `mentalAverage` en `Player.js`, media simple de cada grupo de
+    atributos), Resistencia (`player.physical.stamina`, confirmado el
+    nombre exacto del campo antes de usarlo), Energía actual
+    (`dynamicState.energy`) y Forma (`dynamicState.competitionRhythm`
+    traducido a 1-5 estrellas, excepción explícita de 7.11.6 — en ningún
+    otro sitio de la pantalla se muestra el número crudo).
+  - **Quintetos fijos** (`fixedSegments`): opcionales, formulario para
+    añadir uno o varios (etiqueta, período de activación, condición de
+    marcador, quinteto por posición entre los convocados), con opción de
+    dejar posiciones "sin fijar" dentro de un mismo quinteto fijo.
+  - **Validación antes de jugar/guardar**: `Rotation.validateLineup()` +
+    `Rotation.describeValidationErrors()` reutilizados tal cual (mensaje
+    no reformulado); el botón de jugar queda deshabilitado mientras la
+    alineación no sea válida.
+  - **Ajuste quirúrgico necesario, señalado explícitamente** (la pantalla
+    resuelve el partido de la jornada de liga o del bracket activo vía
+    `League.simulateNextRound()`/`Bracket.playNextGame()`/
+    `Series.playNextGame()`/`PromotionPlayoff.playNextGame()`, ninguno de
+    los cuales aceptaba antes un `options` para pasar a
+    `MatchEngine.simulateMatch()` — solo `MatchEngine.simulateMatch()` en
+    sí ya soportaba `homeLineup`/`awayLineup` desde el Bloque C anterior):
+    los cuatro métodos aceptan ahora un parámetro opcional adicional
+    (`resolveMatchOptions`/`resolveOptions`, un callback que recibe el
+    partido/las entradas de la serie y devuelve las `options` de
+    MatchEngine o `undefined`), 100% retrocompatible — sin ese argumento
+    el comportamiento es idéntico al de antes. No se ha tocado ninguna
+    otra lógica de `League.js`/`Bracket.js`/`Promotion.js`.
+  - `Player.js`: además de los 3 getters de medias, sin más cambios de
+    esquema — `dataSource` sigue fuera del constructor.
+  - **Decisión de producto no fijada en DESIGN.md, señalada para
+    confirmar con Dennis**: la alineación construida persiste en memoria
+    entre jornadas (no se resetea automáticamente tras cada partido) para
+    no obligar a reconstruirla partido a partido — el usuario puede volver
+    a la pantalla y ajustarla cuando quiera. Si se prefiere que se pida
+    reconstruirla antes de cada partido, es un cambio pequeño y localizado.
+  - Jugar sin pasar por la pantalla de Alineación sigue funcionando exactamente
+    igual que hasta ahora (comportamiento placeholder, sin lineup) — no se ha
+    hecho obligatoria en ningún punto del flujo.
+  - **No conectado en este cierre** (fuera de alcance, confirmado con
+    Dennis desde el propio encargo): `Recovery.js` sigue sin conectarse a
+    `League.js` — se aplaza a la sesión de diseño de calendario real.
+  - **Verificado**: script Node dedicado (medias de `Player`, `League.
+    simulateNextRound()`/`Bracket.playNextGame()` con y sin
+    `resolveOptions`, retrocompatibilidad sin el argumento, lineup
+    inválida bloqueada con el mensaje esperado) + Playwright headless
+    (`file://`, sin servidor) con los tres escenarios pedidos: alineación
+    válida jugada con minutos jugados coherentes con las cuotas
+    declaradas (leído del `rotationSummary` real del resultado del
+    motor), alineación descuadrada con el botón de jugar bloqueado y el
+    mensaje de error correcto, y partido jugado sin pasar por Alineación
+    sin regresiones. También verificado añadir/quitar un quinteto fijo
+    desde la UI y que el modo prueba sigue cargando sin errores. Cero
+    errores de consola/página en todos los casos (aparte del ya conocido
+    fallo de red a Google Fonts en este sandbox sin internet).

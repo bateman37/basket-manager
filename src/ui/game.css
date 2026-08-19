@@ -327,3 +327,121 @@
 
 #gm-test-mode-section { display: none; }
 #gm-test-mode-section.is-active { display: block; }
+
+/* --- Alineación (DESIGN.md 7.11.6) --- */
+#gm-lineup .gm-card { margin-bottom: 16px; }
+#gm-lineup h2 { font-family: var(--font-score); text-transform: uppercase; letter-spacing: 0.02em; }
+
+.squad-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+}
+.squad-picker__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.squad-picker__item:hover { background: var(--court-bg-alt); }
+.squad-picker__name { flex: 1; font-weight: 600; }
+.squad-picker__pos { font-size: 11px; color: var(--ink-soft); }
+
+.lineup-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.lineup-card {
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--slate);
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: var(--court-bg);
+}
+.lineup-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.lineup-card__name { font-family: var(--font-score); font-size: 15px; text-transform: uppercase; }
+.lineup-card__ratings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.lineup-card__form { color: var(--brick-dark); font-weight: 600; }
+.lineup-card__controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lineup-card__controls label {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  gap: 3px;
+}
+.lineup-card__controls select,
+.lineup-card__controls input {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--white-line);
+}
+.lineup-card__controls input[type="number"] { width: 70px; }
+
+.segment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+}
+.segment-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--ink-soft);
+  gap: 3px;
+}
+.segment-form input, .segment-form select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.segment-form__five {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.segment-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.lineup-status { font-weight: 600; }
+.lineup-status--ok { color: var(--win); }
+.lineup-status--error { color: var(--loss); }

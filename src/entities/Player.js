@@ -240,6 +240,20 @@
       return this.positions[position];
     }
 
+    // Medias de grupo de atributos (1-20) — DESIGN.md 7.11.6, pantalla de
+    // Alineación ("Valoración Técnica/Física/Mental").
+    get technicalAverage() {
+      return TECHNICAL_ATTRIBUTES.reduce((sum, key) => sum + this.technical[key], 0) / TECHNICAL_ATTRIBUTES.length;
+    }
+
+    get physicalAverage() {
+      return PHYSICAL_ATTRIBUTES.reduce((sum, key) => sum + this.physical[key], 0) / PHYSICAL_ATTRIBUTES.length;
+    }
+
+    get mentalAverage() {
+      return MENTAL_ATTRIBUTES.reduce((sum, key) => sum + this.mental[key], 0) / MENTAL_ATTRIBUTES.length;
+    }
+
     get age() {
       return calculateAge(this.birthDate);
     }
