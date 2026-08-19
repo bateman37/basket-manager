@@ -169,6 +169,136 @@ implementación en el CHANGELOG del bloque correspondiente. La pestaña
 de Competiciones sigue existiendo para consultar clasificación, cruces
 y resultados, pero ya no es la única vía para jugar esos partidos.
 
+### 3.3 Entidad Calendario (fechas reales de partido)
+
+Hasta ahora, Liga/Copa/Playoffs/Ascenso solo se ordenaban por número de
+jornada/ronda abstracto — no existía ninguna fecha real de partido en
+ningún punto del motor. Esto bloqueaba el cierre de 7.11.5 (Recuperación
+de Energía entre partidos), que necesita saber cuántos días reales de
+descanso ha tenido cada jugador. Esta sección introduce una entidad
+`Calendar` que asigna una fecha real a cada partido, de cualquier
+competición, sobre un único eje temporal de temporada.
+
+**Decisión de fidelidad** (confirmada con Dennis): no se replica
+literalmente el calendario ACB 2025-26 partido a partido — se genera un
+calendario propio con el mismo **patrón realista** de la ACB real:
+jornadas de liga regular concentradas en fin de semana (sábado/domingo),
+con alguna jornada entre semana (jueves) de forma ocasional, arrancando
+la temporada el primer fin de semana de octubre.
+
+#### 3.3.1 Liga regular: generación de fechas
+
+- **Una jornada = un fin de semana** (sábado y/o domingo): todos los
+  partidos de una misma jornada comparten la misma fecha de referencia
+  de calendario (no se reparten los 9 partidos de una jornada en días
+  distintos); el motor no modela horarios distintos por partido, solo
+  fecha.
+- **Separación entre jornadas consecutivas**: 7 días exactos, salvo el
+  hueco de la Copa (ver 3.3.2).
+- **Fecha de inicio de temporada**: primer sábado de octubre del año de
+  inicio de temporada (constante de `CONFIG`, no hardcodeada en
+  `League.js`).
+- **Jornadas entre semana**: se descarta modelar la variabilidad real
+  jueves/viernes/sábado/domingo con detalle — toda jornada de liga
+  regular cae en sábado por defecto en esta fase. Simplificación
+  explícita: da una cadencia realista (7 días) sin necesidad de simular
+  ventanas de selecciones nacionales ni derbis con horario especial,
+  ninguno de los cuales está modelado hoy en el motor.
+
+#### 3.3.2 Copa: interrupción real de la liga
+
+Replica el comportamiento real de la ACB, donde la Copa **para la liga
+una semana** en vez de jugarse en paralelo:
+
+- Al completarse la jornada 17 (ver 3.2.4), el calendario **inserta un
+  hueco de exactamente una semana** antes de la jornada 18 — la Copa
+  ocupa siempre esa semana completa, cualesquiera que sean las
+  constantes de separación entre rondas (ver más abajo la corrección
+  de calibración).
+- La Copa completa (cuartos, semifinal, final — 3 fechas, todas a
+  partido único, ver 3.2.4) se reparte dentro de ese hueco de una
+  semana, con al menos 2 días de descanso real entre la fecha de la
+  última ronda de Copa y la jornada 18 — esto es una regla dura, no
+  una constante ajustable libremente: si `cupRoundGapDays` combinado
+  con `daysBetweenRounds` no deja ese margen mínimo (ver corrección de
+  calibración abajo), la separación entre rondas de Copa se comprime
+  para respetarlo, nunca al revés.
+- **Corrección de calibración** (detectada al implementar): con los
+  valores de partida iniciales (`daysBetweenRounds: 7`,
+  `cupRoundGapDays: 3`), la 3ª fecha de Copa caía 2 días **después**
+  de la jornada 18 en vez de antes — la suma de 3 rondas × 3 días no
+  cabía en el hueco semanal real. Corregido fijando que el hueco total
+  de Copa es siempre 7 días (una semana, no una duración derivada de
+  `cupRoundGapDays` × número de rondas), y las 3 fechas de Copa se
+  distribuyen dentro de esos 7 días garantizando el mínimo de 2 días de
+  descanso antes de la jornada 18 — `cupRoundGapDays` pasa a ser un
+  valor orientativo dentro de ese margen fijo, no una suma libre.
+- Los equipos que NO participan en la Copa (no estaban entre los 8
+  primeros en jornada 17) simplemente tienen una semana de descanso
+  total — esto es correcto y realista (les pasa lo mismo en la ACB
+  real), y es precisamente el caso que 7.11.5 necesita poder calcular
+  bien (más días de descanso → más Energía recuperada para esos
+  equipos de cara a la jornada 18).
+
+#### 3.3.3 Playoffs y Ascenso: fechas dinámicas por serie
+
+A diferencia de la liga (número de partidos conocido de antemano), una
+`Series` al mejor de 3/5 no sabe cuántos partidos se jugarán hasta que
+se juegan. Por eso estas competiciones NO tienen un calendario
+pregenerado como la liga — cada partido recibe su fecha en el momento
+de crearse:
+
+- **Separación entre partidos de una misma serie**: 2-3 días
+  (constante de `CONFIG`, patrón real de playoffs ACB — más corto que
+  la separación semanal de liga regular, refleja la intensidad real de
+  una eliminatoria).
+- **Separación entre rondas** (ej. fin de cuartos → inicio de
+  semifinal): constante de `CONFIG` distinta (algo mayor que entre
+  partidos de la misma serie, para dar margen de descanso real entre
+  eliminatorias, igual que en la ACB real).
+- **Regla dura de secuenciación entre rondas** (confirmada con Dennis,
+  corrige la firma de diseño original de esta sección): una ronda
+  posterior del bracket **nunca empieza hasta que todas las series de
+  la ronda anterior han terminado** — el número de partidos de cada
+  serie no se conoce de antemano (una serie al mejor de 5 puede acabar
+  en 3, 4 o 5 partidos), así que asignar fechas fijas por adelantado a
+  la ronda siguiente podría hacer que empezara antes de que una serie
+  larga de la ronda anterior hubiera terminado. Por eso el resolvedor
+  de fechas de bracket recibe también el patrón de partidos de cada
+  serie de cada ronda (no solo la fecha de inicio), para poder calcular
+  el final real más tardío posible de la ronda anterior antes de
+  asignar la fecha de inicio de la siguiente.
+- **Hueco fin de liga regular → inicio de Playoff por el título**:
+  constante de `CONFIG` (días), aplicada una sola vez tras la jornada
+  34.
+- El Playoff de ascenso (2ª división) sigue el mismo patrón sobre su
+  propio eje de fechas de 2ª división, independiente del de 1ª.
+
+#### 3.3.4 Días de descanso de un jugador (para Recovery, 7.11.5)
+
+- **Fuente de verdad**: la fecha real de calendario de cada partido
+  jugado (no el número de jornada/ronda).
+- **Cálculo unificado, cruzando competiciones**: los días de descanso
+  de un jugador se calculan como la diferencia entre la fecha del
+  partido que va a jugar y la fecha de **su último partido jugado
+  realmente** (`dynamicState.lastMatchDate`, ver 7.11.5) — sea de la
+  competición que sea (Liga, Copa, Playoff, Ascenso). Un jugador que
+  jugó el jueves de Copa y vuelve a jugar el domingo de Liga tiene 3
+  días de descanso reales, no un reloj de energía distinto por
+  competición.
+- Un jugador **convocado pero sin minutos** en un partido no actualiza
+  su `lastMatchDate` — solo se actualiza para quien realmente pisó la
+  pista (coherente con que Recovery mide descanso físico real, no
+  presencia en la convocatoria).
+
+**Estado: implementado** (`src/core/Calendar.js`), pendiente de merge a
+`main` en el momento de escribir esto — ver PR en curso. Desviación de
+firma respecto al diseño original de este bloque, confirmada como
+correcta: `buildBracketDateResolver` recibe `(startDate, roundPatterns)`
+en vez de solo `(startDate)`, por el motivo explicado en 3.3.3 (una
+ronda no puede fecharse sin conocer los patrones de partidos de la
+ronda anterior, para no arrancarla antes de que termine).
+
 ### Supercopa y competición europea (pendiente)
 
 - **Supercopa** (formato corto, equipos clasificados por resultados de
@@ -1164,6 +1294,51 @@ Cierra el hueco que 7.5-bis dejaba explícitamente pendiente ("fuera del
   Entrenamiento — aquí solo queda fijado que esta palanca existirá y
   cómo interactúa con la curva de recuperación.
 
+**Cierre de integración** (sesión de diseño de Calendario, ver 3.3): la
+fórmula (`Recovery.js`, ya construida) llevaba desde el bloque C sin
+ningún punto real que la invocara — nada calculaba "días" ni llamaba a
+`applyRestRecovery`. Con la entidad Calendario (3.3) ya resuelto de
+dónde salen los días de descanso reales, esta sesión cierra la
+integración:
+
+- **Nuevo campo en `dynamicState`**: `lastMatchDate` (fecha ISO del
+  último partido en el que el jugador jugó minutos reales, `null` si
+  aún no ha debutado en la temporada). Se actualiza únicamente para
+  jugadores con minutos > 0 en el partido recién jugado — un convocado
+  que no llegó a pisar la pista no actualiza esta fecha (ver 3.3.4).
+- **Punto de invocación**: justo después de resolverse cada partido
+  (Liga, Copa, Playoff, Ascenso — el mismo punto para las 4
+  competiciones, vía el resolver compartido ya existente en la UI), se
+  recorre la plantilla completa de cada equipo implicado (no solo los
+  11-12 convocados) y se llama a `Recovery.applyRestRecovery` con los
+  días reales transcurridos desde el `lastMatchDate` de cada jugador
+  hasta la fecha del partido recién jugado — un jugador lesionado o
+  descartado también recupera Energía con el paso de fechas de
+  calendario, aunque no haya jugado.
+- **Jugador sin `lastMatchDate` previo** (aún no ha debutado en la
+  temporada, o es la jornada 1): no se aplica recuperación — su Energía
+  de inicio de temporada (100 por defecto, ver 6.1) ya es la máxima, no
+  hay hueco que recuperar.
+
+**Estado: implementado** (`Calendar.js` + `lastMatchDate` en
+`Player.js` + enganche en el resolver compartido de `game.js`),
+pendiente de merge — ver PR en curso.
+
+**Limitación real detectada y señalada explícitamente por la
+implementación, no corregida en este bloque**: `Recovery` solo puede
+actualizar `lastMatchDate` para el lado del partido que tenga una
+alineación real construida con `Rotation.js` (hoy, únicamente el
+equipo del usuario) — sin `homeLineup`/`awayLineup`, `MatchEngine`
+recurre a `selectOnCourtFive`, un placeholder que elige 5 jugadores por
+posesión con pesos aleatorios pero **no acumula minutos por jugador**
+(no hay `rotationState.playedSeconds` sin rotación real). Sin reparto
+de minutos, no hay forma de saber quién "jugó realmente" para
+actualizar su fecha. Esto significa que, hoy, los otros equipos de la
+liga (17 rivales en 1ª división, más los de Copa/Playoffs/Ascenso)
+nunca recuperan ni desgastan Energía de forma realista entre jornadas.
+Se resuelve en 7.11.7 (nueva), no inventando un reparto sintético
+puntual aquí.
+
 #### 7.11.6 Requisito de frontend — pantalla de alineación
 
 La pantalla de alineación (aún por construir) debe mostrar, por cada
@@ -1224,6 +1399,90 @@ pantalla en vez de en dos:
     frente a los 40 requeridos (ej. "35/40" vs "40/40"), actualizado al
     momento sin esperar a guardar. El bloqueo real de guardado
     (7.11.2) se mantiene igual, evaluado al confirmar la alineación.
+
+#### 7.11.7 Alineación automática de equipos gestionados por la CPU
+
+Cierra la limitación señalada en el cierre de 7.11.5: los 35 equipos
+que el usuario no controla necesitan una alineación real construida
+con `Rotation.js` (el mismo shape de `lineup.entries` de 7.11.1-7.11.3,
+no un sistema aparte), para que Energía/Recuperación funcionen igual de
+bien para todo el mundo, no solo para el equipo del usuario. Esta
+sección diseña **cómo decide la CPU esa alineación**, reutilizando datos
+que el motor ya tiene (plantilla, posiciones, valoraciones, objetivo de
+temporada, clasificación) — no se introduce ningún dato nuevo en la
+ficha de jugador/equipo para esto.
+
+**Alcance de esta primera versión**: quintetos y reparto de minutos
+razonables y variados por partido, con dos palancas de comportamiento
+(carga de energía, e importancia del partido) — no es una IA táctica
+completa (eso pertenece al futuro módulo de Tácticas, ya señalado como
+pendiente en 7.6). El objetivo es que los rivales dejen de ser un
+placeholder ciego, no que jueguen con inteligencia estratégica plena.
+
+**Generación base del quinteto/rotación (cada partido, para cada
+equipo CPU)**:
+
+- Se ordena la plantilla de cada una de las 5 posiciones por
+  valoración compuesta relevante (media ponderada de atributos técnicos
+  + físicos + mentales pertinentes a esa posición, reutilizando el
+  mismo criterio de valoración ya usado en 7.11.6 para la pantalla de
+  alineación) y por Energía actual (`dynamicState.energy`) — un
+  jugador con nota alta pero Energía muy baja pierde prioridad frente a
+  uno algo peor pero descansado, para que la rotación varíe de forma
+  creíble partido a partido en vez de repetir siempre el mismo 5 fijo.
+- **Variedad deliberada**: no se elige siempre estrictamente el mejor
+  disponible en cada slot — se introduce una aleatoriedad acotada
+  (ponderada, no uniforme) entre los 2-3 mejores candidatos de cada
+  posición para Titular/Suplente 1/Suplente 2, de forma que dos
+  partidos consecutivos del mismo rival no produzcan el quinteto
+  idéntico salvo que la plantilla en esa posición sea muy corta.
+- El reparto de minutos por slot sigue el mismo patrón razonable que un
+  usuario humano seguiría con la validación ya existente de
+  `Rotation.validateLineup` (40/40 por fila): titular con mayoría de
+  minutos, suplentes cubriendo el resto, sin que ningún jugador con
+  Energía muy baja reciba una cuota de titular completa si hay
+  alternativa razonable en el banquillo.
+
+**Importancia del partido (agresividad competitiva)**:
+
+- Se calcula un factor de "partido clave" por equipo CPU antes de
+  generar su alineación, cruzando dos señales ya existentes en el
+  motor, sin inventar ninguna nueva:
+  1. **Objetivo de temporada** (`team.board.sportingGoal`, 6.2.4):
+     equipos con objetivo de playoff/título tratan como clave cualquier
+     partido contra rivales cercanos en la tabla que compiten por ese
+     mismo tramo de clasificación; equipos con objetivo de permanencia
+     tratan como clave los partidos contra rivales de la zona baja
+     (los "seis puntos" de la permanencia).
+  2. **Posición real en la clasificación** (`league.getStandingsTable()`
+     en el momento de jugarse el partido) — la distancia en la tabla
+     entre ambos equipos decide si el partido entra en la zona de
+     "objetivos similares o en juego" (banda configurable en `CONFIG`,
+     ej. ±3-4 posiciones alrededor de la frontera del objetivo propio).
+  3. Cualquier partido de eliminatoria (Copa desde cuartos, Playoff,
+     Ascenso) es SIEMPRE clave — no depende de la clasificación, ya es
+     una eliminatoria por definición.
+- **Efecto del factor de partido clave sobre la generación de
+  alineación**: en un partido clave, la CPU prioriza más agresivamente
+  su mejor quinteto disponible (menos aleatoriedad de variedad, más
+  peso a la valoración pura) y acepta jugar con más minutos a titulares
+  con Energía algo más baja de lo que aceptaría en un partido no clave
+  — refleja que un equipo real "aprieta" en los partidos que de verdad
+  le importan, a costa de desgaste. En un partido NO clave (ya con
+  objetivo cumplido o inalcanzable, rival lejano en la tabla), la CPU
+  da más minutos a suplentes y jugadores con Energía baja, dando
+  prioridad a la recuperación de cara a partidos más importantes
+  próximos — mismo principio que un usuario humano gestionando
+  rotación aplicaría.
+- Los pesos exactos (bandas de posiciones, cuánto se reduce la
+  aleatoriedad, cuánta Energía extra se acepta gastar) quedan como
+  estructura fijada pendiente de calibración, igual que el resto de
+  fórmulas de 7.6/7.11 — el criterio (qué señales entran, en qué
+  dirección) es lo fijado en esta sesión, no los números finales.
+
+**Estado: pendiente de implementación** — ver prompt de Claude Code
+asociado a este bloque de diseño.
+
 
 ### Pendiente para sesiones de diseño futuras (Simulación)
 - Pesos numéricos finales calibrados de las 21 piezas del catálogo
