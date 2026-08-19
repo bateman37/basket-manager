@@ -355,13 +355,17 @@
 
     const bracketBtn = byId('gm-play-bracket-btn');
     if (bracketBtn) {
-      bracketBtn.addEventListener('click', () => playBracketGameWithReveal(activeBracket.bracket));
+      bracketBtn.addEventListener('click', () => {
+        if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
+        playBracketGameWithReveal(activeBracket.bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions);
+      });
     }
 
     const playBtn = byId('gm-play-round-btn');
     if (playBtn) {
       playBtn.addEventListener('click', () => {
-        simulateNextRound();
+        if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
+        simulateNextRound(buildLineupMatchOptionsResolver(team).resolveMatchOptions);
         if (state.pendingUserMatch) {
           goToScreen('match');
         } else {
@@ -542,14 +546,19 @@
     // Mismo puente de revelado por cuartos que usa el botón principal de
     // Home (playBracketGameWithReveal) — un único camino para jugar un
     // partido de bracket, nunca uno con reveal y otro sin él.
+    const advanceBracket = (bracket) => {
+      if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
+      playBracketGameWithReveal(bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions);
+    };
+
     const cupBtn = byId('gm-advance-cup-btn');
-    if (cupBtn) cupBtn.addEventListener('click', () => playBracketGameWithReveal(state.cup));
+    if (cupBtn) cupBtn.addEventListener('click', () => advanceBracket(state.cup));
 
     const playoffBtn = byId('gm-advance-playoff-btn');
-    if (playoffBtn) playoffBtn.addEventListener('click', () => playBracketGameWithReveal(state.titlePlayoff));
+    if (playoffBtn) playoffBtn.addEventListener('click', () => advanceBracket(state.titlePlayoff));
 
     const promoBtn = byId('gm-advance-promotion-btn');
-    if (promoBtn) promoBtn.addEventListener('click', () => playBracketGameWithReveal(state.promotionPlayoff));
+    if (promoBtn) promoBtn.addEventListener('click', () => advanceBracket(state.promotionPlayoff));
   }
 
   // ---------------------------------------------------------------------
@@ -1074,27 +1083,40 @@
     return { squad, lineup };
   }
 
-  function playNextMatchWithLineup(team) {
-    if (!getLineupValidity(team).valid) return; // el botón ya está deshabilitado; defensa extra
+  // Construye, a partir de la última alineación guardada por el usuario
+  // (state.lineup), los dos resolvers de opciones de MatchEngine para su
+  // lado del partido — punto único compartido por Home, la pantalla de
+  // Alineación y los botones de bracket, para no duplicar esta lógica
+  // (DESIGN.md 7.11.6). resolveMatchOptions tiene el shape que espera
+  // League.simulateNextRound(match); resolveBracketOptions, el que espera
+  // Bracket.playNextGame(homeEntry, awayEntry).
+  function buildLineupMatchOptionsResolver(team) {
     const { squad, lineup } = buildUserSideOptions(team);
-    const activeBracket = getActiveBracket();
-
-    if (activeBracket) {
-      const resolveOptions = (homeEntry, awayEntry) => {
+    return {
+      resolveMatchOptions(match) {
+        if (match.homeTeam.id === team.id) return { homeSquad: squad, homeLineup: lineup };
+        if (match.awayTeam.id === team.id) return { awaySquad: squad, awayLineup: lineup };
+        return undefined;
+      },
+      resolveBracketOptions(homeEntry, awayEntry) {
         if (homeEntry.team.id === team.id) return { homeSquad: squad, homeLineup: lineup };
         if (awayEntry.team.id === team.id) return { awaySquad: squad, awayLineup: lineup };
         return undefined;
-      };
-      playBracketGameWithReveal(activeBracket.bracket, resolveOptions);
+      },
+    };
+  }
+
+  function playNextMatchWithLineup(team) {
+    if (!getLineupValidity(team).valid) return; // el botón ya está deshabilitado; defensa extra
+    const activeBracket = getActiveBracket();
+    const resolvers = buildLineupMatchOptionsResolver(team);
+
+    if (activeBracket) {
+      playBracketGameWithReveal(activeBracket.bracket, resolvers.resolveBracketOptions);
       return;
     }
 
-    const resolveMatchOptions = (match) => {
-      if (match.homeTeam.id === team.id) return { homeSquad: squad, homeLineup: lineup };
-      if (match.awayTeam.id === team.id) return { awaySquad: squad, awayLineup: lineup };
-      return undefined;
-    };
-    simulateNextRound(resolveMatchOptions);
+    simulateNextRound(resolvers.resolveMatchOptions);
     if (state.pendingUserMatch) {
       goToScreen('match');
     } else {

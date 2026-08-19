@@ -891,3 +891,44 @@
     se ha anotado esa decisión directamente en el propio DESIGN.md junto
     a la ampliación, para que no quede una contradicción escrita entre
     el documento y la interfaz real.
+
+## 2026-08-19 (3) — Fix: "Jugar siguiente jornada" ignoraba la alineación guardada
+
+- **Bug corregido** en `src/ui/game.js`: el botón "Jugar siguiente
+  jornada" de Home llamaba a `simulateNextRound()` sin resolver de
+  alineación, así que el motor caía en su convocatoria por defecto
+  (`defaultMatchSquad`) en vez de usar la última alineación guardada por
+  el usuario (`state.lineup`) — jugadores desconvocados aparecían
+  jugando y jugadores con minutos asignados no aparecían en el box
+  score. Los botones "Jugar siguiente partido" de bracket (Home y
+  Competiciones: Copa, Playoff por el título, Playoff de ascenso) tenían
+  el mismo problema.
+- Se ha extraído la construcción del resolver (antes solo existía
+  anidada dentro de la pantalla de Alineación) a una única función
+  compartida, `buildLineupMatchOptionsResolver(team)`, que devuelve
+  `resolveMatchOptions` (para `League.simulateNextRound`) y
+  `resolveBracketOptions` (para `Bracket.playNextGame`), ambos
+  construidos a partir de `state.lineup` tal cual esté guardado. Todos
+  los puntos que juegan un partido (Home: jornada y bracket;
+  Competiciones: Copa/Playoff/Ascenso; pantalla de Alineación) llaman
+  ahora a esta misma función — no queda ninguna llamada a
+  `simulateNextRound(` ni `playBracketGameWithReveal(` sin resolver
+  (verificado con grep sobre el archivo completo).
+- Añadida validación antes de jugar desde cualquiera de esos botones:
+  si `state.lineup` no tiene todavía una alineación válida guardada
+  (`getLineupValidity`, ya existente), se bloquea la acción y se lleva
+  al usuario a "Configurar alineación" en vez de jugar con una
+  convocatoria a medias. Si ya existe una alineación válida de una
+  jornada anterior, se usa directamente sin pedir nada — nunca hay que
+  reconfigurar cada jornada.
+- **Revisado si `state.lineup` se reseteaba en algún punto no pedido por
+  el usuario**: el único sitio que reasigna `state.lineup` es
+  `startSeason()`, al empezar una partida nueva — comportamiento
+  correcto (una temporada nueva necesita alineación nueva). No se ha
+  encontrado ningún reseteo entre jornadas ni al cambiar de pantalla; la
+  alineación persiste tal cual hasta que el usuario la edite en la
+  pantalla de Alineación, como ya estaba documentado en `CLAUDE.md`. No
+  se ha corregido nada en este punto porque no había nada que corregir.
+- No se ha tocado `MatchEngine.simulateMatch()` ni el bucle de
+  posesión, ni se ha añadido ningún fallback propio de convocatoria o
+  minutos.
