@@ -876,3 +876,18 @@
   partido completo jugado de principio a fin con una alineación válida de
   10 convocados (sin errores de consola/página, aparte del ya conocido
   fallo de red a Google Fonts en este sandbox sin internet).
+- **Actualización tras terminar, antes de abrir el PR**: mientras se
+  trabajaba, Dennis subió directamente a `main` (commit "Add files via
+  upload") el contenido real de 7.11.2-bis y una ampliación de 7.11.6 —
+  las mismas secciones que el encargo citaba como ya existentes. Al
+  traer `main` a esta rama:
+  - Se ha retirado la versión de 7.11.2-bis añadida en este cierre (era
+    redundante, coincidía en cifras con la de Dennis) y se ha mantenido
+    la de `main` como texto canónico.
+  - La ampliación real de 7.11.6 pide **dos pantallas separadas**
+    (Convocatoria / Quintetos); esta sesión había construido **una sola
+    pantalla combinada**. Consultado con Dennis, decide mantener una
+    sola pantalla ("le parece innecesariamente engorroso" separarlas) —
+    se ha anotado esa decisión directamente en el propio DESIGN.md junto
+    a la ampliación, para que no quede una contradicción escrita entre
+    el documento y la interfaz real.
