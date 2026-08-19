@@ -954,6 +954,40 @@ de desgaste y recuperación de Energía que depende directamente de ella.
   alejado (por encima) de su ritmo de cuota esperado a esa altura del
   partido, y meter a quien más por debajo esté.
 
+#### 7.11.2-bis Minutos de la basura
+
+Sesión "Alineación por slots + Minutos de la basura": opción **por
+partido** (no una configuración global del club), activable desde la
+pantalla de Alineación con un checkbox "Permitir minutos de la basura",
+desactivada por defecto.
+
+Se evalúa de forma **independiente para cada equipo** de un partido:
+
+- El equipo que va **ganando** activa el modo si, desde la **mitad del 3er
+  cuarto** en adelante, su diferencia de puntos a favor llega a **20 o
+  más**.
+- El equipo que va **perdiendo** activa el modo si, desde la **mitad del
+  4º cuarto** en adelante, su diferencia de puntos en contra llega a **20
+  o más**.
+- Una vez activado para un equipo, se **mantiene activo** aunque la
+  diferencia fluctúe, hasta que baje a **10 puntos o menos**; entonces se
+  desactiva para ese equipo. Los márgenes de entrada (20) y salida (10)
+  viven en `MatchConfig.CONFIG_BASE.garbageTime` (`marginToEnter`/
+  `marginToExit`), no como números sueltos en el código.
+- Mientras está activo para un equipo, en **cada ventana de sustitución**
+  (7.11.2: fin de cuarto o parada de juego) ese equipo deja de exigir el
+  cumplimiento de la cuota de minutos y mete banquillo con este orden por
+  posición: primero el **Suplente 2**, si no está disponible el
+  **Suplente 1**, y si ninguno está disponible se queda el titular en
+  pista.
+- Cuando se desactiva, la rotación automática normal por cuotas (7.11.2)
+  se retoma sin cambios.
+
+**Pendiente explícito**: no existe todavía un sistema de disponibilidad
+por lesión o expulsión en el motor — mientras no exista, cualquier slot
+con un jugador asignado se trata como "disponible" a efectos de este
+orden de sustitución.
+
 #### 7.11.3 Polivalencia de emergencia
 
 Cuando, durante el reparto automático de rotación, una posición se

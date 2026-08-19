@@ -334,12 +334,13 @@
 
 .squad-picker {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 6px;
 }
 .squad-picker__item {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 13px;
   padding: 6px 8px;
@@ -350,58 +351,73 @@
 .squad-picker__item:hover { background: var(--court-bg-alt); }
 .squad-picker__name { flex: 1; font-weight: 600; }
 .squad-picker__pos { font-size: 11px; color: var(--ink-soft); }
-
-.lineup-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-}
-.lineup-card {
-  border: 1px solid var(--line);
-  border-left: 5px solid var(--slate);
-  border-radius: 6px;
-  padding: 12px 14px;
-  background: var(--court-bg);
-}
-.lineup-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.lineup-card__name { font-family: var(--font-score); font-size: 15px; text-transform: uppercase; }
-.lineup-card__ratings {
+.squad-picker__ratings {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ink-soft);
-  margin-bottom: 10px;
+  width: 100%;
 }
-.lineup-card__form { color: var(--brick-dark); font-weight: 600; }
-.lineup-card__controls {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.squad-picker__form { color: var(--brick-dark); font-weight: 600; }
+
+/* --- Tabla de slots por posición (Titular/Suplente 1/Suplente 2) --- */
+.lineup-slots-table th,
+.lineup-slots-table td {
+  text-align: center;
+  vertical-align: middle;
 }
-.lineup-card__controls label {
+.lineup-slots-table th:first-child,
+.lineup-slots-table td:first-child {
+  text-align: left;
+}
+.lineup-slots-table th:nth-child(2),
+.lineup-slots-table td:nth-child(2) {
+  text-align: center;
+}
+.lineup-slot-cell {
   display: flex;
   flex-direction: column;
-  font-size: 11px;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  gap: 3px;
+  gap: 4px;
+  min-width: 130px;
 }
-.lineup-card__controls select,
-.lineup-card__controls input {
+.lineup-slot-player,
+.lineup-slot-minutes {
   font-family: var(--font-body);
-  font-size: 13px;
-  padding: 5px 6px;
+  font-size: 12px;
+  padding: 4px 5px;
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--white-line);
+  width: 100%;
 }
-.lineup-card__controls input[type="number"] { width: 70px; }
+.lineup-slot-total {
+  font-family: var(--font-score);
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lineup-slot-total.is-ok { color: var(--win); }
+.lineup-slot-total.is-bad { color: var(--loss); }
+
+.lineup-player-totals-wrap { margin-top: 16px; }
+.lineup-player-totals-wrap h4 {
+  font-family: var(--font-score);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+
+.gm-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lineup-garbage-time-toggle { margin-top: 14px; }
 
 .segment-form {
   display: flex;

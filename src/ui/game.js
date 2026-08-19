@@ -48,13 +48,31 @@
     // volver a esta pantalla y ajustarla cuando quiera.
     lineup: {
       squadIds: [], // ids de convocados (8-12)
-      entries: {}, // playerId -> { declaredPosition, minutesQuota }
+      entries: buildEmptyLineupEntries(), // pos -> { starter, sub1, sub2 } (ver Rotation.js)
       fixedSegments: [], // opcional, C.2
       segmentDraft: null, // formulario en curso de un quinteto fijo nuevo
+      garbageTime: { enabled: false }, // DESIGN.md 7.11.2-bis, opción por partido
     },
   };
 
   function byId(id) { return document.getElementById(id); }
+
+  // Shape por defecto de `lineup.entries` (Rotation.js): 5 posiciones, cada
+  // una con 3 slots (titular + 2 suplentes) vacíos.
+  function buildEmptyLineupEntries() {
+    const entries = {};
+    BM.POSITIONS.forEach((pos) => {
+      entries[pos] = {
+        starter: { playerId: null, minutesQuota: 0 },
+        sub1: { playerId: null, minutesQuota: 0 },
+        sub2: { playerId: null, minutesQuota: 0 },
+      };
+    });
+    return entries;
+  }
+
+  const SLOT_KEYS = BM.SLOT_KEYS;
+  const SLOT_LABELS = { starter: 'Titular', sub1: 'Suplente 1', sub2: 'Suplente 2' };
 
   // -----------------------------------------------------------------
   // Arranque: construye equipos reales (instancias de verdad de
@@ -139,7 +157,13 @@
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
     state.matchReveal = null;
-    state.lineup = { squadIds: [], entries: {}, fixedSegments: [], segmentDraft: null };
+    state.lineup = {
+      squadIds: [],
+      entries: buildEmptyLineupEntries(),
+      fixedSegments: [],
+      segmentDraft: null,
+      garbageTime: { enabled: false },
+    };
 
     goToScreen('home');
   }
@@ -646,9 +670,10 @@
   // sobre src/core/Rotation.js: esta pantalla NO decide nada de rotación
   // por sí misma, solo construye el objeto `lineup` con el shape exacto
   // que espera Rotation.js y lo valida con Rotation.validateLineup() antes
-  // de permitir jugar. El quinteto titular/banquillo que se muestra aquí es
-  // solo informativo (mayor cuota declarada por posición) — Rotation.js
-  // resuelve el quinteto inicial real internamente, de forma independiente.
+  // de permitir jugar. El quinteto titular es el slot "starter" de cada
+  // fila, tal cual lo declara el usuario — Rotation.buildRotationState()
+  // usa ese mismo slot para el quinteto inicial real, así que esta pantalla
+  // no necesita inferir nada, solo reflejar lo que hay en `lineup.entries`.
   // ---------------------------------------------------------------------
 
   // Ritmo de competición (0-100, semi-visible según DESIGN.md 6.1) traducido
@@ -659,19 +684,21 @@
     return '★'.repeat(stars) + '☆'.repeat(5 - stars);
   }
 
-  // Quinteto titular informativo: por cada una de las 5 posiciones, el
-  // convocado declarado en ella con mayor cuota de minutos (mismo criterio
-  // que usa Rotation.buildRotationState() para el quinteto inicial real,
-  // pero calculado aquí solo para mostrarlo, no para decidir nada).
-  function computeInformativeStarters(lineup) {
-    const bestByPosition = {};
-    Object.entries(lineup.entries).forEach(([playerId, entry]) => {
-      const current = bestByPosition[entry.declaredPosition];
-      if (!current || entry.minutesQuota > lineup.entries[current].minutesQuota) {
-        bestByPosition[entry.declaredPosition] = playerId;
-      }
-    });
-    return new Set(Object.values(bestByPosition));
+  // Lista de convocados (instancias reales de Player), en el mismo orden
+  // que usa la pantalla de Alineación en varios sitios (tabla de slots,
+  // resumen de minutos totales, desplegables de quinteto fijo).
+  function getConvocatedPlayers(team) {
+    const { POSITIONS } = BM;
+    return state.lineup.squadIds
+      .map((id) => team.roster.find((p) => p.id === id))
+      .filter(Boolean)
+      .sort((a, b) => POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition));
+  }
+
+  // Suma de los 3 slots de una fila (posición) — usada por el contador en
+  // vivo "35/40" de cada fila de la tabla.
+  function rowMinutesSum(lineup, pos) {
+    return SLOT_KEYS.reduce((acc, slotKey) => acc + ((lineup.entries[pos][slotKey] && lineup.entries[pos][slotKey].minutesQuota) || 0), 0);
   }
 
   // Validación completa: tamaño de convocatoria (reutiliza
@@ -695,30 +722,89 @@
     return { valid: true, message: null };
   }
 
+  // Quita a un jugador de cualquier slot (de cualquier posición) en el que
+  // estuviera asignado — se llama al desconvocarlo, para no dejar
+  // referencias colgantes a un jugador que ya no está en la convocatoria.
+  function removePlayerFromAllSlots(playerId) {
+    BM.POSITIONS.forEach((pos) => {
+      SLOT_KEYS.forEach((slotKey) => {
+        const slot = state.lineup.entries[pos][slotKey];
+        if (slot.playerId === playerId) {
+          slot.playerId = null;
+          slot.minutesQuota = 0;
+        }
+      });
+    });
+  }
+
   function toggleSquadMember(team, playerId) {
     const lineup = state.lineup;
     const idx = lineup.squadIds.indexOf(playerId);
     if (idx >= 0) {
       lineup.squadIds.splice(idx, 1);
-      delete lineup.entries[playerId];
+      removePlayerFromAllSlots(playerId);
     } else {
       if (lineup.squadIds.length >= 12) return; // máximo de convocatoria (6.2)
-      const player = team.roster.find((p) => p.id === playerId);
       lineup.squadIds.push(playerId);
-      lineup.entries[playerId] = { declaredPosition: player.primaryPosition, minutesQuota: 0 };
     }
     renderLineupScreen();
   }
 
-  function updateEntryPosition(playerId, position) {
-    state.lineup.entries[playerId].declaredPosition = position;
+  // Cambio de jugador en un slot (desplegable) — los desplegables de una
+  // fila no se excluyen entre sí ni con otras filas, un jugador puede
+  // repetirse en varios slots sin restricción (Rotation.js ya lo admite).
+  function updateSlotPlayer(position, slotKey, playerId) {
+    state.lineup.entries[position][slotKey].playerId = playerId || null;
     renderLineupScreen();
   }
 
-  function updateEntryMinutes(playerId, minutes, durationMinutes) {
+  // Commit final de los minutos de un slot al perder el foco (evento
+  // 'change'): clampa 0..duración del partido y vuelve a renderizar entero,
+  // igual que el resto de controles de esta pantalla.
+  function updateSlotMinutes(position, slotKey, minutes, durationMinutes) {
     const clamped = Math.max(0, Math.min(durationMinutes, Number(minutes) || 0));
-    state.lineup.entries[playerId].minutesQuota = clamped;
+    state.lineup.entries[position][slotKey].minutesQuota = clamped;
     renderLineupScreen();
+  }
+
+  // Actualización EN VIVO (evento 'input', cada pulsación) del contador
+  // "35/40" de una fila y del resumen de minutos totales por jugador — sin
+  // esperar al 'change'/blur ni a un renderizado completo (que perdería el
+  // foco del campo mientras se escribe). El valor se guarda sin clampar
+  // todavía (el clamp definitivo lo hace updateSlotMinutes en 'change');
+  // esto es solo para que el contador se vea reaccionar al momento.
+  function onSlotMinutesLiveInput(position, slotKey, rawValue) {
+    const value = Number(rawValue);
+    state.lineup.entries[position][slotKey].minutesQuota = Number.isFinite(value) ? value : 0;
+    updateRowTotalBadge(position);
+    updatePlayerTotalsSummary();
+  }
+
+  function updateRowTotalBadge(position) {
+    const cell = byId(`lineup-row-total-${position}`);
+    if (!cell) return;
+    const { CONFIG_BASE } = BM;
+    const durationMinutes = CONFIG_BASE.match.durationMinutes;
+    const sum = rowMinutesSum(state.lineup, position);
+    const isOk = sum === durationMinutes;
+    cell.textContent = `${sum}/${durationMinutes}`;
+    cell.classList.toggle('is-ok', isOk);
+    cell.classList.toggle('is-bad', !isOk);
+  }
+
+  function updatePlayerTotalsSummary() {
+    const body = byId('lineup-player-totals-body');
+    if (!body) return;
+    const team = getUserTeam();
+    if (!team) return;
+    body.innerHTML = renderPlayerTotalsRows(getConvocatedPlayers(team));
+  }
+
+  function renderPlayerTotalsRows(convocated) {
+    const totals = BM.totalMinutesByPlayer(state.lineup);
+    if (convocated.length === 0) return '<tr><td colspan="2" class="gm-muted">Sin convocados todavía.</td></tr>';
+    return convocated.map((player) => `
+      <tr><td>${player.fullName}</td><td>${totals[player.id] || 0} min</td></tr>`).join('');
   }
 
   function addFixedSegment(team) {
@@ -770,50 +856,75 @@
       return posDiff !== 0 ? posDiff : a.fullName.localeCompare(b.fullName, 'es');
     });
 
+    // Convocatoria: checkboxes con nombre, posición y valoraciones en
+    // estrellas (DESIGN.md 7.11.6) — antes vivían en la tarjeta de
+    // "Convocados" de abajo; se trasladan aquí porque esa tarjeta desaparece
+    // (sustituida por la tabla de slots), y 7.11.6 exige mostrarlas para
+    // cada convocado en algún sitio de esta pantalla. Ver nota en la
+    // respuesta final: es un traslado del mismo bloque, no un rediseño del
+    // mecanismo de checkboxes en sí.
     const squadPickerHtml = sortedRoster.map((player) => `
       <label class="squad-picker__item">
         <input type="checkbox" class="squad-checkbox" data-player-id="${player.id}"
           ${lineup.squadIds.includes(player.id) ? 'checked' : ''}>
         <span class="squad-picker__name">${player.fullName}</span>
         <span class="squad-picker__pos">${player.primaryPosition}</span>
+        <span class="squad-picker__ratings">
+          <span>T ${player.technicalAverage.toFixed(1)}</span>
+          <span>F ${player.physicalAverage.toFixed(1)}</span>
+          <span>M ${player.mentalAverage.toFixed(1)}</span>
+          <span>Resistencia ${player.physical.stamina}</span>
+          <span>Energía ${Math.round(player.dynamicState.energy)}</span>
+          <span class="squad-picker__form">Forma ${competitionRhythmToStars(player.dynamicState.competitionRhythm)}</span>
+        </span>
       </label>`).join('');
 
-    const starters = computeInformativeStarters(lineup);
-    const convocated = lineup.squadIds
-      .map((id) => team.roster.find((p) => p.id === id))
-      .filter(Boolean)
-      .sort((a, b) => POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition));
+    const convocated = getConvocatedPlayers(team);
 
-    const rosterCardsHtml = convocated.map((player) => {
-      const entry = lineup.entries[player.id];
-      const positionOptions = POSITIONS.map((pos) => `
-        <option value="${pos}" ${pos === entry.declaredPosition ? 'selected' : ''}>${pos} (${player.positionLevel(pos)})</option>`).join('');
-      const isStarter = starters.has(player.id);
+    // Tabla de 5 filas (una por posición) × 3 columnas de slot (Titular,
+    // Suplente 1, Suplente 2) — cada slot es un desplegable de convocado +
+    // minutos, sin exclusión entre desplegables (un jugador puede
+    // repetirse). Contador en vivo "35/40" por fila, actualizado por
+    // updateRowTotalBadge()/onSlotMinutesLiveInput() sin esperar a guardar.
+    const slotsTableRowsHtml = POSITIONS.map((pos) => {
+      const row = lineup.entries[pos];
+      const sum = rowMinutesSum(lineup, pos);
+      const isOk = sum === durationMinutes;
+      const slotCellsHtml = SLOT_KEYS.map((slotKey) => {
+        const slot = row[slotKey];
+        const optionsHtml = convocated.map((p) => `
+          <option value="${p.id}" ${slot.playerId === p.id ? 'selected' : ''}>${p.fullName}</option>`).join('');
+        return `
+          <td class="lineup-slot-cell">
+            <select class="lineup-slot-player" data-position="${pos}" data-slot="${slotKey}">
+              <option value="">—</option>
+              ${optionsHtml}
+            </select>
+            <input type="number" class="lineup-slot-minutes" data-position="${pos}" data-slot="${slotKey}"
+              min="0" max="${durationMinutes}" step="1" value="${slot.minutesQuota}">
+          </td>`;
+      }).join('');
       return `
-        <div class="lineup-card">
-          <div class="lineup-card__header">
-            <span class="lineup-card__name">${player.fullName}</span>
-            <span class="gm-badge ${isStarter ? 'gm-badge--done' : ''}">${isStarter ? 'Titular' : 'Banquillo'}</span>
-          </div>
-          <div class="lineup-card__ratings">
-            <span>T ${player.technicalAverage.toFixed(1)}</span>
-            <span>F ${player.physicalAverage.toFixed(1)}</span>
-            <span>M ${player.mentalAverage.toFixed(1)}</span>
-            <span>Resistencia ${player.physical.stamina}</span>
-            <span>Energía ${Math.round(player.dynamicState.energy)}</span>
-            <span class="lineup-card__form">Forma ${competitionRhythmToStars(player.dynamicState.competitionRhythm)}</span>
-          </div>
-          <div class="lineup-card__controls">
-            <label>Posición
-              <select class="lineup-position-select" data-player-id="${player.id}">${positionOptions}</select>
-            </label>
-            <label>Minutos
-              <input type="number" class="lineup-minutes-input" data-player-id="${player.id}"
-                min="0" max="${durationMinutes}" step="1" value="${entry.minutesQuota}">
-            </label>
-          </div>
-        </div>`;
+        <tr>
+          <th>${pos}</th>
+          ${slotCellsHtml}
+          <td id="lineup-row-total-${pos}" class="lineup-slot-total ${isOk ? 'is-ok' : 'is-bad'}">${sum}/${durationMinutes}</td>
+        </tr>`;
     }).join('');
+
+    const slotsTableHtml = `
+      <table class="gm-table lineup-slots-table">
+        <thead>
+          <tr><th>Posición</th><th>Titular</th><th>Suplente 1</th><th>Suplente 2</th><th>Min.</th></tr>
+        </thead>
+        <tbody>${slotsTableRowsHtml}</tbody>
+      </table>`;
+
+    const playerTotalsHtml = `
+      <table class="gm-table lineup-player-totals">
+        <thead><tr><th>Jugador</th><th>Minutos totales</th></tr></thead>
+        <tbody id="lineup-player-totals-body">${renderPlayerTotalsRows(convocated)}</tbody>
+      </table>`;
 
     const validity = getLineupValidity(team);
 
@@ -870,8 +981,13 @@
       </div>
 
       <div class="gm-card">
-        <h3>Convocados</h3>
-        ${convocated.length ? `<div class="lineup-cards">${rosterCardsHtml}</div>` : '<p class="gm-muted">Selecciona al menos 8 jugadores en la convocatoria.</p>'}
+        <h3>Alineación por posición</h3>
+        ${convocated.length ? slotsTableHtml : '<p class="gm-muted">Selecciona al menos 8 jugadores en la convocatoria.</p>'}
+        ${convocated.length ? `<div class="lineup-player-totals-wrap"><h4>Minutos totales por jugador</h4>${playerTotalsHtml}</div>` : ''}
+        <label class="gm-checkbox lineup-garbage-time-toggle">
+          <input type="checkbox" id="lineup-garbage-time-checkbox" ${lineup.garbageTime.enabled ? 'checked' : ''}>
+          Permitir minutos de la basura
+        </label>
       </div>
 
       <div class="gm-card">
@@ -893,12 +1009,24 @@
     container.querySelectorAll('.squad-checkbox').forEach((el) => {
       el.addEventListener('change', () => toggleSquadMember(team, el.dataset.playerId));
     });
-    container.querySelectorAll('.lineup-position-select').forEach((el) => {
-      el.addEventListener('change', () => updateEntryPosition(el.dataset.playerId, el.value));
+    container.querySelectorAll('.lineup-slot-player').forEach((el) => {
+      el.addEventListener('change', () => updateSlotPlayer(el.dataset.position, el.dataset.slot, el.value));
     });
-    container.querySelectorAll('.lineup-minutes-input').forEach((el) => {
-      el.addEventListener('change', () => updateEntryMinutes(el.dataset.playerId, el.value, durationMinutes));
+    container.querySelectorAll('.lineup-slot-minutes').forEach((el) => {
+      // 'input' (cada pulsación): actualiza el contador de la fila y el
+      // resumen de totales EN VIVO, sin renderizar toda la pantalla (se
+      // perdería el foco mientras se escribe). 'change' (al perder el
+      // foco): clampa el valor final y sí renderiza entero, para refrescar
+      // la validez global y el botón de jugar.
+      el.addEventListener('input', () => onSlotMinutesLiveInput(el.dataset.position, el.dataset.slot, el.value));
+      el.addEventListener('change', () => updateSlotMinutes(el.dataset.position, el.dataset.slot, el.value, durationMinutes));
     });
+    const garbageTimeCheckbox = byId('lineup-garbage-time-checkbox');
+    if (garbageTimeCheckbox) {
+      garbageTimeCheckbox.addEventListener('change', () => {
+        state.lineup.garbageTime.enabled = garbageTimeCheckbox.checked;
+      });
+    }
 
     const segmentStartBtn = byId('segment-start-btn');
     if (segmentStartBtn) {
@@ -938,7 +1066,11 @@
   // jornada/bracket) siguen exactamente igual que hasta ahora.
   function buildUserSideOptions(team) {
     const squad = team.buildMatchSquad(state.lineup.squadIds);
-    const lineup = { entries: state.lineup.entries, fixedSegments: state.lineup.fixedSegments };
+    const lineup = {
+      entries: state.lineup.entries,
+      fixedSegments: state.lineup.fixedSegments,
+      garbageTime: state.lineup.garbageTime,
+    };
     return { squad, lineup };
   }
 
