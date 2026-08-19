@@ -1157,3 +1157,85 @@
     conocido y no relacionado, al bloquear la carga de Google Fonts en
     este entorno). La pantalla de Alineación del usuario, no tocada en
     esta sesión, sigue funcionando exactamente igual.
+
+## 2026-08-19 (6) — Retoques de estadísticas: Asistencia, Valoración, +/-, minutos y medias de temporada
+
+- **Asistencia** (nueva, DESIGN.md 7.6, Bloque D — entrada 22, junto con
+  la nota de alcance sobre la mejora futura del tiro del receptor, ya
+  redactada en la propia sección): estadística simplificada, no un pase
+  real simulado dentro del bucle de posesión. Al anotar cualquier tiro
+  de campo (incluido el "y-uno" con falta), se sortea una probabilidad
+  según el tipo de tiro (`ASSIST_PROBABILITY_BY_SHOT_TYPE` en
+  `MatchEngine.js`: 0.55 bandeja, 0.5 tiro interior, 0.4 triple, 0.3
+  media distancia — valores de partida, pendientes de calibración) y,
+  si se cumple, se asigna a un compañero en pista distinto del anotador,
+  por sorteo ponderado según VisiónJuego + Pase. Nunca en tiros libres.
+  - **Decisión de encaje del prompt**: las probabilidades viven como
+    constantes locales de `MatchEngine.js` (mismo patrón que
+    `STARTER_WEIGHT`/`BENCH_WEIGHT`), no en `MatchConfig.js` — el propio
+    prompt de esta sesión pedía explícitamente no tocar ese archivo.
+- **Minutos jugados por jugador**: ya existían en `Rotation.js`
+  (`playedSeconds`), solo se exponen ahora en cada línea de `boxScore`
+  (`minutesPlayed`, en segundos) como paso de enriquecimiento al final
+  de `simulateMatch()`. `null` (no `0`) cuando ese lado del partido no
+  tuvo alineación real — para distinguir "no disponible" de "0 minutos
+  jugados". Formato de UI elegido (minutos con un decimal, ej. "32.4"):
+  **decisión NO confirmada con Dennis**, señalada explícitamente en el
+  código (`formatMinutesSingle`/`formatMinutesDecimal`, `game.js`) — si
+  prefiere MM:SS, es el único punto a cambiar.
+- **+/- por jugador**: `Map<playerId, number>` inicializado a 0 para
+  toda la convocatoria, acumulado posesión a posesión en el bucle
+  principal de `simulateMatch()` (diferencial de puntos de esa posesión,
+  sumado a los 5 en pista del lado ofensivo y restado a los 5 del lado
+  defensivo). Con alineación real usa el `onCourt` ya vigente; sin ella,
+  un nuevo sorteo de `selectOnCourtFive` (mismo placeholder de siempre)
+  para que nunca quede sin calcular. Verificado con script Node: la suma
+  de +/- de todos los jugadores de un equipo es exactamente
+  `5 × diferencial final` (invariante matemática del +/-, confirma que
+  el reparto posesión a posesión es correcto).
+- **Valoración (PIR, índice FIBA/ACB/Euroliga)**: función pura
+  `computeValoracion(stat)` en `MatchEngine.js`, sobre una línea de
+  boxScore ya enriquecida. Dos campos nuevos necesarios para la fórmula:
+  `foulsDrawn` (falta recibida, en falta en tiro/defensiva — no en
+  técnica, que no tiene un "atacante" que la reciba) y
+  `blockedAttempts` (tapón recibido por el lanzador, separado de
+  `blocks` que ya solo contaba al taponador). Se usa solo
+  `personalFouls` (ya incluye las técnicas, confirmado en
+  `handleTechnicalFoul`) para no contar faltas dobles.
+- **Enganche real** (`game.js`, `renderTeamBoxScore`): nuevas columnas
+  Min (primera estadística tras el nombre), Val y +/- (con signo
+  explícito y color verde/rojo, clases `.is-plus`/`.is-minus` en
+  `game.css`, mismo par de colores que `.is-win`/`.is-loss`).
+  `renderTeamTotals`: rebotes ofensivos/defensivos/totales en filas
+  separadas, T2/T3/TL como `made/attempted (pct%)` (`0/0 (—)` si no hubo
+  intentos), Asistencias y Valoración de equipo.
+- **Medias de temporada** (`aggregatePlayerStats`/`renderStatsScreen`):
+  nuevas columnas Min, Reb Of, Reb Def, Reb Tot, Ast, T2%, T3%, TL%, Val,
+  +/- — los tres porcentajes se calculan SIEMPRE sobre los acumulados de
+  temporada (`fg2Made/fg3Made/ftMade` y sus `*Attempted`), nunca como
+  media de porcentajes partido a partido. Top 20 (antes 30). Cabeceras
+  de columna clicables (`data-sort-key`, clase `.is-active-sort` en la
+  activa): ordena `playerStats` por esa columna, descendente, ANTES de
+  recortar a 20 — el ranking siempre refleja la columna elegida, incluso
+  para los tres porcentajes (por el valor ya calculado, no por
+  conseguidos en bruto). `state.statsSortKey` (nuevo, por defecto
+  `'points'`) guarda la columna activa entre renders.
+- **Manejo defensivo para partidos guardados antes de este cambio**:
+  `?? 0`/`?? null` en `aggregatePlayerStats`, `renderTeamBoxScore` y
+  `renderTeamTotals` — hoy no hay ningún sistema de guardado real
+  todavía (CLAUDE.md: localStorage llega más adelante), así que este
+  caso no es alcanzable en la práctica actual, pero queda protegido para
+  cuando exista.
+- **Verificado**: script Node sobre `MatchEngine.simulateMatch` (línea
+  de boxScore con todos los campos nuevos, invariante de suma de +/-,
+  ratio de asistencias/tiros anotados plausible); toda la suite de
+  regresión existente (Calendar, CpuLineup, Recovery, Rotation, Fase 2,
+  datos reales) sigue en verde; Playwright: convocatoria + alineación de
+  5 titulares + partido completo revelado con boxScore/totales de
+  equipo visibles (capturas de pantalla), y tabla de medias de temporada
+  tras 2-3 jornadas con Top 20, ordenación por clic en varias columnas
+  (incluidos los porcentajes) confirmada como descendente, sin errores
+  de consola ni de página.
+- **Confirmado**: no se ha tocado `src/core/MatchConfig.js` ni ninguna
+  fórmula de acción de 7.6 ya calibrada — solo se añadieron campos de
+  tracking y un paso de enriquecimiento posterior a la simulación.

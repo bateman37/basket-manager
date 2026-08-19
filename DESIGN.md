@@ -1046,6 +1046,54 @@ acciones base — no son acciones completamente nuevas e independientes.
     escalar a expulsión si se repite (mecanismo exacto pendiente,
     conecta con futuro sistema disciplinario).
 
+#### Bloque D — Estadística derivada (no forma parte del bucle de posesión)
+
+22. **Asistencia** (estadística simplificada, no modelada dentro del
+    bucle de posesión) — cuando se anota un tiro de campo, se calcula
+    una probabilidad de asistencia según el tipo de tiro (mayor en tiro
+    interior/bandeja, menor en triple/media distancia), y si se cumple,
+    se asigna a un jugador del quinteto ofensivo distinto del anotador,
+    ponderado por VisiónJuego + Pase de los candidatos. Es una
+    asignación posterior a la canasta ya decidida, no un pase real
+    simulado dentro de la posesión.
+
+    **Decisión explícita de alcance, pendiente de revisión futura**:
+    esta versión simplificada NO hace que un buen pasador genere una
+    MEJOR ocasión de tiro (no sube la probabilidad de acierto del
+    tirador) — solo reparte el "crédito" estadístico de una canasta que
+    ya se decidió por las fórmulas de tiro normales. Queda pendiente
+    para una sesión de diseño futura mover esto dentro del propio bucle
+    de posesión: un buen manejador de balón (VisiónJuego + Pase altos)
+    debería poder generar un pase que mejore la probabilidad de acierto
+    del compañero que recibe el balón (ej. un modificador positivo
+    aplicado a la fórmula de tiro del receptor cuando el pase previo
+    fue de calidad alta), no solo determinar a quién se le apunta la
+    asistencia después del hecho. Esto implicaría rediseñar el orden de
+    resolución de la posesión (decidir si hay pase de asistencia ANTES
+    de resolver el tiro, no después) y probablemente separar la
+    elección de tirador de la elección de ballHandler actual. No
+    implementar esto ahora — solo dejar la intención registrada para
+    cuando se aborde el módulo de Tácticas o una revisión dedicada del
+    bucle de posesión (7.6).
+
+    **Nota de implementación**: las probabilidades por tipo de tiro son
+    constantes heurísticas locales de `MatchEngine.js`
+    (`ASSIST_PROBABILITY_BY_SHOT_TYPE`), no de `CONFIG` — mismo patrón
+    que `STARTER_WEIGHT`/`BENCH_WEIGHT` (placeholder de Fase 1, ya en el
+    motor sin pasar por `MatchConfig.js`). Punto de partida razonable a
+    calibrar después con playtesting, no un número cerrado.
+
+**Estadísticas derivadas del boxScore** (sesión de retoques de
+estadísticas): además de las estadísticas registradas acción a acción
+(puntos, tiros, rebotes, robos, tapones, pérdidas, faltas, y ahora
+Asistencia), cada línea de `boxScore` incluye tres campos calculados a
+partir de las anteriores, no de una fórmula nueva de simulación:
+minutos jugados (ya existían en `Rotation.js`, solo se exponen en el
+boxScore), +/- (diferencial de puntos del equipo mientras el jugador
+estuvo en pista) y Valoración (índice de valoración FIBA/ACB/Euroliga,
+PIR). Ninguno de los tres modifica el resultado del partido — son
+lectura, no simulación.
+
 **Pendientes explícitos, confirmados, para el futuro módulo de
 Tácticas** (aún no diseñado): **Bloqueo/pick-and-roll** (jugada de
 equipo coordinada, el modelo actual es 1 vs 1 por acción), **Tiempo
