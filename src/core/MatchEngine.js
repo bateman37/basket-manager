@@ -315,6 +315,18 @@
     return items[items.length - 1];
   }
 
+  // --- 7.6 Bloque D (22): Asistencia — estadística simplificada, ver
+  // DESIGN.md. Probabilidades de partida como constantes heurísticas
+  // locales del motor (no en MatchConfig.js — el prompt de esta sesión
+  // pide explícitamente no tocar ese archivo), mismo patrón que
+  // STARTER_WEIGHT/BENCH_WEIGHT arriba. Pendientes de calibración.
+  const ASSIST_PROBABILITY_BY_SHOT_TYPE = {
+    layup: 0.55,
+    insideShot: 0.5,
+    threePointShot: 0.35,
+    midRangeShot: 0.3,
+  };
+
   function selectOnCourtFive(squad) {
     const pool = squad.map((player, index) => ({
       player,
@@ -431,11 +443,14 @@
         freeThrows: { made: 0, attempted: 0 },
         reboundsOffensive: 0,
         reboundsDefensive: 0,
+        assists: 0,
         steals: 0,
         blocks: 0,
+        blockedAttempts: 0,
         turnovers: 0,
         personalFouls: 0,
         technicalFouls: 0,
+        foulsDrawn: 0,
       });
     }
     return boxScore.get(player.id);
@@ -467,9 +482,45 @@
 
   function recordSteal(boxScore, player) { getStatLine(boxScore, player).steals += 1; }
   function recordBlock(boxScore, player) { getStatLine(boxScore, player).blocks += 1; }
+  // Tapón recibido (por el lanzador, no el taponador) — necesario aparte
+  // para la Valoración (PIR), que penaliza al que se queda sin canasta por
+  // tapón de forma distinta a una pérdida normal.
+  function recordBlockedAttempt(boxScore, player) { getStatLine(boxScore, player).blockedAttempts += 1; }
   function recordTurnover(boxScore, player) { getStatLine(boxScore, player).turnovers += 1; }
   function recordPersonalFoul(boxScore, player) { getStatLine(boxScore, player).personalFouls += 1; }
   function recordTechnicalFoul(boxScore, player) { getStatLine(boxScore, player).technicalFouls += 1; }
+  // Falta recibida (por quien la sufre, simétrico a recordPersonalFoul) —
+  // solo en falta en tiro/defensiva (no en técnica, que no tiene un
+  // "atacante" claro que la reciba).
+  function recordFoulDrawn(boxScore, player) { getStatLine(boxScore, player).foulsDrawn += 1; }
+  function recordAssist(boxScore, player) { getStatLine(boxScore, player).assists += 1; }
+
+  // Elige a quién se le apunta la asistencia (Bloque D, 22): ponderado por
+  // VisiónJuego + Pase entre los 4 compañeros del anotador en pista, no
+  // aleatorio uniforme — así bases/organizadores acumulan más asistencias
+  // que pívots, como en la realidad.
+  function resolveAssist(offenseFive, scorer, shotType, boxScore) {
+    const probability = ASSIST_PROBABILITY_BY_SHOT_TYPE[shotType];
+    if (Math.random() >= probability) return;
+    const candidates = offenseFive.filter((p) => p.id !== scorer.id);
+    if (candidates.length === 0) return;
+    const assister = pickWeighted(candidates, (p) => getAttribute(p, 'gameVision') + getAttribute(p, 'passing') + 1);
+    recordAssist(boxScore, assister);
+  }
+
+  // Índice de Valoración (PIR, DESIGN.md 7.6/Bloque D): función pura sobre
+  // una línea de boxScore ya enriquecida con assists/foulsDrawn/
+  // blockedAttempts. `personalFouls` ya incluye las técnicas (ver
+  // handleTechnicalFoul: incrementa ambos contadores) — se usa solo este
+  // campo para no contar las técnicas dos veces.
+  function computeValoracion(stat) {
+    const missedFieldGoals = ['threePointShot', 'midRangeShot', 'insideShot', 'layup']
+      .reduce((sum, shotType) => sum + (stat.fieldGoals[shotType].attempted - stat.fieldGoals[shotType].made), 0);
+    const missedFreeThrows = stat.freeThrows.attempted - stat.freeThrows.made;
+    const totalRebounds = stat.reboundsOffensive + stat.reboundsDefensive;
+    return stat.points + totalRebounds + stat.assists + stat.steals + stat.blocks + stat.foulsDrawn
+      - missedFieldGoals - missedFreeThrows - stat.turnovers - stat.blockedAttempts - stat.personalFouls;
+  }
 
   // --- Bloque A: acciones individuales ---
 
@@ -682,6 +733,7 @@
       if (rollDefensiveFoul(onBallDefender, config, pressure, onBallDefenderPenalty)) {
         teamFouls[defenseTeam.id] = (teamFouls[defenseTeam.id] || 0) + 1;
         recordPersonalFoul(boxScore, onBallDefender);
+        recordFoulDrawn(boxScore, ballHandler);
         events.push({ type: 'defensiveFoul', playerId: onBallDefender.id });
 
         if (teamFouls[defenseTeam.id] >= config.match.teamFoulBonusThreshold) {
@@ -779,14 +831,22 @@
       const shotPenalties = { primary: ballHandlerPenalty, secondary: shotDefenderPenalty };
       const made = !blocked && Math.random() < subtractProbability(shotAction, ballHandler, shotDefender, config, shotPressure, shotAdjustment, shotPenalties);
       recordFieldGoalAttempt(boxScore, ballHandler, shotType, made);
+      if (made) {
+        // Bloque D (22): Asistencia — tiro de campo anotado (con o sin
+        // falta y-uno, ambos casos llegan aquí con made=true); nunca en
+        // tiros libres, que no pasan por recordFieldGoalAttempt.
+        resolveAssist(offenseFive, ballHandler, shotType, boxScore);
+      }
       if (blocked) {
         recordBlock(boxScore, shotDefender);
+        recordBlockedAttempt(boxScore, ballHandler);
         events.push({ type: 'blockedShot', playerId: ballHandler.id, defenderId: shotDefender.id, shotType });
       }
       applyInterventionWear([ballHandler.id, shotDefender.id], playersById, config);
 
       if (hasShootingFoul) {
         recordPersonalFoul(boxScore, shotDefender);
+        recordFoulDrawn(boxScore, ballHandler);
         // Las faltas en tiro también cuentan para el total de faltas de
         // equipo (aunque ya den tiros libres por sí mismas, siempre) —
         // regla real FIBA/ACB: toda falta personal suma al contador que
@@ -868,6 +928,20 @@
     scoringRun.activeSide = scoringRun.points >= config.scoringRun.threshold ? scoringRun.side : null;
   }
 
+  // Enriquecimiento final de una línea de boxScore (retoques de
+  // estadísticas): minutos jugados, +/- y Valoración, calculados como
+  // paso posterior a la simulación en vez de dentro del bucle de posesión
+  // — igual que rotationSummary(), es lectura de datos ya generados, no
+  // una fórmula nueva de simulación. `minutesPlayed` queda en `null` (no
+  // en 0) cuando ese lado no tuvo alineación real, para poder distinguir
+  // "no disponible" de "0 minutos jugados" en la UI.
+  function enrichStatLine(stat, rotationState, plusMinusMap) {
+    stat.minutesPlayed = rotationState ? (rotationState.playedSeconds.get(stat.playerId) || 0) : null;
+    stat.plusMinus = plusMinusMap.get(stat.playerId) || 0;
+    stat.valoracion = computeValoracion(stat);
+    return stat;
+  }
+
   // Resumen de rotación expuesto en el resultado (7.11, solo informativo/
   // verificación): minutos jugados por jugador y quinteto en pista al
   // terminar el partido. `null` si el equipo no aportó alineación real.
@@ -911,6 +985,11 @@
     let totalElapsedSeconds = 0;
 
     const boxScore = new Map();
+    // +/- por jugador (retoques de estadísticas, no forma parte de 7.6):
+    // inicializado a 0 para toda la convocatoria, se acumula posesión a
+    // posesión más abajo, y se enriquece en cada línea de boxScore al final.
+    const plusMinus = new Map();
+    homeSquad.concat(awaySquad).forEach((player) => plusMinus.set(player.id, 0));
     const quarterScores = { home: [], away: [] };
     const runningScore = { home: 0, away: 0 };
     // 7.6.20: en vez de tocar dynamicState.momentum de jugadores concretos
@@ -993,6 +1072,20 @@
         runningScore[defenseSide] += result.defensePoints;
         possessionCount[offenseSide] += 1;
 
+        // +/- (retoques de estadísticas): quinteto en pista de cada lado
+        // DURANTE esta posesión — con alineación real, el mismo `onCourt`
+        // que ya usó simulatePossession (no cambia a mitad de posesión,
+        // ver más abajo); sin alineación, un nuevo sorteo de
+        // selectOnCourtFive (el mismo placeholder de siempre) para no
+        // dejar el +/- sin calcular en ningún caso.
+        const plusMinusDiff = result.points - result.defensePoints;
+        const offenseFiveForPlusMinus = context.offenseRotationState
+          ? getOnCourtFive(context.offenseRotationState) : selectOnCourtFive(offenseSquad);
+        const defenseFiveForPlusMinus = context.defenseRotationState
+          ? getOnCourtFive(context.defenseRotationState) : selectOnCourtFive(defenseSquad);
+        offenseFiveForPlusMinus.forEach((p) => plusMinus.set(p.id, plusMinus.get(p.id) + plusMinusDiff));
+        defenseFiveForPlusMinus.forEach((p) => plusMinus.set(p.id, plusMinus.get(p.id) - plusMinusDiff));
+
         // 7.11.2 (C.2): minutos acumulados del quinteto que estuvo en pista
         // durante esta posesión — no cambia a mitad de jugada viva (las
         // sustituciones automáticas solo se evalúan más abajo, en fin de
@@ -1056,8 +1149,8 @@
       overtimePeriods: Math.max(0, period - config.match.quarters),
       possessionCount,
       boxScore: {
-        home: homeSquad.map((player) => getStatLine(boxScore, player)),
-        away: awaySquad.map((player) => getStatLine(boxScore, player)),
+        home: homeSquad.map((player) => enrichStatLine(getStatLine(boxScore, player), homeRotationState, plusMinus)),
+        away: awaySquad.map((player) => enrichStatLine(getStatLine(boxScore, player), awayRotationState, plusMinus)),
       },
       eventLog,
       rotation: { home: rotationSummary(homeRotationState), away: rotationSummary(awayRotationState) },

@@ -48,6 +48,7 @@
     pendingUserMatch: null, // { match } — partido del usuario de la jornada recién simulada, pendiente de revelar en pantalla de partido
     matchReveal: null, // estado de revelado progresivo por cuartos de la pantalla de partido
     statsCompetition: 'league', // 'league' | 'cup' | 'playoffs' — selector de la pantalla de estadísticas
+    statsSortKey: 'points', // columna activa de ordenación en la tabla de medias (retoques de estadísticas)
     // Alineación (DESIGN.md 7.11.6) — construida por el usuario en la pantalla
     // "Alineación", opcional: si se deja vacía/incompleta, el partido se juega
     // igual que hasta ahora (placeholder sin lineup real, ver MatchEngine.js).
@@ -653,25 +654,52 @@
   function aggregatePlayerStats(playedMatches) {
     const totals = new Map(); // playerId -> acumulado
 
+    // `?? 0` en los campos nuevos (minutesPlayed/assists/valoracion/
+    // plusMinus/los desgloses de tiro): manejo defensivo para partidos
+    // guardados ANTES de la sesión de retoques de estadísticas, cuyo
+    // `result` persistido no tiene estos campos en absoluto.
     function addLine(line, teamName) {
       const existing = totals.get(line.playerId) || {
         name: line.name,
         team: teamName,
         games: 0,
         points: 0,
+        minutesPlayed: 0,
         reboundsOffensive: 0,
         reboundsDefensive: 0,
+        assists: 0,
         steals: 0,
         blocks: 0,
         turnovers: 0,
+        valoracion: 0,
+        plusMinus: 0,
+        fg2Made: 0,
+        fg2Attempted: 0,
+        fg3Made: 0,
+        fg3Attempted: 0,
+        ftMade: 0,
+        ftAttempted: 0,
       };
       existing.games += 1;
       existing.points += line.points;
+      existing.minutesPlayed += line.minutesPlayed ?? 0;
       existing.reboundsOffensive += line.reboundsOffensive;
       existing.reboundsDefensive += line.reboundsDefensive;
+      existing.assists += line.assists ?? 0;
       existing.steals += line.steals;
       existing.blocks += line.blocks;
       existing.turnovers += line.turnovers;
+      existing.valoracion += line.valoracion ?? 0;
+      existing.plusMinus += line.plusMinus ?? 0;
+      const fg = line.fieldGoals || {};
+      ['midRangeShot', 'insideShot', 'layup'].forEach((shotType) => {
+        existing.fg2Made += (fg[shotType] && fg[shotType].made) || 0;
+        existing.fg2Attempted += (fg[shotType] && fg[shotType].attempted) || 0;
+      });
+      existing.fg3Made += (fg.threePointShot && fg.threePointShot.made) || 0;
+      existing.fg3Attempted += (fg.threePointShot && fg.threePointShot.attempted) || 0;
+      existing.ftMade += (line.freeThrows && line.freeThrows.made) || 0;
+      existing.ftAttempted += (line.freeThrows && line.freeThrows.attempted) || 0;
       totals.set(line.playerId, existing);
     }
 
@@ -685,6 +713,28 @@
     return [...totals.values()];
   }
 
+  // Formato de minutos jugados (retoques de estadísticas) — decisión NO
+  // fijada con Dennis, señalada explícitamente (el prompt de esta sesión
+  // pedía confirmar MM:SS vs. minutos con un decimal antes de fijarlo, y
+  // no bloquear la implementación por eso): se elige minutos con un
+  // decimal (ej. "32.4"), formato habitual de tabla de medias de
+  // temporada real (ACB/Euroliga); MM:SS es más propio de la ficha de UN
+  // partido concreto. Si Dennis prefiere MM:SS, cambiar aquí y en
+  // formatMinutesSingle (post-partido) es el único punto a tocar.
+  function formatMinutesDecimal(minutes) {
+    return minutes.toFixed(1);
+  }
+
+  // Minutos de UN partido (no media de temporada) — mismo criterio de
+  // formato que formatMinutesDecimal, `null` (sin alineación real ese
+  // lado) se muestra como "—" en vez de "0.0" para no confundir "no
+  // disponible" con "0 minutos jugados" (DESIGN.md, retoques de
+  // estadísticas, punto 1).
+  function formatMinutesSingle(seconds) {
+    if (seconds === null || seconds === undefined) return '—';
+    return formatMinutesDecimal(seconds / 60);
+  }
+
   // Los brackets (Copa/Playoffs/Ascenso) guardan sus partidos jugados
   // dentro de cada Series.games, no expuestos por getStatus() — se leen
   // directamente de la instancia del Bracket, no del status plano.
@@ -694,6 +744,53 @@
       homeTeam: g.homeEntry.team, awayTeam: g.awayEntry.team, result: g.result,
     }))));
   }
+
+  // Columnas de la tabla de medias de temporada (retoques de estadísticas)
+  // — cada una sabe ordenarse (`sortValue`) y mostrarse (`display`) por sí
+  // misma, para no repetir la lógica en dos sitios. Los tres porcentajes
+  // se ordenan por el valor porcentual YA CALCULADO sobre los acumulados
+  // de temporada (nunca como media de porcentajes partido a partido) —
+  // DESIGN.md 7.6/7.11, mismo criterio que el resto de medias de esta
+  // tabla (acumulado / partidos jugados, no media de medias).
+  function statAverage(p, key) { return p.games > 0 ? p[key] / p.games : 0; }
+  function statPct(p, madeKey, attemptedKey) { return p[attemptedKey] > 0 ? p[madeKey] / p[attemptedKey] : null; }
+
+  const STATS_COLUMNS = [
+    { key: 'points', label: 'Pts', sortValue: (p) => statAverage(p, 'points'), display: (p) => statAverage(p, 'points').toFixed(1) },
+    { key: 'minutesPlayed', label: 'Min', sortValue: (p) => statAverage(p, 'minutesPlayed'), display: (p) => formatMinutesSingle(p.games > 0 ? p.minutesPlayed / p.games : null) },
+    { key: 'reboundsOffensive', label: 'Reb Of', sortValue: (p) => statAverage(p, 'reboundsOffensive'), display: (p) => statAverage(p, 'reboundsOffensive').toFixed(1) },
+    { key: 'reboundsDefensive', label: 'Reb Def', sortValue: (p) => statAverage(p, 'reboundsDefensive'), display: (p) => statAverage(p, 'reboundsDefensive').toFixed(1) },
+    {
+      key: 'reboundsTotal', label: 'Reb Tot',
+      sortValue: (p) => (p.games > 0 ? (p.reboundsOffensive + p.reboundsDefensive) / p.games : 0),
+      display: (p) => ((p.games > 0 ? (p.reboundsOffensive + p.reboundsDefensive) / p.games : 0)).toFixed(1),
+    },
+    { key: 'assists', label: 'Ast', sortValue: (p) => statAverage(p, 'assists'), display: (p) => statAverage(p, 'assists').toFixed(1) },
+    { key: 'steals', label: 'Rob', sortValue: (p) => statAverage(p, 'steals'), display: (p) => statAverage(p, 'steals').toFixed(1) },
+    { key: 'blocks', label: 'Tap', sortValue: (p) => statAverage(p, 'blocks'), display: (p) => statAverage(p, 'blocks').toFixed(1) },
+    { key: 'turnovers', label: 'Pér', sortValue: (p) => statAverage(p, 'turnovers'), display: (p) => statAverage(p, 'turnovers').toFixed(1) },
+    {
+      key: 'fg2Pct', label: 'T2%',
+      sortValue: (p) => statPct(p, 'fg2Made', 'fg2Attempted') ?? -Infinity,
+      display: (p) => { const pct = statPct(p, 'fg2Made', 'fg2Attempted'); return pct === null ? '—' : `${Math.round(pct * 100)}%`; },
+    },
+    {
+      key: 'fg3Pct', label: 'T3%',
+      sortValue: (p) => statPct(p, 'fg3Made', 'fg3Attempted') ?? -Infinity,
+      display: (p) => { const pct = statPct(p, 'fg3Made', 'fg3Attempted'); return pct === null ? '—' : `${Math.round(pct * 100)}%`; },
+    },
+    {
+      key: 'ftPct', label: 'TL%',
+      sortValue: (p) => statPct(p, 'ftMade', 'ftAttempted') ?? -Infinity,
+      display: (p) => { const pct = statPct(p, 'ftMade', 'ftAttempted'); return pct === null ? '—' : `${Math.round(pct * 100)}%`; },
+    },
+    { key: 'valoracion', label: 'Val', sortValue: (p) => statAverage(p, 'valoracion'), display: (p) => statAverage(p, 'valoracion').toFixed(1) },
+    {
+      key: 'plusMinus', label: '+/-',
+      sortValue: (p) => statAverage(p, 'plusMinus'),
+      display: (p) => { const avg = statAverage(p, 'plusMinus'); return `${avg >= 0 ? '+' : ''}${avg.toFixed(1)}`; },
+    },
+  ];
 
   function renderStatsScreen() {
     const container = byId('gm-stats');
@@ -717,40 +814,50 @@
         : [];
     }
 
+    const activeSortKey = state.statsSortKey;
+    const activeColumn = STATS_COLUMNS.find((c) => c.key === activeSortKey) || STATS_COLUMNS[0];
+    // Top 20 (antes 30): el ranking siempre refleja la columna activa —
+    // ordenar ANTES de recortar, no al revés.
     const playerStats = aggregatePlayerStats(playedMatches)
-      .sort((a, b) => b.points - a.points)
-      .slice(0, 30);
+      .sort((a, b) => activeColumn.sortValue(b) - activeColumn.sortValue(a))
+      .slice(0, 20);
+
+    const headerCellsHtml = STATS_COLUMNS.map((col) => `
+      <th class="stats-sortable ${col.key === activeSortKey ? 'is-active-sort' : ''}" data-sort-key="${col.key}">${col.label}</th>
+    `).join('');
 
     const rows = playerStats.map((p) => `
       <tr>
         <td>${p.name}</td>
         <td>${p.team}</td>
         <td>${p.games}</td>
-        <td>${(p.points / p.games).toFixed(1)}</td>
-        <td>${((p.reboundsOffensive + p.reboundsDefensive) / p.games).toFixed(1)}</td>
-        <td>${(p.steals / p.games).toFixed(1)}</td>
-        <td>${(p.blocks / p.games).toFixed(1)}</td>
-        <td>${(p.turnovers / p.games).toFixed(1)}</td>
+        ${STATS_COLUMNS.map((col) => `<td>${col.display(p)}</td>`).join('')}
       </tr>`).join('');
 
     const body = playerStats.length
-      ? `<table class="gm-table">
-          <thead><tr><th>Jugador</th><th>Equipo</th><th>PJ</th><th>Pts</th><th>Reb</th><th>Rob</th><th>Tap</th><th>Pér</th></tr></thead>
+      ? `<div class="gm-table-scroll"><table class="gm-table">
+          <thead><tr><th>Jugador</th><th>Equipo</th><th>PJ</th>${headerCellsHtml}</tr></thead>
           <tbody>${rows}</tbody>
-        </table>`
+        </table></div>`
       : '<p class="gm-muted">Todavía no hay partidos jugados en esta competición.</p>';
 
     container.innerHTML = `
       <div class="tabs">
         ${tabsAvailable.map((t) => `<button class="tabs__btn ${t.id === competition ? 'is-active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
       </div>
-      <p class="gm-muted gm-stats-note">Medias por partido, ordenadas por puntos. Top 30.</p>
+      <p class="gm-muted gm-stats-note">Medias por partido, ordenadas por ${activeColumn.label} (clic en una cabecera para cambiar). Top 20.</p>
       <div class="tabs__body">${body}</div>
     `;
 
     container.querySelectorAll('.tabs__btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         state.statsCompetition = btn.dataset.tab;
+        renderStatsScreen();
+      });
+    });
+    container.querySelectorAll('.stats-sortable').forEach((th) => {
+      th.addEventListener('click', () => {
+        state.statsSortKey = th.dataset.sortKey;
         renderStatsScreen();
       });
     });
@@ -1310,14 +1417,21 @@
     return `P${index - totalRegularQuarters + 1}`;
   }
 
+  // `line.minutesPlayed`/`line.valoracion`/`line.plusMinus` pueden faltar
+  // en partidos guardados ANTES de la sesión de retoques de estadísticas
+  // (manejo defensivo, ver CHANGELOG.md).
   function renderTeamBoxScore(lines) {
     const sorted = [...lines].sort((a, b) => b.points - a.points);
     const rows = sorted.map((line) => {
       const fg = line.fieldGoals;
       const madeAttempted = (obj) => `${obj.made}/${obj.attempted}`;
+      const plusMinus = line.plusMinus ?? 0;
+      const plusMinusClass = plusMinus > 0 ? 'is-plus' : (plusMinus < 0 ? 'is-minus' : '');
+      const plusMinusLabel = `${plusMinus > 0 ? '+' : ''}${plusMinus}`;
       return `
         <tr>
           <td>${line.name}</td>
+          <td>${formatMinutesSingle(line.minutesPlayed ?? null)}</td>
           <td>${line.points}</td>
           <td>${madeAttempted(fg.threePointShot)}</td>
           <td>${madeAttempted(fg.midRangeShot)}</td>
@@ -1329,14 +1443,16 @@
           <td>${line.blocks}</td>
           <td>${line.turnovers}</td>
           <td>${line.personalFouls}</td>
+          <td>${line.valoracion ?? '—'}</td>
+          <td class="boxscore-plusminus ${plusMinusClass}">${plusMinusLabel}</td>
         </tr>`;
     }).join('');
     return `
       <table class="gm-table gm-table--boxscore">
         <thead>
           <tr>
-            <th>Jugador</th><th>Pts</th><th>T3</th><th>T2m</th><th>TI</th><th>Band</th><th>TL</th>
-            <th>Reb</th><th>Rob</th><th>Tap</th><th>Pér</th><th>F</th>
+            <th>Jugador</th><th>Min</th><th>Pts</th><th>T3</th><th>T2m</th><th>TI</th><th>Band</th><th>TL</th>
+            <th>Reb</th><th>Rob</th><th>Tap</th><th>Pér</th><th>F</th><th>Val</th><th>+/-</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -1426,22 +1542,64 @@
     });
   }
 
+  // `?? 0` en sumLines: manejo defensivo para partidos guardados ANTES de
+  // la sesión de retoques de estadísticas (assists/valoracion no
+  // existían todavía en esas líneas de boxScore).
   function renderTeamTotals(result, match) {
-    const sumLines = (lines, key) => lines.reduce((acc, l) => acc + l[key], 0);
+    const sumLines = (lines, key) => lines.reduce((acc, l) => acc + (l[key] ?? 0), 0);
     const row = (label, homeVal, awayVal) => `
       <tr><td>${homeVal}</td><td class="team-totals__label">${label}</td><td>${awayVal}</td></tr>`;
     const home = result.boxScore.home;
     const away = result.boxScore.away;
+
+    // Made/attempted de un grupo de tipos de tiro (T2 = midRange+inside+
+    // layup, T3 = solo threePointShot) sumado de todas las líneas del
+    // equipo.
+    function sumFieldGoalGroup(lines, shotTypes) {
+      return lines.reduce((acc, line) => {
+        shotTypes.forEach((shotType) => {
+          acc.made += line.fieldGoals[shotType].made;
+          acc.attempted += line.fieldGoals[shotType].attempted;
+        });
+        return acc;
+      }, { made: 0, attempted: 0 });
+    }
+    function sumFreeThrows(lines) {
+      return lines.reduce((acc, line) => {
+        acc.made += line.freeThrows.made;
+        acc.attempted += line.freeThrows.attempted;
+        return acc;
+      }, { made: 0, attempted: 0 });
+    }
+    function formatShotLine({ made, attempted }) {
+      if (attempted === 0) return '0/0 (—)';
+      return `${made}/${attempted} (${Math.round((made / attempted) * 100)}%)`;
+    }
+
+    const home2 = sumFieldGoalGroup(home, ['midRangeShot', 'insideShot', 'layup']);
+    const away2 = sumFieldGoalGroup(away, ['midRangeShot', 'insideShot', 'layup']);
+    const home3 = sumFieldGoalGroup(home, ['threePointShot']);
+    const away3 = sumFieldGoalGroup(away, ['threePointShot']);
+    const homeFt = sumFreeThrows(home);
+    const awayFt = sumFreeThrows(away);
+
     return `
       <table class="gm-table gm-table--totals">
         <thead><tr><th>${match.homeTeam.name}</th><th></th><th>${match.awayTeam.name}</th></tr></thead>
         <tbody>
           ${row('Puntos', result.finalScore.home, result.finalScore.away)}
           ${row('Posesiones', result.possessionCount.home, result.possessionCount.away)}
-          ${row('Rebotes', sumLines(home, 'reboundsOffensive') + sumLines(home, 'reboundsDefensive'), sumLines(away, 'reboundsOffensive') + sumLines(away, 'reboundsDefensive'))}
+          ${row('Rebotes ofensivos', sumLines(home, 'reboundsOffensive'), sumLines(away, 'reboundsOffensive'))}
+          ${row('Rebotes defensivos', sumLines(home, 'reboundsDefensive'), sumLines(away, 'reboundsDefensive'))}
+          ${row('Rebotes totales', sumLines(home, 'reboundsOffensive') + sumLines(home, 'reboundsDefensive'), sumLines(away, 'reboundsOffensive') + sumLines(away, 'reboundsDefensive'))}
+          ${row('T2', formatShotLine(home2), formatShotLine(away2))}
+          ${row('T3', formatShotLine(home3), formatShotLine(away3))}
+          ${row('TL', formatShotLine(homeFt), formatShotLine(awayFt))}
+          ${row('Asistencias', sumLines(home, 'assists'), sumLines(away, 'assists'))}
           ${row('Robos', sumLines(home, 'steals'), sumLines(away, 'steals'))}
           ${row('Tapones', sumLines(home, 'blocks'), sumLines(away, 'blocks'))}
           ${row('Pérdidas', sumLines(home, 'turnovers'), sumLines(away, 'turnovers'))}
+          ${row('Valoración', sumLines(home, 'valoracion'), sumLines(away, 'valoracion'))}
         </tbody>
       </table>`;
   }

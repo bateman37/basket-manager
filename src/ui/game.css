@@ -192,6 +192,22 @@
 .gm-table tr.is-win td { color: var(--win); }
 .gm-table tr.is-loss td { color: var(--loss); }
 
+/* Retoques de estadísticas: +/- por jugador (mismo par de colores que
+   is-win/is-loss, aplicado a UNA celda en vez de a la fila entera). */
+.boxscore-plusminus.is-plus { color: var(--win); font-weight: 700; }
+.boxscore-plusminus.is-minus { color: var(--loss); font-weight: 700; }
+
+/* Envoltorio con scroll horizontal para tablas anchas (medias de
+   temporada, ahora con más columnas) — la tabla nunca desborda la
+   pantalla en dispositivos estrechos. */
+.gm-table-scroll { overflow-x: auto; }
+
+/* Cabecera de columna ordenable (tabla de medias de temporada): mismo
+   patrón visual que .tabs__btn.is-active para la columna activa. */
+.gm-table th.stats-sortable { cursor: pointer; user-select: none; }
+.gm-table th.stats-sortable:hover { color: var(--ink); }
+.gm-table th.stats-sortable.is-active-sort { color: var(--brick-dark); }
+
 /* --- Tabs (Competiciones / Estadísticas) --- */
 .tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
 .tabs__btn {
