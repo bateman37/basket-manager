@@ -36,11 +36,7 @@ esto (ver sección 12).
   (18 equipos, estructura tipo Primera FEB / LEB Oro), cada una con
   calendario completo ida y vuelta.
 
-### 3.1 Liga y Calendario — Fase 1 (implementación)
-
-Alcance de la primera fase: **solo 1ª división**, sin playoffs, sin
-ascensos/descensos, sin Copa/Supercopa todavía (todo eso llega en fases
-posteriores, ver pendientes al final de esta sección).
+### 3.1 Liga y Calendario
 
 - **Generación de calendario**: algoritmo del círculo (round-robin
   estándar) para 18 equipos → 34 jornadas (17 de ida + 17 de vuelta),
@@ -66,53 +62,131 @@ posteriores, ver pendientes al final de esta sección).
   (un subgrupo sigue empatado), se repite el proceso completo desde el
   paso 1 para ese subgrupo restante.
 
-### Ascensos y descensos (basado en el sistema real ACB / Primera FEB)
+**Estado: implementado y en producción** (`src/core/League.js`) para
+1ª y 2ª división. 2ª división usa hoy una plantilla de 18 equipos
+ficticios como infraestructura mínima para alimentar el playoff de
+ascenso (3.2.3) — no es todavía un modo de juego completo por sí mismo
+con datos reales propios, ver 3.2.3.
+
+### 3.2 Playoffs, Copa y Playoff de ascenso
+
+**Estado: implementado y en producción** (`src/core/Bracket.js`,
+`src/core/Playoffs.js`, `src/core/Cup.js`, `src/core/Promotion.js`),
+reutilizando `League.js` y `MatchEngine.js` sin ninguna modificación.
+Esta sección documenta el sistema tal como quedó construido — sustituye
+por completo cualquier redacción anterior de este apartado que lo
+describiera como pendiente.
+
+#### 3.2.1 Pieza base: `Bracket`/`Series`
+
+Toda eliminatoria del juego (Copa, Playoff por el título, Playoff de
+ascenso) se construye sobre la misma pieza genérica:
+
+- **`Series`**: eliminatoria al mejor de N partidos entre dos equipos,
+  con un patrón de campo configurable (partido único, al mejor de 3
+  con patrón 1-1-1, al mejor de 5 con patrón 2-2-1). Cada partido se
+  simula de verdad con el motor de partidos (nunca en bloque).
+- **`Bracket`**: encadena rondas de `Series` a partir de un conjunto de
+  entradas semilladas y un emparejamiento de primera ronda, con avance
+  **fijo** entre rondas — nunca se reordena por resultado (el 1º y el
+  2º clasificados solo pueden llegar a cruzarse en la final, igual que
+  en el playoff real de ACB). Cada entrada conserva su seed original de
+  principio a fin, así que la ventaja de campo en cualquier ronda
+  siempre recae en el mejor clasificado real de la liga regular,
+  independientemente de qué lado del bracket venga el rival.
+
+#### 3.2.2 Playoff por el título (1ª división)
+
+- Participan los **8 primeros** de la liga regular de 1ª división al
+  terminar la temporada (34 jornadas).
+- Bracket fijo, orden estándar 1v8 / 4v5 / 2v7 / 3v6 (1º y 2º solo se
+  cruzan en la final).
+- **Cuartos de final**: al mejor de 3 (patrón de campo 1-1-1).
+- **Semifinales y final**: al mejor de 5 (patrón de campo 2-2-1).
+- **2ª división NO tiene playoff por el título**: el campeón de la liga
+  regular de 2ª división es directamente el campeón de esa división
+  (los únicos playoffs en 2ª división son los de ascenso, ver 3.2.3).
+
+#### 3.2.3 Playoff de ascenso (2ª división)
 
 - **2 plazas de ascenso** de 2ª a 1ª división por temporada:
-  1. El **campeón de la liga regular** de 2ª división asciende directo.
-  2. La segunda plaza se decide por un **playoff de ascenso** entre los
-     siguientes mejores clasificados de la liga regular de 2ª división
-     (formato completo real: **cuartos de final + Final Four**, número de
-     equipos participantes y bombos a definir en detalle al implementar
-     este sistema).
-  3. El subcampeón de la Copa de 2ª división obtiene mejor posición
-     (ventaja de cuadro) en el playoff de ascenso, pero no asciende
-     directo por ganar la copa — solo mejora su cabeza de serie.
-- **2 plazas de descenso** de 1ª a 2ª división: los 2 últimos clasificados
-  de la liga regular de 1ª división.
-- **Playoffs por el título de 1ª división**: los **8 primeros** de la liga
-  regular disputan el playoff por el campeonato, bracket fijo sin
-  repesca (igual que el playoff real de ACB).
-- **2ª división NO tiene playoff por el título**: el campeón de la liga
-  regular de 2ª división es directamente el campeón de esa división (los
-  únicos playoffs en 2ª división son los de ascenso, ver arriba).
+  1. El **campeón de la liga regular** de 2ª división asciende directo
+     (dato simple, sin necesidad de jugar ningún partido adicional).
+  2. La segunda plaza se decide por un playoff entre los clasificados
+     **2º a 9º** de la liga regular de 2ª división: **cuartos de
+     final** (bracket fijo, al mejor de 5, patrón de campo 2-2-1:
+     2v9/3v8/4v7/5v6) seguidos de una **Final Four**.
+  3. **Excepción explícita a la regla de bracket fijo** (la única en
+     todo el sistema 3.2): las semifinales de la Final Four se
+     **reordenan** según la clasificación regular ORIGINAL de los 4
+     ganadores de cuartos — el mejor clasificado de los 4 se empareja
+     contra el peor, y los dos intermedios entre sí. No se mantiene la
+     posición de bracket que traían de cuartos.
+  4. El campeón de la Final Four es el 2º equipo ascendido.
+- **2 plazas de descenso** de 1ª a 2ª división: los 2 últimos
+  clasificados de la liga regular de 1ª división.
+- El subcampeón de la Copa de 2ª división obtendría mejor posición
+  (ventaja de cuadro) en este playoff — **sigue pendiente**: la Copa de
+  2ª división en sí todavía no está implementada (ver 3.2.4), así que
+  este efecto colateral tampoco lo está.
+- La 2ª división usada para alimentar este playoff es hoy una
+  plantilla ficticia de 18 equipos (ver nota de 3.1) — el efecto de
+  ascenso/descenso sobre una temporada siguiente real (con datos ACB/
+  Primera FEB) queda pendiente de la sesión de diseño de cierre de
+  ciclo de temporada, ver sección 7.11 y pendientes generales.
 
-### Copa y Supercopa
+#### 3.2.4 Copa (1ª división)
 
-- **Copa** (de 1ª división): a mitad del calendario de liga, participan
-  los **8 primeros clasificados** de la liga regular en ese momento
-  (igual que la Copa del Rey actual de la ACB).
-- **Copa de 2ª división**: referenciada más arriba (su subcampeón obtiene
-  ventaja de cuadro en el playoff de ascenso), pero **su propio formato
-  (participantes, calendario, número de rondas) no se ha definido
-  todavía** — solo se ha decidido este efecto colateral sobre el playoff
-  de ascenso. Pendiente de sesión de diseño dedicada, igual que el
-  formato exacto del playoff de ascenso (cuartos + Final Four, ver
-  arriba).
-- **Supercopa** (formato corto, equipos clasificados por resultados de la
-  temporada anterior — a definir criterio exacto más adelante).
-- **Competición europea**: los clubes "grandes" están siempre asignados a
-  la misma competición europea cada año (sin sistema de clasificación
+- Se crea automáticamente al completarse la **jornada 17** de la liga
+  regular de 1ª división (mitad exacta del calendario de 34 jornadas).
+- Participan los **8 primeros clasificados** de la liga regular **en
+  ese momento** (foto de la clasificación a jornada 17, igual que la
+  Copa del Rey actual de la ACB).
+- Bracket fijo igual que el Playoff por el título (3.2.2), pero
+  **todas las rondas a partido único** (no al mejor de 3/5).
+- **No altera el estado de la liga regular**: es una lectura de la
+  clasificación en ese momento, la liga sigue avanzando con normalidad
+  en paralelo (jornada 18 en adelante) una vez la Copa se ha creado.
+- **Nota de implementación señalada, no confirmada explícitamente por
+  Dennis**: el reglamento no especifica quién ejerce de local en cada
+  partido de Copa (a diferencia de los playoffs, donde sí está
+  especificado arriba) — se ha asumido que el mejor clasificado en ese
+  momento hace de local, por coherencia con el resto de esta sección.
+- **Copa de 2ª división**: su efecto colateral sobre el playoff de
+  ascenso ya está decidido (ver 3.2.3), pero su propio formato
+  (participantes, calendario, número de rondas) **no se ha diseñado
+  ni implementado todavía**.
+
+#### 3.2.5 Flujo de juego (interfaz)
+
+Desde la sesión de diseño de Alineaciones/Rotación (ver 7.11), Liga,
+Copa y Playoffs dejaron de ser pestañas paralelas que había que ir a
+buscar: mientras haya una Copa o un Playoff/Ascenso activo y sin
+terminar, el flujo principal del juego (botón de "jugar siguiente") lo
+avanza directamente, un partido a la vez, con revelación progresiva
+cuarto a cuarto igual que un partido de liga — ver detalle de
+implementación en el CHANGELOG del bloque correspondiente. La pestaña
+de Competiciones sigue existiendo para consultar clasificación, cruces
+y resultados, pero ya no es la única vía para jugar esos partidos.
+
+### Supercopa y competición europea (pendiente)
+
+- **Supercopa** (formato corto, equipos clasificados por resultados de
+  la temporada anterior — a definir criterio exacto más adelante).
+- **Competición europea**: los clubes "grandes" están siempre asignados
+  a la misma competición europea cada año (sin sistema de clasificación
   dinámico todavía — se revisará más adelante). Un ascenso/descenso de
   división no afecta, por ahora, a la participación europea de estos
   clubes fijos.
 
 ### Pendiente para sesiones de diseño futuras (Liga/Calendario)
-- 2ª división en el calendario (Fase 1 solo implementa 1ª división).
-- Playoffs por el título (top 8, bracket sin repesca).
-- Ascensos/descensos y playoff de ascenso (cuartos + Final Four).
-- Copa (1ª división, top 8 a mitad de temporada) y Copa de 2ª división.
-- Supercopa y competición europea.
+- Copa de 2ª división (formato completo: participantes, calendario,
+  número de rondas) — solo se ha decidido su efecto colateral sobre el
+  playoff de ascenso (3.2.3).
+- 2ª división con datos reales propios (hoy es una plantilla ficticia
+  mínima, ver 3.1) y cierre de ciclo de temporada (ascenso/descenso
+  real entre temporadas sucesivas).
+- Supercopa y competición europea (criterio de clasificación dinámico).
 
 ## 4. Inicio de partida
 
@@ -954,39 +1028,42 @@ de desgaste y recuperación de Energía que depende directamente de ella.
   alejado (por encima) de su ritmo de cuota esperado a esa altura del
   partido, y meter a quien más por debajo esté.
 
-#### 7.11.2-bis Minutos de la basura
+#### 7.11.2-bis Minutos de la basura ("garbage time")
 
-Sesión "Alineación por slots + Minutos de la basura": opción **por
-partido** (no una configuración global del club), activable desde la
-pantalla de Alineación con un checkbox "Permitir minutos de la basura",
-desactivada por defecto.
+Excepción explícita a la validación estricta de cuotas de 7.11.2,
+activable/desactivable por el usuario.
 
-Se evalúa de forma **independiente para cada equipo** de un partido:
-
-- El equipo que va **ganando** activa el modo si, desde la **mitad del 3er
-  cuarto** en adelante, su diferencia de puntos a favor llega a **20 o
-  más**.
-- El equipo que va **perdiendo** activa el modo si, desde la **mitad del
-  4º cuarto** en adelante, su diferencia de puntos en contra llega a **20
-  o más**.
-- Una vez activado para un equipo, se **mantiene activo** aunque la
-  diferencia fluctúe, hasta que baje a **10 puntos o menos**; entonces se
-  desactiva para ese equipo. Los márgenes de entrada (20) y salida (10)
-  viven en `MatchConfig.CONFIG_BASE.garbageTime` (`marginToEnter`/
-  `marginToExit`), no como números sueltos en el código.
-- Mientras está activo para un equipo, en **cada ventana de sustitución**
-  (7.11.2: fin de cuarto o parada de juego) ese equipo deja de exigir el
-  cumplimiento de la cuota de minutos y mete banquillo con este orden por
-  posición: primero el **Suplente 2**, si no está disponible el
-  **Suplente 1**, y si ninguno está disponible se queda el titular en
-  pista.
-- Cuando se desactiva, la rotación automática normal por cuotas (7.11.2)
-  se retoma sin cambios.
-
-**Pendiente explícito**: no existe todavía un sistema de disponibilidad
-por lesión o expulsión en el motor — mientras no exista, cualquier slot
-con un jugador asignado se trata como "disponible" a efectos de este
-orden de sustitución.
+- **Checkbox "Permitir minutos de la basura"**: vive **por partido, en
+  la pantalla de alineación** (no es una config global del usuario). Si
+  está desactivado, esta norma no se aplica nunca y rige solo la lógica
+  normal de rotación de 7.11.2. Si está activado, se aplican las
+  condiciones siguientes. La alineación ya fijada por el usuario
+  (titulares, suplentes, cuotas) **se mantiene siempre** — esta norma
+  solo decide cuándo se ignora temporalmente esa cuota, nunca cambia
+  quién está convocado ni en qué slot.
+- **Condición de activación — equipo que va ganando**: desde la mitad
+  del 3er cuarto en adelante, si la diferencia de puntos a su favor
+  llega a **20 o más**.
+- **Condición de activación — equipo que va perdiendo**: desde la mitad
+  del 4º cuarto en adelante, si la diferencia de puntos en su contra
+  llega a **20 o más**. El umbral de tiempo es más tardío que el del
+  ganador de forma deliberada: un equipo que va perdiendo debe seguir
+  intentando remontar mientras quede margen real de partido, y solo
+  entra en minutos de la basura cuando ya apenas queda tiempo para
+  lograrlo.
+- **Mientras está activa** para un equipo: ese equipo deja de exigir
+  el cumplimiento de la cuota de 40 minutos por posición (7.11.2) y da
+  minutos a su banquillo, con este orden de entrada dentro de cada
+  posición: primero el **segundo slot de suplente** (el último), luego
+  el **primer slot de suplente**; si ninguno de los dos puede entrar
+  (p. ej. lesión, expulsión, o sin cuota restante), se queda el
+  **titular** en pista en vez de dejar la posición sin cubrir.
+- **Desactivación (histéresis)**: una vez activa, se mantiene activa
+  aunque la diferencia fluctúe, hasta que la diferencia se reduzca a
+  **10 puntos o menos** — en ese momento ese equipo vuelve a la lógica
+  normal de rotación/cuotas de 7.11.2. Cada equipo evalúa su propia
+  activación/desactivación de forma independiente (uno puede estar en
+  minutos de la basura mientras el otro sigue en rotación normal).
 
 #### 7.11.3 Polivalencia de emergencia
 
@@ -1108,6 +1185,45 @@ previstos y posición deseada para ese partido (7.11.1, 7.11.2):
   muestra traducido a una escala de **1 a 5 estrellas**, manteniendo el
   espíritu semi-visible (no da el dato crudo) pero ofreciendo una señal
   clara y consistente para decidir la alineación.
+
+**Ampliación** (sesión de diseño de frontend, referencia visual: esquema
+clásico de manager de texto tipo BuzzerBeater con posiciones fijas y
+dropdowns). **Decisión confirmada con Dennis al implementar esta
+ampliación**: se descarta la idea de dos pantallas separadas de más abajo
+(la convocatoria y los quintetos conviven en una única pantalla de
+Alineación, arriba y abajo respectivamente) — le parece innecesariamente
+engorroso navegar entre dos pantallas para configurar un mismo partido.
+El resto de la ampliación (checkboxes de convocatoria con las
+valoraciones, tabla de 3 slots por fila, validación y contador en vivo)
+se mantiene tal cual está descrito debajo, solo cambia que vive en una
+pantalla en vez de en dos:
+
+- **Bloque de convocatoria**: lista de jugadores de plantilla con las
+  valoraciones ya definidas arriba (Técnica, Física, Mental,
+  Resistencia, Energía, Forma en estrellas) y un checkbox por jugador
+  para marcarlo convocado.
+- **Bloque de quintetos**: 5 filas fijas por posición (Base, Escolta,
+  Alero, Ala-pívot, Pívot). Cada fila tiene exactamente **1 slot de
+  titular + 2 slots de suplente** para esa posición (3 slots por fila,
+  15 en total). Cada slot es un par dropdown de jugador + campo de
+  minutos independiente.
+  - Un mismo jugador convocado puede ocupar más de un slot (ej. titular
+    en Base y suplente en Escolta), coherente con que la posición
+    declarada (7.11.1) es una elección libre del usuario por partido.
+  - **Los minutos de cada slot se validan por separado** contra la
+    regla de 40 minutos por posición (7.11.2): el minutaje del slot
+    "Base titular" y el del slot "ese mismo jugador como suplente de
+    Escolta" no comparten validación entre sí — cada fila/posición
+    cuadra sus propios 40 minutos de forma independiente.
+  - **Los minutos de un mismo jugador SÍ se suman entre todos sus
+    slots** hacia su total de minutos de partido — esa suma total (no
+    el minutaje de un slot aislado) es la magnitud real que consume su
+    Energía (7.11.4).
+  - **Contador en vivo por posición**: mientras el usuario edita, cada
+    una de las 5 filas muestra la suma actual de minutos de sus 3 slots
+    frente a los 40 requeridos (ej. "35/40" vs "40/40"), actualizado al
+    momento sin esperar a guardar. El bloqueo real de guardado
+    (7.11.2) se mantiene igual, evaluado al confirmar la alineación.
 
 ### Pendiente para sesiones de diseño futuras (Simulación)
 - Pesos numéricos finales calibrados de las 21 piezas del catálogo
