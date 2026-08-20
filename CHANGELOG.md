@@ -1239,3 +1239,109 @@
 - **Confirmado**: no se ha tocado `src/core/MatchConfig.js` ni ninguna
   fórmula de acción de 7.6 ya calibrada — solo se añadieron campos de
   tracking y un paso de enriquecimiento posterior a la simulación.
+
+## 2026-08-20 — Cierre de ciclo de temporada y pretemporada (DESIGN.md 3.4)
+
+Cierra el ciclo abierto desde el inicio del proyecto: hasta ahora una
+temporada terminaba y no pasaba nada (sin ascensos/descensos reales, sin
+temporada siguiente). Cambio de orquestación puro en `src/ui/game.js` —
+ninguno de `League.js`/`Bracket.js`/`Cup.js`/`Playoffs.js`/`Promotion.js`/
+`Calendar.js`/`MatchEngine.js`/`Rotation.js`/`Recovery.js`/`CpuLineup.js`
+se ha tocado (confirmado con `git diff --stat`).
+
+- **Dos ligas reales en paralelo** (DESIGN.md 3.4.1): `state.leagues =
+  { '1ª': League, '2ª': League }` sustituye al `state.league` singular
+  de antes — las DOS divisiones están vivas desde que arranca la
+  partida, no solo la del usuario. Accesores nuevos
+  (`getUserLeague()`/`getBackgroundLeague()`/`getBrackets(division)`)
+  centralizan la lectura; se revisaron y actualizaron todos los sitios
+  que leían `state.league`/`state.cup`/`state.titlePlayoff`/
+  `state.promotionPlayoff` a secas (Home, Calendario, Competiciones,
+  Estadísticas, Alineación, `getActiveBracket`, `simulateNextRound`...).
+  - `simulateBackgroundRound(division)`: resuelve de golpe, sin reveal,
+    la jornada de la división que el usuario NO tiene abierta —
+    disparada automáticamente al final de cada `simulateNextRound()`
+    visible, nunca por separado. `createBracketsIfDue(division, league)`
+    (Copa en jornada 17→18, Playoff/Ascenso al terminar jornada 34) se
+    extrajo como función COMPARTIDA entre el camino visible y el de
+    fondo — no se duplicó esa lógica.
+  - `buildMatchOptionsResolver(league, userTeam)` generaliza el antiguo
+    `buildLineupMatchOptionsResolver`: con `userTeam`, ese lado usa la
+    alineación guardada por el usuario y cualquier otro lado usa
+    `CpuLineup.buildCpuLineup`; sin `userTeam` (`buildCpuOnlyResolver`,
+    usado por la división de fondo), TODOS los lados usan CPU. Mismo
+    resolver, no uno nuevo por camino.
+  - Los brackets de la división de fondo se resuelven de golpe
+    (`drainBackgroundBrackets`, bucle `playNextGame()` hasta
+    `isComplete`) en el mismo instante en que se crean — a diferencia
+    del bracket visible, que sigue avanzándose partido a partido con el
+    botón de siempre.
+- **`sportingGoal` calculado** (DESIGN.md 3.4.3, nuevo
+  `src/core/SeasonGoals.js`): sustituye el valor fijo `'Permanencia'`
+  que `Team.js` asignaba a todo equipo real (señalado como señal inerte
+  en el CHANGELOG de `CpuLineup.js`/7.11.7). Fórmula exacta de 3.4.3
+  (`percentilPlantilla` vía el mismo cálculo de "overall del top8" que
+  ya usa `scripts/rescale-real-attributes.js` — reimplementado aquí, no
+  requerido desde ese script, que es un CLI de Node con `fs`/`path`, no
+  cargable en el navegador) mapeada a los 4 `SPORTING_GOALS` por los
+  umbrales de `CONFIG_BASE.seasonGoals` (nuevos, calibrables).
+  - **Decisión no pedida explícitamente, señalada aquí**: además de
+    ejecutarse en el cierre de ciclo (3.4.4), se ejecuta también una vez
+    en `startSeason()` al arrancar una partida nueva — si no, la
+    primera temporada de cualquier partida arrancaría con los 36
+    equipos en `'Permanencia'` (el propio hueco que 3.4.3 dice cerrar),
+    dejando inerte `CpuLineup.computeMatchImportance()` hasta el primer
+    cierre de ciclo. Arrancar una partida es, conceptualmente, también
+    una "pretemporada".
+- **`closeSeasonAndPrepareNext()`** (DESIGN.md 3.4.2/3.4.4): disparado
+  explícitamente por un botón en Inicio ("Cerrar temporada y empezar la
+  siguiente"), visible solo cuando `isSeasonFullyClosable()` (las DOS
+  divisiones han terminado su liga regular Y todos sus brackets). En
+  orden: descienden los 2 últimos de 1ª, ascienden el campeón de liga
+  regular de 2ª y el campeón del Playoff de ascenso (reutilizando
+  `PromotionPlayoff.directPromotion`/`secondPromotedEntry` ya
+  calculados, en vez de recalcular el campeón por cuenta propia) — SOLO
+  cambia `team.division`, ningún atributo de jugador/equipo se toca;
+  recalcula `sportingGoal` de los 36 con la composición ya actualizada;
+  genera Cantera/Academia (`Team.generateAcademyIntake()`, conectado sin
+  ninguna regla nueva); construye `Calendar`/`League` nuevas
+  (`seasonStartYear + 1`); resetea los brackets de ambas divisiones. Si
+  el equipo del usuario asciende/desciende, `state.division` le sigue —
+  sigue viendo SU equipo, en la división que le corresponda ahora.
+  - Pantalla/aviso simple pedido explícitamente por el prompt ("el
+    usuario debe ver que ha pasado algo"): tarjeta de resumen en Inicio
+    (quién asciende, quién desciende, la división nueva del propio
+    equipo) — reutiliza el patrón visual ya existente de tarjetas
+    (`.gm-card`) en vez de una pantalla nueva; no se tocó `game.css`.
+    Visible hasta que el usuario juega la siguiente jornada.
+- **Formato de minutos jugados** (Bloque 4, decisión ya tomada por
+  Dennis, sustituye la decisión pendiente de la sesión de retoques de
+  estadísticas): `MM:SS` (ej. `"32:24"`) en vez de decimal (`"32.4"`) —
+  un único punto tocado (`formatMinutesMMSS`/`formatMinutesSingle`),
+  usado tanto en el boxScore de partido como en las medias de temporada.
+  Los datos de origen (segundos) no cambian.
+- **Verificado**:
+  - Script Node dedicado (`test-season-cycle.js`, reproduce la
+    orquestación de `game.js` sobre los mismos módulos del motor, ya que
+    `game.js` depende del DOM y no es requireable en Node): una
+    temporada regular completa en las DOS divisiones sin que "el
+    usuario" abriera nunca la de fondo — 34 jornadas, Copa/Playoff/
+    Ascenso resueltos solos; ascienden/descienden los equipos correctos;
+    ascender/descender NO modifica ningún atributo de ningún jugador
+    (solo `division`); `sportingGoal` recalculado varía entre equipos
+    (forzando un equipo con overall+reputación altísimos → "Pelear por
+    el título" y uno bajísimo → "Evitar el descenso", confirmados);
+    Cantera/Academia añade 3 jugadores por equipo.
+  - Playwright (datos reales, sin servidor): partida completa de
+    principio a fin — 34 jornadas + Copa + Playoff por el título +
+    Playoff de ascenso de la división de fondo resuelto solo, cierre de
+    temporada con resumen visible, y la temporada siguiente arrancando
+    ya en jornada 1/34 (con el recién ascendido emparejado contra el
+    equipo del usuario en la primera jornada) — sin errores de consola
+    ni de página (aparte del ya conocido de Google Fonts).
+  - Confirmado con `git diff --stat` que `League.js`, `Bracket.js`,
+    `Cup.js`, `Playoffs.js`, `Promotion.js`, `Calendar.js`,
+    `MatchEngine.js`, `Rotation.js`, `Recovery.js` y `CpuLineup.js` no se
+    han tocado — todo el cambio vive en `game.js` y en el `SeasonGoals.js`
+    nuevo (más una constante nueva en `MatchConfig.js`, pedida
+    explícitamente por el Bloque 2).
