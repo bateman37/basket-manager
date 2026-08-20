@@ -1507,3 +1507,233 @@ sin el ruido de un partido completo):
   BLOB/SLOB, IA táctica de la CPU, Data Hub — ninguno tocado.
 - Sin frontend/pantalla de Tactics todavía (pedido explícitamente así por
   el prompt) — solo verificación por script/consola.
+
+## 2026-08-20 (3) — TAC-2: identidad + spacing + roles (DESIGN.md 7.12.33)
+
+Segunda entrega de las 7 planificadas del sistema táctico (7.12). Amplía
+`Tactics.js`/`MatchConfig.js` de TAC-1 (no los reescribe) y por primera vez
+persiste el perfil táctico en `Team.js` y le da una pantalla propia.
+
+- **`src/entities/Team.js`**: `this.tacticalProfile` pasa a ser una
+  instancia real de `Tactics.TacticalProfile` (nunca un objeto plano),
+  inicializada con valores por defecto en el constructor — mismo patrón
+  que `clubDNA`/`reputation`. Esto es exactamente el hueco que TAC-1 dejó
+  señalado explícitamente ("persistirlo en el equipo... queda para una
+  sesión de UI/estado futura"): esta es esa sesión. `Team.js` NO
+  destructura `TacticalProfile` a la carga del script (rompería en el
+  navegador, donde `Team.js` carga ANTES que `Tactics.js` en `index.html`)
+  — guarda la referencia al objeto compartido `global.BasketManager` y
+  accede a `.TacticalProfile` dentro del propio constructor, en tiempo de
+  ejecución. `toJSON()` incluye el nuevo campo.
+- **`src/core/Tactics.js`**:
+  - `TacticalProfile` amplía su shape con `spacing` (catálogo
+    `SPACING_OPTIONS`: `5-out`/`4-out-1-in`/`3-out-2-in`/`dynamic`,
+    validado igual que `pnrCoverage`), `identity` (objeto ABIERTO con
+    `pace`/`earlyOffense`/`ballMovement`/`pickAndRollUsage` como mínimo,
+    0-100, acepta claves extra sin romper el shape — 7.12.7 completo no se
+    implementa), `playTypeWeights` (idem, mínimo
+    `pickAndRoll`/`isolation`/`postUp`/`transition` — 7.12.8) y
+    `roleAssignments` (`RoleAssignment`, mapa `playerId → { offensiveRole,
+    defensiveRole }`, no una entidad de fichero propia).
+  - `resolvePnrFrequency()`: `identity.pickAndRollUsage` MODULA
+    `config.tactics.pnrFrequency` en vez de un valor fijo global
+    (`multiplier = pickAndRollUsage / pickAndRollUsageNeutral`, acotado a
+    `[0, pickAndRollUsageMaxMultiplier]`) — con el valor neutro por
+    defecto (50) reproduce EXACTAMENTE la frecuencia de TAC-1
+    (verificado: `0.3 → 0.3`), así que el requisito de regresión de esta
+    entrega ("con perfil por defecto = comportamiento equivalente") se
+    cumple por construcción, no por casualidad.
+  - `effectiveSpacing(spacing, five, config)`: cruza el spacing declarado
+    con la "amenaza de tiro real" (`outsideShot`×0.7 +
+    `midRangeShot`×0.3) de los N jugadores del quinteto REAL que ese
+    spacing exige respetar (5/4/3 para 5-Out/4-Out-1-In/3-Out-2-In;
+    `dynamic` usa el mejor ajuste real de los tres para ese quinteto) y
+    aplica un techo propio por arquetipo (`archetypeCeiling`, 7.12.31
+    invariante 6: 3-Out-2-In < 4-Out-1-In < 5-Out incluso con jugadores
+    idénticos). Verificado en dirección (ver invariantes abajo), no en
+    cifra cerrada (7.12.34).
+  - Catálogo `OFFENSIVE_ROLES` (15 roles de 7.12.9) y `DEFENSIVE_ROLES`
+    (10 roles de 7.12.21): id/etiqueta/posiciones preferentes como datos
+    (mismo criterio que `PNR_COVERAGES`); las MEZCLAS de atributos de cada
+    rol viven en `MatchConfig.js` (`config.tactics.roles.offensiveMix`/
+    `defensiveMix`, mismo criterio que `coverageHandlerMix`).
+  - `roleFit(player, roleId, config)`: 1-5 estrellas = mezcla de atributos
+    del rol (70%) + competencia posicional real (6.1, la mejor de las
+    posiciones preferentes del rol, 30%) × un factor pequeño de Energía
+    actual (0.9-1.0) — nunca un atributo nuevo de `Player.js`. Funciona
+    para CUALQUIER rol contra cualquier jugador (`bestRolesForPlayer()`
+    devuelve los N de mejor encaje, para que la UI compare candidatos).
+  - `computeLineupRatings(five, tacticalProfile, config)`: subset de
+    7.12.28 — Creación, Spacing, Tiro exterior, Finalización interior,
+    Rebote ofensivo, Rebote defensivo. Deja fuera Switchability/Rim
+    Protection/Transition Offense/Transition Defense/Tactical Execution
+    porque dependen de piezas que no existen todavía (defensa avanzada es
+    TAC-4, familiaridad/`tacticalExecution` es TAC-6) — no se inventan con
+    datos que no hay.
+  - `computeSimpleMix`/`getPlayerAttribute` propios (NO reutilizan
+    `MatchEngine.computeMixRating`/`getAttribute`): estas funciones nuevas
+    se llaman directamente desde `game.js` sin partido en curso, así que
+    necesitan su propio lector de atributos — mismo criterio de
+    duplicación deliberada que `pickWeighted`/`gaussianRandom` de TAC-1, no
+    una divergencia de la fórmula real de rating de una posesión (que sí
+    incluye Fatiga/Consistencia/Presión de Momento, deliberadamente
+    ausentes aquí porque esto es una foto de aptitud, no una previsión de
+    rendimiento en la jugada).
+- **`src/core/MatchEngine.js`**: `options.homeTacticalProfile`/
+  `awayTacticalProfile` sigue existiendo para tests dirigidos, pero ahora
+  cae a `homeTeam.tacticalProfile`/`awayTeam.tacticalProfile` si `options`
+  no los especifica — una partida real ya usa el perfil del equipo sin
+  pasarlo a mano. Sin cambios en `simulatePossession()` (la modulación de
+  `pnrFrequency` vive entera en `Tactics.buildPossessionPlan`, TAC-1 no se
+  reescribe).
+- **`src/core/MatchConfig.js`**: bloque `tactics` ampliado con
+  `identity`/`playTypeWeights`/`spacing`/`roles` (defaults, mezclas de
+  atributos por rol, pesos de `roleFit`, requisitos de spacing por
+  arquetipo) — todo como datos, ninguna cifra hardcodeada en `Tactics.js`.
+- **`src/ui/game.js`** + **`src/ui/game.css`** + **`index.html`**: nueva
+  pantalla `tactics` en `SCREENS` (junto a `lineup` en `gm-nav`), con
+  `renderTacticsScreen()` y 3 sub-pestañas (subset de las 7 vistas de
+  7.12.32 — Defensa/Playbook/Situaciones/Rival son TAC-3/TAC-4/TAC-5/TAC-7):
+  - **Resumen**: identidad (spacing, cobertura de P&R, ejes) + valoraciones
+    en estrellas del quinteto TITULAR actual, leído del slot `starter` de
+    `state.lineup.entries` (mismo criterio que usa
+    `Rotation.buildRotationState` para el `onCourt` inicial — no se
+    reinventa cómo se sabe "quién está en pista", pedido explícito del
+    prompt).
+  - **Ataque**: selector de spacing (4 opciones), sliders 0-100 de los 4
+    ejes de identidad mínimos y de los 4 pesos de play-type mínimos (solo
+    Pick & Roll tiene efecto real en el motor hoy; el resto se guarda para
+    que una entrega futura lo consuma). Mismo patrón commit-on-change que
+    ya usa la pantalla de Alineación para los minutos de cada slot
+    ('input' solo refresca la etiqueta en vivo, 'change' muta el perfil y
+    re-renderiza).
+  - **Roles**: tabla de convocados con selector de rol ofensivo/defensivo,
+    estrellas de `roleFit` para el rol seleccionado y los 3 de mejor
+    encaje de cada jugador (ofensivo y defensivo por separado).
+  - Media cancha gráfica explicativa de 7.12.32 (visualizar ocupación de
+    espacio al cambiar spacing): **dejada fuera deliberadamente en esta
+    entrega** (el prompt lo permitía explícitamente) — la vista Ataque usa
+    texto plano en su lugar; una representación gráfica queda para una
+    sesión futura de esta misma pantalla.
+  - Estilo: reutiliza el sistema visual existente (parquet `#EFE6D3`,
+    ladrillo `#B8451F`, verde pizarra `#2E4238`, Oswald condensada) — sin
+    paleta/tipografía nueva.
+
+### Invariantes demostrados (script Node dedicado, scratchpad de la sesión)
+
+- **effectiveSpacing, dirección correcta (7.12.6/7.12.31 #5)**: mismo
+  spacing `5-out`, quinteto con 5 tiradores reales → `0.740`; mismo
+  quinteto sustituyendo el pívot por uno con `outsideShot`/`midRangeShot`
+  muy bajos → `0.619` (menor, como exige el prompt).
+- **3-Out-2-In < 5-Out para el MISMO quinteto (7.12.31 #6)**: `0.490` vs
+  `0.740` — el techo de arquetipo reduce el espacio incluso sin cambiar
+  ningún jugador.
+- **`dynamic` iguala el mejor ajuste real disponible**: confirmado exacto
+  (diferencia `<1e-9`) contra el máximo de los 3 arquetipos fijos para ese
+  quinteto.
+- **roleFit coherente (7.12.9)**: Base con `ballHandling`/`gameVision`
+  altos (18/18) puntúa `18.18` (5★) en PnR Handler; un Pívot con esos
+  mismos atributos muy bajos (3-4) puntúa `4.92` (2★) — mismo rol,
+  dirección correcta. Funciona igual para roles defensivos (Pívot
+  taponador → Rim Protector: `18.11`, 5★). `bestRolesForPlayer()` devuelve
+  los 3 mejores ordenados descendente, confirmado.
+- **resolvePnrFrequency reproduce TAC-1 exactamente con perfil por
+  defecto**: `pnrFrequency=0.3` base, resuelta con `identity` por defecto
+  (`pickAndRollUsage=50`) = `0.3` exacto. `pickAndRollUsage=100` → `0.6`
+  (sube), `pickAndRollUsage=0` → `0` (anula el P&R táctico para ese
+  equipo).
+- **Regresión, equipo con `TacticalProfile` por defecto**: 12 partidos
+  completos (`generateFictionalTeams`, sin tocar la nueva pantalla) —
+  media de puntos por equipo 87.6/86.3 (rango realista), media de
+  posesiones combinadas 166.5/partido, media de pérdidas combinadas
+  43.4/partido. Confirmado además que TODOS los equipos generados
+  (`teamGenerator`/`skewedTeamGenerator`/datos reales vía
+  `real-data-bundle.js`) ya construyen un `TacticalProfile` por defecto al
+  pasar por `new Team()` — se probó explícitamente simulando una jornada
+  completa de la Liga real (18 equipos ACB) sin errores.
+- **`options.homeTacticalProfile` explícito sigue aceptado y con
+  prioridad** sobre `team.tacticalProfile` (revisado en el propio código
+  de `MatchEngine.js`: `options.homeTacticalProfile || homeTeam.
+  tacticalProfile || null`).
+- Playwright: sesión completa (elegir club real → convocar 10 jugadores →
+  fijar titulares → Tácticas: cambiar spacing a 5-Out, mover el slider de
+  Ritmo a 80, asignar un rol ofensivo con estrellas de encaje visibles →
+  volver a Resumen y confirmar que los cambios persisten → volver a
+  Alineación y confirmar que sigue intacta) sin errores nuevos de
+  consola/página (los dos únicos mensajes de red — Google Fonts bloqueado
+  y un 404 de favicon — son preexistentes, no relacionados con esta
+  sesión).
+- Confirmado con `git diff --stat` que solo `Tactics.js`, `MatchConfig.js`,
+  `MatchEngine.js`, `Team.js`, `game.js`, `game.css`, `index.html`,
+  `DESIGN.md` y `CHANGELOG.md` cambiaron — `Rotation.js`, `Player.js`,
+  `Recovery.js`, `Calendar.js`, `League.js`, `Bracket.js`, `Cup.js`,
+  `Playoffs.js`, `Promotion.js`, `CpuLineup.js` y `SeasonGoals.js` no se
+  tocaron.
+
+### Decisiones/interpretaciones señaladas explícitamente (no cerradas como diseño definitivo)
+
+- **`effectiveSpacing` NO se conecta a `computeAdvantageScore()` en esta
+  entrega**, a pesar de que el prompt lo permitía si se encontraba una
+  forma limpia (punto 4). Motivo: desde esta entrega TODO equipo real
+  tiene un `TacticalProfile` por defecto, así que cualquier término
+  añadido aquí afectaría a TODOS los partidos del juego — calibrarlo sin
+  doble contar el efecto que 7.12.4 ya describe (el spacing se refleja
+  cambiando qué defensor ayuda, no como bonus aparte) exige simulación
+  masiva que esta entrega no puede validar sin arriesgar el invariante de
+  regresión. Señalado también en `DESIGN.md` 7.12.34 como pendiente
+  explícito para TAC-3.
+- **Todos los valores numéricos nuevos de `config.tactics`**
+  (`identity.pickAndRollUsageNeutral`/`pickAndRollUsageMaxMultiplier`,
+  `spacing.shotThreatMix`/`shooterRequirement`/`archetypeCeiling`,
+  `roles.fitWeights`, mezclas de atributos por rol) son puntos de partida
+  con DIRECCIÓN verificada, no cifras cerradas — **pendientes de
+  calibración (7.12.31/7.12.34)**, comentados así en `MatchConfig.js`.
+- **`roleFit`/`effectiveSpacing`/`computeLineupRatings` NO aplican Fatiga/
+  Consistencia/Presión de Momento** (a diferencia de
+  `MatchEngine.computeMixRating`, que sí las aplica): son una foto de
+  APTITUD para una pantalla fuera de partido, no una previsión de
+  rendimiento en una jugada concreta — solo se incluye un factor pequeño
+  de Energía actual en `roleFit` (pedido explícito del prompt, "estado
+  físico"), nada más.
+- **Defaults de `TacticalProfile` duplicados como constantes literales en
+  `Tactics.js`** (`DEFAULT_SPACING`/`DEFAULT_IDENTITY`/
+  `DEFAULT_PLAY_TYPE_WEIGHTS`) en vez de leerlos de `MatchConfig.js`:
+  `Team.js` construye un `TacticalProfile` sin recibir ningún `config`
+  (mismo patrón que el resto de defaults de `Team.js`, ej. facilities).
+  Deben coincidir con `config.tactics.identity.defaults`/
+  `playTypeWeights.defaults`/`spacing.default` de `MatchConfig.js` (mismas
+  cifras, documentadas en los dos sitios) — ese bloque de `MatchConfig.js`
+  es el que consumen las funciones que SÍ reciben `config` explícito
+  (`resolvePnrFrequency`, `effectiveSpacing`, `roleFit`).
+- **Media cancha gráfica de 7.12.32 omitida** en la vista Ataque —
+  representación de texto plano en su lugar, el prompt lo permitía
+  explícitamente si añadía riesgo/tiempo desproporcionado.
+- **Mutación directa de `team.tacticalProfile`** desde los manejadores de
+  eventos de `game.js` (sin una capa de "draft" intermedia como la que
+  usa el formulario de quinteto fijo de Alineación): los cambios de
+  spacing/identidad/pesos/roles se aplican inmediatamente al perfil real
+  del equipo al soltar el control — mismo criterio que ya usa Alineación
+  para `state.lineup.entries` (mutación directa, sin deshacer).
+
+### Pendiente explícitamente para entregas futuras
+
+- **TAC-3**: playbook completo (Horns, Spain P&R, Floppy...), continuidad/
+  contras dentro de una misma jugada, reemplazo de la asistencia post-hoc
+  por `shotQuality` real, conexión de `effectiveSpacing` a
+  `AdvantageState` (señalado arriba como pendiente explícito), uso real de
+  los play-types más allá de Pick & Roll.
+- **TAC-4**: defensa avanzada (zonas, press, matchups individuales,
+  transición defensiva) — `computeLineupRatings` no calcula todavía
+  Switchability/Rim Protection/Transition Defense por depender de esto.
+- **TAC-5**: tiempos muertos, ajustes en vivo, ATO/BLOB/SLOB.
+- **TAC-6**: familiaridad táctica/`tacticalExecution` — `computeLineupRatings`
+  no calcula todavía Tactical Execution por depender de esto; los
+  roles/spacing de esta entrega se aplican con encaje pleno desde el
+  primer partido, sin curva de aprendizaje.
+- **TAC-7**: IA táctica de la CPU (los equipos CPU generados por
+  `teamGenerator`/`skewedTeamGenerator` ya tienen un `TacticalProfile` por
+  defecto, pero nadie decide todavía "la identidad según su plantilla") y
+  Data Hub táctico.
+- Editor visual de jugadas y media cancha gráfica interactiva de 7.12.32 —
+  fuera de alcance explícito hasta que exista playbook (TAC-3) que
+  visualizar.

@@ -477,3 +477,68 @@
 .lineup-status { font-weight: 600; }
 .lineup-status--ok { color: var(--win); }
 .lineup-status--error { color: var(--loss); }
+
+/* --- Tácticas (DESIGN.md 7.12.32) --- */
+#gm-tactics .gm-card { margin-bottom: 16px; }
+#gm-tactics h2 { font-family: var(--font-score); text-transform: uppercase; letter-spacing: 0.02em; }
+
+.tactics-identity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.tactics-identity-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--court-bg-alt);
+  border-radius: 6px;
+  font-size: 13px;
+}
+.tactics-identity-row strong { font-family: var(--font-score); color: var(--brick-dark); }
+
+.tactics-ratings-table td:first-child { font-weight: 600; }
+.tactics-stars { color: var(--brick-dark); font-weight: 700; letter-spacing: 0.02em; }
+
+.tactics-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.tactics-slider-row:last-of-type { border-bottom: none; }
+.tactics-slider-row span:first-child { flex: 1; }
+.tactics-slider-row input[type="range"] { flex: 2; }
+.tactics-slider-value {
+  font-family: var(--font-score);
+  min-width: 28px;
+  text-align: right;
+  color: var(--brick-dark);
+}
+
+#tactics-spacing-select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--white-line);
+  margin-bottom: 10px;
+}
+
+.tactics-roles-table th, .tactics-roles-table td { vertical-align: middle; }
+.tactics-role-select {
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 4px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--white-line);
+  width: 100%;
+}
+.tactics-role-fit { color: var(--brick-dark); font-weight: 700; font-size: 12px; margin-top: 2px; }
+.tactics-best-roles { font-size: 11px; text-align: left; min-width: 180px; }

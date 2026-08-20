@@ -1036,19 +1036,25 @@
   // el equipo se comporta exactamente como hasta ahora (selectOnCourtFive
   // placeholder, sin rotación real).
   // `options.homeTacticalProfile`/`awayTacticalProfile` (DESIGN.md 7.12,
-  // TAC-1, opcionales): instancia de Tactics.TacticalProfile para ese
-  // lado. Sin ella, ese equipo nunca activa un Pick & Roll táctico y el
-  // bucle 1v1 de siempre queda exactamente igual (7.12.34, compatibilidad
-  // con partidas sin perfil) — mismo patrón que homeLineup/awayLineup.
-  // Pasado por `options` en vez de leído de `homeTeam`/`awayTeam` porque
-  // esta entrega no toca `src/entities/Team.js` (fuera de los archivos
-  // permitidos en TAC-1); persistirlo en el equipo es trabajo de una
-  // sesión de UI/estado futura.
+  // TAC-1, opcionales): instancia de Tactics.TacticalProfile para ese lado,
+  // con PRIORIDAD sobre `homeTeam.tacticalProfile`/`awayTeam.tacticalProfile`
+  // si ambos están presentes — útil para tests dirigidos que necesitan
+  // aislar un perfil concreto sin depender del estado del equipo (mismo
+  // criterio que homeSquad/homeLineup arriba). Sin ninguno de los dos, ese
+  // equipo nunca activa un Pick & Roll táctico (7.12.34, compatibilidad).
+  //
+  // Decisión de encaje de TAC-1 (7.12.2), CORREGIDA en TAC-2: TAC-1 pasaba
+  // el perfil SIEMPRE por `options` porque `Team.js` todavía no lo
+  // persistía. Desde TAC-2, `Team.js` inicializa `this.tacticalProfile` en
+  // su constructor (valores por defecto si no se especifica, mismo patrón
+  // que `clubDNA`), así que una partida real ya usa el perfil del equipo
+  // sin que cada llamada tenga que pasarlo a mano — `options` queda como
+  // el override explícito para tests, no como la única vía.
   function simulateMatch(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
     const homeSquad = options.homeSquad || defaultMatchSquad(homeTeam);
     const awaySquad = options.awaySquad || defaultMatchSquad(awayTeam);
-    const homeTacticalProfile = options.homeTacticalProfile || null;
-    const awayTacticalProfile = options.awayTacticalProfile || null;
+    const homeTacticalProfile = options.homeTacticalProfile || homeTeam.tacticalProfile || null;
+    const awayTacticalProfile = options.awayTacticalProfile || awayTeam.tacticalProfile || null;
 
     [
       { lineup: options.homeLineup, label: `local (${homeTeam.fullName})` },

@@ -669,6 +669,113 @@
         // existente (computeMixRating/penalty), no un canal paralelo.
         recoveringDefenderPenalty: 1.5,
       },
+
+      // --- DESIGN.md 7.12 (Sistema táctico) — TAC-2: identidad + spacing +
+      // roles (7.12.33). Mismo criterio que el bloque `advantage` de arriba:
+      // valores de partida "pendientes de calibración (7.12.31/7.12.34)",
+      // la estructura (qué entra, en qué dirección) es lo que fija 7.12, no
+      // la cifra final.
+
+      // Ejes de identidad ofensiva (7.12.7, mínimo de esta entrega) y pesos
+      // de play-type (7.12.8, mínimo de esta entrega) — valores por defecto
+      // de un TacticalProfile recién creado (Team.js). `identity` usa escala
+      // 0-100 (igual que el ejemplo ilustrativo de 7.12.29); `playTypeWeights`
+      // no son un reparto de 100 posesiones, solo prioridad relativa (7.12.8).
+      identity: {
+        defaults: { pace: 50, earlyOffense: 50, ballMovement: 50, pickAndRollUsage: 50 },
+        // Punto neutro de `pickAndRollUsage` (7.12.7) que reproduce EXACTAMENTE
+        // `pnrFrequency` de arriba sin modulación — con este valor, un equipo
+        // con TacticalProfile por defecto sortea P&R con la misma frecuencia
+        // que en TAC-1 (invariante de regresión, ver Tactics.resolvePnrFrequency).
+        pickAndRollUsageNeutral: 50,
+        // Rango de modulación de `pnrFrequency` (multiplicador acotado):
+        // 0 = el eje puede anular el P&R táctico por completo; 2 = puede
+        // duplicar la frecuencia base. Pendiente de calibración masiva.
+        pickAndRollUsageMaxMultiplier: 2,
+      },
+      playTypeWeights: {
+        // Solo `pickAndRoll` tiene efecto real en el motor esta entrega (ver
+        // arriba, `identity.pickAndRollUsage`); el resto se guarda para que
+        // TAC-3 los consuma al implementar sus play-types (7.12.8, catálogo
+        // completo pendiente de comportamiento propio).
+        defaults: { pickAndRoll: 30, isolation: 15, postUp: 10, transition: 15 },
+      },
+
+      // Spacing (7.12.6) — catálogo de opciones en Tactics.SPACING_OPTIONS;
+      // aquí solo los pesos que alimentan `effectiveSpacing()`.
+      spacing: {
+        default: '4-out-1-in',
+        // Mezcla de atributos que mide la "amenaza de tiro exterior real"
+        // de un jugador en el suelo (7.12.6: "Tiro exterior real de los
+        // cinco"), usada para ordenar quién cuenta como amenaza en cada
+        // spacing. Debe sumar 1.
+        shotThreatMix: { outsideShot: 0.7, midRangeShot: 0.3 },
+        // Cuántos de los 5 jugadores (los de MAYOR amenaza, no posición fija)
+        // debe respetar la defensa para que ESE spacing sea real (7.12.31,
+        // invariante 5/6: 5-Out exige a los 5, 3-Out-2-In exige menos).
+        shooterRequirement: { '5-out': 5, '4-out-1-in': 4, '3-out-2-in': 3 },
+        // Techo de espacio ocupado propio de cada estructura ANTES de mirar
+        // a los jugadores reales (7.12.31 invariante 6: 3-Out-2-In < 5-Out
+        // incluso con jugadores idénticos, por diseño de la estructura).
+        // 'dynamic' no tiene techo propio: usa el mejor ajuste real de los
+        // otros tres para ESE quinteto concreto (7.12.6, "el spacing cambia
+        // según quinteto").
+        archetypeCeiling: { '5-out': 1.0, '4-out-1-in': 0.85, '3-out-2-in': 0.65 },
+      },
+
+      // Roles ofensivos (7.12.9) y defensivos (7.12.21) — catálogo de ids y
+      // etiquetas en Tactics.OFFENSIVE_ROLES/DEFENSIVE_ROLES; aquí solo los
+      // pesos de atributos (mismo criterio que coverageHandlerMix arriba) y
+      // los pesos de combinación de roleFit.
+      roles: {
+        fitWeights: {
+          // roleFit combina mezcla de atributos (aptitud pura) y competencia
+          // posicional (6.1) — mismo peso relativo que handler/screener de
+          // `advantage` arriba (0.7/0.3), reutilizado por analogía, no
+          // recalculado aparte.
+          attributeMixWeight: 0.7,
+          positionLevelWeight: 0.3,
+          // Estado físico (DESIGN.md 7.12.9/7.12.21, "estado físico"): un
+          // jugador agotado rinde peor en su rol AHORA MISMO, pero el efecto
+          // es pequeño a propósito — roleFit es sobre todo una valoración de
+          // aptitud, no un medidor de forma del día (eso ya lo cubren las
+          // estrellas de Forma/Energía que muestra la pantalla de Alineación).
+          energyBaseline: 0.9,
+          energyRange: 0.1,
+        },
+        // Mezclas de atributos por rol ofensivo (7.12.9) — pesos relativos,
+        // no necesitan sumar 1 (se normalizan en Tactics.computeSimpleMix).
+        offensiveMix: {
+          primaryCreator: { ballHandling: 0.35, gameVision: 0.35, passing: 0.2, pressureDecisionMaking: 0.1 },
+          secondaryCreator: { ballHandling: 0.3, gameVision: 0.3, passing: 0.3, pressureDecisionMaking: 0.1 },
+          pnrHandler: { ballHandling: 0.4, gameVision: 0.3, passing: 0.2, pressureDecisionMaking: 0.1 },
+          isolationScorer: { ballHandling: 0.3, midRangeShot: 0.25, insideShot: 0.15, layup: 0.1, aggressiveness: 0.2 },
+          spotUpShooter: { outsideShot: 0.55, positioning: 0.25, concentration: 0.2 },
+          movementShooter: { outsideShot: 0.4, agility: 0.2, positioning: 0.25, stamina: 0.15 },
+          slasher: { acceleration: 0.3, agility: 0.25, layup: 0.3, aggressiveness: 0.15 },
+          connector: { passing: 0.35, gameVision: 0.35, teamwork: 0.2, ballHandling: 0.1 },
+          postScorer: { insideShot: 0.4, strength: 0.25, balance: 0.2, aggressiveness: 0.15 },
+          postHub: { passing: 0.3, gameVision: 0.3, insideShot: 0.2, teamwork: 0.2 },
+          rollMan: { layup: 0.35, jumping: 0.25, strength: 0.2, offensiveRebound: 0.2 },
+          shortRollPlaymaker: { passing: 0.35, gameVision: 0.3, layup: 0.2, pressureDecisionMaking: 0.15 },
+          pickAndPopBig: { outsideShot: 0.4, midRangeShot: 0.35, strength: 0.25 },
+          primaryScreener: { strength: 0.35, balance: 0.25, workRate: 0.2, offensiveRebound: 0.2 },
+          offensiveRebounder: { offensiveRebound: 0.45, jumping: 0.25, strength: 0.15, workRate: 0.15 },
+        },
+        // Mezclas de atributos por rol defensivo (7.12.21).
+        defensiveMix: {
+          poaStopper: { perimeterDefense: 0.4, agility: 0.25, anticipation: 0.2, stealing: 0.15 },
+          screenNavigator: { agility: 0.35, perimeterDefense: 0.3, workRate: 0.2, stamina: 0.15 },
+          switchDefender: { perimeterDefense: 0.3, interiorDefense: 0.3, agility: 0.25, strength: 0.15 },
+          perimeterDisruptor: { stealing: 0.35, anticipation: 0.3, aggressiveness: 0.2, perimeterDefense: 0.15 },
+          nailHelper: { anticipation: 0.35, gameVision: 0.25, positioning: 0.25, interiorDefense: 0.15 },
+          lowMan: { interiorDefense: 0.35, jumping: 0.25, blocking: 0.25, anticipation: 0.15 },
+          rimProtector: { blocking: 0.4, interiorDefense: 0.3, jumping: 0.2, strength: 0.1 },
+          postAnchor: { interiorDefense: 0.5, strength: 0.3, balance: 0.2 },
+          roamer: { anticipation: 0.35, gameVision: 0.25, stealing: 0.2, agility: 0.2 },
+          defensiveRebounder: { defensiveRebound: 0.45, jumping: 0.25, strength: 0.15, positioning: 0.15 },
+        },
+      },
     },
   };
 
