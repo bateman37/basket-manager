@@ -41,7 +41,12 @@
     validateLineup, describeValidationErrors, buildRotationState, getOnCourtFive, accumulatePlayedTime,
     runSubstitutionWindow, isDeadBallStoppage, getPenalty,
   } = RotationCore;
-  const { planPnrPossession } = TacticsCore;
+  // DESIGN.md 7.12 (TAC-3): la producción deja de llamar a
+  // planPnrPossession directamente y usa planTacticalPossession (playbook +
+  // selección real de play-type + continuidad, 7.12.8/7.12.10/7.12.11) —
+  // planPnrPossession sigue existiendo en Tactics.js tal cual para tests
+  // dirigidos de TAC-1/TAC-2, ver Tactics.js.
+  const { planTacticalPossession, resolveTransitionAttempt } = TacticsCore;
 
   // --- Lectura de atributos: cada nombre de MatchConfig se busca en el
   // grupo (technical/physical/mental) al que pertenece en Player.js, sin
@@ -516,6 +521,28 @@
     recordAssist(boxScore, assister);
   }
 
+  // DESIGN.md 7.12.5 (TAC-3): asistencia causal — sustituye la asignación
+  // post-hoc de resolveAssist() SOLO para posesiones con play-type táctico
+  // real (tacticalPlan no nulo, ver simulatePossession). `assistCandidate`
+  // ya viene resuelto por Tactics.js (quién mantuvo/generó la ventaja
+  // pasando el balón antes del tiro) — null si el propio tirador creó su
+  // tiro sin pase (Isolation puro, P&R con lectura baja sin continuidad...).
+  // A diferencia de resolveAssist(), esto NO es un pickWeighted entre
+  // candidatos: el creador ya es un dato conocido de la jugada, no un
+  // sorteo entre los 4 compañeros. El bonus de probabilidad por buen
+  // pasador (VisiónJuego+Pase+DecisiónBajoPresión, "regla dura" de 7.12.5)
+  // decide SI se acredita la asistencia, nunca A QUIÉN.
+  function resolveTacticalAssist(assistCandidate, shotType, boxScore, config) {
+    if (!assistCandidate) return;
+    const baseProbability = ASSIST_PROBABILITY_BY_SHOT_TYPE[shotType];
+    const rating = (getAttribute(assistCandidate, 'gameVision') + getAttribute(assistCandidate, 'passing')
+      + getAttribute(assistCandidate, 'pressureDecisionMaking')) / 3;
+    const boost = config.tactics.assist.playmakingBoostMax * clamp((rating - NEUTRAL_ATTRIBUTE) / NEUTRAL_ATTRIBUTE, -1, 1);
+    const probability = clamp(baseProbability + boost, 0.05, 0.98);
+    if (Math.random() >= probability) return;
+    recordAssist(boxScore, assistCandidate);
+  }
+
   // Índice de Valoración (PIR, DESIGN.md 7.6/Bloque D): función pura sobre
   // una línea de boxScore ya enriquecida con assists/foulsDrawn/
   // blockedAttempts. `personalFouls` ya incluye las técnicas (ver
@@ -702,23 +729,26 @@
       // posesión termina no siendo táctica (ver más abajo).
       const defaultOnBallDefender = pickWeighted(defenseFive, onBallDefenderWeight);
 
-      // DESIGN.md 7.12 (TAC-1): SOLO en la primera iteración de la
-      // posesión se decide si es un Pick & Roll táctico (7.12.3, la capa
-      // táctica se resuelve antes del bucle 1v1, no en cada rebote
+      // DESIGN.md 7.12 (TAC-1, ampliado en TAC-3): SOLO en la primera
+      // iteración de la posesión se decide el play-type táctico (7.12.3, la
+      // capa táctica se resuelve antes del bucle 1v1, no en cada rebote
       // ofensivo posterior — una segunda oportunidad tras un rebote es ya
-      // un scramble, no la misma lectura de P&R). `null` si el equipo
-      // ofensivo no tiene TacticalProfile o no tocó pnrFrequency — en ese
-      // caso ballHandler/onBallDefender se eligen EXACTAMENTE como antes
-      // de esta entrega (7.12.34, compatibilidad).
-      const tacticalPlan = iteration === 0 ? planPnrPossession({
+      // un scramble, no la misma jugada). `null` si el equipo ofensivo no
+      // tiene TacticalProfile o el sorteo de play-type (Pick & Roll/
+      // Isolation/Post Up, 7.12.8) cae en "ninguno" — en ese caso
+      // ballHandler/onBallDefender se eligen EXACTAMENTE como antes de
+      // TAC-1 (7.12.34, compatibilidad).
+      const tacticalPlan = iteration === 0 ? planTacticalPossession({
         offenseTacticalProfile, defenseTacticalProfile, offenseFive, defenseFive,
         onBallDefender: defaultOnBallDefender,
         config, pressure, computeMixRating, getAttribute, usageWeight,
         offenseRotationState, defenseRotationState,
+        offenseSpacing: offenseTacticalProfile && offenseTacticalProfile.spacing,
+        shotClockRemaining: shotClock,
       }) : null;
 
-      let ballHandler = tacticalPlan ? tacticalPlan.handler : pickWeighted(offenseFive, usageWeight);
-      let onBallDefender = tacticalPlan ? tacticalPlan.effectiveOnBallDefender : defaultOnBallDefender;
+      let ballHandler = tacticalPlan ? tacticalPlan.initialHandler : pickWeighted(offenseFive, usageWeight);
+      let onBallDefender = tacticalPlan ? tacticalPlan.initialOnBallDefender : defaultOnBallDefender;
       // 7.11.3 (C.3): penalización activa de cada uno si está cubriendo una
       // posición de emergencia — 0 si no hay alineación o no aplica.
       let ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
@@ -730,10 +760,22 @@
       const quarterClockAtIterationStart = context.quarterClockRemaining - elapsedTotal;
       const noFullPlayTime = quarterClockAtIterationStart < config.lateClock.noFullPlayThresholdSeconds;
 
+      // DESIGN.md 7.12.12 (TAC-3): la ventana de contraataque (7.6 acción
+      // 14) sigue igual, pero AHORA el equipo decide cuánto la explota
+      // según `playTypeWeights.transition` (Tactics.resolveTransitionAttempt)
+      // — con perfil por defecto siempre la intenta (7.12.34, idéntico al
+      // comportamiento de antes de esta entrega).
       const fastBreakWindow = context.fastBreakEligible && iteration === 0;
+      const fastBreakAttempt = fastBreakWindow && resolveTransitionAttempt(offenseTacticalProfile, config);
       let step = pickPossessionStepSeconds(
-        shotClock, averageAttribute(offenseFive, 'gameVision'), context.offenseTempoBias, config, fastBreakWindow,
+        shotClock, averageAttribute(offenseFive, 'gameVision'), context.offenseTempoBias, config, fastBreakAttempt,
       );
+      // DESIGN.md 7.12.11 (TAC-3): una segunda acción de la cadena de
+      // continuidad consume reloj de posesión adicional (reutiliza el
+      // MISMO reloj, no uno paralelo) — si eso agota el reloj, la
+      // violación de posesión de más abajo se dispara igual que con
+      // cualquier paso largo.
+      if (tacticalPlan && tacticalPlan.clockCost) step += tacticalPlan.clockCost;
       if (noFullPlayTime) step = Math.min(step, Math.max(1, quarterClockAtIterationStart * 0.6));
 
       if (step >= shotClock) {
@@ -795,41 +837,31 @@
         return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true };
       }
 
-      // DESIGN.md 7.12.4 (TAC-1): resultado de la jugada de P&R, según la
-      // bifurcación de AdvantageState ya calculada en tacticalPlan.read.
-      // Regla dura de 7.12.3: la capa táctica NO decide si el tiro entra,
-      // solo QUIÉN tira, CONTRA QUIÉN y con QUÉ PENALIZACIÓN de contexto —
-      // el catálogo de 7.6 (más abajo) sigue siendo idéntico para las 3
-      // ramas. Sin tacticalPlan (posesión no táctica, o iteración > 0 tras
-      // un rebote ofensivo), ninguna de las tres variables cambia de su
-      // valor de siempre.
+      // DESIGN.md 7.12.4/7.12.11 (TAC-1, generalizado en TAC-3 a los 3
+      // play-types con motor real): resultado de la jugada, según el
+      // AdvantageState/continuidad ya resueltos en `tacticalPlan` (forma
+      // unificada, ver Tactics.planTacticalPossession). Regla dura de
+      // 7.12.3: la capa táctica NO decide si el tiro entra, solo QUIÉN
+      // tira, CONTRA QUIÉN y con QUÉ PENALIZACIÓN/AJUSTE de contexto — el
+      // catálogo de 7.6 (más abajo) sigue siendo idéntico. Sin tacticalPlan
+      // (posesión no táctica, o iteración > 0 tras un rebote ofensivo),
+      // ninguna de estas variables cambia de su valor de siempre.
       let tacticalShotDefenderOverride = null;
       let tacticalExtraShotDefenderPenalty = 0;
       let tacticalForcedShotType = null;
+      let tacticalShotAdjustment = 0;
       if (tacticalPlan) {
-        if (tacticalPlan.read === 'clear') {
-          // Ventaja clara/defensa rota: el screener recibe la posesión
-          // como "roller" — reasigna QUIÉN es el `ballHandler` del resto
-          // de esta iteración (así todo lo que viene después — registro
-          // de tiro, asistencia, desgaste, tiros libres — atribuye
-          // correctamente la jugada al roller, sin duplicar ningún
-          // resolver).
-          ballHandler = tacticalPlan.screener;
-          ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
-          tacticalShotDefenderOverride = tacticalPlan.rollerDefender;
-          tacticalForcedShotType = tacticalPlan.forcedShotType; // solo insideShot|layup, ver Tactics.js
-        } else {
-          // Ventaja baja/nula o pequeña: el handler sigue con el tiro,
-          // contra el defensor real asignado por la cobertura (no un
-          // pickWeighted independiente) — en "pequeña ventaja" llega
-          // marcado como "en recuperación" vía una penalización de
-          // contexto adicional sobre el MISMO mecanismo de penalty ya
-          // existente (nunca un canal paralelo, ver DESIGN.md 7.12.4).
-          tacticalShotDefenderOverride = tacticalPlan.effectiveOnBallDefender;
-          if (tacticalPlan.read === 'small') {
-            tacticalExtraShotDefenderPenalty = config.tactics.advantage.recoveringDefenderPenalty;
-          }
-        }
+        // El balón puede haber cambiado de manos (roller/kick-out/mismatch)
+        // entre el handler inicial y quien finalmente tira — reasigna
+        // `ballHandler` para que todo lo que viene después (registro de
+        // tiro, asistencia, desgaste, tiros libres) atribuya correctamente
+        // la jugada a quien tira de verdad, sin duplicar ningún resolver.
+        ballHandler = tacticalPlan.shooter;
+        ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
+        tacticalShotDefenderOverride = tacticalPlan.shotDefender;
+        tacticalExtraShotDefenderPenalty = tacticalPlan.shotDefenderPenalty || 0;
+        tacticalForcedShotType = tacticalPlan.forcedShotType; // solo insideShot|layup en la rama de roller, ver Tactics.js
+        tacticalShotAdjustment = tacticalPlan.shotAdjustment || 0;
       }
 
       // Selección de tiro (heurística de Fase 1: ponderada por el propio
@@ -843,10 +875,10 @@
         : pickWeighted(defenseFive, (p) => getAttribute(p, 'interiorDefense') + 1));
       const shotDefenderPenalty = getPenalty(defenseRotationState, shotDefender.id) + tacticalExtraShotDefenderPenalty;
 
-      // 7.6.14: Contraataque — solo en la primera iteración de una posesión
-      // nueva elegible, dentro de la ventana de segundos configurada.
-      const isFastBreakWindow = context.fastBreakEligible && iteration === 0
-        && elapsedTotal <= config.fastBreak.windowSeconds;
+      // 7.6.14: Contraataque — solo si el equipo REALMENTE lo intentó esta
+      // posesión (fastBreakAttempt, 7.12.12 TAC-3) y dentro de la ventana
+      // de segundos configurada.
+      const isFastBreakWindow = fastBreakAttempt && elapsedTotal <= config.fastBreak.windowSeconds;
 
       // 7.6.16/17: tiro sobre la bocina de posesión/cuarto-partido.
       const isPossessionBuzzer = shotClock < config.pressure.shotClockBuzzerSeconds;
@@ -859,7 +891,7 @@
         shotPressure = clamp(pressure + 0.3, 0, 1); // 7.6.16: sube la presión local
       }
 
-      let shotAdjustment = 0;
+      let shotAdjustment = tacticalShotAdjustment;
       if (isPossessionBuzzer || isGameBuzzer || noFullPlayTime) {
         shotAdjustment -= config.pressure.forcedShotPenalty; // tiro forzado
       }
@@ -901,10 +933,18 @@
       const made = !blocked && Math.random() < subtractProbability(shotAction, ballHandler, shotDefender, config, shotPressure, shotAdjustment, shotPenalties);
       recordFieldGoalAttempt(boxScore, ballHandler, shotType, made);
       if (made) {
-        // Bloque D (22): Asistencia — tiro de campo anotado (con o sin
-        // falta y-uno, ambos casos llegan aquí con made=true); nunca en
-        // tiros libres, que no pasan por recordFieldGoalAttempt.
-        resolveAssist(offenseFive, ballHandler, shotType, boxScore);
+        // Bloque D (22) / DESIGN.md 7.12.5 (TAC-3): Asistencia — tiro de
+        // campo anotado (con o sin falta y-uno, ambos casos llegan aquí con
+        // made=true); nunca en tiros libres, que no pasan por
+        // recordFieldGoalAttempt. Con play-type táctico real, la cadena
+        // causal (assistCandidate ya resuelto por Tactics.js) sustituye a
+        // la asignación post-hoc; sin él, resolveAssist() sigue tal cual
+        // (7.12.5, compatibilidad explícita).
+        if (tacticalPlan) {
+          resolveTacticalAssist(tacticalPlan.assistCandidate, shotType, boxScore, config);
+        } else {
+          resolveAssist(offenseFive, ballHandler, shotType, boxScore);
+        }
       }
       if (blocked) {
         recordBlock(boxScore, shotDefender);

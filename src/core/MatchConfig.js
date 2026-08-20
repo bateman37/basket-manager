@@ -657,8 +657,19 @@
         // pequeña ventaja; por encima de `clearAdvantage`, ventaja clara/
         // defensa rota. Pendientes de calibración (7.12.31) — no hay cifra
         // cerrada en DESIGN.md para esta separación.
+        // TAC-3 (7.12.4/7.12.33): ampliado de 2 a 4 umbrales para separar
+        // las 6 categorías completas de AdvantageState en vez de solo 3
+        // ramas — `smallAdvantage`/`clearAdvantage` NO cambian de valor
+        // respecto a TAC-1/TAC-2 (mismo punto de corte "small"/"clear" para
+        // el colapso 6→3 que usa planPnrPossession legacy, ver Tactics.js
+        // `collapseRead6To3`); `clearDefenseAdvantage`/`stableDefense`
+        // subdividen la vieja rama "low", `clearOffenseAdvantage` subdivide
+        // la vieja rama "small". Pendientes de calibración (7.12.31/7.12.34).
         thresholds: {
+          clearDefenseAdvantage: -0.5,
+          stableDefense: -0.15,
           smallAdvantage: 0.15,
+          clearOffenseAdvantage: 0.3,
           clearAdvantage: 0.5,
         },
         // Penalización de rating (puntos, escala 1-20 — mismo orden de
@@ -668,6 +679,82 @@
         // contexto de penalización adicional sobre el MISMO mecanismo ya
         // existente (computeMixRating/penalty), no un canal paralelo.
         recoveringDefenderPenalty: 1.5,
+        // TAC-3 (7.12.6/7.12.34): conexión de effectiveSpacing con
+        // AdvantageState, pendiente heredado de TAC-2 — término ACOTADO y
+        // pequeño (Tactics.computeSpacingAdvantageTerm), único sitio donde
+        // el spacing entra a la fórmula (evita doble conteo, 7.12.4).
+        // `neutral` aproxima el effectiveSpacing típico de un quinteto de
+        // nivel medio en el spacing por defecto (4-Out-1-In) — verificado
+        // en DIRECCIÓN con un script de invariantes (5-Out real > 3-Out-2-In
+        // real para el MISMO quinteto), no en cifra cerrada. Pendiente de
+        // calibración masiva (7.12.31/7.12.34).
+        spacing: {
+          sensitivity: 0.12,
+          neutral: 0.6,
+          maxEffect: 0.08,
+        },
+      },
+
+      // TAC-3 (7.12.8, punto 2 del prompt): mezclas/umbrales de Isolation y
+      // Post Up con comportamiento real por primera vez — mismo criterio
+      // que `coverageHandlerMix`/`screenerMix` de arriba (datos, no lógica
+      // hardcodeada en Tactics.js). Pendientes de calibración (7.12.31).
+      isolation: {
+        // Anotador: manejo + finalización variada + agresividad (ataca
+        // directo, sin bloqueo). Defensor: perfil de "stopper" perimetral.
+        scorerMix: { ballHandling: 0.3, midRangeShot: 0.2, insideShot: 0.15, layup: 0.15, aggressiveness: 0.2 },
+        defenderMix: { perimeterDefense: 0.6, agility: 0.25, anticipation: 0.15 },
+        baseScore: -0.05,
+        sensitivity: 0.1,
+        noiseSigma: 0.08,
+      },
+      postUp: {
+        scorerMix: { insideShot: 0.4, strength: 0.3, balance: 0.2, aggressiveness: 0.1 },
+        defenderMix: { interiorDefense: 0.55, strength: 0.3, blocking: 0.15 },
+        baseScore: -0.05,
+        sensitivity: 0.1,
+        noiseSigma: 0.08,
+        // Doble equipo simple (7.12.19 completo es TAC-4): solo si el
+        // postScorer supera claramente a su defensor (margen de rating,
+        // escala 1-20) Y el sorteo lo activa — forma más simple permitida
+        // explícitamente por el prompt de esta sesión.
+        doubleTeamRatingMargin: 3,
+        doubleTeamProbability: 0.5,
+      },
+
+      // TAC-3 (7.12.8): presupuesto de referencia para Tactics.selectPlayType
+      // — "100 posesiones" conceptuales sobre las que se reparten los pesos
+      // de playTypeWeights (incluida la frecuencia de P&R, ya modulada por
+      // identity.pickAndRollUsage) antes de caer al bucle 1v1 normal.
+      // Pendiente de calibración (7.12.34).
+      playTypeSelection: {
+        budget: 100,
+      },
+
+      // TAC-3 (7.12.12): ver Tactics.resolveTransitionAttempt — punto neutro
+      // igual al default de playTypeWeights.transition (15) para reproducir
+      // el comportamiento de siempre con perfil por defecto.
+      transitionAttempt: {
+        weightNeutral: 15,
+      },
+
+      // TAC-3 (7.12.11): continuidad/counters — cuánto reloj de posesión
+      // exige/consume una segunda acción, y penalización de tiro forzado
+      // cuando no queda reloj para intentarla. Pendientes de calibración
+      // (7.12.31/7.12.34).
+      continuity: {
+        minClockForSecondAction: 5,
+        secondActionClockCost: 3,
+        extraPassClockCost: 2,
+        forcedShotPenalty: 0.08,
+      },
+
+      // TAC-3 (7.12.5): bonus de probabilidad de asistencia (no de tiro,
+      // "regla dura" 7.12.5) por la calidad de lectura/pase del creador de
+      // la ventaja — VisiónJuego+Pase+DecisiónBajoPresión frente al valor
+      // neutro de atributo (escala 1-20). Pendiente de calibración (7.12.34).
+      assist: {
+        playmakingBoostMax: 0.15,
       },
 
       // --- DESIGN.md 7.12 (Sistema táctico) — TAC-2: identidad + spacing +
