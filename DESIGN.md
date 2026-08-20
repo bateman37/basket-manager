@@ -299,6 +299,172 @@ en vez de solo `(startDate)`, por el motivo explicado en 3.3.3 (una
 ronda no puede fecharse sin conocer los patrones de partidos de la
 ronda anterior, para no arrancarla antes de que termine).
 
+### 3.4 Cierre de ciclo de temporada y pretemporada
+
+Cierra el ciclo abierto desde el inicio del proyecto: hasta ahora una
+partida podía jugar una temporada completa (liga + Copa + Playoffs/
+Ascenso) pero al llegar al final no pasaba nada — no había ascensos/
+descensos reales, ni temporada siguiente, ni recálculo de nada. Esta
+sección define qué ocurre al terminar la temporada regular en las dos
+divisiones y qué prepara la pretemporada antes de generar el nuevo
+calendario.
+
+#### 3.4.1 Las dos divisiones se simulan SIEMPRE, en paralelo
+
+Hueco de arquitectura detectado al diseñar este cierre: hasta ahora el
+juego solo mantenía viva **una** `League` (la división donde juega el
+usuario) — la otra división real (18 equipos) no se simulaba en ningún
+sitio, así que no existía una clasificación real con la que resolver
+ascensos/descensos de verdad. `Promotion.js` se probaba hasta ahora
+contra una 2ª división **ficticia** generada aparte solo como
+andamiaje de prueba (ver 3.2.3 / `Promotion.js`), nunca contra los 18
+equipos reales de Primera FEB.
+
+A partir de este cierre, **las dos ligas reales (1ª y 2ª) están vivas
+simultáneamente desde el primer instante de la partida**, con el mismo
+patrón que un manager de referencia (Football Manager): la liga que el
+usuario "tiene abierta" (la de su equipo) se sigue jornada a jornada
+con reveal por cuartos como hasta ahora; la otra liga se resuelve
+**de golpe, sin reveal**, cada vez que el usuario avanza su propia
+jornada — nunca se le pide al usuario que la simule aparte ni queda
+rezagada.
+
+- Ambas ligas usan el mismo `Calendar` de temporada (mismo
+  `seasonStartYear`), cada una con su propio `generateSchedule()` de
+  18 equipos.
+- La liga "de fondo" se simula usando `CpuLineup` en ambos lados de
+  cada partido (igual que ya se hace hoy para los rivales del usuario
+  dentro de su propia liga) — nunca con el placeholder de convocatoria
+  por defecto, para que su clasificación y sus datos de jugador
+  (Energía, `lastMatchDate`, minutos) queden igual de reales que los de
+  la liga visible.
+- Recovery.js (3.3.4) se aplica igual en la liga de fondo tras cada
+  jornada, reutilizando `applyRecoveryForResolvedMatch()` tal cual —
+  no es una integración nueva, es extender la ya existente a la
+  segunda liga.
+- Si el usuario cambia de club a una división distinta a mitad de
+  partida (sección 4, ya permitido), la liga "de fondo" pasa a ser la
+  que dejó y la que antes era de fondo pasa a primer plano — ninguna
+  de las dos deja de simularse en ningún momento, solo cambia cuál se
+  le muestra con reveal.
+- Copa (1ª división) y Playoff de ascenso (2ª división) se disparan
+  igual que hoy en cada liga cuando corresponda (jornada 17→18 para la
+  Copa; fin de jornada 34 para playoffs/ascenso), sea la liga visible o
+  la de fondo. Cuando el bracket corresponde a la liga de fondo, se
+  juega también de golpe (sin reveal), reutilizando
+  `Bracket.playNextGame()`/`PromotionPlayoff.playNextGame()` en bucle
+  hasta `isComplete`.
+
+#### 3.4.2 Fin de temporada regular: ascensos y descensos reales
+
+Cuando **ambas** ligas (visible y de fondo) han completado su
+temporada regular y sus respectivos Copa/Playoff/Ascenso:
+
+1. **Descensos**: los 2 últimos clasificados de la liga regular de 1ª
+   división (ya definido en 3.1) pasan a `division: '2ª'`.
+2. **Ascensos**: el campeón de la liga regular de 2ª división y el
+   campeón del Playoff de ascenso (`PromotionPlayoff.secondPromotedEntry`,
+   ya implementado) pasan a `division: '1ª'`.
+3. **La plantilla no se toca**: ascender o descender **solo cambia
+   `team.division`**. Ningún atributo de ningún jugador (técnico,
+   físico, mental, ocultos, `dataSource`, medidas corporales) se
+   modifica por el cambio de división — decisión explícita de Dennis,
+   para no repetir aquí el reescalado puntual que se hizo una sola vez
+   sobre `team_tiers.json` (ver CHANGELOG "Reescalado proporcional de
+   atributos de la base de datos real"). Un equipo puede, por tanto,
+   bajar a 2ª conservando un overall alto (o subir con uno bajo) — es
+   un resultado esperado, no un bug.
+4. Si el equipo del usuario asciende o desciende, no hace falta ninguna
+   regla nueva: la sección 4 ya permite que la carrera del usuario
+   cambie de club/división libremente: el cierre de ciclo simplemente
+   mueve su `team.division` igual que a cualquier otro equipo, y la
+   próxima vez que se recalculen las dos `League` (3.4.4) su equipo
+   sale ya en el grupo de 18 que le corresponde.
+
+#### 3.4.3 Cálculo de `board.sportingGoal` (sustituye el valor fijo)
+
+Hueco cerrado: `Team.js` asignaba a todo equipo real el mismo valor
+fijo `'Permanencia'` (ni siquiera perteneciente al vocabulario de
+`teamGenerator.js`), señalado como inerte para partidas reales en el
+CHANGELOG de `CpuLineup.js`/7.11.7. A partir de este cierre, el
+objetivo deportivo de temporada de **todos** los equipos (usuario y
+resto) se recalcula en cada pretemporada con esta fórmula, sustituyendo
+el valor de la temporada anterior:
+
+```
+percentilPlantilla   = percentil del overall-top8 del equipo dentro de
+                        SU división de la temporada que empieza
+                        (mismo cálculo de "overall de los 8 mejores"
+                        que ya usa scripts/rescale-real-attributes.js,
+                        aplicado en vivo sobre los 18 equipos de esa
+                        división en vez de una vez en un script)
+
+poderCombinado = (percentilPlantilla × 0.5) + (team.reputation.financial × 0.5)
+señalFinal     = (poderCombinado × 0.7) + (team.reputation.sporting × 0.3)
+```
+
+`señalFinal` (0-100) se mapea a los 4 valores ya existentes de
+`SPORTING_GOALS` (`teamGenerator.js`) por tramos (umbrales de partida,
+ajustables en `CONFIG_BASE`, no cifras cerradas):
+
+| señalFinal | sportingGoal |
+|---|---|
+| ≥ 80 | Pelear por el título |
+| 55 – 79 | Optar a playoffs |
+| 30 – 54 | Consolidarse en la categoría |
+| < 30 | Evitar el descenso |
+
+Con esto, `CpuLineup.computeMatchImportance()` (7.11.7) deja de recibir
+una señal inerte para equipos reales — vuelve a discriminar partido
+clave/no clave con datos de verdad, sin que haya que tocar su propia
+lógica (ya implementada exactamente para consumir este campo). Esta es
+la fórmula concreta que 6.2.4 dejaba sin definir para
+`board.sportingGoal` — 6.2.4 sigue siendo la ficha conceptual del
+campo, esta sección (3.4.3) es su cálculo real.
+
+`financialGoal` y `multiYearPlan` quedan fuera de este cálculo (no
+tienen aún ninguna fórmula de partida definida) — se recalculan más
+adelante, cuando se diseñe en detalle el módulo económico y de
+objetivos plurianuales (ver 6.2.4, pendiente).
+
+#### 3.4.4 Pretemporada: qué se recalcula antes del nuevo calendario
+
+Una vez aplicados los ascensos/descensos (3.4.2), en este orden:
+
+1. Recalcular `board.sportingGoal` de los 36 equipos (3.4.3), con la
+   composición de división YA actualizada (un recién ascendido calcula
+   su percentil dentro de su nueva liga de 1ª, no la de 2ª que acaba de
+   dejar).
+2. Cantera/Academia (6.2.3, ya placeholder): generar los 3 jugadores
+   jóvenes de cada club para la nueva temporada, reutilizando
+   `Team.generateAcademyIntake()` tal cual — no es una regla nueva,
+   es conectar la llamada en el punto de cierre de ciclo.
+3. Nuevo `Calendar` con `seasonStartYear + 1` (mismo `CONFIG_BASE`,
+   nuevo `generateSchedule()` para cada división con los 18+18 equipos
+   ya reordenados por ascenso/descenso).
+4. Nuevas instancias de `League` para 1ª y 2ª (standings a cero,
+   `currentRound = 1`) — reutilizando `League.js` tal cual, sin ningún
+   cambio de código en esa clase: recibe la lista de equipos que le
+   corresponda, como ya hace hoy.
+5. Reset de `titlePlayoff`/`cup`/`promotionPlayoff` a `null` en ambas
+   divisiones, igual que ya hace `startSeason()` al arrancar una
+   partida nueva.
+
+#### Pendiente para sesiones de diseño futuras (Cierre de ciclo)
+- Renovación de contratos, salidas/fichajes de jugadores entre
+  temporadas — depende del futuro módulo de fichajes, no diseñado
+  todavía.
+- Envejecimiento y progresión de atributos por edad (sección 9, sigue
+  sin diseñar en detalle).
+- Evolución de `reputation`/`facilities` entre temporadas (hoy
+  persisten tal cual, sin decaimiento ni crecimiento automático por
+  resultados — 6.2.1/6.2.2 no definen todavía esa dinámica temporal).
+- `financialGoal`/`multiYearPlan` de la Junta (6.2.4): siguen sin
+  fórmula de cálculo, ver nota en 3.4.3.
+- Qué pasa con equipos que en el futuro dejen de tener datos reales
+  disponibles (fuera de alcance mientras el proyecto trabaje solo con
+  los 36 equipos actuales).
+
 ### Supercopa y competición europea (pendiente)
 
 - **Supercopa** (formato corto, equipos clasificados por resultados de
@@ -313,10 +479,13 @@ ronda anterior, para no arrancarla antes de que termine).
 - Copa de 2ª división (formato completo: participantes, calendario,
   número de rondas) — solo se ha decidido su efecto colateral sobre el
   playoff de ascenso (3.2.3).
-- 2ª división con datos reales propios (hoy es una plantilla ficticia
-  mínima, ver 3.1) y cierre de ciclo de temporada (ascenso/descenso
-  real entre temporadas sucesivas).
 - Supercopa y competición europea (criterio de clasificación dinámico).
+- Cierre de ciclo de temporada: ver 3.4, ya diseñado — quedan fuera de
+  esa sección (pendientes de sesiones futuras) la renovación de
+  contratos/fichajes entre temporadas, el envejecimiento/progresión de
+  atributos por edad, la evolución de `reputation`/`facilities` entre
+  temporadas, y el cálculo de `financialGoal`/`multiYearPlan` de la
+  Junta.
 
 ## 4. Inicio de partida
 
@@ -591,6 +760,13 @@ Club Vision de FM:
 
 Esto conecta con la regla ya establecida en la sección 4: el usuario
 puede ser despedido y fichar por otro club durante la partida.
+
+**Objetivo deportivo — fórmula de cálculo**: ver 3.4.3, que define cómo
+se calcula `board.sportingGoal` en cada pretemporada a partir del poder
+de plantilla, la economía y la reputación del club. Esta sección
+(6.2.4) sigue siendo la ficha conceptual del campo; 3.4.3 es su cálculo
+real. `financialGoal` y `multiYearPlan` siguen sin fórmula de cálculo
+— pendiente (ver 3.4.3 y el listado de pendientes de 3.4).
 
 #### 6.2.5 Afición y factor cancha
 Variables de afición en la ficha de club:
@@ -1496,7 +1672,8 @@ equipo CPU)**:
 - Se calcula un factor de "partido clave" por equipo CPU antes de
   generar su alineación, cruzando dos señales ya existentes en el
   motor, sin inventar ninguna nueva:
-  1. **Objetivo de temporada** (`team.board.sportingGoal`, 6.2.4):
+  1. **Objetivo de temporada** (`team.board.sportingGoal`, ficha
+     conceptual en 6.2.4, fórmula de cálculo real en 3.4.3):
      equipos con objetivo de playoff/título tratan como clave cualquier
      partido contra rivales cercanos en la tabla que compiten por ese
      mismo tramo de clasificación; equipos con objetivo de permanencia
