@@ -40,10 +40,26 @@
     // fecha de cuando se escribió este código.
     seasonStartYear: null,
     calendar: null, // instancia de Calendar (ver Calendar.js), construida en startSeason()
-    league: null, // instancia de League (1ª o 2ª según el equipo elegido)
-    titlePlayoff: null, // Bracket | null (1ª división, tras jornada 34)
-    cup: null, // Bracket | null (Copa, se crea automáticamente en jornada 17→18)
-    promotionPlayoff: null, // PromotionPlayoff | null (2ª división, tras jornada 34)
+    // DESIGN.md 3.4.1: las DOS divisiones reales están vivas siempre en
+    // paralelo desde que arranca la partida, no solo la del usuario — antes
+    // de este cierre de ciclo solo existía `state.league` (una sola). La
+    // que el usuario "tiene abierta" es `state.leagues[state.division]`
+    // (ver getUserLeague()); la otra se simula de fondo (ver
+    // simulateBackgroundRound()) sin reveal, cada vez que el usuario juega
+    // su propia jornada — nunca queda rezagada ni hay que abrirla aparte.
+    leagues: { '1ª': null, '2ª': null },
+    // Brackets indexados por división en vez de un solo juego de
+    // cup/titlePlayoff/promotionPlayoff (antes solo existían para "la"
+    // liga) — Copa y Playoff por el título solo aplican a 1ª, Playoff de
+    // ascenso solo a 2ª (ver getBrackets()).
+    brackets: {
+      '1ª': { cup: null, titlePlayoff: null },
+      '2ª': { promotionPlayoff: null },
+    },
+    // Resumen del último cierre de temporada (DESIGN.md 3.4.2), para
+    // mostrarlo una vez en Inicio ("el usuario debe ver que ha pasado
+    // algo") — se limpia al jugar la siguiente jornada visible.
+    seasonCloseSummary: null,
     lastRoundMatches: null, // partidos de la última jornada simulada (para pantalla de inicio)
     pendingUserMatch: null, // { match } — partido del usuario de la jornada recién simulada, pendiente de revelar en pantalla de partido
     matchReveal: null, // estado de revelado progresivo por cuartos de la pantalla de partido
@@ -66,6 +82,17 @@
   };
 
   function byId(id) { return document.getElementById(id); }
+
+  // ---------------------------------------------------------------------
+  // Accesores de las dos ligas/brackets en paralelo (DESIGN.md 3.4.1) —
+  // punto único de lectura para no repetir `state.leagues[...]` con la
+  // clave equivocada en ningún sitio.
+  // ---------------------------------------------------------------------
+  function getLeague(division) { return state.leagues[division]; }
+  function getUserLeague() { return state.leagues[state.division]; }
+  function getBackgroundDivision() { return state.division === '1ª' ? '2ª' : '1ª'; }
+  function getBackgroundLeague() { return state.leagues[getBackgroundDivision()]; }
+  function getBrackets(division) { return state.brackets[division]; }
 
   // Shape por defecto de `lineup.entries` (Rotation.js): 5 posiciones, cada
   // una con 3 slots (titular + 2 suplentes) vacíos.
@@ -156,16 +183,34 @@
   // Arranque de temporada
   // ---------------------------------------------------------------------
   function startSeason(teamId, division) {
-    const { League, Calendar, CONFIG_BASE } = BM;
-    const teams = getRealTeamsByDivision(division);
+    const { League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision } = BM;
     state.division = division;
     state.userTeamId = teamId;
     state.seasonStartYear = new Date().getFullYear();
     state.calendar = new Calendar(state.seasonStartYear, CONFIG_BASE);
-    state.league = new League(teams, (round) => state.calendar.leagueRoundDate(round));
-    state.titlePlayoff = null;
-    state.cup = null;
-    state.promotionPlayoff = null;
+
+    // DESIGN.md 3.4.1: las DOS divisiones reales se construyen SIEMPRE,
+    // no solo la del usuario — comparten el mismo Calendar de temporada.
+    ['1ª', '2ª'].forEach((div) => {
+      const teams = getRealTeamsByDivision(div);
+      // Decisión no pedida explícitamente por el prompt de esta sesión,
+      // señalada aquí: se recalcula sportingGoal (Bloque 2, DESIGN.md
+      // 3.4.3) también al ARRANCAR una partida nueva, no solo en el
+      // cierre de ciclo entre temporadas — de lo contrario la primera
+      // temporada de cualquier partida nueva arrancaría con el valor fijo
+      // 'Permanencia' para los 36 equipos (el propio hueco que 3.4.3 dice
+      // cerrar), dejando inerte CpuLineup.computeMatchImportance() hasta
+      // el primer cierre de ciclo. Arrancar una partida es, conceptualmente,
+      // también una "pretemporada" (antes de jugar ninguna jornada).
+      recalculateSportingGoalsForDivision(teams, CONFIG_BASE);
+      state.leagues[div] = new League(teams, (round) => state.calendar.leagueRoundDate(round));
+    });
+
+    state.brackets = {
+      '1ª': { cup: null, titlePlayoff: null },
+      '2ª': { promotionPlayoff: null },
+    };
+    state.seasonCloseSummary = null;
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
     state.matchReveal = null;
@@ -181,8 +226,9 @@
   }
 
   function getUserTeam() {
-    if (!state.league || !state.userTeamId) return null;
-    return state.league.teams.find((t) => t.id === state.userTeamId) || null;
+    const league = getUserLeague();
+    if (!league || !state.userTeamId) return null;
+    return league.teams.find((t) => t.id === state.userTeamId) || null;
   }
 
   // ---------------------------------------------------------------------
@@ -227,18 +273,67 @@
   // regular (título en 1ª, ascenso en 2ª) — todo reutilizando Playoffs.js/
   // Cup.js/Promotion.js tal cual, sin tocarlos.
   // ---------------------------------------------------------------------
+
+  // Construye Copa/Playoff/Ascenso para UNA división cuando corresponda
+  // (jornada 17→18 para la Copa, fin de jornada 34 para playoff/ascenso)
+  // — compartido entre la liga visible (más abajo) y la de fondo
+  // (simulateBackgroundRound): DESIGN.md 3.4.1, "no dupliques esa lógica,
+  // extrae la parte de construir brackets a una función compartida". Solo
+  // CONSTRUYE — cómo se avanzan después (botón con reveal para la visible,
+  // de golpe sin reveal para la de fondo) vive en cada camino por separado.
+  // Idempotente (comprueba que no exista ya) para poder llamarse en cada
+  // jornada sin recrear nada.
+  function createBracketsIfDue(division, league) {
+    const {
+      createTitlePlayoff, createCup, PromotionPlayoff, CUP_TRIGGER_ROUND,
+      TITLE_PLAYOFF_ROUND_PATTERNS, PROMOTION_ROUND_PATTERNS,
+    } = BM;
+    const brackets = getBrackets(division);
+
+    // Copa: solo 1ª división, justo al completar la jornada 17 (DESIGN.md
+    // 3.2.2) — createCup() exige el valor EXACTO de currentRound.
+    if (division === '1ª' && league.currentRound === CUP_TRIGGER_ROUND + 1 && !brackets.cup) {
+      const cupDates = state.calendar ? state.calendar.cupRoundDates() : undefined;
+      brackets.cup = createCup(league, cupDates);
+    }
+
+    if (!league.isSeasonComplete) return;
+
+    // DESIGN.md 3.3.3: startDate del playoff = fecha de la última jornada
+    // de ESTA liga (1ª o 2ª) + el hueco configurado — "independiente" de
+    // la otra división simplemente porque cada una calcula la suya a
+    // partir de SU PROPIO calendario, nunca del ajeno.
+    const playoffStartDate = state.calendar
+      ? state.calendar.titlePlayoffStartDate(state.calendar.leagueRoundDate(league.totalRounds))
+      : undefined;
+    if (division === '1ª') {
+      if (brackets.titlePlayoff) return;
+      const dateResolver = state.calendar
+        ? state.calendar.buildBracketDateResolver(playoffStartDate, TITLE_PLAYOFF_ROUND_PATTERNS)
+        : undefined;
+      brackets.titlePlayoff = createTitlePlayoff(league, dateResolver);
+    } else {
+      if (brackets.promotionPlayoff) return;
+      const dateResolver = state.calendar
+        ? state.calendar.buildBracketDateResolver(playoffStartDate, PROMOTION_ROUND_PATTERNS)
+        : undefined;
+      brackets.promotionPlayoff = new PromotionPlayoff(league, dateResolver);
+    }
+  }
+
   // `resolveMatchOptions` (opcional, DESIGN.md 7.11.6): callback que recibe
   // el `match` de liga y devuelve las `options` de MatchEngine para el
   // equipo del usuario si le toca jugar esta jornada — ver
   // buildLineupMatchOptionsResolver() más abajo. Sin argumento, la jornada
   // se juega exactamente igual que hasta ahora (sin alineación real).
   function simulateNextRound(resolveMatchOptions) {
-    const {
-      createTitlePlayoff, createCup, PromotionPlayoff, CUP_TRIGGER_ROUND,
-      TITLE_PLAYOFF_ROUND_PATTERNS, PROMOTION_ROUND_PATTERNS,
-    } = BM;
-    const league = state.league;
+    const league = getUserLeague();
     if (league.isSeasonComplete) return;
+
+    // Se limpia aquí (no en closeSeasonAndPrepareNext) para que el aviso
+    // de cierre de temporada se vea "hasta que el usuario siga jugando",
+    // igual que "Última jornada" se sustituye jornada a jornada.
+    state.seasonCloseSummary = null;
 
     const matches = league.simulateNextRound(undefined, resolveMatchOptions);
     state.lastRoundMatches = matches;
@@ -250,35 +345,7 @@
       applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
     });
 
-    // Copa: se dispara automáticamente justo al completar la jornada 17,
-    // solo en 1ª división (DESIGN.md 3.2.2) — createCup() exige el valor
-    // EXACTO de currentRound, así que solo puede llamarse aquí, en el
-    // instante justo tras jugarla.
-    if (state.division === '1ª' && league.currentRound === CUP_TRIGGER_ROUND + 1 && !state.cup) {
-      const cupDates = state.calendar ? state.calendar.cupRoundDates() : undefined;
-      state.cup = createCup(league, cupDates);
-    }
-
-    if (league.isSeasonComplete) {
-      // DESIGN.md 3.3.3: startDate del playoff = fecha de la última jornada
-      // de ESTA liga (1ª o 2ª, la que corresponda) + el hueco configurado —
-      // "independiente" de la otra división simplemente porque cada una
-      // calcula la suya a partir de SU PROPIO calendario, nunca del ajeno.
-      const playoffStartDate = state.calendar
-        ? state.calendar.titlePlayoffStartDate(state.calendar.leagueRoundDate(league.totalRounds))
-        : undefined;
-      if (state.division === '1ª') {
-        const dateResolver = state.calendar
-          ? state.calendar.buildBracketDateResolver(playoffStartDate, TITLE_PLAYOFF_ROUND_PATTERNS)
-          : undefined;
-        state.titlePlayoff = createTitlePlayoff(league, dateResolver);
-      } else {
-        const dateResolver = state.calendar
-          ? state.calendar.buildBracketDateResolver(playoffStartDate, PROMOTION_ROUND_PATTERNS)
-          : undefined;
-        state.promotionPlayoff = new PromotionPlayoff(league, dateResolver);
-      }
-    }
+    createBracketsIfDue(state.division, league);
 
     // Partido del equipo del usuario en esta jornada, si lo tenía —
     // se guarda para revelarlo en la pantalla de partido (progresivo por
@@ -291,14 +358,57 @@
     // El avance partido a partido de Copa/Playoffs/Ascenso, una vez
     // creados, lo dispara el botón principal de Home (getActiveBracket()),
     // no esta función — aquí solo se crean en el instante justo.
+
+    // DESIGN.md 3.4.1: cada jornada visible dispara también una jornada de
+    // fondo en la división que el usuario no tiene abierta — nunca se le
+    // pide que la simule aparte ni queda rezagada.
+    simulateBackgroundRound(getBackgroundDivision());
+  }
+
+  // Resuelve la jornada de la división que el usuario NO tiene abierta —
+  // sin reveal, sin pantalla de partido, con CpuLineup en AMBOS lados de
+  // cada partido (DESIGN.md 3.4.1). Si esa liga ya terminó su temporada
+  // regular, no hay jornada que jugar, pero sus brackets (si quedan
+  // incompletos) se siguen resolviendo de golpe más abajo.
+  function simulateBackgroundRound(division) {
+    const league = getLeague(division);
+    const resolver = buildCpuOnlyResolver(league);
+
+    if (!league.isSeasonComplete) {
+      const matches = league.simulateNextRound(undefined, resolver.resolveMatchOptions);
+      matches.forEach((match) => {
+        applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
+      });
+      createBracketsIfDue(division, league);
+    }
+
+    drainBackgroundBrackets(division, resolver);
+  }
+
+  // Copa/Playoff/Ascenso de la división de fondo se juegan DE GOLPE, sin
+  // reveal (DESIGN.md 3.4.1) — a diferencia de la liga visible (un
+  // partido por click de usuario, ver getActiveBracket()/
+  // playBracketGameWithReveal()), aquí no hay nadie que vaya a volver a
+  // avanzarlo más tarde, así que se agota en el mismo instante en que se
+  // crea (o se retoma, si por lo que fuera quedó incompleto).
+  function drainBackgroundBrackets(division, resolver) {
+    const brackets = getBrackets(division);
+    [brackets.cup, brackets.titlePlayoff, brackets.promotionPlayoff].forEach((bracket) => {
+      if (!bracket) return;
+      while (!bracket.isComplete) {
+        const game = bracket.playNextGame(undefined, resolver.resolveBracketOptions);
+        applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date);
+      }
+    });
   }
 
   // ---------------------------------------------------------------------
-  // Bracket activo (Copa / Playoff por el título / Playoff de ascenso):
-  // mientras haya uno sin terminar, manda sobre la liga regular en el
-  // botón principal de Home — "el partido que toca ahora". Prioridad fija:
-  // Copa > Playoff por el título (1ª) > Playoff de ascenso (2ª); null si
-  // no hay ninguno activo (la liga regular manda, comportamiento normal).
+  // Bracket activo (Copa / Playoff por el título / Playoff de ascenso) DE
+  // LA DIVISIÓN VISIBLE: mientras haya uno sin terminar, manda sobre la
+  // liga regular en el botón principal de Home — "el partido que toca
+  // ahora". Prioridad fija: Copa > Playoff por el título (1ª) > Playoff
+  // de ascenso (2ª); null si no hay ninguno activo (la liga regular
+  // manda, comportamiento normal).
   // ---------------------------------------------------------------------
   function getActiveBracketRoundLabel(bracket, labels) {
     const status = bracket.getStatus();
@@ -307,22 +417,23 @@
   }
 
   function getActiveBracket() {
-    if (state.cup && !state.cup.isComplete) {
+    const brackets = getBrackets(state.division);
+    if (brackets.cup && !brackets.cup.isComplete) {
       return {
         title: 'Copa',
-        roundLabel: getActiveBracketRoundLabel(state.cup, ['Cuartos de final', 'Semifinales', 'Final']),
-        bracket: state.cup,
+        roundLabel: getActiveBracketRoundLabel(brackets.cup, ['Cuartos de final', 'Semifinales', 'Final']),
+        bracket: brackets.cup,
       };
     }
-    if (state.titlePlayoff && !state.titlePlayoff.isComplete) {
+    if (brackets.titlePlayoff && !brackets.titlePlayoff.isComplete) {
       return {
         title: 'Playoff por el título',
-        roundLabel: getActiveBracketRoundLabel(state.titlePlayoff, ['Cuartos de final', 'Semifinales', 'Final']),
-        bracket: state.titlePlayoff,
+        roundLabel: getActiveBracketRoundLabel(brackets.titlePlayoff, ['Cuartos de final', 'Semifinales', 'Final']),
+        bracket: brackets.titlePlayoff,
       };
     }
-    if (state.promotionPlayoff && !state.promotionPlayoff.isComplete) {
-      const promo = state.promotionPlayoff;
+    if (brackets.promotionPlayoff && !brackets.promotionPlayoff.isComplete) {
+      const promo = brackets.promotionPlayoff;
       let roundLabel = 'Cuartos de ascenso';
       if (promo.isQuarterFinalsComplete) {
         promo.ensureFinalFour();
@@ -331,6 +442,111 @@
       return { title: 'Playoff de ascenso', roundLabel, bracket: promo };
     }
     return null;
+  }
+
+  // ¿Ha terminado esta división del todo (liga regular + TODOS sus
+  // brackets)? DESIGN.md 3.4.2: condición para poder cerrar el ciclo de
+  // temporada — necesita cumplirse en AMBAS divisiones a la vez.
+  function isDivisionFullyDone(division) {
+    const league = getLeague(division);
+    if (!league || !league.isSeasonComplete) return false;
+    const brackets = getBrackets(division);
+    if (division === '1ª') {
+      return !!(brackets.cup && brackets.cup.isComplete && brackets.titlePlayoff && brackets.titlePlayoff.isComplete);
+    }
+    return !!(brackets.promotionPlayoff && brackets.promotionPlayoff.isComplete);
+  }
+
+  function isSeasonFullyClosable() {
+    return isDivisionFullyDone('1ª') && isDivisionFullyDone('2ª');
+  }
+
+  // ---------------------------------------------------------------------
+  // Cierre de ciclo de temporada y pretemporada (DESIGN.md 3.4.2/3.4.4).
+  // Disparado explícitamente por el usuario (botón "Cerrar temporada",
+  // ver renderHomeScreen) cuando isSeasonFullyClosable() — nunca
+  // automático ni oculto.
+  // ---------------------------------------------------------------------
+  function closeSeasonAndPrepareNext() {
+    const { League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision } = BM;
+
+    const leagueA = getLeague('1ª');
+    const leagueB = getLeague('2ª');
+    const bracketsB = getBrackets('2ª');
+
+    // 1. Ascensos/descensos reales (DESIGN.md 3.4.2) — SOLO team.division
+    // cambia; ningún otro campo de jugador/equipo se toca (decisión
+    // explícita, no un descuido: un ascendido puede conservar overall
+    // bajo, y viceversa).
+    const standingsA = leagueA.getStandingsTable();
+    const relegatedTeams = [
+      standingsA[standingsA.length - 1].team,
+      standingsA[standingsA.length - 2].team,
+    ];
+    relegatedTeams.forEach((team) => { team.division = '2ª'; });
+
+    // Reutiliza directPromotion/secondPromotedEntry ya calculados por
+    // PromotionPlayoff (Promotion.js) en vez de recalcular el campeón de
+    // liga regular de 2ª por nuestra cuenta — es literalmente el mismo
+    // dato (standings[0] de la liga regular de 2ª, ya completa).
+    const promotedTeams = [
+      bracketsB.promotionPlayoff.directPromotion.team,
+      bracketsB.promotionPlayoff.secondPromotedEntry.team,
+    ];
+    promotedTeams.forEach((team) => { team.division = '1ª'; });
+
+    // Composición de las dos divisiones YA actualizada (18+18), para
+    // todos los pasos siguientes — un recién ascendido/descendido calcula
+    // su sportingGoal y juega la siguiente liga ya en su división nueva.
+    const allTeams = [...leagueA.teams, ...leagueB.teams];
+    const teamsByDivision = {
+      '1ª': allTeams.filter((team) => team.division === '1ª'),
+      '2ª': allTeams.filter((team) => team.division === '2ª'),
+    };
+
+    // 2. Recalcula sportingGoal de los 36 equipos (DESIGN.md 3.4.3/3.4.4
+    // paso 1), con la composición de división YA actualizada.
+    recalculateSportingGoalsForDivision(teamsByDivision['1ª'], CONFIG_BASE);
+    recalculateSportingGoalsForDivision(teamsByDivision['2ª'], CONFIG_BASE);
+
+    // 3. Cantera/Academia de la nueva temporada (3.4.4 paso 2) — conecta
+    // Team.generateAcademyIntake() tal cual, sin ninguna regla nueva.
+    allTeams.forEach((team) => team.generateAcademyIntake());
+
+    // 4. Nuevo Calendar (3.4.4 paso 3).
+    state.seasonStartYear += 1;
+    state.calendar = new Calendar(state.seasonStartYear, CONFIG_BASE);
+
+    // 5. Nuevas League para 1ª y 2ª (3.4.4 paso 4) — standings a cero,
+    // currentRound = 1, reutilizando League.js tal cual.
+    state.leagues = {
+      '1ª': new League(teamsByDivision['1ª'], (round) => state.calendar.leagueRoundDate(round)),
+      '2ª': new League(teamsByDivision['2ª'], (round) => state.calendar.leagueRoundDate(round)),
+    };
+
+    // 6. Reset de brackets de ambas divisiones (3.4.4 paso 5).
+    state.brackets = {
+      '1ª': { cup: null, titlePlayoff: null },
+      '2ª': { promotionPlayoff: null },
+    };
+
+    // 7. state.userTeamId NO cambia (sigue siendo su mismo equipo); si
+    // ascendió/descendió, state.division le sigue para que "su" liga
+    // siga siendo la visible (3.4.2 punto 4).
+    const userTeam = allTeams.find((team) => team.id === state.userTeamId);
+    const summary = {
+      promoted: promotedTeams.map((team) => team.fullName),
+      relegated: relegatedTeams.map((team) => team.fullName),
+      userTeamDivision: userTeam ? userTeam.division : null,
+    };
+    if (userTeam) state.division = userTeam.division;
+
+    state.lastRoundMatches = null;
+    state.pendingUserMatch = null;
+    state.matchReveal = null;
+    state.seasonCloseSummary = summary;
+
+    goToScreen('home');
   }
 
   // Puente entre el shape de Bracket/PromotionPlayoff.playNextGame()
@@ -360,7 +576,7 @@
   // ---------------------------------------------------------------------
   function renderHomeScreen() {
     const container = byId('gm-home');
-    const league = state.league;
+    const league = getUserLeague();
     const team = getUserTeam();
     const standings = league.getStandingsTable();
     const userRank = standings.findIndex((s) => s.team.id === team.id) + 1;
@@ -382,19 +598,33 @@
         ? `<p>${matchLabel(userNextMatch, team.id)}</p>`
         : '<p class="gm-muted">Tu equipo descansa esta jornada.</p>';
 
+    // DESIGN.md 3.4.2/3.4: cuando las DOS divisiones han terminado su liga
+    // regular y TODOS sus brackets, la tarjeta principal se convierte en
+    // el aviso de cierre de ciclo — manda incluso sobre un bracket propio
+    // ya terminado (activeBracket sería null en ese caso de todos modos,
+    // ver getActiveBracket) y sobre la jornada de liga.
+    const seasonReadyToClose = isSeasonFullyClosable();
+
     // Mientras haya un bracket (Copa/Playoff/Ascenso) activo y sin
     // terminar, la tarjeta principal de Home se convierte en "el partido
     // que toca ahora" de ese bracket, en vez de la jornada de liga —
     // el usuario no tiene que ir a Competiciones a buscarlo.
-    const primaryCardHtml = activeBracket
+    const primaryCardHtml = seasonReadyToClose
       ? `
+        <div class="gm-card">
+          <h3>Temporada terminada</h3>
+          <p class="gm-muted">1ª y 2ª división han terminado su liga regular y sus competiciones. Cierra la temporada para aplicar ascensos/descensos reales y empezar la siguiente.</p>
+          <button id="gm-close-season-btn" class="gm-btn gm-btn--primary">Cerrar temporada y empezar la siguiente</button>
+        </div>`
+      : activeBracket
+        ? `
         <div class="gm-card">
           <h3>${activeBracket.title} — ${activeBracket.roundLabel}</h3>
           <p class="gm-muted">Competición en marcha. La liga regular espera a que termine.</p>
           <button id="gm-play-bracket-btn" class="gm-btn gm-btn--primary">Jugar siguiente partido</button>
           <button id="gm-goto-lineup-btn" class="gm-btn">Configurar alineación</button>
         </div>`
-      : `
+        : `
         <div class="gm-card">
           <h3>Jornada ${Math.min(league.currentRound, league.totalRounds)} / ${league.totalRounds}</h3>
           ${nextMatchHtml}
@@ -403,6 +633,19 @@
           </button>
           ${league.isSeasonComplete ? '' : '<button id="gm-goto-lineup-btn" class="gm-btn">Configurar alineación</button>'}
         </div>`;
+
+    // Resumen del último cierre de temporada (DESIGN.md 3.4: "el usuario
+    // debe ver que ha pasado algo") — visible hasta que juegue la
+    // siguiente jornada (se limpia en simulateNextRound()).
+    const seasonCloseSummaryHtml = state.seasonCloseSummary
+      ? `
+        <div class="gm-card">
+          <h3>Resumen del cierre de temporada</h3>
+          <p><strong>Ascienden a 1ª:</strong> ${state.seasonCloseSummary.promoted.join(', ')}</p>
+          <p><strong>Descienden a 2ª:</strong> ${state.seasonCloseSummary.relegated.join(', ')}</p>
+          ${state.seasonCloseSummary.userTeamDivision ? `<p>Tu equipo, ${team.fullName}, juega ahora en <strong>${state.seasonCloseSummary.userTeamDivision} división</strong>.</p>` : ''}
+        </div>`
+      : '';
 
     container.innerHTML = `
       <div class="home-hero">
@@ -420,6 +663,7 @@
 
       <div class="home-grid">
         ${primaryCardHtml}
+        ${seasonCloseSummaryHtml}
 
         <div class="gm-card">
           <h3>Última jornada</h3>
@@ -427,6 +671,11 @@
         </div>
       </div>
     `;
+
+    const closeSeasonBtn = byId('gm-close-season-btn');
+    if (closeSeasonBtn) {
+      closeSeasonBtn.addEventListener('click', () => closeSeasonAndPrepareNext());
+    }
 
     const bracketBtn = byId('gm-play-bracket-btn');
     if (bracketBtn) {
@@ -483,7 +732,7 @@
 
   function renderCalendarScreen() {
     const container = byId('gm-calendar');
-    const league = state.league;
+    const league = getUserLeague();
     const team = getUserTeam();
 
     const teamMatches = league.schedule
@@ -566,7 +815,8 @@
 
   function renderCompetitionsScreen() {
     const container = byId('gm-competitions');
-    const league = state.league;
+    const league = getUserLeague();
+    const brackets = getBrackets(state.division);
     const team = getUserTeam();
     const activeTab = container.dataset.activeTab || 'league';
 
@@ -584,29 +834,29 @@
     if (activeTab === 'league') {
       body = renderStandingsTable(league, team.id);
     } else if (activeTab === 'cup') {
-      body = state.cup
-        ? bracketHtml(state.cup.getStatus(), ['Cuartos de final', 'Semifinales', 'Final'])
+      body = brackets.cup
+        ? bracketHtml(brackets.cup.getStatus(), ['Cuartos de final', 'Semifinales', 'Final'])
         : '<p class="gm-muted">La Copa se disputa al llegar a la jornada 17 de liga regular. Todavía no se ha alcanzado.</p>';
-      if (state.cup && !state.cup.isComplete) {
+      if (brackets.cup && !brackets.cup.isComplete) {
         body += `<button id="gm-advance-cup-btn" class="gm-btn">Jugar siguiente partido de la Copa</button>`;
       }
     } else if (activeTab === 'playoffs') {
-      body = state.titlePlayoff
-        ? bracketHtml(state.titlePlayoff.getStatus(), ['Cuartos de final', 'Semifinales', 'Final'])
+      body = brackets.titlePlayoff
+        ? bracketHtml(brackets.titlePlayoff.getStatus(), ['Cuartos de final', 'Semifinales', 'Final'])
         : '<p class="gm-muted">El playoff por el título se disputa al terminar la liga regular (jornada 34).</p>';
-      if (state.titlePlayoff && !state.titlePlayoff.isComplete) {
+      if (brackets.titlePlayoff && !brackets.titlePlayoff.isComplete) {
         body += `<button id="gm-advance-playoff-btn" class="gm-btn">Jugar siguiente partido del playoff</button>`;
       }
     } else if (activeTab === 'promotion') {
-      if (!state.promotionPlayoff) {
+      if (!brackets.promotionPlayoff) {
         body = '<p class="gm-muted">El playoff de ascenso se disputa al terminar la liga regular (jornada 34).</p>';
       } else {
-        const status = state.promotionPlayoff.getStatus();
+        const status = brackets.promotionPlayoff.getStatus();
         body = `<p class="gm-champion">Asciende directo: ${status.directPromotion.team.fullName}</p>`
           + bracketHtml(status.quarterFinals, ['Cuartos de ascenso (mejor de 5)'])
           + (status.finalFour ? bracketHtml(status.finalFour, ['Semifinales (Final Four)', 'Final (Final Four)']) : '<p class="gm-muted">La Final Four se arma al completar los cuartos.</p>')
           + (status.secondPromotedEntry ? `<p class="gm-champion">🏀 2º ascendido: ${status.secondPromotedEntry.team.fullName}</p>` : '');
-        if (!state.promotionPlayoff.isComplete) {
+        if (!brackets.promotionPlayoff.isComplete) {
           body += `<button id="gm-advance-promotion-btn" class="gm-btn">Jugar siguiente partido del ascenso</button>`;
         }
       }
@@ -635,13 +885,13 @@
     };
 
     const cupBtn = byId('gm-advance-cup-btn');
-    if (cupBtn) cupBtn.addEventListener('click', () => advanceBracket(state.cup));
+    if (cupBtn) cupBtn.addEventListener('click', () => advanceBracket(brackets.cup));
 
     const playoffBtn = byId('gm-advance-playoff-btn');
-    if (playoffBtn) playoffBtn.addEventListener('click', () => advanceBracket(state.titlePlayoff));
+    if (playoffBtn) playoffBtn.addEventListener('click', () => advanceBracket(brackets.titlePlayoff));
 
     const promoBtn = byId('gm-advance-promotion-btn');
-    if (promoBtn) promoBtn.addEventListener('click', () => advanceBracket(state.promotionPlayoff));
+    if (promoBtn) promoBtn.addEventListener('click', () => advanceBracket(brackets.promotionPlayoff));
   }
 
   // ---------------------------------------------------------------------
@@ -713,26 +963,26 @@
     return [...totals.values()];
   }
 
-  // Formato de minutos jugados (retoques de estadísticas) — decisión NO
-  // fijada con Dennis, señalada explícitamente (el prompt de esta sesión
-  // pedía confirmar MM:SS vs. minutos con un decimal antes de fijarlo, y
-  // no bloquear la implementación por eso): se elige minutos con un
-  // decimal (ej. "32.4"), formato habitual de tabla de medias de
-  // temporada real (ACB/Euroliga); MM:SS es más propio de la ficha de UN
-  // partido concreto. Si Dennis prefiere MM:SS, cambiar aquí y en
-  // formatMinutesSingle (post-partido) es el único punto a tocar.
-  function formatMinutesDecimal(minutes) {
-    return minutes.toFixed(1);
+  // Formato de minutos jugados: MM:SS (ej. "32:24") — decisión de Dennis,
+  // sustituye al formato decimal (ej. "32.4") que había quedado pendiente
+  // de confirmar en la sesión de retoques de estadísticas. Los datos de
+  // origen (segundos, `boxScore[].minutesPlayed`) no cambian, solo el
+  // formateo aquí. Usado tanto en el boxScore de partido como en las
+  // medias de temporada (ambos pasan por formatMinutesSingle) — un único
+  // punto a tocar si el formato cambia otra vez.
+  function formatMinutesMMSS(totalSeconds) {
+    const wholeSeconds = Math.round(totalSeconds);
+    const minutes = Math.floor(wholeSeconds / 60);
+    const seconds = wholeSeconds % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
   }
 
-  // Minutos de UN partido (no media de temporada) — mismo criterio de
-  // formato que formatMinutesDecimal, `null` (sin alineación real ese
-  // lado) se muestra como "—" en vez de "0.0" para no confundir "no
-  // disponible" con "0 minutos jugados" (DESIGN.md, retoques de
-  // estadísticas, punto 1).
+  // `null` (sin alineación real ese lado) se muestra como "—" en vez de
+  // "0:00" para no confundir "no disponible" con "0 minutos jugados"
+  // (DESIGN.md, retoques de estadísticas, punto 1).
   function formatMinutesSingle(seconds) {
     if (seconds === null || seconds === undefined) return '—';
-    return formatMinutesDecimal(seconds / 60);
+    return formatMinutesMMSS(seconds);
   }
 
   // Los brackets (Copa/Playoffs/Ascenso) guardan sus partidos jugados
@@ -804,13 +1054,14 @@
       tabsAvailable.push({ id: 'promotion', label: 'Ascenso' });
     }
 
+    const brackets = getBrackets(state.division);
     let playedMatches = [];
-    if (competition === 'league') playedMatches = state.league.schedule.filter((m) => m.status === 'played');
-    else if (competition === 'cup') playedMatches = getBracketPlayedMatches(state.cup);
-    else if (competition === 'playoffs') playedMatches = getBracketPlayedMatches(state.titlePlayoff);
+    if (competition === 'league') playedMatches = getUserLeague().schedule.filter((m) => m.status === 'played');
+    else if (competition === 'cup') playedMatches = getBracketPlayedMatches(brackets.cup);
+    else if (competition === 'playoffs') playedMatches = getBracketPlayedMatches(brackets.titlePlayoff);
     else if (competition === 'promotion') {
-      playedMatches = state.promotionPlayoff
-        ? [...getBracketPlayedMatches(state.promotionPlayoff.quarterFinals), ...getBracketPlayedMatches(state.promotionPlayoff.finalFour)]
+      playedMatches = brackets.promotionPlayoff
+        ? [...getBracketPlayedMatches(brackets.promotionPlayoff.quarterFinals), ...getBracketPlayedMatches(brackets.promotionPlayoff.finalFour)]
         : [];
     }
 
@@ -1040,9 +1291,10 @@
     const nextMatchHtml = activeBracket
       ? `<p>${activeBracket.title} — ${activeBracket.roundLabel}</p>`
       : (() => {
-        const nextMatches = state.league.isSeasonComplete ? [] : state.league.getCurrentRoundMatches();
+        const league = getUserLeague();
+        const nextMatches = league.isSeasonComplete ? [] : league.getCurrentRoundMatches();
         const userNextMatch = nextMatches.find((m) => m.homeTeam.id === team.id || m.awayTeam.id === team.id);
-        return state.league.isSeasonComplete
+        return league.isSeasonComplete
           ? '<p class="gm-muted">Liga regular terminada.</p>'
           : userNextMatch
             ? `<p>${matchLabel(userNextMatch, team.id)}</p>`
@@ -1280,34 +1532,36 @@
   // es siempre el OTRO equipo del partido, desde la perspectiva de `team`
   // (cada lado calcula su propia importancia de partido, pueden diferir).
   // `competition`: 'league' evalúa objetivo de temporada/clasificación;
-  // cualquier otro valor ('bracket', usado abajo) es siempre clave.
-  function buildCpuSideOptions(team, opponent, competition) {
+  // cualquier otro valor ('bracket', usado abajo) es siempre clave. `league`
+  // (DESIGN.md 3.4.1): la de la división de ESE partido — la visible o la
+  // de fondo, nunca asumida como "state.league" a secas (ya no existe).
+  function buildCpuSideOptions(team, opponent, competition, league) {
     const { buildCpuLineup, computeMatchImportance, CONFIG_BASE } = BM;
-    const standingsTable = state.league.getStandingsTable();
+    const standingsTable = league.getStandingsTable();
     const matchImportance = computeMatchImportance(team, opponent, competition, standingsTable, CONFIG_BASE);
     return buildCpuLineup(team, matchImportance, CONFIG_BASE);
   }
 
-  // Construye, a partir de la última alineación guardada por el usuario
-  // (state.lineup), los dos resolvers de opciones de MatchEngine — punto
-  // único compartido por Home, la pantalla de Alineación y los botones de
-  // bracket, para no duplicar esta lógica (DESIGN.md 7.11.6). El lado del
-  // equipo del usuario usa siempre su alineación guardada; CUALQUIER OTRO
-  // lado (el rival directo del usuario, y los dos lados de cualquier otro
-  // partido de la misma jornada/bracket que no lo involucre) usa ahora
-  // CpuLineup.buildCpuLineup (DESIGN.md 7.11.7) — antes de esta sesión esos
-  // partidos recibían `undefined` y caían en el placeholder sin rotación
-  // real. resolveMatchOptions tiene el shape que espera
-  // League.simulateNextRound(match); resolveBracketOptions, el que espera
-  // Bracket.playNextGame(homeEntry, awayEntry).
-  function buildLineupMatchOptionsResolver(team) {
-    const { squad, lineup } = buildUserSideOptions(team);
+  // Resolver de opciones de MatchEngine compartido por CUALQUIER partido
+  // de CUALQUIER división (DESIGN.md 3.4.1) — punto único, no uno para la
+  // liga visible y otro para la de fondo. `userTeam` (opcional): si se
+  // pasa, ESE lado usa siempre la alineación guardada por el usuario
+  // (`state.lineup`); cualquier otro lado (el rival directo, cualquier
+  // otro partido de la misma jornada/bracket, o AMBOS lados si `userTeam`
+  // se omite — la división de fondo, que el usuario no juega) usa
+  // `CpuLineup.buildCpuLineup` (DESIGN.md 7.11.7). resolveMatchOptions
+  // tiene el shape que espera League.simulateNextRound(match);
+  // resolveBracketOptions, el que espera Bracket.playNextGame(homeEntry, awayEntry).
+  function buildMatchOptionsResolver(league, userTeam) {
+    const userSide = userTeam ? buildUserSideOptions(userTeam) : null;
 
     function sideOptions(sideTeam, opponentTeam, isHome, competition) {
-      if (sideTeam.id === team.id) {
-        return isHome ? { homeSquad: squad, homeLineup: lineup } : { awaySquad: squad, awayLineup: lineup };
+      if (userSide && sideTeam.id === userTeam.id) {
+        return isHome
+          ? { homeSquad: userSide.squad, homeLineup: userSide.lineup }
+          : { awaySquad: userSide.squad, awayLineup: userSide.lineup };
       }
-      const cpu = buildCpuSideOptions(sideTeam, opponentTeam, competition);
+      const cpu = buildCpuSideOptions(sideTeam, opponentTeam, competition, league);
       return isHome ? { homeSquad: cpu.squad, homeLineup: cpu.lineup } : { awaySquad: cpu.squad, awayLineup: cpu.lineup };
     }
 
@@ -1325,6 +1579,19 @@
         };
       },
     };
+  }
+
+  // Resolver para la división visible: el lado de `team` (equipo del
+  // usuario) usa su alineación guardada, cualquier otro lado usa CPU.
+  function buildLineupMatchOptionsResolver(team) {
+    return buildMatchOptionsResolver(getUserLeague(), team);
+  }
+
+  // Resolver para la división de fondo (simulateBackgroundRound): AMBOS
+  // lados de CUALQUIER partido usan CpuLineup — el usuario no juega esta
+  // división, así que no hay ningún `userTeam` que preservar.
+  function buildCpuOnlyResolver(league) {
+    return buildMatchOptionsResolver(league, null);
   }
 
   function playNextMatchWithLineup(team) {
@@ -1378,7 +1645,8 @@
       btn.addEventListener('click', () => goToScreen(btn.dataset.screen));
     });
     byId('gm-back-to-team-select').addEventListener('click', () => {
-      state.league = null;
+      state.leagues = { '1ª': null, '2ª': null };
+      state.brackets = { '1ª': { cup: null, titlePlayoff: null }, '2ª': { promotionPlayoff: null } };
       state.userTeamId = null;
       goToScreen('team-select');
     });

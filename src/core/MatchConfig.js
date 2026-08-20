@@ -262,6 +262,15 @@
       lowEnergyThreshold: 30,
     },
 
+    // --- DESIGN.md 3.4.3: umbrales de señalFinal -> board.sportingGoal,
+    // recalculado en cada pretemporada (SeasonGoals.js). Valores de
+    // partida (tabla de 3.4.3), ajustables sin tocar código.
+    seasonGoals: {
+      titleThreshold: 80, // señalFinal >= 80 -> Pelear por el título
+      playoffThreshold: 55, // 55-79 -> Optar a playoffs
+      stayUpThreshold: 30, // 30-54 -> Consolidarse en la categoría; <30 -> Evitar el descenso
+    },
+
     // --- 7.6 Bloque C: parámetros de las acciones especiales ---
     fastBreak: {
       windowSeconds: 3, // 7.6.14: primeros 3s de la posesión nueva
