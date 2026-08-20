@@ -27,6 +27,13 @@
   const RotationCore = (typeof module !== 'undefined' && module.exports)
     ? require('./Rotation.js')
     : global.BasketManager;
+  // DESIGN.md 7.12 (Sistema táctico, TAC-1): punto de enganche mínimo
+  // hacia el nuevo módulo — MatchEngine.js importa de Tactics.js, nunca al
+  // revés (7.12.2). Ver planPnrPossession() más abajo, único punto donde
+  // se le pregunta algo a este módulo.
+  const TacticsCore = (typeof module !== 'undefined' && module.exports)
+    ? require('./Tactics.js')
+    : global.BasketManager;
 
   const { TECHNICAL_ATTRIBUTES, PHYSICAL_ATTRIBUTES, MENTAL_ATTRIBUTES, POSITIONS } = PlayerCore;
   const { CONFIG_BASE, NEUTRAL_ATTRIBUTE } = ConfigCore;
@@ -34,6 +41,7 @@
     validateLineup, describeValidationErrors, buildRotationState, getOnCourtFive, accumulatePlayedTime,
     runSubstitutionWindow, isDeadBallStoppage, getPenalty,
   } = RotationCore;
+  const { planPnrPossession } = TacticsCore;
 
   // --- Lectura de atributos: cada nombre de MatchConfig se busca en el
   // grupo (technical/physical/mental) al que pertenece en Player.js, sin
@@ -676,7 +684,7 @@
     let pointsScored = 0;
     let defensePoints = 0; // puntos para el equipo defensor (solo vía falta técnica del atacante)
     const events = [];
-    const { pressure, offenseRotationState, defenseRotationState } = context;
+    const { pressure, offenseRotationState, defenseRotationState, offenseTacticalProfile, defenseTacticalProfile } = context;
 
     for (let iteration = 0; iteration < MAX_POSSESSION_ITERATIONS; iteration++) {
       const offenseFive = offenseRotationState ? getOnCourtFive(offenseRotationState) : selectOnCourtFive(offenseSquad);
@@ -687,11 +695,33 @@
       applyFatigueConsumption(offenseFive, config, buildPositionLookup(offenseRotationState));
       applyFatigueConsumption(defenseFive, config, buildPositionLookup(defenseRotationState));
 
-      const ballHandler = pickWeighted(offenseFive, usageWeight);
-      const onBallDefender = pickWeighted(defenseFive, onBallDefenderWeight);
+      // Elección de siempre (placeholder de uso/emparejamiento, sin
+      // cambios) — se calcula ANTES de preguntar a Tactics.js porque
+      // DefensivePlan la necesita de todos modos para construir la
+      // cobertura, y así se evita un segundo sorteo redundante cuando la
+      // posesión termina no siendo táctica (ver más abajo).
+      const defaultOnBallDefender = pickWeighted(defenseFive, onBallDefenderWeight);
+
+      // DESIGN.md 7.12 (TAC-1): SOLO en la primera iteración de la
+      // posesión se decide si es un Pick & Roll táctico (7.12.3, la capa
+      // táctica se resuelve antes del bucle 1v1, no en cada rebote
+      // ofensivo posterior — una segunda oportunidad tras un rebote es ya
+      // un scramble, no la misma lectura de P&R). `null` si el equipo
+      // ofensivo no tiene TacticalProfile o no tocó pnrFrequency — en ese
+      // caso ballHandler/onBallDefender se eligen EXACTAMENTE como antes
+      // de esta entrega (7.12.34, compatibilidad).
+      const tacticalPlan = iteration === 0 ? planPnrPossession({
+        offenseTacticalProfile, defenseTacticalProfile, offenseFive, defenseFive,
+        onBallDefender: defaultOnBallDefender,
+        config, pressure, computeMixRating, getAttribute, usageWeight,
+        offenseRotationState, defenseRotationState,
+      }) : null;
+
+      let ballHandler = tacticalPlan ? tacticalPlan.handler : pickWeighted(offenseFive, usageWeight);
+      let onBallDefender = tacticalPlan ? tacticalPlan.effectiveOnBallDefender : defaultOnBallDefender;
       // 7.11.3 (C.3): penalización activa de cada uno si está cubriendo una
       // posición de emergencia — 0 si no hay alineación o no aplica.
-      const ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
+      let ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
       const onBallDefenderPenalty = getPenalty(defenseRotationState, onBallDefender.id);
       const playersById = new Map(offenseFive.concat(defenseFive).map((p) => [p.id, p]));
 
@@ -765,14 +795,53 @@
         return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true };
       }
 
+      // DESIGN.md 7.12.4 (TAC-1): resultado de la jugada de P&R, según la
+      // bifurcación de AdvantageState ya calculada en tacticalPlan.read.
+      // Regla dura de 7.12.3: la capa táctica NO decide si el tiro entra,
+      // solo QUIÉN tira, CONTRA QUIÉN y con QUÉ PENALIZACIÓN de contexto —
+      // el catálogo de 7.6 (más abajo) sigue siendo idéntico para las 3
+      // ramas. Sin tacticalPlan (posesión no táctica, o iteración > 0 tras
+      // un rebote ofensivo), ninguna de las tres variables cambia de su
+      // valor de siempre.
+      let tacticalShotDefenderOverride = null;
+      let tacticalExtraShotDefenderPenalty = 0;
+      let tacticalForcedShotType = null;
+      if (tacticalPlan) {
+        if (tacticalPlan.read === 'clear') {
+          // Ventaja clara/defensa rota: el screener recibe la posesión
+          // como "roller" — reasigna QUIÉN es el `ballHandler` del resto
+          // de esta iteración (así todo lo que viene después — registro
+          // de tiro, asistencia, desgaste, tiros libres — atribuye
+          // correctamente la jugada al roller, sin duplicar ningún
+          // resolver).
+          ballHandler = tacticalPlan.screener;
+          ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
+          tacticalShotDefenderOverride = tacticalPlan.rollerDefender;
+          tacticalForcedShotType = tacticalPlan.forcedShotType; // solo insideShot|layup, ver Tactics.js
+        } else {
+          // Ventaja baja/nula o pequeña: el handler sigue con el tiro,
+          // contra el defensor real asignado por la cobertura (no un
+          // pickWeighted independiente) — en "pequeña ventaja" llega
+          // marcado como "en recuperación" vía una penalización de
+          // contexto adicional sobre el MISMO mecanismo de penalty ya
+          // existente (nunca un canal paralelo, ver DESIGN.md 7.12.4).
+          tacticalShotDefenderOverride = tacticalPlan.effectiveOnBallDefender;
+          if (tacticalPlan.read === 'small') {
+            tacticalExtraShotDefenderPenalty = config.tactics.advantage.recoveringDefenderPenalty;
+          }
+        }
+      }
+
       // Selección de tiro (heurística de Fase 1: ponderada por el propio
-      // atributo de tiro del jugador, no un sistema de tácticas de ataque).
-      const shotType = pickShotType(ballHandler);
+      // atributo de tiro del jugador, no un sistema de tácticas de ataque;
+      // `tacticalForcedShotType` la sustituye solo en la rama de ventaja
+      // clara de un P&R, ver arriba).
+      const shotType = tacticalForcedShotType || pickShotType(ballHandler);
       const isPerimeterShot = shotType === 'threePointShot' || shotType === 'midRangeShot';
-      const shotDefender = isPerimeterShot
+      const shotDefender = tacticalShotDefenderOverride || (isPerimeterShot
         ? pickWeighted(defenseFive, (p) => getAttribute(p, 'perimeterDefense') + 1)
-        : pickWeighted(defenseFive, (p) => getAttribute(p, 'interiorDefense') + 1);
-      const shotDefenderPenalty = getPenalty(defenseRotationState, shotDefender.id);
+        : pickWeighted(defenseFive, (p) => getAttribute(p, 'interiorDefense') + 1));
+      const shotDefenderPenalty = getPenalty(defenseRotationState, shotDefender.id) + tacticalExtraShotDefenderPenalty;
 
       // 7.6.14: Contraataque — solo en la primera iteración de una posesión
       // nueva elegible, dentro de la ventana de segundos configurada.
@@ -966,9 +1035,20 @@
   // vez de aceptar una alineación inconsistente en silencio. Si se omite,
   // el equipo se comporta exactamente como hasta ahora (selectOnCourtFive
   // placeholder, sin rotación real).
+  // `options.homeTacticalProfile`/`awayTacticalProfile` (DESIGN.md 7.12,
+  // TAC-1, opcionales): instancia de Tactics.TacticalProfile para ese
+  // lado. Sin ella, ese equipo nunca activa un Pick & Roll táctico y el
+  // bucle 1v1 de siempre queda exactamente igual (7.12.34, compatibilidad
+  // con partidas sin perfil) — mismo patrón que homeLineup/awayLineup.
+  // Pasado por `options` en vez de leído de `homeTeam`/`awayTeam` porque
+  // esta entrega no toca `src/entities/Team.js` (fuera de los archivos
+  // permitidos en TAC-1); persistirlo en el equipo es trabajo de una
+  // sesión de UI/estado futura.
   function simulateMatch(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
     const homeSquad = options.homeSquad || defaultMatchSquad(homeTeam);
     const awaySquad = options.awaySquad || defaultMatchSquad(awayTeam);
+    const homeTacticalProfile = options.homeTacticalProfile || null;
+    const awayTacticalProfile = options.awayTacticalProfile || null;
 
     [
       { lineup: options.homeLineup, label: `local (${homeTeam.fullName})` },
@@ -1056,6 +1136,11 @@
           defenseSide,
           offenseRotationState: offenseSide === 'home' ? homeRotationState : awayRotationState,
           defenseRotationState: offenseSide === 'home' ? awayRotationState : homeRotationState,
+          // DESIGN.md 7.12 (TAC-1): perfil táctico de cada lado EN ESTA
+          // posesión concreta (el ofensivo decide si se intenta P&R; el
+          // defensivo decide con qué cobertura, con fallback si no tiene).
+          offenseTacticalProfile: offenseSide === 'home' ? homeTacticalProfile : awayTacticalProfile,
+          defenseTacticalProfile: offenseSide === 'home' ? awayTacticalProfile : homeTacticalProfile,
         };
 
         const result = simulatePossession(
@@ -1157,7 +1242,14 @@
     };
   }
 
-  const exportsObj = { simulateMatch, defaultMatchSquad };
+  // `computeMixRating`/`getAttribute` se exportan además de
+  // `simulateMatch`/`defaultMatchSquad` únicamente para poder verificar en
+  // aislamiento los invariantes de balance de DESIGN.md 7.12.31 (Tactics.js,
+  // TAC-1) con un script Node dedicado, sin depender del ruido de simular
+  // partidos completos — no cambian de comportamiento, ni se usan desde
+  // ningún sitio nuevo de producción; MatchEngine.simulateMatch les sigue
+  // llamando exactamente igual que antes.
+  const exportsObj = { simulateMatch, defaultMatchSquad, computeMixRating, getAttribute };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

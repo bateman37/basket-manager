@@ -209,6 +209,10 @@
   <script src="src/core/SeasonGoals.js"></script>
   <script src="src/core/Recovery.js"></script>
   <script src="src/core/Calendar.js"></script>
+  <!-- DESIGN.md 7.12 (Sistema táctico, TAC-1): Tactics.js debe cargarse
+       antes que MatchEngine.js — en el navegador, MatchEngine.js lee
+       planPnrPossession() de global.BasketManager, que este script rellena. -->
+  <script src="src/core/Tactics.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script src="src/core/League.js"></script>
   <script src="src/core/Bracket.js"></script>
