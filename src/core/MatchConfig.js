@@ -551,6 +551,125 @@
         method: 'emergent', // no se evalúa con una fórmula propia, ver nota arriba
       },
     },
+
+    // --- DESIGN.md 7.12 (Sistema táctico) — TAC-1: núcleo táctico de
+    // posesión (7.12.33). Todos los pesos/umbrales aquí son valores de
+    // partida "pendientes de calibración (7.12.31)" — 7.12 fija la
+    // ESTRUCTURA (qué señales entran, en qué dirección), no las cifras
+    // finales, igual que 7.6 (ver comentario al principio de `actions`).
+    tactics: {
+      // Probabilidad de que una posesión de un equipo CON TacticalProfile
+      // se resuelva como Pick & Roll central en vez del bucle 1v1 normal —
+      // pendiente de calibración (7.12.31), valor de partida razonable.
+      pnrFrequency: 0.3,
+      // Cobertura de DefensivePlan cuando el equipo defensor no tiene
+      // TacticalProfile asignado (DESIGN.md 7.12.16, punto 3 del prompt
+      // de esta sesión) — Drop es la cobertura "por defecto" real más
+      // habitual, no una cifra arbitraria.
+      defaultCoverage: 'drop',
+
+      // Mezcla de atributos del HANDLER para medir cuánto explota cada
+      // cobertura (7.12.16 "vulnerabilidades emergentes") — mismo shape
+      // que `primary`/`secondary` de `actions`, consumida por
+      // Tactics.computeAdvantageScore vía MatchEngine.computeMixRating
+      // (no se duplica esa función, se le pasa esta mezcla como dato).
+      // 'hedge' comparte literalmente los valores de 'blitz' (7.12.16 los
+      // agrupa como "Hedge/Blitz", misma vulnerabilidad) — no hace falta
+      // diferenciarlos todavía, ver Tactics.js.
+      coverageHandlerMix: {
+        // Drop: el big protege el aro: pull-up/floater de media distancia
+        // o exterior es la vulnerabilidad (7.12.16, 7.12.31 invariante 1).
+        drop: { midRangeShot: 0.4, outsideShot: 0.3, gameVision: 0.3 },
+        // Under: concede más el exterior a propósito — castigable por un
+        // gran tirador (7.12.31 invariante 4).
+        under: { outsideShot: 0.6, midRangeShot: 0.3, gameVision: 0.1 },
+        // Switch: no hay ventaja de tiro inmediata que buscar — el
+        // handler sondea el mismatch en vez de tirar directo (7.12.31
+        // invariante 3; el mismatch en sí lo mide computeAdvantageScore
+        // sobre los DEFENSORES, no aquí).
+        switch: { ballHandling: 0.4, gameVision: 0.35, passing: 0.25 },
+        // Hedge/Blitz: dos defensores sobre el balón — la vulnerabilidad
+        // es la lectura rápida del short-roll/4v3 (7.12.31 invariante 2),
+        // no el tiro directo del handler.
+        hedge: { gameVision: 0.5, passing: 0.5 },
+        blitz: { gameVision: 0.5, passing: 0.5 },
+      },
+      // Mezcla de atributos del SCREENER — genérica (no varía por
+      // cobertura en TAC-1): capacidad de leer el roll y finalizar cerca
+      // del aro.
+      screenerMix: { gameVision: 0.3, passing: 0.3, insideShot: 0.2, layup: 0.2 },
+
+      // Mezcla de atributos del defensor que ejecuta cada cobertura sobre
+      // el HANDLER (rol "on-ball" tras aplicar el cambio de Switch, ver
+      // Tactics.computeAdvantageScore).
+      coverageDefenderMix: {
+        drop: { perimeterDefense: 0.5, anticipation: 0.3, workRate: 0.2 },
+        under: { perimeterDefense: 0.6, anticipation: 0.4 },
+        // Switch: mezcla deliberadamente orientada a defensa PERIMETRAL —
+        // el mismatch real (7.12.31 invariante 3) sale de evaluar a un
+        // interior con esta mezcla cuando es él quien queda tras el
+        // cambio (ver nota en Tactics.computeAdvantageScore).
+        switch: { perimeterDefense: 0.6, agility: 0.4 },
+        hedge: { perimeterDefense: 0.4, aggressiveness: 0.3, anticipation: 0.3 },
+        blitz: { perimeterDefense: 0.4, aggressiveness: 0.3, anticipation: 0.3 },
+      },
+      // Mezcla del defensor del bloqueador en su rol "roll" (tras Switch,
+      // el ORIGINAL onBallDefender pasa a este rol — ver nota de mismatch).
+      screenerDefenderMix: { interiorDefense: 0.5, strength: 0.3, blocking: 0.2 },
+
+      advantage: {
+        // advantageScore base por cobertura ANTES de factorizar atributos
+        // (7.12.16): cuanto más agresiva/comprometida la cobertura, más
+        // negativo el punto de partida para el ataque (Blitz > Switch >
+        // Drop > Under) — pendiente de calibración masiva (7.12.31).
+        coverageBaseScore: {
+          drop: -0.1,
+          under: 0.05,
+          switch: -0.2,
+          hedge: -0.35,
+          blitz: -0.35,
+        },
+        // Pesos de la combinación handler+screener (ataque) y
+        // onBallDefender+screenerDefender (defensa) en sus roles
+        // efectivos — deben sumar 1 cada pareja.
+        handlerWeight: 0.7,
+        screenerWeight: 0.3,
+        onBallDefenderWeight: 0.6,
+        screenerDefenderWeight: 0.4,
+        // Sensibilidad de advantageScore a la diferencia de rating
+        // ofensivo/defensivo (mismo papel que `sensitivity` en `actions`,
+        // pero en una escala mayor a propósito: aquí el rango objetivo es
+        // -1..+1 completo, no una probabilidad 0-1 con un intercepto que
+        // ya absorbe la mayor parte del valor). Calibrado empíricamente
+        // (script Node dedicado) para que una diferencia de atributos
+        // realista entre dos jugadores (≈5-9 puntos de rating en la
+        // mezcla relevante) sea suficiente para cruzar de una rama de
+        // lectura a la siguiente — pendiente de calibración masiva
+        // (7.12.31), esto es un punto de partida verificado, no una cifra
+        // cerrada.
+        sensitivity: 0.1,
+        // Ruido gaussiano pequeño (7.5-bis, variabilidad de ejecución) —
+        // sigma fijo en TAC-1 (la familiaridad/consistencia por jugada es
+        // TAC-6, no varía por jugador todavía).
+        noiseSigma: 0.08,
+        // Umbrales de bifurcación de lectura (7.12.4): por debajo de
+        // `smallAdvantage`, rama de ventaja baja/nula; entre ambos,
+        // pequeña ventaja; por encima de `clearAdvantage`, ventaja clara/
+        // defensa rota. Pendientes de calibración (7.12.31) — no hay cifra
+        // cerrada en DESIGN.md para esta separación.
+        thresholds: {
+          smallAdvantage: 0.15,
+          clearAdvantage: 0.5,
+        },
+        // Penalización de rating (puntos, escala 1-20 — mismo orden de
+        // magnitud que emergencyVersatility.basePenaltyByDistance más
+        // abajo) aplicada al defensor cuando la lectura es "pequeña
+        // ventaja": "defensor llega tarde" (7.12.4) se traduce como un
+        // contexto de penalización adicional sobre el MISMO mecanismo ya
+        // existente (computeMixRating/penalty), no un canal paralelo.
+        recoveringDefenderPenalty: 1.5,
+      },
+    },
   };
 
   // Hueco para modificadores multiplicativos por competición (7.2) — NO

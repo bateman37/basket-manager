@@ -1345,3 +1345,165 @@ se ha tocado (confirmado con `git diff --stat`).
     han tocado — todo el cambio vive en `game.js` y en el `SeasonGoals.js`
     nuevo (más una constante nueva en `MatchConfig.js`, pedida
     explícitamente por el Bloque 2).
+
+## 2026-08-20 (2) — TAC-1: núcleo táctico de posesión — Pick & Roll (DESIGN.md 7.12.33)
+
+Primera entrega de las 7 planificadas del sistema táctico (7.12). Solo lo
+mínimo de esta entrega: cobertura de P&R por equipo, quién participa en un
+Pick & Roll central y con qué ventaja/lectura se resuelve — sin spacing,
+roles, playbook, defensa avanzada, IA táctica ni Data Hub (eso es TAC-2 a
+TAC-7, no adelantado).
+
+- **`src/core/Tactics.js`** (módulo nuevo, `MatchEngine.js` importa de
+  aquí, nunca al revés — 7.12.2):
+  - `TacticalProfile`: solo la cobertura de P&R por defecto del equipo
+    (`drop`/`under`/`switch`/`hedge`/`blitz`; `hedge` es alias de
+    comportamiento de `blitz` en esta entrega — High Drop/Show/ICE quedan
+    reservados en el catálogo pero sin comportamiento propio todavía).
+  - `PossessionPlan`: sortea si la posesión es un P&R central
+    (`config.tactics.pnrFrequency`) y elige `handler`/`screener` del
+    quinteto real (`getOnCourtFive` vía `MatchEngine`), con los mismos
+    criterios de peso que ya usaban `usageWeight`/`onBallDefenderWeight`.
+  - `DefensivePlan`: lee la cobertura del equipo defensor (fallback
+    `'drop'` si no tiene perfil) y elige `screenerDefender` del quinteto
+    real defensivo.
+  - `AdvantageState`: `advantageScore` (-1..+1) calculado UNA vez por
+    posesión de P&R, reutilizando `computeMixRating` (con Fatiga/
+    Consistencia/Presión de Momento ya incluidos, igual que el resto del
+    motor) y `Rotation.getPenalty()` (penalización de versatilidad,
+    7.11.3) — nunca reimplementados. Switch se modela como un
+    intercambio real de a quién se evalúa en qué rol (el defensor del
+    bloqueador pasa a ser el defensor de perímetro efectivo y viceversa),
+    no solo una etiqueta.
+  - Bifurcación de lectura en 3 ramas (`low`/`small`/`clear`) que decide
+    QUIÉN tira y CONTRA QUIÉN, resuelto siempre por el catálogo de
+    acciones YA EXISTENTE en `simulatePossession` (7.6) — esta capa nunca
+    decide si el tiro entra, ni inventa un resolver de tiro/pérdida/falta
+    nuevo (regla de integración #1, 7.12.30).
+- **`src/core/MatchEngine.js`**: puntos de enganche mínimos —
+  `options.homeTacticalProfile`/`awayTacticalProfile` en
+  `simulateMatch()`, `offenseTacticalProfile`/`defenseTacticalProfile` en
+  el contexto de posesión, y en `simulatePossession()` un `tacticalPlan`
+  que (solo si hay P&R) reasigna `ballHandler`/`onBallDefender`/
+  `shotDefender`/`shotType` justo antes de la selección de tiro existente,
+  sin duplicar ningún resolver de 7.6. Sin `TacticalProfile` asignado, el
+  bucle 1v1 de siempre queda exactamente igual (7.12.34).
+- **`src/core/MatchConfig.js`**: bloque `tactics` nuevo (pesos de mezcla
+  por cobertura, `pnrFrequency`, `advantageScore` — sensibilidad, ruido,
+  umbrales `smallAdvantage`/`clearAdvantage` — todo como datos, no lógica
+  hardcodeada en `MatchEngine.js`).
+- **`index.html`**: añadido `<script src="src/core/Tactics.js">` antes de
+  `MatchEngine.js` — **cambio no incluido en la lista de archivos
+  permitidos que pedía el prompt de esta sesión (solo `MatchConfig.js`/
+  `MatchEngine.js`/`Tactics.js`), señalado explícitamente aquí**: sin esta
+  línea, `MatchEngine.js` no encuentra `planPnrPossession` en el
+  navegador (patrón UMD, `global.BasketManager`) y CUALQUIER partido real
+  rompería. Es un cambio de cableado obligatorio, no una decisión de
+  diseño nueva.
+
+### Invariantes de balance demostrados (7.12.31), con script Node dedicado
+
+Script de verificación en el scratchpad de la sesión (no forma parte del
+repo, reutiliza `computeMixRating`/`getAttribute` — exportados de
+`MatchEngine.js` solo para poder testear `AdvantageState` en aislamiento
+sin el ruido de un partido completo):
+
+- **Invariante #1** (Drop explotable por un tirador): mismo handler y
+  screener, `advantageScore` medio: Drop `0.45`, Under `0.65`, Switch
+  `-0.07`, Blitz `-0.18` — un handler con gran tiro exterior saca más
+  ventaja de Drop/Under que de Switch/Blitz; sin amenaza exterior, Under
+  deja de ser aprovechable (invariante #4, usado para reforzar #1).
+- **Invariante #2** (Blitz premia pasadores capaces): con un roller de
+  gran VisiónJuego+Pase, Blitz sube a `advantageScore≈0.27` (frente a
+  `≈0.00` con un roller que no lee); en frecuencia de lectura sobre 300
+  posesiones, el roller inteligente produce lecturas `small`/`clear` en
+  ~287/300 frente a ~13/300 del roller que no lee.
+- **Invariante #3** (mismatch real de Switch): con un pívot lento de
+  defensor del bloqueador, Switch sube a `advantageScore≈0.28` (frente a
+  `≈-0.56` con un pívot móvil); en 60 posesiones de prueba forzando
+  Switch, ese pívot lento termina siendo el defensor real y efectivo del
+  balón (`effectiveOnBallDefender`) en ~53/60 — mismatch visible en el
+  resultado final, no solo en el número.
+- **Regresión**: sin `TacticalProfile` en ningún equipo,
+  `planPnrPossession()` devuelve `null` siempre (nunca sortea P&R); 12
+  partidos completos simulados sin ninguna opción táctica dan medias de
+  puntos/pérdidas por equipo en rango realista, igual que antes de esta
+  sesión.
+- Suite de regresión previa re-ejecutada
+  (`verify-real-data-import.js`, `test-season-cycle.js`, `test-phase2.js`):
+  sin cambios de comportamiento. Dos scripts de scratchpad muy antiguos
+  (`test-rotation-engine.js`, `test-player-team-relation.js`) fallan por
+  un formato de posiciones obsoleto anterior a la migración a mapa de
+  posiciones (6.1) — confirmado que fallan igual SIN los cambios de esta
+  sesión (`git stash`), no es una regresión de TAC-1.
+- Playwright: sesión completa (selección de equipo real, varias jornadas
+  jugadas sin ningún perfil táctico asignado) sin errores nuevos de
+  consola/página.
+- Confirmado con `git diff --stat` que solo `MatchConfig.js`,
+  `MatchEngine.js`, `Tactics.js` (nuevo) e `index.html` (una línea de
+  cableado, ver arriba) cambiaron — `Rotation.js`, `Recovery.js`,
+  `Calendar.js`, `League.js`, `Bracket.js`, `Cup.js`, `Playoffs.js`,
+  `Promotion.js`, `CpuLineup.js`, `game.js`, `Team.js` y `Player.js` no se
+  tocaron.
+
+### Decisiones/interpretaciones señaladas explícitamente (no cerradas como diseño definitivo)
+
+- **Todos los valores numéricos de `config.tactics`** (`pnrFrequency:
+  0.3`, `coverageBaseScore` por cobertura, `sensitivity: 0.1`,
+  `noiseSigma: 0.08`, `handlerWeight`/`screenerWeight`/
+  `onBallDefenderWeight`/`screenerDefenderWeight`, `thresholds.
+  smallAdvantage: 0.15`/`clearAdvantage: 0.5`, `recoveringDefenderPenalty:
+  1.5`) son valores de partida elegidos para poder demostrar los
+  invariantes de 7.12.31 con margen — **pendientes de calibración
+  (7.12.31)**, comentados así en el propio `MatchConfig.js`. `sensitivity`
+  y `clearAdvantage` se recalibraron una vez durante esta sesión
+  (`0.025→0.1`, `0.45→0.5`) porque los valores iniciales nunca dejaban que
+  ninguna diferencia de atributos realista cruzara el umbral.
+- **`hedge` como alias de comportamiento de `blitz`**: el catálogo de
+  7.12.16 los distingue, pero esta entrega no diferencia su
+  comportamiento — ambos usan las mismas fórmulas de `AdvantageState`.
+- **`TacticalProfile` no vive en `Team.js`**: 7.12.2 lo describe como
+  estado persistente del equipo/partida, pero la lista de archivos
+  permitidos de esta entrega no incluía `Team.js`/`Player.js`. Se pasa de
+  forma efímera por partido vía `options.homeTacticalProfile`/
+  `awayTacticalProfile` de `simulateMatch()` — mismo patrón que
+  `homeLineup`/`awayLineup` (7.11.5). Persistirlo en el equipo (con
+  pantalla propia) queda para una sesión de UI/estado futura (TAC-2+).
+- **Un P&R táctico solo se activa si el equipo OFENSIVO tiene
+  `TacticalProfile`** (`buildPossessionPlan` devuelve `null` si no); el
+  equipo defensivo, en cambio, cae a `'drop'` si no tiene perfil propio.
+  Como hoy no existe ninguna pantalla que asigne perfiles, esto satisface
+  literalmente el requisito de regresión (100% de las partidas reales de
+  hoy no activan nunca la rama de P&R).
+- **Secuenciación de pérdida/robo/falta**: los chequeos de pérdida/robo/
+  falta de la posesión siguen usando siempre al `handler` original y al
+  defensor de cobertura calculado ANTES de cualquier reasignación de la
+  rama "ventaja clara" — solo el momento de tirar puede pasar el balón al
+  `screener` (roller). No está en DESIGN.md literalmente; es la
+  secuencia real de un P&R (el riesgo de pérdida es del bote en vivo,
+  antes de decidir si se entrega al rodador).
+- **Heurísticas nuevas** `screenerWeight`/`screenerDefenderWeight`
+  (análogas a `usageWeight`/`onBallDefenderWeight` ya existentes, sin
+  equivalente previo) y `pickRollFinishType` (selector de 2 vías,
+  Tiro interior/Bandeja, para el rodador — deliberadamente más pequeño
+  que el `pickShotType` de 4 vías existente, porque el rodador siempre
+  termina cerca del aro).
+- **Exportación de `computeMixRating`/`getAttribute` desde
+  `MatchEngine.js`**: añadida únicamente para poder testear
+  `AdvantageState` en aislamiento con la fórmula real (sin el ruido de
+  simular partidos completos) — no cambia ningún comportamiento de
+  producción.
+
+### Pendiente explícitamente para entregas futuras
+
+- **TAC-2**: spacing, roles ofensivos/defensivos, familiaridad táctica,
+  ClubDNA como sesgo de identidad.
+- **TAC-3**: playbook completo (Horns, Spain P&R, Floppy...), continuidad/
+  contras dentro de una misma jugada (7.12.10-11 — esta entrega solo hace
+  UNA lectura por posesión de P&R), asistencia basada en `shotQuality`
+  real (sustituyendo la asignación post-hoc actual, que 7.12.5 confirma
+  que sigue siendo correcta hasta entonces).
+- **TAC-4 a TAC-7**: defensa avanzada/zonas/press, tiempos muertos/ATO/
+  BLOB/SLOB, IA táctica de la CPU, Data Hub — ninguno tocado.
+- Sin frontend/pantalla de Tactics todavía (pedido explícitamente así por
+  el prompt) — solo verificación por script/consola.
