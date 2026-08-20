@@ -3253,19 +3253,38 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   play-type por defecto, cobertura `drop`) — no hace falta ninguna
   migración de datos explícita, el propio constructor la cubre.
 - **effectiveSpacing NO conectado a `AdvantageState`/`computeAdvantageScore`
-  todavía** (7.12.4/7.12.6): TAC-2 construye `Tactics.effectiveSpacing()`
-  como función aislada y verificada en dirección, pero deliberadamente NO
-  la usa para desplazar `advantageScore` — desde TAC-2 todo equipo real
-  tiene un `TacticalProfile` por defecto, así que cualquier término mal
-  calibrado aquí afectaría a TODOS los partidos del juego, no solo a los
-  que el usuario edite. Requiere simulación masiva para calibrar sin doble
-  contar el efecto que 7.12.4 ya describe (el spacing se refleja cambiando
-  qué defensor ayuda). Pendiente explícito para TAC-3.
+  todavía** (7.12.4/7.12.6): TAC-2 construyó `Tactics.effectiveSpacing()`
+  como función aislada y verificada en dirección, pero deliberadamente no
+  la usaba para desplazar `advantageScore`. **Actualización TAC-3: ya
+  conectado.** `Tactics.computeSpacingAdvantageTerm()` añade un término
+  ACOTADO (`config.tactics.advantage.spacing.sensitivity`/`neutral`/
+  `maxEffect`) a `computeAdvantageScore`/`computeIsolationAdvantageScore`/
+  `computePostUpAdvantageScore` — único sitio donde el spacing entra a la
+  fórmula (evita doble conteo, 7.12.4). Verificado en dirección (mismo
+  quinteto real, `5-out` > `3-out-2-in`) con un script de invariantes; los
+  valores concretos de `sensitivity`/`neutral`/`maxEffect` siguen siendo
+  puntos de partida, no cifras cerradas — misma calibración pendiente que
+  el resto de 7.12.31 (ver CHANGELOG de TAC-3).
 - **pesos de `roleFit`, mezclas de atributos por rol y techos de
   `effectiveSpacing` por arquetipo** (`config.tactics.roles`/
   `config.tactics.spacing` en `MatchConfig.js`): puntos de partida
   razonables con dirección verificada (ver CHANGELOG de TAC-2), no cifras
   cerradas — misma calibración pendiente que el resto de 7.12.31.
+- **TAC-3, nuevos pendientes**: catálogo de playbook con solo 9/14 familias
+  (Flex, Princeton Elbow/entry, Post Split, High-Low, Pistol quedan fuera);
+  Handoff/DHO, Off Screen y Motion/Flow tienen `PlayDefinition` de catálogo
+  pero SIN motor propio (solo Pick & Roll/Isolation/Post Up lo tienen esta
+  entrega); prioridad/peso editable POR JUGADA dentro de una misma familia
+  (pantalla Playbook, solo lista/muestra, no edita todavía); eje
+  Rigidez↔Read & React de 7.12.7 sigue sin efecto real (7.12.11 ya lo
+  confirmaba: "no se fija todavía una fórmula exacta"); presupuesto de 100
+  "posesiones conceptuales" de `Tactics.selectPlayType`
+  (`config.tactics.playTypeSelection.budget`) y punto neutro de
+  `Tactics.resolveTransitionAttempt` (`config.tactics.transitionAttempt.
+  weightNeutral`) son puntos de partida, no cifras cerradas; el límite de 2
+  acciones por posesión de 7.12.11 se implementó con un coste de reloj fijo
+  (`config.tactics.continuity`), no una simulación real de la segunda
+  acción — pendiente de calibración masiva junto al resto de 7.12.31.
 
 ### 7.12.35 Fuentes y criterio de diseño
 

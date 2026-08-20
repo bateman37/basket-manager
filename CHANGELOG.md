@@ -1737,3 +1737,262 @@ persiste el perfil táctico en `Team.js` y le da una pantalla propia.
 - Editor visual de jugadas y media cancha gráfica interactiva de 7.12.32 —
   fuera de alcance explícito hasta que exista playbook (TAC-3) que
   visualizar.
+
+## 2026-08-20 (4) — TAC-3: playbook + generación real de oportunidades (DESIGN.md 7.12.33)
+
+Tercera entrega de las 7 planificadas del sistema táctico (7.12), la más
+grande hasta ahora. Amplía `Tactics.js`/`MatchConfig.js`/`MatchEngine.js` de
+TAC-1/TAC-2 (no los reescribe) e introduce el playbook, comportamiento real
+para Isolation/Post Up (además de Pick & Roll), las 6 categorías completas
+de `AdvantageState` con una cadena de continuidad acotada, asistencia
+causal, y conecta `effectiveSpacing` a `AdvantageState` (pendiente heredado
+de TAC-2).
+
+- **`src/core/Tactics.js`**:
+  - `PLAY_DEFINITIONS` (7.12.10): catálogo de 9 jugadas (Basic High P&R,
+    Horns, Spain Pick & Roll, Double Drag, DHO/Zoom, Floppy, Post Entry,
+    5-Out Motion, Isolation Clearout) como datos — `id`/nombre/familia
+    (play-type)/participantes/spacing compatible/complejidad/2-4 lecturas
+    representativas con su cobertura objetivo (`vs`). **Fuera de esta
+    entrega, señalado explícitamente**: Flex, Princeton Elbow/entry, Post
+    Split, High-Low y Pistol (5 de las 14 familias del catálogo objetivo de
+    DESIGN.md); dentro de cada jugada implementada, solo las lecturas MÁS
+    representativas (2-4), no la tabla completa de 7.12.10 (ej. re-screen
+    de Basic P&R, cambio de ángulo de Horns quedan fuera). Las lecturas
+    (`reads`) se usan solo para telemetría/etiqueta (`playDefinitionId`),
+    nunca para bifurcar la fórmula real ("no scripting", 7.12.10).
+  - `selectPlayType()` (7.12.8): sortea el play-type de la posesión
+    (Pick & Roll/Isolation/Post Up) ponderando por `playTypeWeights` sobre
+    un presupuesto de referencia de 100 "posesiones conceptuales"
+    (`config.tactics.playTypeSelection.budget`) — el peso efectivo de
+    Pick & Roll reutiliza `resolvePnrFrequency` (TAC-2, ya modulado por
+    `identity.pickAndRollUsage`) expresado en esa misma escala, lo que
+    reproduce EXACTAMENTE la frecuencia de TAC-1/TAC-2 con perfil por
+    defecto (30 de presupuesto 100 = 0.3, idéntico a `pnrFrequency`). El
+    presupuesto no consumido por los 3 play-types reales cae a "ninguno"
+    → bucle 1v1 de siempre (7.12.34, compatibilidad).
+  - `buildIsolationPlan()`/`computeIsolationAdvantageScore()` (7.12.8/
+    7.12.9): anotador = jugador con rol `isolationScorer` asignado si
+    existe, si no el de mayor `usageWeight` (TAC-2 no implementó jerarquía
+    de uso primera/segunda opción). Sin cobertura (1v1 directo, sin
+    bloqueo): `advantageScore` = diferencia de rating anotador/defensor.
+    Si la ventaja colapsa la ayuda (`rotatingDefense`/`brokenDefense`):
+    kick-out a un tirador del lado débil con asistencia al anotador; en
+    cualquier otro caso, Isolation puro — el propio anotador crea y remata
+    su tiro, sin asistencia (7.12.5).
+  - `buildPostUpPlan()`/`computePostUpAdvantageScore()` (7.12.8/7.12.9):
+    anotador = jugador con rol `postScorer`/`postHub` si existe, si no
+    ponderado por Tiro interior+Fuerza; defensor interior dedicado (no el
+    `onBallDefender` perimetral genérico). Doble equipo simple (7.12.19
+    completo es TAC-4): si el anotador supera claramente a su defensor
+    (margen de rating, `doubleTeamRatingMargin`) Y el sorteo lo activa
+    (`doubleTeamProbability`), fuerza un kick-out con asistencia — reglas
+    completas de doble equipo quedan para TAC-4.
+  - `resolveRead6()`/`collapseRead6To3()` (7.12.4): las 6 categorías reales
+    de `AdvantageState` (ventaja defensiva clara / defensa estable /
+    pequeña ventaja ofensiva / ventaja ofensiva clara / defensa en rotación
+    / defensa rota) sustituyen a las 3 ramas de TAC-1 como fuente de
+    verdad. **Decisión de encaje señalada explícitamente**: en vez de
+    migrar `planPnrPossession`/`resolveRead` (legacy) a las 6 categorías,
+    se mantiene `collapseRead6To3()` como colapso 6→3 — con los MISMOS
+    umbrales `smallAdvantage`(0.15)/`clearAdvantage`(0.5) sin cambiar de
+    valor, `resolveRead()`/`planPnrPossession()` (legacy, sigue exportado
+    para tests dirigidos de TAC-1/TAC-2) devuelven resultados numéricamente
+    IDÉNTICOS a antes de esta entrega.
+  - `resolveContinuityState()`/`planPickAndRollTactical()` (7.12.11):
+    cadena de continuidad acotada a un MÁXIMO de 2 acciones por posesión
+    (límite duro explícito de 7.12.11). Estados: `Advantage created`
+    (atacar ya — roller finaliza en `clearOffenseAdvantage`/`brokenDefense`,
+    handler tira con penalización de "recuperación" en
+    `smallOffenseAdvantage`), `Two on ball` (Blitz/Hedge con ventaja alta —
+    short-roll inmediato, igual que la rama `clear` de TAC-1), `Mismatch
+    created` (Switch — segunda lectura real de Isolation contra el
+    defensor mismatcheado si queda reloj, sin asistencia), `Rotation
+    forced` (extra-pass a tirador del lado débil con asistencia si queda
+    reloj), `Neutral`/`Defense wins` (repite la lectura de P&R con un
+    segundo sorteo de `AdvantageState` si queda reloj, o tiro forzado si
+    no). El coste de reloj de una segunda acción
+    (`config.tactics.continuity.secondActionClockCost`/
+    `extraPassClockCost`) se resta del MISMO reloj de posesión ya existente
+    (no uno paralelo) — puede disparar la violación de posesión si no
+    queda margen.
+  - `resolveTransitionAttempt()` (7.12.12): el peso de
+    `playTypeWeights.transition` decide si el equipo REALMENTE intenta
+    explotar una ventana de contraataque ya elegible (7.6 acción 14, sin
+    tocar la ventana en sí) — con el peso neutro por defecto (15, igual al
+    default de `playTypeWeights.transition`) siempre la intenta, IDÉNTICO
+    al comportamiento de antes de esta entrega; un peso menor reduce esa
+    probabilidad. Un peso mayor no puede superar el 100% (ya era el techo
+    del comportamiento anterior) — señalado explícitamente como límite de
+    diseño, no un error.
+  - `computeSpacingAdvantageTerm()` (7.12.6/7.12.34, **pendiente heredado
+    de TAC-2, conectado en esta entrega**): término ACOTADO y pequeño
+    (`config.tactics.advantage.spacing.sensitivity`/`neutral`/`maxEffect`)
+    añadido UNA sola vez dentro de `computeAdvantageScore`/
+    `computeIsolationAdvantageScore`/`computePostUpAdvantageScore` (evita
+    doble conteo, 7.12.4) — más `effectiveSpacing` real del quinteto
+    ofensivo en pista → más ventaja disponible. Sin `offenseFive`/
+    `offenseSpacing` (llamadas legacy de TAC-1/TAC-2 que no los pasan),
+    devuelve 0 — comportamiento idéntico al de antes.
+  - `planTacticalPossession()`: punto de enganche NUEVO de producción para
+    `MatchEngine.simulatePossession()` — sustituye a `planPnrPossession`
+    como llamada real (que sigue exportado tal cual, sin cambios, para
+    tests dirigidos de TAC-1/TAC-2). Forma unificada del plan devuelto
+    (`initialHandler`/`initialOnBallDefender`/`shooter`/`shotDefender`/
+    `shotDefenderPenalty`/`forcedShotType`/`assistCandidate`/
+    `shotAdjustment`/`clockCost`) común a los 3 play-types con motor real,
+    para que `MatchEngine.js` no necesite ramas específicas por play-type.
+- **`src/core/MatchEngine.js`**: `simulatePossession()` llama a
+  `planTacticalPossession` en vez de `planPnrPossession`; el bloque que
+  antes reasignaba `ballHandler`/`shotDefender`/`forcedShotType` SOLO para
+  la rama `clear` de P&R ahora es genérico (`tacticalPlan.shooter`/
+  `shotDefender`/`shotDefenderPenalty`/`forcedShotType`/`shotAdjustment`)
+  y vale para los 3 play-types. Nueva `resolveTacticalAssist()` (7.12.5):
+  sustituye a `resolveAssist()` SOLO cuando hay `tacticalPlan` — acredita
+  la asistencia directamente al `assistCandidate` que ya resolvió
+  Tactics.js (nunca un sorteo entre 4 compañeros como `resolveAssist()`),
+  con una probabilidad ajustada por la calidad de pase del creador
+  (VisiónJuego+Pase+DecisiónBajoPresión, "regla dura" de 7.12.5: el bonus
+  decide SI se acredita, nunca A QUIÉN). Sin `tacticalPlan` (posesión no
+  táctica), `resolveAssist()` sigue exactamente igual (7.12.5,
+  compatibilidad explícita, no se elimina). La ventana de contraataque
+  (`isFastBreakWindow`) ahora depende de `fastBreakAttempt`
+  (`resolveTransitionAttempt`) en vez de solo `context.fastBreakEligible`.
+- **`src/core/MatchConfig.js`**: `tactics.advantage.thresholds` ampliado de
+  2 a 4 umbrales (6 categorías); `tactics.advantage.spacing` nuevo (término
+  de spacing); `tactics.isolation`/`tactics.postUp` nuevos (mezclas de
+  atributos + doble equipo); `tactics.playTypeSelection`/
+  `tactics.transitionAttempt`/`tactics.continuity`/`tactics.assist` nuevos
+  — todo como datos, ninguna cifra hardcodeada en `Tactics.js`/
+  `MatchEngine.js`.
+- **`src/ui/game.js`**: nueva sub-pestaña **Playbook** en
+  `renderTacticsScreen()` (junto a Resumen/Ataque/Roles de TAC-2, sin
+  reconstruirlas) — tabla de las 9 `PlayDefinition` del catálogo
+  (jugada/familia/participantes/spacing compatible/complejidad/lecturas
+  principales), marcando qué familias tienen motor real (Pick & Roll/
+  Isolation/Post Up) frente a las que son solo catálogo (Handoff/DHO, Off
+  Screen, Motion/Flow). **Prioridad/peso editable por jugada individual
+  DEJADA FUERA** de esta entrega (el prompt lo permitía explícitamente si
+  el tiempo/riesgo no lo permitía) — el motor ya elige automáticamente
+  entre jugadas de una familia según el spacing declarado
+  (`Tactics.choosePlayDefinition`). Mismo estilo visual que TAC-2 (parquet
+  `#EFE6D3`, ladrillo `#B8451F`, verde pizarra `#2E4238`, Oswald
+  condensada), sin CSS nuevo.
+- **`DESIGN.md`**: corregida la nota de 7.12.34 que decía
+  "`effectiveSpacing` NO conectado" — ahora documenta que TAC-3 sí lo
+  conecta, con el detalle de dónde y con qué guardas. Añadido un bloque
+  nuevo de pendientes propio de TAC-3 (catálogo incompleto, familias sin
+  motor, prioridad de playbook no editable, eje Rigidez↔Read&React sin
+  efecto, presupuesto/umbrales de selección de play-type y coste de reloj
+  de continuidad como puntos de partida).
+
+### Invariantes demostrados (script Node dedicado, scratchpad de la sesión)
+
+- **Invariantes #1-#4 heredados de TAC-1 (Drop/Under explotables por un
+  tirador, mismatch de Switch) siguen intactos**: con un handler de gran
+  tiro exterior, `advantageScore` medio Drop `0.335`/Under `0.569`/Switch
+  `-0.150`/Blitz `-0.280` — misma dirección que TAC-1 (Under > Drop »
+  Switch/Blitz negativos). Mismatch de Switch: pívot lento de
+  `screenerDefender` `0.106` frente a pívot móvil `-0.135` (lento > móvil,
+  como exige el invariante).
+- **Nuevo invariante — effectiveSpacing conectado a AdvantageState**: MISMO
+  quinteto real (5 tiradores reales), spacing `5-out` → `advantageScore`
+  medio `0.159` frente a `3-out-2-in` → `0.127` (5-out > 3-out-2-in, misma
+  dirección que pedía el prompt de esta sesión). Invariantes #5/#6 de
+  TAC-2 (`effectiveSpacing` en sí, 3-Out-2-In < 5-Out) no tocados, siguen
+  intactos (no se modificó `Tactics.effectiveSpacing()`).
+- **Nuevo invariante — selección real de play-type por peso**: con
+  `playTypeWeights.isolation=60`, 1788-1848/3000 posesiones sortean
+  Isolation (≈60%, coherente con el presupuesto de 100); con
+  `isolation=0`, exactamente 0/3000 — el peso decide con comportamiento
+  real, no solo se guarda.
+- **Nuevo invariante — asistencia causal**: escenario de kick-out real
+  (Isolation que colapsa la ayuda del defensor) acredita la asistencia al
+  creador en 400/400 casos de prueba dirigidos (`buildIsolationPlan`
+  directo); escenario de Isolation puro (anotador/defensor equilibrados,
+  sin colapso) NO acredita ninguna asistencia en 400/400 casos — el propio
+  anotador crea y remata su tiro. Mismo patrón confirmado para el doble
+  equipo de Post Up: 52/52 casos con doble equipo acreditan la asistencia
+  al post scorer, nunca al tirador.
+- **Regresión, equipo con `TacticalProfile` por defecto**: 40 partidos
+  completos (`generateFictionalTeams`) — media de puntos por equipo
+  `89.0` (TAC-2: `87.6`/`86.3`), posesiones combinadas `167.8` (TAC-2:
+  `166.5`), pérdidas combinadas `42.9` (TAC-2: `43.4`) — todo dentro de
+  rango realista y muy próximo a TAC-1/TAC-2 pese a que ahora Isolation/
+  Post Up/continuidad tienen comportamiento real (no solo Pick & Roll).
+  Estabilidad: 30 partidos adicionales generados aleatoriamente sin
+  ninguna excepción.
+- Playwright: sesión completa (elegir club real → Tácticas → confirmar que
+  Resumen/Ataque/Roles de TAC-2 siguen intactas → abrir la nueva
+  sub-pestaña Playbook, confirmar las 9 filas del catálogo con familia/
+  participantes/spacing/complejidad/lecturas → volver a Resumen) sin
+  errores nuevos de consola — el único mensaje de red
+  (`ERR_CONNECTION_RESET` de Google Fonts) es preexistente y no
+  relacionado con esta sesión (igual que TAC-1/TAC-2).
+- Confirmado con `git diff --stat` que solo `Tactics.js`, `MatchConfig.js`,
+  `MatchEngine.js`, `game.js`, `DESIGN.md` (y este `CHANGELOG.md`)
+  cambiaron — `Rotation.js`, `Recovery.js`, `Calendar.js`, `League.js`,
+  `Bracket.js`, `Cup.js`, `Playoffs.js`, `Promotion.js`, `CpuLineup.js`,
+  `SeasonGoals.js`, `Player.js` y `Team.js` no se tocaron (ningún atributo
+  1-20 nuevo, ninguna de las entidades vetadas explícitamente por el
+  prompt).
+
+### Decisiones/interpretaciones señaladas explícitamente (no cerradas como diseño definitivo)
+
+- **Todos los valores numéricos nuevos de `config.tactics`**
+  (`advantage.thresholds` ampliados, `advantage.spacing.*`,
+  `isolation.*`/`postUp.*`, `playTypeSelection.budget`,
+  `transitionAttempt.weightNeutral`, `continuity.*`, `assist.
+  playmakingBoostMax`) son puntos de partida con DIRECCIÓN verificada, no
+  cifras cerradas — **pendientes de calibración (7.12.31/7.12.34)**.
+- **Colapso 6→3 en vez de migrar TAC-1 a las 6 categorías**: elegido para
+  no arriesgar el contrato/comportamiento exacto de `planPnrPossession`/
+  `resolveRead` (legacy, sigue exportado). La producción usa
+  `planPickAndRollTactical` (dentro de `planTacticalPossession`), que sí
+  consume las 6 categorías completas para la cadena de continuidad.
+- **"Rotation forced" aplicado a Isolation/Post Up sin cobertura**: 7.12.11
+  describe la continuidad en términos de cobertura de P&R (Switch/Blitz/
+  Hedge); para Isolation (sin bloqueo, sin cobertura) y el doble equipo de
+  Post Up se interpretó que una ventaja que colapsa la ayuda del defensor
+  (`rotatingDefense`/`brokenDefense`) es análoga a "Rotation forced" →
+  kick-out con asistencia — interpretación razonable, no una regla ya
+  escrita literalmente en 7.12.11 para estas dos familias.
+- **Coste de reloj de la segunda acción como resta fija** (`secondActionClockCost`/
+  `extraPassClockCost`) en vez de simular una segunda acción con su propio
+  `pickPossessionStepSeconds`: más simple y acotado, coherente con el
+  límite duro de 2 acciones de 7.12.11 — resta del MISMO reloj de
+  posesión, puede disparar la violación de posesión si no queda margen.
+- **`resolveTransitionAttempt` no puede superar la frecuencia de contraataque
+  de antes de esta entrega**: un peso de `playTypeWeights.transition` por
+  encima del neutro (15) no aumenta más allá de "siempre lo intenta" — el
+  techo ya era ese antes de TAC-3; señalado explícitamente como límite de
+  diseño, no un error de calibración.
+- **Selección de jugada concreta dentro de una familia
+  (`choosePlayDefinition`)** solo afecta a telemetría/etiqueta
+  (`playDefinitionId`), nunca a la fórmula real — ponderada por
+  compatibilidad de spacing declarado y, en igualdad, por menor
+  complejidad; pendiente de calibración/decisión (7.12.34), como el resto
+  de pesos de esta entrega.
+- **Pantalla de Playbook sin prioridad/peso editable por jugada**: el
+  prompt de esta sesión permitía explícitamente una primera versión más
+  simple (solo mostrar el catálogo) si el editor de prioridad añadía
+  riesgo/tiempo desproporcionado — se optó por eso.
+
+### Pendiente explícitamente para entregas futuras
+
+- **TAC-4**: defensa avanzada (zonas, press, matchups individuales, reglas
+  completas de defensa de poste de 7.12.19 — el doble equipo simple de
+  esta entrega queda como base, no como la regla completa —, transición
+  defensiva).
+- **TAC-5**: tiempos muertos, ajustes en vivo entre cuartos, ATO/BLOB/SLOB,
+  falta táctica intencionada.
+- **TAC-6**: familiaridad táctica/`tacticalExecution` — el campo
+  `complexity` de `PlayDefinition` se guarda como dato pero no afecta
+  todavía a ninguna probabilidad; el eje Rigidez↔Read&React de 7.12.7
+  sigue sin efecto real (7.12.11 ya lo señalaba explícitamente).
+- **TAC-7**: IA táctica de la CPU, Data Hub táctico completo (telemetría de
+  7.12.27, PPP/frequency por play-type, coverage efficiency...).
+- Catálogo de playbook ampliado a las 14 familias completas de 7.12.10
+  (Flex, Princeton Elbow/entry, Post Split, High-Low, Pistol); motor real
+  para Handoff/DHO, Off Screen y Motion/Flow (hoy solo catálogo de datos);
+  prioridad/peso editable por jugada en la pantalla de Playbook.

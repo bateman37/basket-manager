@@ -1534,6 +1534,14 @@
     pace: 'Ritmo', earlyOffense: 'Early offense', ballMovement: 'Movimiento de balón', pickAndRollUsage: 'Uso de Pick & Roll',
   };
   const PLAY_TYPE_LABELS = { pickAndRoll: 'Pick & Roll', isolation: 'Isolation', postUp: 'Post Up', transition: 'Transition' };
+  // TAC-3 (7.12.10): etiquetas de familia para las 3 que ya tienen catálogo
+  // de PlayDefinition pero no coinciden 1:1 con PLAY_TYPE_LABELS de arriba
+  // (handoff/offScreen/motionFlow no tienen slider de peso propio todavía,
+  // solo catálogo de datos).
+  const PLAY_FAMILY_LABELS = {
+    ...PLAY_TYPE_LABELS,
+    handoff: 'Handoff / DHO', offScreen: 'Off Screen', motionFlow: 'Motion / Flow',
+  };
   const LINEUP_RATING_LABELS = {
     creation: 'Creación', spacing: 'Spacing', outsideShooting: 'Tiro exterior',
     insideFinishing: 'Finalización interior', offensiveRebound: 'Rebote ofensivo', defensiveRebound: 'Rebote defensivo',
@@ -1679,10 +1687,56 @@
       </div>`;
   }
 
+  // TAC-3 (7.12.32, sub-pestaña Playbook): capa de presentación pura sobre
+  // el catálogo de datos de Tactics.PLAY_DEFINITIONS (7.12.10) — igual que
+  // el resto de esta pantalla, no decide ninguna regla táctica propia.
+  // Contenido mínimo (punto 6 del prompt de esta sesión): lista de jugadas
+  // con familia/participantes/spacing compatible/complejidad/lecturas
+  // principales. Prioridad/peso editable POR JUGADA (dentro de una misma
+  // familia) queda deliberadamente fuera de esta entrega — el motor ya
+  // elige automáticamente entre las jugadas de una familia según el
+  // spacing declarado (Tactics.choosePlayDefinition); un editor de
+  // prioridad es mejora de una entrega futura.
+  function renderTacticsPlaybookTab() {
+    const rowsHtml = BM.PLAY_DEFINITIONS.map((play) => {
+      const familyLabel = PLAY_FAMILY_LABELS[play.family] || play.family;
+      const hasRealEngine = BM.REAL_PLAY_FAMILIES.indexOf(play.family) !== -1;
+      const spacingHtml = play.compatibleSpacing.map((s) => SPACING_LABELS[s] || s).join(', ');
+      const participantsHtml = play.participants.length > 0 ? play.participants.join(', ') : '—';
+      const readsHtml = play.reads
+        .map((r) => `${r.label} <span class="gm-muted">(vs ${r.vs.map((c) => PNR_COVERAGE_LABELS[c] || c).join('/')})</span>`)
+        .join('<br>');
+      return `
+        <tr>
+          <td>${play.name}${hasRealEngine ? '' : ' <span class="gm-muted">(catálogo, sin motor propio todavía)</span>'}</td>
+          <td>${familyLabel}</td>
+          <td>${participantsHtml}</td>
+          <td>${spacingHtml}</td>
+          <td>${play.complexity}</td>
+          <td>${readsHtml}</td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <div class="gm-card">
+        <h3>Playbook</h3>
+        <p class="gm-muted">Catálogo de jugadas disponibles (DESIGN.md 7.12.10). Pick &amp; Roll, Isolation y Post Up ya tienen comportamiento real en el motor según los pesos de play-type de la pestaña Ataque; Handoff/DHO, Off Screen y Motion/Flow quedan como catálogo de datos, sin motor propio todavía. La prioridad/peso de cada jugada individual dentro de una misma familia no es editable todavía — el motor elige automáticamente según el spacing declarado del equipo.</p>
+        <div class="gm-table-scroll">
+          <table class="gm-table playbook-table">
+            <thead>
+              <tr><th>Jugada</th><th>Familia</th><th>Participantes</th><th>Spacing compatible</th><th>Complejidad</th><th>Lecturas principales</th></tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
   const TACTICS_TABS = [
     { id: 'summary', label: 'Resumen' },
     { id: 'attack', label: 'Ataque' },
     { id: 'roles', label: 'Roles' },
+    { id: 'playbook', label: 'Playbook' },
   ];
 
   function renderTacticsScreen() {
@@ -1695,6 +1749,7 @@
     if (activeTab === 'summary') body = renderTacticsSummaryTab(team);
     else if (activeTab === 'attack') body = renderTacticsAttackTab(team);
     else if (activeTab === 'roles') body = renderTacticsRolesTab(team);
+    else if (activeTab === 'playbook') body = renderTacticsPlaybookTab();
 
     container.innerHTML = `
       <h2>Tácticas</h2>
