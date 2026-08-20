@@ -8,6 +8,21 @@
     ? require('../utils/playerGenerator.js')
     : global.BasketManager;
 
+  // DESIGN.md 7.12 (Sistema táctico, TAC-2): `TacticalProfile` pasa a
+  // persistir en `Team.js` (ver `this.tacticalProfile` más abajo) — hueco
+  // que TAC-1 dejó señalado explícitamente en su CHANGELOG ("persistirlo en
+  // el equipo... queda para una sesión de UI/estado futura"). No se
+  // DESTRUCTURA `TacticalProfile` aquí arriba (`const { TacticalProfile } =
+  // TacticsCore` fallaría en el navegador si Team.js carga antes que
+  // Tactics.js, como ocurre hoy en index.html): `TacticsCore` guarda la
+  // referencia al objeto compartido `global.BasketManager` (el mismo patrón
+  // que ya usa `PlayerGenerator` arriba) y se accede a `.TacticalProfile`
+  // perezosamente DENTRO del constructor, cuando ya han cargado todos los
+  // scripts.
+  const TacticsCore = (typeof module !== 'undefined' && module.exports)
+    ? require('../core/Tactics.js')
+    : global.BasketManager;
+
   const DIVISIONS = ['1ª', '2ª'];
 
   // Convocatoria de partido — DESIGN.md 6.2: mínimo 8, máximo 12, fiel al
@@ -184,6 +199,14 @@
       // --- ADN de Club (DESIGN.md 6.2.8) ---
       this.clubDNA = data.clubDNA || CLUB_DNA_EXAMPLES[0];
 
+      // --- Perfil táctico (DESIGN.md 7.12.2, persistido desde TAC-2) ---
+      // Instancia real de TacticalProfile (nunca un objeto plano suelto),
+      // inicializada con valores por defecto razonables si no se especifica
+      // — mismo patrón que `clubDNA`/`reputation` arriba. `TacticalProfile`
+      // ya valida su propia forma (cobertura de P&R, spacing) en su
+      // constructor, así que no se revalida aquí.
+      this.tacticalProfile = new TacticsCore.TacticalProfile(data.tacticalProfile || {});
+
       // --- Rivalidades (DESIGN.md 6.2.9): dos tipos, ambos activos ya ---
       const rivalries = data.rivalries || {};
       this.rivalries = {
@@ -331,6 +354,7 @@
         fanbase: this.fanbase,
         finances: this.finances,
         clubDNA: this.clubDNA,
+        tacticalProfile: this.tacticalProfile,
         rivalries: this.rivalries,
         history: this.history,
       };

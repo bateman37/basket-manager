@@ -38,6 +38,7 @@
     <nav id="gm-nav" class="is-hidden">
       <button class="gm-nav__btn" data-screen="home" type="button">Inicio</button>
       <button class="gm-nav__btn" data-screen="lineup" type="button">Alineación</button>
+      <button class="gm-nav__btn" data-screen="tactics" type="button">Tácticas</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
       <button class="gm-nav__btn" data-screen="competitions" type="button">Competiciones</button>
       <button class="gm-nav__btn" data-screen="stats" type="button">Estadísticas</button>
@@ -55,6 +56,10 @@
 
     <section id="gm-screen-lineup" class="gm-screen">
       <div id="gm-lineup"></div>
+    </section>
+
+    <section id="gm-screen-tactics" class="gm-screen">
+      <div id="gm-tactics"></div>
     </section>
 
     <section id="gm-screen-calendar" class="gm-screen">
@@ -199,6 +204,14 @@
 
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
+  <!-- DESIGN.md 7.12 (Sistema táctico, TAC-2): Team.js instancia
+       Tactics.TacticalProfile en su constructor, pero Tactics.js carga MÁS
+       ABAJO (después de Rotation.js, del que depende) — no rompe nada
+       porque Team.js NO destructura `TacticalProfile` a la carga del
+       script, solo guarda una referencia al objeto compartido
+       `global.BasketManager` y accede a `.TacticalProfile` dentro del
+       constructor, en tiempo de ejecución (cuando ya cargaron todos los
+       scripts) — ver comentario en Team.js. -->
   <script src="src/entities/Team.js"></script>
   <script src="src/utils/teamGenerator.js"></script>
   <script src="src/utils/skewedTeamGenerator.js"></script>

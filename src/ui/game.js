@@ -1510,6 +1510,258 @@
     if (playBtn) playBtn.addEventListener('click', () => playNextMatchWithLineup(team));
   }
 
+  // ---------------------------------------------------------------------
+  // Pantalla: Tácticas (DESIGN.md 7.12.32) — TAC-2: subset de 3 de las 7
+  // vistas (Resumen/Ataque/Roles); Defensa/Playbook/Situaciones/Rival son
+  // TAC-3/TAC-4/TAC-5/TAC-7, no se adelantan aquí. Capa de presentación
+  // pura sobre src/core/Tactics.js — igual que Alineación es una capa sobre
+  // Rotation.js (7.11.6): esta pantalla no decide ninguna regla táctica
+  // propia, solo lee/escribe `team.tacticalProfile` (persistido en Team.js
+  // desde esta entrega) y llama a funciones ya construidas en Tactics.js
+  // (effectiveSpacing/roleFit/computeLineupRatings vía computeLineupRatings
+  // y bestRolesForPlayer).
+  // ---------------------------------------------------------------------
+
+  function starsHtml(stars) {
+    return '★'.repeat(stars) + '☆'.repeat(5 - stars);
+  }
+
+  const SPACING_LABELS = {
+    '5-out': '5-Out', '4-out-1-in': '4-Out 1-In', '3-out-2-in': '3-Out 2-In', dynamic: 'Dynamic',
+  };
+  const PNR_COVERAGE_LABELS = { drop: 'Drop', under: 'Under', switch: 'Switch', hedge: 'Hedge', blitz: 'Blitz' };
+  const TACTICS_IDENTITY_LABELS = {
+    pace: 'Ritmo', earlyOffense: 'Early offense', ballMovement: 'Movimiento de balón', pickAndRollUsage: 'Uso de Pick & Roll',
+  };
+  const PLAY_TYPE_LABELS = { pickAndRoll: 'Pick & Roll', isolation: 'Isolation', postUp: 'Post Up', transition: 'Transition' };
+  const LINEUP_RATING_LABELS = {
+    creation: 'Creación', spacing: 'Spacing', outsideShooting: 'Tiro exterior',
+    insideFinishing: 'Finalización interior', offensiveRebound: 'Rebote ofensivo', defensiveRebound: 'Rebote defensivo',
+  };
+
+  // Quinteto titular actual (7.12.32, vista "Resumen"): mismo criterio que
+  // Rotation.buildRotationState usa para el onCourt inicial de un
+  // partido — el slot "starter" de cada posición en `state.lineup.entries`,
+  // sin necesitar una alineación real en curso ni tocar Rotation.js
+  // (7.12.1 deja la capa de identidad fuera del motor de partido en TAC-2).
+  // Reutiliza `state.lineup`, la misma fuente que ya usa la pantalla de
+  // Alineación — no reinventa cómo se sabe "quién está en pista" (pedido
+  // explícito del prompt de esta sesión).
+  function getStarterFive(team) {
+    return BM.POSITIONS.map((pos) => {
+      const row = state.lineup.entries[pos];
+      const playerId = row && row.starter && row.starter.playerId;
+      return playerId ? team.roster.find((p) => p.id === playerId) : null;
+    }).filter(Boolean);
+  }
+
+  function renderTacticsSummaryTab(team) {
+    const { CONFIG_BASE } = BM;
+    const profile = team.tacticalProfile;
+    const five = getStarterFive(team);
+
+    const identityRowsHtml = Object.keys(TACTICS_IDENTITY_LABELS).map((key) => `
+      <div class="tactics-identity-row"><span>${TACTICS_IDENTITY_LABELS[key]}</span><strong>${Math.round(profile.identity[key] ?? 0)}</strong></div>`).join('');
+
+    const ratingsHtml = five.length < 5
+      ? '<p class="gm-muted">Completa el quinteto titular en la pantalla de Alineación para ver sus valoraciones.</p>'
+      : `<table class="gm-table tactics-ratings-table"><tbody>${
+        Object.entries(BM.computeLineupRatings(five, profile, CONFIG_BASE))
+          .map(([key, r]) => `<tr><td>${LINEUP_RATING_LABELS[key]}</td><td class="tactics-stars">${starsHtml(r.stars)}</td></tr>`)
+          .join('')
+      }</tbody></table>`;
+
+    return `
+      <div class="gm-card">
+        <h3>Identidad</h3>
+        <p><strong>Spacing:</strong> ${SPACING_LABELS[profile.spacing] || profile.spacing}</p>
+        <p><strong>Cobertura de P&R por defecto:</strong> ${PNR_COVERAGE_LABELS[profile.pnrCoverage] || profile.pnrCoverage}</p>
+        <div class="tactics-identity-grid">${identityRowsHtml}</div>
+      </div>
+      <div class="gm-card">
+        <h3>Valoraciones del quinteto titular</h3>
+        ${ratingsHtml}
+      </div>`;
+  }
+
+  function renderTacticsAttackTab(team) {
+    const profile = team.tacticalProfile;
+
+    const spacingOptionsHtml = BM.SPACING_OPTIONS.map((opt) => `
+      <option value="${opt}" ${profile.spacing === opt ? 'selected' : ''}>${SPACING_LABELS[opt] || opt}</option>`).join('');
+
+    const identitySlidersHtml = Object.keys(TACTICS_IDENTITY_LABELS).map((key) => `
+      <label class="tactics-slider-row">
+        <span>${TACTICS_IDENTITY_LABELS[key]}</span>
+        <input type="range" min="0" max="100" step="5" class="tactics-identity-input" data-key="${key}" value="${profile.identity[key] ?? 50}">
+        <span class="tactics-slider-value">${Math.round(profile.identity[key] ?? 50)}</span>
+      </label>`).join('');
+
+    const playTypeRowsHtml = Object.keys(PLAY_TYPE_LABELS).map((key) => `
+      <label class="tactics-slider-row">
+        <span>${PLAY_TYPE_LABELS[key]}${key === 'pickAndRoll' ? ' <span class="gm-muted">(único con efecto real en el motor por ahora)</span>' : ''}</span>
+        <input type="range" min="0" max="100" step="5" class="tactics-playtype-input" data-key="${key}" value="${profile.playTypeWeights[key] ?? 0}">
+        <span class="tactics-slider-value">${Math.round(profile.playTypeWeights[key] ?? 0)}</span>
+      </label>`).join('');
+
+    return `
+      <div class="gm-card">
+        <h3>Spacing</h3>
+        <select id="tactics-spacing-select">${spacingOptionsHtml}</select>
+        <p class="gm-muted">5-Out separa al máximo la pintura; 3-Out 2-In prioriza rebote/poste sobre espacio de penetración. El spacing EFECTIVO depende de qué jugadores estén realmente en pista (ver Resumen) — elegir un spacing no lo garantiza por sí solo.</p>
+      </div>
+      <div class="gm-card">
+        <h3>Ejes de identidad ofensiva</h3>
+        ${identitySlidersHtml}
+      </div>
+      <div class="gm-card">
+        <h3>Pesos de play-type</h3>
+        ${playTypeRowsHtml}
+        <p class="gm-muted">El resto del catálogo de play-types (Post Up avanzado, Transition, Isolation con generación real de tiro...) se guarda ya, pero el motor todavía solo usa Pick & Roll — llegará con una entrega futura del sistema táctico.</p>
+      </div>`;
+  }
+
+  function renderTacticsRolesTab(team) {
+    const { CONFIG_BASE } = BM;
+    const convocated = getConvocatedPlayers(team);
+    if (convocated.length === 0) {
+      return '<div class="gm-card"><p class="gm-muted">Convoca jugadores en la pantalla de Alineación para poder asignarles un rol.</p></div>';
+    }
+    const profile = team.tacticalProfile;
+
+    const rowsHtml = convocated.map((player) => {
+      const assignment = profile.roleAssignments[player.id] || {};
+      const offensiveOptionsHtml = BM.OFFENSIVE_ROLES.map((r) => `
+        <option value="${r.id}" ${assignment.offensiveRole === r.id ? 'selected' : ''}>${r.label}</option>`).join('');
+      const defensiveOptionsHtml = BM.DEFENSIVE_ROLES.map((r) => `
+        <option value="${r.id}" ${assignment.defensiveRole === r.id ? 'selected' : ''}>${r.label}</option>`).join('');
+
+      const offFitHtml = assignment.offensiveRole ? starsHtml(BM.roleFit(player, assignment.offensiveRole, CONFIG_BASE).stars) : '—';
+      const defFitHtml = assignment.defensiveRole ? starsHtml(BM.roleFit(player, assignment.defensiveRole, CONFIG_BASE).stars) : '—';
+
+      const bestOffenseHtml = BM.bestRolesForPlayer(player, 'offensive', CONFIG_BASE, 3)
+        .map((r) => `${r.label} ${starsHtml(r.stars)}`).join(' · ');
+      const bestDefenseHtml = BM.bestRolesForPlayer(player, 'defensive', CONFIG_BASE, 3)
+        .map((r) => `${r.label} ${starsHtml(r.stars)}`).join(' · ');
+
+      return `
+        <tr>
+          <td>${player.fullName}</td>
+          <td>${player.primaryPosition}</td>
+          <td>
+            <select class="tactics-role-select" data-player-id="${player.id}" data-side="offensive">
+              <option value="">— sin rol —</option>${offensiveOptionsHtml}
+            </select>
+            <div class="tactics-role-fit">${offFitHtml}</div>
+          </td>
+          <td class="gm-muted tactics-best-roles">${bestOffenseHtml}</td>
+          <td>
+            <select class="tactics-role-select" data-player-id="${player.id}" data-side="defensive">
+              <option value="">— sin rol —</option>${defensiveOptionsHtml}
+            </select>
+            <div class="tactics-role-fit">${defFitHtml}</div>
+          </td>
+          <td class="gm-muted tactics-best-roles">${bestDefenseHtml}</td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <div class="gm-card">
+        <h3>Roles ofensivos y defensivos</h3>
+        <div class="gm-table-scroll">
+          <table class="gm-table tactics-roles-table">
+            <thead>
+              <tr><th>Jugador</th><th>Pos.</th><th>Rol ofensivo</th><th>Mejor encaje (of.)</th><th>Rol defensivo</th><th>Mejor encaje (def.)</th></tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  const TACTICS_TABS = [
+    { id: 'summary', label: 'Resumen' },
+    { id: 'attack', label: 'Ataque' },
+    { id: 'roles', label: 'Roles' },
+  ];
+
+  function renderTacticsScreen() {
+    const container = byId('gm-tactics');
+    const team = getUserTeam();
+    if (!team) { container.innerHTML = ''; return; }
+    const activeTab = container.dataset.activeTab || 'summary';
+
+    let body = '';
+    if (activeTab === 'summary') body = renderTacticsSummaryTab(team);
+    else if (activeTab === 'attack') body = renderTacticsAttackTab(team);
+    else if (activeTab === 'roles') body = renderTacticsRolesTab(team);
+
+    container.innerHTML = `
+      <h2>Tácticas</h2>
+      <div class="tabs">
+        ${TACTICS_TABS.map((t) => `<button class="tabs__btn ${t.id === activeTab ? 'is-active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
+      </div>
+      <div class="tabs__body">${body}</div>
+    `;
+
+    container.querySelectorAll('.tabs__btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        container.dataset.activeTab = btn.dataset.tab;
+        renderTacticsScreen();
+      });
+    });
+
+    if (activeTab === 'attack') {
+      const spacingSelect = byId('tactics-spacing-select');
+      if (spacingSelect) {
+        spacingSelect.addEventListener('change', () => {
+          team.tacticalProfile.spacing = spacingSelect.value;
+          renderTacticsScreen();
+        });
+      }
+      // 'input' (cada pulsación del slider): solo refresca la etiqueta
+      // numérica en vivo, igual que el patrón ya usado en la pantalla de
+      // Alineación para los minutos de cada slot. 'change' (al soltar el
+      // slider): sí muta `team.tacticalProfile` y renderiza entero (para
+      // que Resumen/Roles reflejen el nuevo valor si el usuario vuelve).
+      container.querySelectorAll('.tactics-identity-input').forEach((el) => {
+        el.addEventListener('input', () => {
+          const valueEl = el.parentElement.querySelector('.tactics-slider-value');
+          if (valueEl) valueEl.textContent = el.value;
+        });
+        el.addEventListener('change', () => {
+          team.tacticalProfile.identity[el.dataset.key] = Number(el.value);
+          renderTacticsScreen();
+        });
+      });
+      container.querySelectorAll('.tactics-playtype-input').forEach((el) => {
+        el.addEventListener('input', () => {
+          const valueEl = el.parentElement.querySelector('.tactics-slider-value');
+          if (valueEl) valueEl.textContent = el.value;
+        });
+        el.addEventListener('change', () => {
+          team.tacticalProfile.playTypeWeights[el.dataset.key] = Number(el.value);
+          renderTacticsScreen();
+        });
+      });
+    }
+
+    if (activeTab === 'roles') {
+      container.querySelectorAll('.tactics-role-select').forEach((el) => {
+        el.addEventListener('change', () => {
+          const { playerId, side } = el.dataset;
+          const assignments = team.tacticalProfile.roleAssignments;
+          const entry = { ...(assignments[playerId] || {}) };
+          const field = side === 'offensive' ? 'offensiveRole' : 'defensiveRole';
+          if (el.value) entry[field] = el.value; else delete entry[field];
+          if (Object.keys(entry).length === 0) delete assignments[playerId];
+          else assignments[playerId] = entry;
+          renderTacticsScreen();
+        });
+      });
+    }
+  }
+
   // Construye el `{ homeSquad/awaySquad, homeLineup/awayLineup }` de
   // MatchEngine solo para el LADO del equipo del usuario, reenviando
   // `undefined` para el resto — así el rival (u otros partidos de la
@@ -1615,7 +1867,7 @@
   // ---------------------------------------------------------------------
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
-  const SCREENS = ['team-select', 'home', 'lineup', 'calendar', 'competitions', 'stats', 'match'];
+  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'calendar', 'competitions', 'stats', 'match'];
 
   function goToScreen(screen) {
     state.screen = screen;
@@ -1629,6 +1881,7 @@
 
     if (screen === 'home') renderHomeScreen();
     if (screen === 'lineup') renderLineupScreen();
+    if (screen === 'tactics') renderTacticsScreen();
     if (screen === 'calendar') renderCalendarScreen();
     if (screen === 'competitions') renderCompetitionsScreen();
     if (screen === 'stats') renderStatsScreen();

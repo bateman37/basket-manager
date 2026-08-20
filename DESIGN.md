@@ -649,9 +649,12 @@ significa oculto en la UI, nunca que el dato no exista o no se simule.
 
 #### Pendiente para sesiones de diseño futuras
 - Roles tácticos ofensivos y defensivos con valoración en estrellas —
-  **diseño cerrado en 7.12.9 y 7.12.21; implementación pendiente en TAC-2**.
-  Siguen siendo distintos de la posición en pista ya resuelta en 7.11: son
-  un refinamiento de función dentro del sistema, no un reemplazo.
+  **diseño cerrado en 7.12.9 y 7.12.21; implementado en TAC-2**
+  (`Tactics.roleFit()`/`Tactics.bestRolesForPlayer()`, catálogos
+  `OFFENSIVE_ROLES`/`DEFENSIVE_ROLES` en `src/core/Tactics.js`, mostrados en
+  la pantalla de Tácticas → Roles). Siguen siendo distintos de la posición
+  en pista ya resuelta en 7.11: son un refinamiento de función dentro del
+  sistema, no un reemplazo.
 - Sistema de lesiones (relacionado con Durabilidad) — se definirá junto
   al módulo de progresión/entrenamiento.
 
@@ -1799,6 +1802,37 @@ del estado persistente de la partida. `GamePlan` puede persistir como plantilla
 reutilizable, pero sus overrides activos pertenecen al partido concreto.
 `PossessionPlan`, `DefensivePlan`, `AdvantageState` y `TacticalContext` son
 estado efímero del motor y no deben ensuciar la ficha permanente del jugador.
+
+**Nota de cableado real (descubierta en TAC-1, confirmada en TAC-2):**
+`index.html` es un conjunto de `<script>` clásicos sin build (ver CLAUDE.md),
+así que `src/core/Tactics.js` necesita su propia etiqueta `<script>` — debe
+cargar antes que `MatchEngine.js` (que lee `planPnrPossession` de
+`global.BasketManager`) y después de `src/core/Rotation.js` y
+`src/entities/Player.js` (de los que depende). `src/entities/Team.js`
+también depende de `Tactics.TacticalProfile` (TAC-2, ver más abajo) pero NO
+necesita cargar después de `Tactics.js`: `Team.js` guarda una referencia al
+objeto compartido `global.BasketManager` y accede a `.TacticalProfile`
+dentro del propio constructor (en tiempo de ejecución, no al cargar el
+script), así que el orden real en `index.html` sigue siendo
+Player → Team → ... → Rotation → Tactics → MatchEngine sin que Team.js
+necesite moverse.
+
+**Decisión de encaje TAC-1 → TAC-2 (`TacticalProfile` en `Team.js`):**
+TAC-1 dejó señalado que `TacticalProfile` NO vivía todavía en `Team.js` (se
+pasaba de forma efímera por `options.homeTacticalProfile`/
+`awayTacticalProfile` a `MatchEngine.simulateMatch()`). Desde TAC-2,
+`Team.js` persiste `this.tacticalProfile` como instancia real de
+`TacticalProfile`, inicializada con valores por defecto en su constructor
+(mismo patrón que `clubDNA`/`reputation`) — la nota anterior queda
+desactualizada y se corrige aquí. `options.homeTacticalProfile`/
+`awayTacticalProfile` sigue existiendo para tests dirigidos, con prioridad
+sobre `team.tacticalProfile` si ambos están presentes.
+
+**`RoleAssignment` (TAC-2):** no vive en un fichero/clase propia — es un
+mapa simple `playerId → { offensiveRole, defensiveRole }` dentro de
+`TacticalProfile.roleAssignments` (`src/core/Tactics.js`). Basta con esto
+mientras no exista una necesidad real de tratarlo como entidad
+independiente.
 
 ### 7.12.3 Nuevo orden de resolución de una posesión
 
@@ -3211,7 +3245,27 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   tiene perfil táctico asignado — mismo patrón ya usado para
   `homeLineup`/`awayLineup` ausentes en 7.11.5. No se fuerza migración de
   partidas existentes en TAC-1; se señala aquí para que ninguna sesión de
-  implementación lo asuma sin más.
+  implementación lo asuma sin más. **Actualización TAC-2:** `Team.js`
+  construye siempre un `TacticalProfile` por defecto en su constructor
+  (`new TacticsCore.TacticalProfile(data.tacticalProfile || {})`), así que
+  al cargar una partida/save antigua sin ese campo, el equipo reconstruido
+  recibe automáticamente el perfil neutro (spacing/identidad/pesos de
+  play-type por defecto, cobertura `drop`) — no hace falta ninguna
+  migración de datos explícita, el propio constructor la cubre.
+- **effectiveSpacing NO conectado a `AdvantageState`/`computeAdvantageScore`
+  todavía** (7.12.4/7.12.6): TAC-2 construye `Tactics.effectiveSpacing()`
+  como función aislada y verificada en dirección, pero deliberadamente NO
+  la usa para desplazar `advantageScore` — desde TAC-2 todo equipo real
+  tiene un `TacticalProfile` por defecto, así que cualquier término mal
+  calibrado aquí afectaría a TODOS los partidos del juego, no solo a los
+  que el usuario edite. Requiere simulación masiva para calibrar sin doble
+  contar el efecto que 7.12.4 ya describe (el spacing se refleja cambiando
+  qué defensor ayuda). Pendiente explícito para TAC-3.
+- **pesos de `roleFit`, mezclas de atributos por rol y techos de
+  `effectiveSpacing` por arquetipo** (`config.tactics.roles`/
+  `config.tactics.spacing` en `MatchConfig.js`): puntos de partida
+  razonables con dirección verificada (ver CHANGELOG de TAC-2), no cifras
+  cerradas — misma calibración pendiente que el resto de 7.12.31.
 
 ### 7.12.35 Fuentes y criterio de diseño
 
@@ -3256,7 +3310,7 @@ Ambos usan el MISMO motor, no dos modos tácticos distintos.
   TAC-1/TAC-5**.
 - Roles tácticos ofensivos/defensivos con valoración en estrellas
   (distintos de la posición en pista, ya resuelta en 7.11) — **diseño cerrado
-  en 7.12.9/7.12.21; implementación pendiente según TAC-2**.
+  en 7.12.9/7.12.21; implementado en TAC-2**.
 - Constantes exactas del `CONFIG_MODIFIERS_NBA` — pendiente hasta que se
   aborde esa parte del proyecto.
 - Mecánica completa de tipos de Entrenamiento (más allá de su efecto en
