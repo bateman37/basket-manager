@@ -14,10 +14,10 @@
       "birthDate": "2004-06-04",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 1,
+        "Alero": 1,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-barca",
       "bodyMeasurements": {
@@ -92,9 +92,9 @@
       "birthDate": "1997-10-12",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 1,
         "Pívot": 2
       },
       "teamId": "team-barca",
@@ -170,9 +170,9 @@
       "birthDate": "1998-07-04",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 13,
+        "Alero": 3,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-barca",
@@ -247,10 +247,10 @@
       "lastName": "Brizuela",
       "birthDate": "1994-11-08",
       "positions": {
-        "Base": 12,
+        "Base": 17,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 1,
+        "Ala-pívot": 5,
         "Pívot": 2
       },
       "teamId": "team-barca",
@@ -325,9 +325,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 3,
+        "Pívot": 4
       },
       "teamId": "team-barca",
       "bodyMeasurements": {
@@ -403,10 +403,10 @@
       "birthDate": "2003-07-19",
       "positions": {
         "Base": 2,
-        "Escolta": 12,
+        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 6
       },
       "teamId": "team-barca",
       "bodyMeasurements": {
@@ -479,10 +479,10 @@
       "birthDate": "2000-04-04",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 13,
+        "Pívot": 4
       },
       "teamId": "team-barca",
       "bodyMeasurements": {
@@ -554,10 +554,10 @@
       "lastName": "Umude",
       "birthDate": "1999-04-12",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Ala-pívot": 5,
         "Pívot": 2
       },
       "teamId": "team-barca",
@@ -631,10 +631,10 @@
       "birthDate": "1999-03-07",
       "positions": {
         "Base": 2,
-        "Escolta": 12,
+        "Escolta": 11,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 1,
+        "Pívot": 4
       },
       "teamId": "team-barca",
       "bodyMeasurements": {
@@ -706,11 +706,11 @@
       "lastName": "Nkamhoua",
       "birthDate": "2000-05-02",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 6,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-barca",
       "bodyMeasurements": {
@@ -782,11 +782,11 @@
       "lastName": "Evbuomwan",
       "birthDate": "2001-02-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 17,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-barca",
       "bodyMeasurements": {
@@ -859,9 +859,9 @@
       "birthDate": "1997-07-19",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-barca",
@@ -936,10 +936,10 @@
       "lastName": "Balcerowski",
       "birthDate": "2000-11-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 4,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-barca",

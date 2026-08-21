@@ -14,10 +14,10 @@
       "birthDate": "1997-07-15",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 3,
+        "Alero": 4,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 6
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -90,10 +90,10 @@
       "birthDate": "1991-03-23",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -169,10 +169,10 @@
       "birthDate": "2001-06-12",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
+        "Escolta": 8,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -246,11 +246,11 @@
       "lastName": "Shulga",
       "birthDate": "2002-06-25",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 12,
+        "Alero": 17,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -324,10 +324,10 @@
       "lastName": "Llull",
       "birthDate": "1987-11-15",
       "positions": {
-        "Base": 12,
+        "Base": 15,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 6,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-real-madrid",
@@ -404,11 +404,11 @@
       "lastName": "Abalde",
       "birthDate": "1995-12-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 5,
+        "Escolta": 16,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -480,11 +480,11 @@
       "lastName": "Procida",
       "birthDate": "2002-06-01",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 1,
+        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 3
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -556,11 +556,11 @@
       "lastName": "Deck",
       "birthDate": "1995-02-08",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 2,
         "Alero": 20,
         "Ala-pívot": 12,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -632,11 +632,11 @@
       "lastName": "Luwawu-Cabarrot",
       "birthDate": "1995-05-09",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 1,
+        "Escolta": 16,
         "Alero": 20,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -709,10 +709,10 @@
       "birthDate": "1998-08-18",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Escolta": 3,
+        "Alero": 11,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -784,11 +784,11 @@
       "lastName": "Almansa",
       "birthDate": "2005-06-07",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 5,
+        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 17
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -860,11 +860,11 @@
       "lastName": "Pradilla",
       "birthDate": "2001-01-03",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 4,
+        "Escolta": 1,
+        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 17
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -936,11 +936,11 @@
       "lastName": "Jantunen",
       "birthDate": "2000-04-20",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 4,
+        "Escolta": 3,
+        "Alero": 6,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -1012,9 +1012,9 @@
       "lastName": "Garuba",
       "birthDate": "2002-03-09",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 6,
+        "Escolta": 6,
+        "Alero": 3,
         "Ala-pívot": 20,
         "Pívot": 12
       },
@@ -1088,10 +1088,10 @@
       "lastName": "Tavares",
       "birthDate": "1992-03-22",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 4,
+        "Alero": 1,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-real-madrid",
@@ -1166,10 +1166,10 @@
       "lastName": "Sarr",
       "birthDate": "1999-02-20",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 1,
+        "Alero": 4,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-real-madrid",

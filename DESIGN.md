@@ -291,13 +291,13 @@ de crearse:
   pista (coherente con que Recovery mide descanso físico real, no
   presencia en la convocatoria).
 
-**Estado: implementado** (`src/core/Calendar.js`), pendiente de merge a
-`main` en el momento de escribir esto — ver PR en curso. Desviación de
-firma respecto al diseño original de este bloque, confirmada como
-correcta: `buildBracketDateResolver` recibe `(startDate, roundPatterns)`
-en vez de solo `(startDate)`, por el motivo explicado en 3.3.3 (una
-ronda no puede fecharse sin conocer los patrones de partidos de la
-ronda anterior, para no arrancarla antes de que termine).
+**Estado: implementado** (`src/core/Calendar.js`), en producción desde
+hace varias sesiones. Desviación de firma respecto al diseño original de
+este bloque, confirmada como correcta: `buildBracketDateResolver` recibe
+`(startDate, roundPatterns)` en vez de solo `(startDate)`, por el motivo
+explicado en 3.3.3 (una ronda no puede fecharse sin conocer los patrones
+de partidos de la ronda anterior, para no arrancarla antes de que
+termine).
 
 ### 3.4 Cierre de ciclo de temporada y pretemporada
 
@@ -1544,8 +1544,8 @@ integración:
   hay hueco que recuperar.
 
 **Estado: implementado** (`Calendar.js` + `lastMatchDate` en
-`Player.js` + enganche en el resolver compartido de `game.js`),
-pendiente de merge — ver PR en curso.
+`Player.js` + enganche en el resolver compartido de `game.js`), en
+producción desde hace varias sesiones.
 
 **Limitación real detectada y señalada explícitamente por la
 implementación, no corregida en este bloque**: `Recovery` solo puede
@@ -1704,8 +1704,9 @@ equipo CPU)**:
   fórmulas de 7.6/7.11 — el criterio (qué señales entran, en qué
   dirección) es lo fijado en esta sesión, no los números finales.
 
-**Estado: pendiente de implementación** — ver prompt de Claude Code
-asociado a este bloque de diseño.
+**Estado: implementado** (`src/core/CpuLineup.js`), en producción para
+todo partido de cualquier división desde la sesión de CPU Lineup (ver
+CHANGELOG).
 
 
 ## 7.12 Sistema táctico — ataque, defensa y generación de ventajas
@@ -2116,6 +2117,23 @@ estrellas para ayudar al usuario. Las estrellas son una **valoración derivada**
 a partir de atributos existentes, competencia posicional, estado físico y
 requisitos del rol; no se almacenan como un atributo de talento independiente.
 
+**Conversión de puntuación (1-20) a estrellas** — vive en `CONFIG_BASE`
+(`config.tactics.starRating.thresholds`) como cualquier otro coeficiente
+calibrable del sistema táctico, punto de partida no cerrado (ver 7.12.31/
+7.12.34):
+
+| Estrellas | Rango de puntuación (1-20) |
+|---|---|
+| 1★ | 1-6 |
+| 2★ | 7-10 |
+| 3★ | 11-14 |
+| 4★ | 15-17 |
+| 5★ | 18-20 |
+
+Misma conversión usada por todas las valoraciones en estrellas del sistema
+táctico (`roleFit`, valoraciones derivadas de quinteto de 7.12.28), no solo
+por los roles de esta sección.
+
 El motor puede consultar capacidades secundarias cuando una posesión cambia de
 forma orgánica (ej. el Connector recibe un closeout y termina actuando como
 creador secundario), pero no convierte cada acción en una reasignación manual
@@ -2513,7 +2531,7 @@ Cada jugador recibe un rol defensivo principal dentro de la táctica:
 Como en ataque, `roleFit` se calcula en estrellas a partir de los atributos ya
 existentes; no es un atributo fijo adicional. Un jugador puede ser excelente
 POA pero mediocre Switch Defender, o gran Rim Protector pero mal defensor en
-espacio.
+espacio. Misma tabla de conversión puntuación→estrellas que 7.12.9.
 
 ### 7.12.22 `tacticalExecution`, familiaridad y complejidad
 
@@ -3465,6 +3483,15 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   `config.tactics.spacing` en `MatchConfig.js`): puntos de partida
   razonables con dirección verificada (ver CHANGELOG de TAC-2), no cifras
   cerradas — misma calibración pendiente que el resto de 7.12.31.
+  **Actualización (sesión de consolidación):** los umbrales de conversión
+  puntuación→estrellas (`config.tactics.starRating.thresholds`, tabla en
+  7.12.9) se recalibraron de un escalón único cada 4 puntos (agrupaba
+  17-20 en el mismo 5★) a 5 tramos desiguales que sí distinguen "muy
+  competente" (17, 4★) de "el máximo posible" (18-20, 5★) — reduce, junto
+  con la regeneración de posiciones reales de esta misma sesión, la
+  saturación de 5★ en `roleFit` detectada por auditoría. Siguen siendo
+  puntos de partida, no cifras cerradas — misma calibración pendiente que
+  el resto de 7.12.31.
 - **TAC-3, nuevos pendientes**: catálogo de playbook con solo 9/14 familias
   (Flex, Princeton Elbow/entry, Post Split, High-Low, Pistol quedan fuera);
   Handoff/DHO, Off Screen y Motion/Flow tienen `PlayDefinition` de catálogo

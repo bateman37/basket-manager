@@ -240,10 +240,10 @@
         "birthDate": "2000-12-12",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 4,
+          "Alero": 3,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -318,10 +318,10 @@
         "birthDate": "1996-03-22",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 6,
+          "Alero": 4,
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -394,9 +394,9 @@
         "birthDate": "1990-01-31",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 13,
+          "Alero": 5,
+          "Ala-pívot": 1,
           "Pívot": 2
         },
         "teamId": "team-asisa-joventut",
@@ -473,10 +473,10 @@
         "birthDate": "1990-10-21",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 1,
+          "Alero": 4,
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -554,9 +554,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 11,
+          "Ala-pívot": 6,
+          "Pívot": 5
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -628,11 +628,11 @@
         "lastName": "Reyes",
         "birthDate": "1993-12-17",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 4,
           "Alero": 20,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -704,11 +704,11 @@
         "lastName": "Kraag",
         "birthDate": "2002-10-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 3,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 6
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -780,11 +780,11 @@
         "lastName": "Sulejmanovic",
         "birthDate": "1995-07-13",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 4,
+          "Escolta": 3,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 17
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -856,11 +856,11 @@
         "lastName": "Cheatham",
         "birthDate": "1995-08-21",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 1,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -932,11 +932,11 @@
         "lastName": "Ruzic",
         "birthDate": "2006-10-04",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 4,
+          "Alero": 5,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 10
         },
         "teamId": "team-asisa-joventut",
         "bodyMeasurements": {
@@ -1009,9 +1009,9 @@
         "birthDate": "1987-02-17",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 5,
+          "Alero": 3,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-asisa-joventut",
@@ -1087,10 +1087,10 @@
         "lastName": "Birgander",
         "birthDate": "1997-10-23",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 4,
+          "Alero": 1,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-asisa-joventut",
@@ -1261,10 +1261,10 @@
         "birthDate": "2004-06-04",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 1,
+          "Alero": 1,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-barca",
         "bodyMeasurements": {
@@ -1339,9 +1339,9 @@
         "birthDate": "1997-10-12",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 1,
           "Pívot": 2
         },
         "teamId": "team-barca",
@@ -1417,9 +1417,9 @@
         "birthDate": "1998-07-04",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 13,
+          "Alero": 3,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-barca",
@@ -1494,10 +1494,10 @@
         "lastName": "Brizuela",
         "birthDate": "1994-11-08",
         "positions": {
-          "Base": 12,
+          "Base": 17,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 1,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-barca",
@@ -1572,9 +1572,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-barca",
         "bodyMeasurements": {
@@ -1650,10 +1650,10 @@
         "birthDate": "2003-07-19",
         "positions": {
           "Base": 2,
-          "Escolta": 12,
+          "Escolta": 10,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 6
         },
         "teamId": "team-barca",
         "bodyMeasurements": {
@@ -1726,10 +1726,10 @@
         "birthDate": "2000-04-04",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 13,
+          "Pívot": 4
         },
         "teamId": "team-barca",
         "bodyMeasurements": {
@@ -1801,10 +1801,10 @@
         "lastName": "Umude",
         "birthDate": "1999-04-12",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-barca",
@@ -1878,10 +1878,10 @@
         "birthDate": "1999-03-07",
         "positions": {
           "Base": 2,
-          "Escolta": 12,
+          "Escolta": 11,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 1,
+          "Pívot": 4
         },
         "teamId": "team-barca",
         "bodyMeasurements": {
@@ -1953,11 +1953,11 @@
         "lastName": "Nkamhoua",
         "birthDate": "2000-05-02",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 6,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-barca",
         "bodyMeasurements": {
@@ -2029,11 +2029,11 @@
         "lastName": "Evbuomwan",
         "birthDate": "2001-02-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 17,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-barca",
         "bodyMeasurements": {
@@ -2106,9 +2106,9 @@
         "birthDate": "1997-07-19",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-barca",
@@ -2183,10 +2183,10 @@
         "lastName": "Balcerowski",
         "birthDate": "2000-11-19",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 4,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-barca",
@@ -2357,10 +2357,10 @@
         "birthDate": "1993-06-16",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
@@ -2435,10 +2435,10 @@
         "birthDate": "1997-02-17",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 4,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
@@ -2513,10 +2513,10 @@
         "birthDate": "1995-09-05",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 1,
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
@@ -2590,11 +2590,11 @@
         "lastName": "Jaworski",
         "birthDate": "1999-06-21",
         "positions": {
-          "Base": 12,
+          "Base": 10,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 6,
+          "Ala-pívot": 6,
+          "Pívot": 4
         },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
@@ -2668,10 +2668,10 @@
         "lastName": "González",
         "birthDate": "1999-03-20",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
+          "Alero": 8,
+          "Ala-pívot": 6,
           "Pívot": 2
         },
         "teamId": "team-casademont-zaragoza",
@@ -2744,11 +2744,11 @@
         "lastName": "Homesley",
         "birthDate": "1996-11-27",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 4,
+          "Escolta": 15,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
@@ -2823,8 +2823,8 @@
           "Base": 2,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
@@ -2896,9 +2896,9 @@
         "lastName": "Fernández",
         "birthDate": "2000-07-15",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 3,
+          "Escolta": 3,
+          "Alero": 17,
           "Ala-pívot": 20,
           "Pívot": 2
         },
@@ -2973,10 +2973,10 @@
         "birthDate": "1998-04-29",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 3,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-casademont-zaragoza",
         "bodyMeasurements": {
@@ -3048,10 +3048,10 @@
         "lastName": "Olaseni",
         "birthDate": "1991-12-29",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 6,
+          "Alero": 4,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-casademont-zaragoza",
@@ -3126,10 +3126,10 @@
         "lastName": "Birutis",
         "birthDate": "1997-08-27",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 1,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-casademont-zaragoza",
@@ -3300,10 +3300,10 @@
         "birthDate": "2000-06-03",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3378,9 +3378,9 @@
         "birthDate": "2004-10-10",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 5,
+          "Alero": 3,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-fiatc-girona",
@@ -3456,10 +3456,10 @@
         "birthDate": "1999-01-06",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 16,
+          "Alero": 4,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3534,10 +3534,10 @@
         "birthDate": "1994-10-21",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 8,
+          "Alero": 3,
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3613,9 +3613,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 13,
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3689,11 +3689,11 @@
         "lastName": "Busquets",
         "birthDate": "1999-03-02",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 11,
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3766,10 +3766,10 @@
         "birthDate": "1999-05-10",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 10,
+          "Pívot": 4
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3841,11 +3841,11 @@
         "lastName": "N'Guessan",
         "birthDate": "2000-06-12",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 5,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3918,10 +3918,10 @@
         "birthDate": "1998-12-19",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 6,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 9
         },
         "teamId": "team-fiatc-girona",
         "bodyMeasurements": {
@@ -3993,9 +3993,9 @@
         "lastName": "Kunc",
         "birthDate": "1999-07-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 4,
+          "Alero": 3,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -4071,10 +4071,10 @@
         "lastName": "Geben",
         "birthDate": "1994-10-20",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 3,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-fiatc-girona",
@@ -4245,10 +4245,10 @@
         "birthDate": "1998-01-30",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 1,
+          "Alero": 3,
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
@@ -4321,10 +4321,10 @@
         "birthDate": "1999-06-02",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 15,
+          "Alero": 5,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
@@ -4398,11 +4398,11 @@
         "lastName": "Batemon",
         "birthDate": "1997-04-08",
         "positions": {
-          "Base": 12,
+          "Base": 8,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 6,
+          "Ala-pívot": 6,
+          "Pívot": 4
         },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
@@ -4476,11 +4476,11 @@
         "lastName": "Hughes",
         "birthDate": "1997-02-15",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 5,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
@@ -4553,9 +4553,9 @@
         "birthDate": "1999-02-01",
         "positions": {
           "Base": 2,
-          "Escolta": 12,
+          "Escolta": 14,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-ilerna-lleida",
@@ -4628,11 +4628,11 @@
         "lastName": "Paulí",
         "birthDate": "1994-05-20",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 4,
+          "Escolta": 9,
           "Alero": 20,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
@@ -4704,11 +4704,11 @@
         "lastName": "Shurna",
         "birthDate": "1990-04-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 3,
+          "Escolta": 6,
+          "Alero": 13,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
@@ -4780,11 +4780,11 @@
         "lastName": "Ejim",
         "birthDate": "1991-03-04",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 6,
+          "Escolta": 1,
+          "Alero": 9,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-ilerna-lleida",
         "bodyMeasurements": {
@@ -4856,10 +4856,10 @@
         "lastName": "Diagne",
         "birthDate": "1998-12-31",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 4,
+          "Alero": 5,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-ilerna-lleida",
@@ -4932,10 +4932,10 @@
         "lastName": "Kuath",
         "birthDate": "1998-08-12",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 1,
+          "Escolta": 6,
+          "Alero": 6,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-ilerna-lleida",
@@ -5010,8 +5010,8 @@
         "lastName": "Perrin",
         "birthDate": "2004-08-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 1,
+          "Escolta": 4,
           "Alero": 2,
           "Ala-pívot": 12,
           "Pívot": 20
@@ -5184,10 +5184,10 @@
         "birthDate": "1992-04-29",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 1,
+          "Alero": 5,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5262,10 +5262,10 @@
         "birthDate": "2001-01-20",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 1,
+          "Alero": 1,
+          "Ala-pívot": 4,
+          "Pívot": 3
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5340,10 +5340,10 @@
         "birthDate": "2002-05-24",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 15,
+          "Alero": 5,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5418,10 +5418,10 @@
         "birthDate": "2004-08-09",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 8,
+          "Alero": 6,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5495,11 +5495,11 @@
         "lastName": "Kolenda",
         "birthDate": "1999-07-28",
         "positions": {
-          "Base": 12,
+          "Base": 16,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5571,11 +5571,11 @@
         "lastName": "Agbo",
         "birthDate": "2001-11-28",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 1,
+          "Escolta": 10,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5647,11 +5647,11 @@
         "lastName": "Tamba",
         "birthDate": "2003-09-04",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 1,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 1
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5724,10 +5724,10 @@
         "birthDate": "1998-05-15",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 3,
+          "Alero": 16,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5799,11 +5799,11 @@
         "lastName": "Allen",
         "birthDate": "2000-01-09",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 4,
+          "Escolta": 1,
+          "Alero": 8,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5875,11 +5875,11 @@
         "lastName": "Minchev",
         "birthDate": "1998-10-17",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 4,
+          "Alero": 1,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-kids-and-us-manresa",
         "bodyMeasurements": {
@@ -5953,8 +5953,8 @@
         "positions": {
           "Base": 2,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 1,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-kids-and-us-manresa",
@@ -6031,8 +6031,8 @@
         "positions": {
           "Base": 2,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Alero": 5,
+          "Ala-pívot": 14,
           "Pívot": 20
         },
         "teamId": "team-kids-and-us-manresa",
@@ -6203,10 +6203,10 @@
         "birthDate": "2000-08-03",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 11,
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6281,10 +6281,10 @@
         "birthDate": "1997-07-04",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6360,9 +6360,9 @@
         "positions": {
           "Base": 12,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 3,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6437,11 +6437,11 @@
         "lastName": "Spagnolo",
         "birthDate": "2003-01-10",
         "positions": {
-          "Base": 12,
+          "Base": 14,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 4,
+          "Ala-pívot": 5,
+          "Pívot": 3
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6513,11 +6513,11 @@
         "lastName": "Lawson",
         "birthDate": "2000-07-15",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 12,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6589,11 +6589,11 @@
         "lastName": "Duarte",
         "birthDate": "1997-06-13",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 4,
+          "Escolta": 16,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6665,11 +6665,11 @@
         "lastName": "Stewart Jr",
         "birthDate": "1999-07-28",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 4,
           "Alero": 20,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6741,11 +6741,11 @@
         "lastName": "Kurucs",
         "birthDate": "1998-02-05",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 1,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 14,
+          "Pívot": 4
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6817,10 +6817,10 @@
         "lastName": "Sedekerskis",
         "birthDate": "1998-01-17",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 6,
+          "Escolta": 4,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 17,
           "Pívot": 2
         },
         "teamId": "team-kosner-baskonia",
@@ -6893,11 +6893,11 @@
         "lastName": "Frisch",
         "birthDate": "2002-01-07",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 3,
+          "Alero": 5,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-kosner-baskonia",
         "bodyMeasurements": {
@@ -6969,10 +6969,10 @@
         "lastName": "Diop",
         "birthDate": "2002-01-15",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 6,
           "Pívot": 20
         },
         "teamId": "team-kosner-baskonia",
@@ -7143,8 +7143,8 @@
         "birthDate": "2000-01-19",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 8,
+          "Alero": 4,
           "Ala-pívot": 2,
           "Pívot": 2
         },
@@ -7221,10 +7221,10 @@
         "birthDate": "1991-08-02",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 6,
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -7297,10 +7297,10 @@
         "birthDate": "1983-05-25",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 6
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -7376,10 +7376,10 @@
         "lastName": "Fernández",
         "birthDate": "2000-07-15",
         "positions": {
-          "Base": 12,
+          "Base": 8,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 4,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-la-laguna-tenerife",
@@ -7454,9 +7454,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 1,
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -7530,10 +7530,10 @@
         "lastName": "Bamba",
         "birthDate": "2001-01-06",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
+          "Alero": 9,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-la-laguna-tenerife",
@@ -7606,10 +7606,10 @@
         "lastName": "Van Beck",
         "birthDate": "1996-01-22",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
+          "Alero": 8,
+          "Ala-pívot": 6,
           "Pívot": 2
         },
         "teamId": "team-la-laguna-tenerife",
@@ -7682,11 +7682,11 @@
         "lastName": "Alderete",
         "birthDate": "2002-03-06",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 11,
+          "Pívot": 1
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -7758,11 +7758,11 @@
         "lastName": "Giedraitis",
         "birthDate": "1992-08-16",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 6,
+          "Pívot": 3
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -7835,10 +7835,10 @@
         "birthDate": "1997-05-19",
         "positions": {
           "Base": 2,
-          "Escolta": 12,
+          "Escolta": 8,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 6
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -7911,10 +7911,10 @@
         "birthDate": "1985-12-05",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 1,
+          "Alero": 16,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -7989,10 +7989,10 @@
         "birthDate": "1989-09-17",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 5,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-la-laguna-tenerife",
         "bodyMeasurements": {
@@ -8067,9 +8067,9 @@
         "birthDate": "1996-05-07",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 3,
+          "Alero": 4,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-la-laguna-tenerife",
@@ -8144,10 +8144,10 @@
         "lastName": "Shermadini",
         "birthDate": "1989-04-02",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 3,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-la-laguna-tenerife",
@@ -8318,10 +8318,10 @@
         "birthDate": "1998-10-17",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 11,
+          "Alero": 6,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -8396,10 +8396,10 @@
         "birthDate": "1999-02-22",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 4,
+          "Alero": 1,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -8474,10 +8474,10 @@
         "birthDate": "2000-06-20",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -8551,10 +8551,10 @@
         "lastName": "Jorgensen",
         "birthDate": "1996-07-21",
         "positions": {
-          "Base": 12,
+          "Base": 9,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 6,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-leyma-coruna",
@@ -8627,11 +8627,11 @@
         "lastName": "Dimsa",
         "birthDate": "1994-01-02",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 10,
+          "Ala-pívot": 6,
+          "Pívot": 4
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -8703,11 +8703,11 @@
         "lastName": "Jou",
         "birthDate": "1997-07-15",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 10,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -8780,10 +8780,10 @@
         "birthDate": "1996-07-23",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 11,
+          "Pívot": 3
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -8858,8 +8858,8 @@
           "Base": 2,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -8931,11 +8931,11 @@
         "lastName": "Radoncic",
         "birthDate": "1999-01-08",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 15,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-leyma-coruna",
         "bodyMeasurements": {
@@ -9007,9 +9007,9 @@
         "lastName": "Skapintsev",
         "birthDate": "1998-05-12",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
-          "Alero": 2,
+          "Alero": 6,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -9085,10 +9085,10 @@
         "lastName": "Conditt IV",
         "birthDate": "2000-08-22",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 6,
+          "Escolta": 3,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 6,
           "Pívot": 20
         },
         "teamId": "team-leyma-coruna",
@@ -9161,10 +9161,10 @@
         "lastName": "Silins",
         "birthDate": "1997-07-22",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 6,
           "Pívot": 20
         },
         "teamId": "team-leyma-coruna",
@@ -9335,9 +9335,9 @@
         "birthDate": "1997-08-31",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 3,
+          "Alero": 4,
+          "Ala-pívot": 6,
           "Pívot": 2
         },
         "teamId": "team-monbus-obradoiro",
@@ -9412,11 +9412,11 @@
         "lastName": "Barcello",
         "birthDate": "1998-08-31",
         "positions": {
-          "Base": 12,
+          "Base": 14,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 5,
+          "Ala-pívot": 6,
+          "Pívot": 5
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -9488,11 +9488,11 @@
         "lastName": "Agada",
         "birthDate": "1994-08-31",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 16,
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -9564,11 +9564,11 @@
         "lastName": "Brito",
         "birthDate": "1997-04-24",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 20,
-          "Alero": 12,
+          "Alero": 16,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -9640,11 +9640,11 @@
         "lastName": "Lundqvist",
         "birthDate": "1999-11-21",
         "positions": {
-          "Base": 12,
+          "Base": 13,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 6,
+          "Ala-pívot": 1,
+          "Pívot": 3
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -9716,11 +9716,11 @@
         "lastName": "Quintela",
         "birthDate": "1996-04-21",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 13,
+          "Ala-pívot": 1,
+          "Pívot": 1
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -9792,11 +9792,11 @@
         "lastName": "Meindl",
         "birthDate": "1993-03-20",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -9868,11 +9868,11 @@
         "lastName": "Barrueta",
         "birthDate": "1993-04-15",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 11,
+          "Pívot": 3
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -9944,11 +9944,11 @@
         "lastName": "Galán",
         "birthDate": "1999-09-12",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 1,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -10020,11 +10020,11 @@
         "lastName": "Faure",
         "birthDate": "2002-02-20",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 3,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 11
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -10096,11 +10096,11 @@
         "lastName": "Abogidi",
         "birthDate": "2001-10-11",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 1,
+          "Escolta": 5,
+          "Alero": 5,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 14
         },
         "teamId": "team-monbus-obradoiro",
         "bodyMeasurements": {
@@ -10173,9 +10173,9 @@
         "birthDate": "1998-04-30",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 6,
+          "Alero": 3,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-monbus-obradoiro",
@@ -10250,8 +10250,8 @@
         "lastName": "Soriano",
         "birthDate": "2000-01-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 4,
           "Alero": 2,
           "Ala-pívot": 2,
           "Pívot": 20
@@ -10424,10 +10424,10 @@
         "birthDate": "2000-11-27",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 3,
+          "Alero": 1,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -10502,10 +10502,10 @@
         "birthDate": "2009-01-10",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 3,
+          "Pívot": 6
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -10581,9 +10581,9 @@
         "positions": {
           "Base": 20,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 1,
+          "Ala-pívot": 6,
+          "Pívot": 5
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -10657,11 +10657,11 @@
         "lastName": "Best",
         "birthDate": "1992-09-01",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 8,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -10733,11 +10733,11 @@
         "lastName": "Ortega",
         "birthDate": "1997-08-13",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 14,
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -10809,10 +10809,10 @@
         "lastName": "Robertson",
         "birthDate": "1994-04-20",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 1,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-morabanc-andorra",
@@ -10885,11 +10885,11 @@
         "lastName": "Kuric",
         "birthDate": "1989-08-25",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 1
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -10961,10 +10961,10 @@
         "lastName": "Kostadinov",
         "birthDate": "2003-03-25",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-morabanc-andorra",
@@ -11038,10 +11038,10 @@
         "birthDate": "1999-01-06",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 8,
+          "Pívot": 5
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -11114,9 +11114,9 @@
         "birthDate": "1994-12-20",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 6,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-morabanc-andorra",
@@ -11189,11 +11189,11 @@
         "lastName": "McGriff",
         "birthDate": "1997-09-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 4,
+          "Escolta": 1,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-morabanc-andorra",
         "bodyMeasurements": {
@@ -11265,9 +11265,9 @@
         "lastName": "Aquino",
         "birthDate": "2003-01-08",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 4,
           "Ala-pívot": 20,
           "Pívot": 12
         },
@@ -11341,10 +11341,10 @@
         "lastName": "Pustovyi",
         "birthDate": "1992-06-25",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 4,
+          "Alero": 3,
+          "Ala-pívot": 6,
           "Pívot": 20
         },
         "teamId": "team-morabanc-andorra",
@@ -11417,10 +11417,10 @@
         "lastName": "Radosevic",
         "birthDate": "1990-02-26",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Base": 3,
+          "Escolta": 6,
+          "Alero": 1,
+          "Ala-pívot": 10,
           "Pívot": 20
         },
         "teamId": "team-morabanc-andorra",
@@ -11591,10 +11591,10 @@
         "birthDate": "1997-07-15",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 3,
+          "Alero": 4,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -11667,10 +11667,10 @@
         "birthDate": "1991-03-23",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 1
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -11746,10 +11746,10 @@
         "birthDate": "2001-06-12",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
+          "Escolta": 8,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -11823,11 +11823,11 @@
         "lastName": "Shulga",
         "birthDate": "2002-06-25",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 12,
+          "Alero": 17,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -11901,10 +11901,10 @@
         "lastName": "Llull",
         "birthDate": "1987-11-15",
         "positions": {
-          "Base": 12,
+          "Base": 15,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 6,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-real-madrid",
@@ -11981,11 +11981,11 @@
         "lastName": "Abalde",
         "birthDate": "1995-12-15",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 5,
+          "Escolta": 16,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12057,11 +12057,11 @@
         "lastName": "Procida",
         "birthDate": "2002-06-01",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 1,
+          "Escolta": 4,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 3
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12133,11 +12133,11 @@
         "lastName": "Deck",
         "birthDate": "1995-02-08",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 2,
           "Alero": 20,
           "Ala-pívot": 12,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12209,11 +12209,11 @@
         "lastName": "Luwawu-Cabarrot",
         "birthDate": "1995-05-09",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 1,
+          "Escolta": 16,
           "Alero": 20,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12286,10 +12286,10 @@
         "birthDate": "1998-08-18",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 3,
+          "Alero": 11,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12361,11 +12361,11 @@
         "lastName": "Almansa",
         "birthDate": "2005-06-07",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 5,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 17
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12437,11 +12437,11 @@
         "lastName": "Pradilla",
         "birthDate": "2001-01-03",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 4,
+          "Escolta": 1,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 17
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12513,11 +12513,11 @@
         "lastName": "Jantunen",
         "birthDate": "2000-04-20",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 4,
+          "Escolta": 3,
+          "Alero": 6,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-real-madrid",
         "bodyMeasurements": {
@@ -12589,9 +12589,9 @@
         "lastName": "Garuba",
         "birthDate": "2002-03-09",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 6,
+          "Escolta": 6,
+          "Alero": 3,
           "Ala-pívot": 20,
           "Pívot": 12
         },
@@ -12665,10 +12665,10 @@
         "lastName": "Tavares",
         "birthDate": "1992-03-22",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 4,
+          "Alero": 1,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-real-madrid",
@@ -12743,10 +12743,10 @@
         "lastName": "Sarr",
         "birthDate": "1999-02-20",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 1,
+          "Alero": 4,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-real-madrid",
@@ -12917,10 +12917,10 @@
         "birthDate": "2001-10-02",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 8,
+          "Alero": 5,
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
@@ -12996,9 +12996,9 @@
         "positions": {
           "Base": 20,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
@@ -13074,9 +13074,9 @@
         "positions": {
           "Base": 12,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 5,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
@@ -13148,10 +13148,10 @@
         "lastName": "Lobaco",
         "birthDate": "2000-11-29",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 6,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
@@ -13224,7 +13224,7 @@
         "lastName": "Obasohan",
         "birthDate": "1993-07-06",
         "positions": {
-          "Base": 12,
+          "Base": 8,
           "Escolta": 20,
           "Alero": 2,
           "Ala-pívot": 2,
@@ -13300,11 +13300,11 @@
         "lastName": "Radosavljevic",
         "birthDate": "2001-11-03",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 6,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 3
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
@@ -13377,9 +13377,9 @@
         "birthDate": "1989-01-15",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 4,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
@@ -13453,9 +13453,9 @@
         "birthDate": "1997-04-10",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 15,
           "Pívot": 2
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
@@ -13528,11 +13528,11 @@
         "lastName": "Sengfelder",
         "birthDate": "1995-02-28",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 4,
+          "Escolta": 6,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
@@ -13604,11 +13604,11 @@
         "lastName": "Díez",
         "birthDate": "1993-04-07",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 5,
+          "Escolta": 5,
+          "Alero": 14,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
         "bodyMeasurements": {
@@ -13680,10 +13680,10 @@
         "lastName": "Koprivica",
         "birthDate": "2000-05-01",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 3,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
@@ -13758,10 +13758,10 @@
         "lastName": "Guerrero",
         "birthDate": "1995-10-22",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 4,
+          "Escolta": 6,
+          "Alero": 1,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-recoletas-salud-san-pablo-burgos",
@@ -13932,10 +13932,10 @@
         "birthDate": "1994-06-15",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 5,
+          "Ala-pívot": 4,
+          "Pívot": 3
         },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
@@ -14008,9 +14008,9 @@
         "birthDate": "1991-08-17",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 1,
           "Pívot": 2
         },
         "teamId": "team-rio-breogan",
@@ -14086,10 +14086,10 @@
         "birthDate": "1999-09-27",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
+          "Escolta": 13,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 3
         },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
@@ -14163,9 +14163,9 @@
         "lastName": "Alonso",
         "birthDate": "1996-05-25",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 4,
           "Ala-pívot": 2,
           "Pívot": 2
         },
@@ -14239,11 +14239,11 @@
         "lastName": "Peris",
         "birthDate": "2000-08-06",
         "positions": {
-          "Base": 12,
+          "Base": 8,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 3,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
@@ -14315,11 +14315,11 @@
         "lastName": "Aranitovic",
         "birthDate": "1998-01-24",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 4,
+          "Escolta": 10,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
@@ -14391,10 +14391,10 @@
         "lastName": "Brown",
         "birthDate": "1998-09-23",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 8,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-rio-breogan",
@@ -14467,9 +14467,9 @@
         "lastName": "García",
         "birthDate": "2000-08-23",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 2,
-          "Alero": 12,
+          "Alero": 16,
           "Ala-pívot": 20,
           "Pívot": 2
         },
@@ -14543,11 +14543,11 @@
         "lastName": "Vicedo",
         "birthDate": "1994-08-24",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 1,
+          "Escolta": 3,
+          "Alero": 8,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
@@ -14619,11 +14619,11 @@
         "lastName": "Andric",
         "birthDate": "1994-01-04",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 3,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-rio-breogan",
         "bodyMeasurements": {
@@ -14696,9 +14696,9 @@
         "birthDate": "1996-09-17",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Escolta": 1,
+          "Alero": 1,
+          "Ala-pívot": 11,
           "Pívot": 20
         },
         "teamId": "team-rio-breogan",
@@ -14773,10 +14773,10 @@
         "lastName": "Brankovic",
         "birthDate": "2000-11-05",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 3,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-rio-breogan",
@@ -14849,10 +14849,10 @@
         "lastName": "Kasibabu",
         "birthDate": "1996-04-24",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 6,
+          "Escolta": 4,
+          "Alero": 6,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-rio-breogan",
@@ -15021,10 +15021,10 @@
         "birthDate": "2000-06-30",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 4,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
@@ -15100,9 +15100,9 @@
         "positions": {
           "Base": 20,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
@@ -15179,7 +15179,7 @@
           "Base": 20,
           "Escolta": 2,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-surne-bilbao-basket",
@@ -15254,11 +15254,11 @@
         "lastName": "Font",
         "birthDate": "1998-03-11",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 9,
+          "Ala-pívot": 6,
+          "Pívot": 3
         },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
@@ -15330,10 +15330,10 @@
         "lastName": "Hilliard",
         "birthDate": "1993-04-13",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
+          "Alero": 8,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-surne-bilbao-basket",
@@ -15408,11 +15408,11 @@
         "lastName": "Normantas",
         "birthDate": "1996-10-27",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 16,
+          "Ala-pívot": 3,
+          "Pívot": 1
         },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
@@ -15484,10 +15484,10 @@
         "lastName": "Darling",
         "birthDate": "1998-08-30",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 3,
+          "Ala-pívot": 6,
           "Pívot": 2
         },
         "teamId": "team-surne-bilbao-basket",
@@ -15563,8 +15563,8 @@
           "Base": 2,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 1,
+          "Pívot": 4
         },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
@@ -15636,11 +15636,11 @@
         "lastName": "Petrasek",
         "birthDate": "1995-08-17",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 6,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
@@ -15712,11 +15712,11 @@
         "lastName": "Krampelj",
         "birthDate": "1995-03-10",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 1,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 15
         },
         "teamId": "team-surne-bilbao-basket",
         "bodyMeasurements": {
@@ -15788,10 +15788,10 @@
         "lastName": "Vautier",
         "birthDate": "1998-11-15",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 1,
+          "Escolta": 4,
+          "Alero": 5,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-surne-bilbao-basket",
@@ -15866,10 +15866,10 @@
         "lastName": "Husták",
         "birthDate": "2003-11-04",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 1,
+          "Escolta": 5,
+          "Alero": 5,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-surne-bilbao-basket",
@@ -15944,8 +15944,8 @@
         "lastName": "Hlinason",
         "birthDate": "1997-10-28",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 1,
+          "Escolta": 3,
           "Alero": 2,
           "Ala-pívot": 2,
           "Pívot": 20
@@ -16119,8 +16119,8 @@
         "positions": {
           "Base": 20,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 4,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-ucam-murcia",
@@ -16194,10 +16194,10 @@
         "birthDate": "1997-06-17",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 14,
+          "Alero": 4,
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16272,10 +16272,10 @@
         "birthDate": "2000-07-06",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 6,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16350,10 +16350,10 @@
         "birthDate": "1999-12-02",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 10,
+          "Alero": 3,
+          "Ala-pívot": 4,
+          "Pívot": 3
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16427,11 +16427,11 @@
         "lastName": "Ennis",
         "birthDate": "1991-12-26",
         "positions": {
-          "Base": 12,
+          "Base": 14,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16503,11 +16503,11 @@
         "lastName": "Falk",
         "birthDate": "2003-06-25",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 5,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16579,11 +16579,11 @@
         "lastName": "Sant-Roos",
         "birthDate": "1991-02-13",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 1,
+          "Escolta": 10,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16655,11 +16655,11 @@
         "lastName": "Raieste",
         "birthDate": "1999-03-31",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16732,10 +16732,10 @@
         "birthDate": "1999-01-26",
         "positions": {
           "Base": 2,
-          "Escolta": 12,
+          "Escolta": 14,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 1,
+          "Pívot": 5
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16807,11 +16807,11 @@
         "lastName": "Nakic",
         "birthDate": "1999-06-01",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 1,
+          "Escolta": 4,
           "Alero": 20,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16884,10 +16884,10 @@
         "birthDate": "1996-11-08",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 3,
+          "Alero": 11,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -16959,11 +16959,11 @@
         "lastName": "Steinbergs",
         "birthDate": "2001-08-28",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 4,
+          "Escolta": 4,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -17035,11 +17035,11 @@
         "lastName": "López de la Torre",
         "birthDate": "2002-03-13",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 6,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-ucam-murcia",
         "bodyMeasurements": {
@@ -17111,10 +17111,10 @@
         "lastName": "Cate",
         "birthDate": "1997-07-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 4,
+          "Escolta": 1,
+          "Alero": 3,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-ucam-murcia",
@@ -17189,10 +17189,10 @@
         "lastName": "Pansa",
         "birthDate": "1997-08-20",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 2,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-ucam-murcia",
@@ -17267,10 +17267,10 @@
         "lastName": "Diagne",
         "birthDate": "1994-03-06",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 3,
+          "Alero": 1,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-ucam-murcia",
@@ -17441,9 +17441,9 @@
         "birthDate": "1994-04-23",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 3,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-unicaja",
@@ -17521,10 +17521,10 @@
         "birthDate": "1992-12-23",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
@@ -17600,10 +17600,10 @@
         "birthDate": "2000-04-10",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 13,
+          "Alero": 4,
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
@@ -17677,11 +17677,11 @@
         "lastName": "Hunt",
         "birthDate": "1997-08-25",
         "positions": {
-          "Base": 12,
+          "Base": 9,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 6,
+          "Ala-pívot": 6,
+          "Pívot": 4
         },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
@@ -17753,11 +17753,11 @@
         "lastName": "Djedovic",
         "birthDate": "1990-01-12",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 8,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
@@ -17831,11 +17831,11 @@
         "lastName": "Kalinoski",
         "birthDate": "1992-12-19",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 3,
+          "Pívot": 1
         },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
@@ -17909,11 +17909,11 @@
         "lastName": "Brazdeikis",
         "birthDate": "1999-01-08",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 14,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
@@ -17985,10 +17985,10 @@
         "lastName": "Barreiro",
         "birthDate": "1997-01-16",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 11,
           "Pívot": 2
         },
         "teamId": "team-unicaja",
@@ -18061,9 +18061,9 @@
         "lastName": "Noua",
         "birthDate": "1997-02-07",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 2,
-          "Alero": 2,
+          "Alero": 3,
           "Ala-pívot": 20,
           "Pívot": 2
         },
@@ -18137,11 +18137,11 @@
         "lastName": "Pérez",
         "birthDate": "1996-01-29",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 1,
+          "Escolta": 3,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-unicaja",
         "bodyMeasurements": {
@@ -18214,9 +18214,9 @@
         "birthDate": "1992-09-12",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 6,
+          "Alero": 5,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-unicaja",
@@ -18292,8 +18292,8 @@
         "birthDate": "1994-05-27",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 3,
+          "Alero": 1,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -18370,9 +18370,9 @@
         "birthDate": "2003-11-15",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 5,
+          "Alero": 3,
+          "Ala-pívot": 6,
           "Pívot": 20
         },
         "teamId": "team-unicaja",
@@ -18541,10 +18541,10 @@
         "birthDate": "2002-04-29",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 5,
+          "Alero": 6,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -18619,10 +18619,10 @@
         "birthDate": "2006-04-14",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
+          "Escolta": 13,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 6,
+          "Pívot": 4
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -18697,10 +18697,10 @@
         "birthDate": "1997-10-15",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 3,
+          "Ala-pívot": 1,
+          "Pívot": 6
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -18775,11 +18775,11 @@
         "lastName": "Brooks",
         "birthDate": "1998-06-05",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -18851,11 +18851,11 @@
         "lastName": "Corbalán",
         "birthDate": "2002-03-03",
         "positions": {
-          "Base": 12,
+          "Base": 17,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -18927,11 +18927,11 @@
         "lastName": "Puerto",
         "birthDate": "1999-03-08",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 15,
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19003,11 +19003,11 @@
         "lastName": "Marí",
         "birthDate": "2005-10-20",
         "positions": {
-          "Base": 12,
+          "Base": 16,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19080,10 +19080,10 @@
         "birthDate": "2000-09-18",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
+          "Escolta": 15,
           "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19157,11 +19157,11 @@
         "lastName": "Valtonen",
         "birthDate": "1999-06-11",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19234,10 +19234,10 @@
         "birthDate": "1994-10-05",
         "positions": {
           "Base": 2,
-          "Escolta": 12,
+          "Escolta": 8,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19309,11 +19309,11 @@
         "lastName": "Osetkowski",
         "birthDate": "1996-08-08",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 4,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 8
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19386,10 +19386,10 @@
         "birthDate": "1998-07-08",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 6,
+          "Alero": 16,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19461,11 +19461,11 @@
         "lastName": "Reuvers",
         "birthDate": "1998-09-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 3,
+          "Alero": 6,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 15
         },
         "teamId": "team-valencia-basket",
         "bodyMeasurements": {
@@ -19537,10 +19537,10 @@
         "lastName": "Sako",
         "birthDate": "1998-08-13",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 5,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-valencia-basket",
@@ -19615,9 +19615,9 @@
         "lastName": "Sima",
         "birthDate": "1996-07-28",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 4,
+          "Alero": 1,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -19789,10 +19789,10 @@
         "birthDate": "2003-02-13",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 8,
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 1
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -19865,10 +19865,10 @@
         "birthDate": "1998-04-24",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 8,
+          "Alero": 5,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -19940,11 +19940,11 @@
         "lastName": "Williams",
         "birthDate": "2004-01-01",
         "positions": {
-          "Base": 12,
+          "Base": 15,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 6
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -20016,11 +20016,11 @@
         "lastName": "Goodine",
         "birthDate": "1999-09-29",
         "positions": {
-          "Base": 12,
+          "Base": 13,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 4,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -20092,11 +20092,11 @@
         "lastName": "Hollanders",
         "birthDate": "2001-09-13",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 12,
+          "Alero": 15,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -20168,11 +20168,11 @@
         "lastName": "Brnovic",
         "birthDate": "2000-08-10",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 3,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 11,
+          "Pívot": 4
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -20244,11 +20244,11 @@
         "lastName": "Arias",
         "birthDate": "2006-01-25",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 10,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 1
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -20320,11 +20320,11 @@
         "lastName": "Nwaokorie",
         "birthDate": "2002-09-24",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 1,
+          "Escolta": 1,
+          "Alero": 17,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -20397,10 +20397,10 @@
         "birthDate": "2003-08-30",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 4,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 8
         },
         "teamId": "team-alimerka-oviedo",
         "bodyMeasurements": {
@@ -20472,10 +20472,10 @@
         "lastName": "Wisne",
         "birthDate": "2003-09-18",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Base": 5,
+          "Escolta": 5,
+          "Alero": 3,
+          "Ala-pívot": 15,
           "Pívot": 20
         },
         "teamId": "team-alimerka-oviedo",
@@ -20548,10 +20548,10 @@
         "lastName": "Barro",
         "birthDate": "1995-05-10",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 12,
+          "Ala-pívot": 13,
           "Pívot": 20
         },
         "teamId": "team-alimerka-oviedo",
@@ -20624,10 +20624,10 @@
         "lastName": "Diarra",
         "birthDate": "2004-07-09",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 3,
+          "Alero": 4,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-alimerka-oviedo",
@@ -20797,9 +20797,9 @@
         "positions": {
           "Base": 20,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 4,
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
@@ -20876,7 +20876,7 @@
           "Base": 20,
           "Escolta": 2,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-grupo-alega-cantabria",
@@ -20949,11 +20949,11 @@
         "lastName": "Martínez",
         "birthDate": "1998-06-29",
         "positions": {
-          "Base": 12,
+          "Base": 16,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
@@ -21025,11 +21025,11 @@
         "lastName": "Jenkins",
         "birthDate": "2000-07-15",
         "positions": {
-          "Base": 12,
+          "Base": 10,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
@@ -21103,9 +21103,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
+          "Alero": 10,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
@@ -21177,11 +21177,11 @@
         "lastName": "Seoane",
         "birthDate": "1999-08-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 15,
+          "Pívot": 5
         },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
@@ -21253,11 +21253,11 @@
         "lastName": "Alderete",
         "birthDate": "2000-04-22",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 3,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 13,
+          "Pívot": 3
         },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
@@ -21329,11 +21329,11 @@
         "lastName": "Rodríguez",
         "birthDate": "1997-08-02",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 1,
+          "Alero": 5,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-grupo-alega-cantabria",
         "bodyMeasurements": {
@@ -21406,9 +21406,9 @@
         "birthDate": "1996-05-11",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 9,
           "Pívot": 20
         },
         "teamId": "team-grupo-alega-cantabria",
@@ -21577,9 +21577,9 @@
         "birthDate": "2002-08-19",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 16,
+          "Alero": 5,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-bueno-arenas-albacete",
@@ -21652,11 +21652,11 @@
         "lastName": "Luis González",
         "birthDate": "1994-08-20",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 5,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
@@ -21728,11 +21728,11 @@
         "lastName": "Reid",
         "birthDate": "2002-03-20",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 4,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 10,
+          "Pívot": 5
         },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
@@ -21805,9 +21805,9 @@
         "birthDate": "2004-10-14",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 13,
+          "Alero": 4,
+          "Ala-pívot": 6,
           "Pívot": 2
         },
         "teamId": "team-bueno-arenas-albacete",
@@ -21881,8 +21881,8 @@
         "birthDate": "1998-04-16",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 6,
+          "Alero": 6,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -21956,10 +21956,10 @@
         "lastName": "Serrano Yuste",
         "birthDate": "2000-10-23",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Base": 4,
+          "Escolta": 4,
+          "Alero": 6,
+          "Ala-pívot": 17,
           "Pívot": 20
         },
         "teamId": "team-bueno-arenas-albacete",
@@ -22035,11 +22035,11 @@
         "lastName": "Ugarte Tapia",
         "birthDate": "1999-02-17",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 4,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-bueno-arenas-albacete",
         "bodyMeasurements": {
@@ -22115,8 +22115,8 @@
         "birthDate": "1996-10-27",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 3,
+          "Alero": 5,
           "Ala-pívot": 2,
           "Pívot": 2
         },
@@ -22286,10 +22286,10 @@
         "birthDate": "1995-12-09",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 3,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 1
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22362,9 +22362,9 @@
         "birthDate": "1998-10-05",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 3,
+          "Alero": 1,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
@@ -22438,10 +22438,10 @@
         "birthDate": "2007-03-10",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 9,
+          "Alero": 4,
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22515,11 +22515,11 @@
         "lastName": "Tate",
         "birthDate": "1998-06-18",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 12,
+          "Alero": 8,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22591,11 +22591,11 @@
         "lastName": "Jofresa",
         "birthDate": "2001-03-20",
         "positions": {
-          "Base": 12,
+          "Base": 16,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 4,
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22667,11 +22667,11 @@
         "lastName": "Urdiain",
         "birthDate": "2000-11-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 15,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22743,11 +22743,11 @@
         "lastName": "Czerapowicz",
         "birthDate": "1991-09-15",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 9,
+          "Pívot": 5
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22819,11 +22819,11 @@
         "lastName": "Alonso",
         "birthDate": "2001-04-01",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 13,
+          "Pívot": 1
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22895,11 +22895,11 @@
         "lastName": "Hernández",
         "birthDate": "1997-02-17",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 6,
+          "Escolta": 4,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 16,
+          "Pívot": 6
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -22972,10 +22972,10 @@
         "birthDate": "1998-04-15",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 6,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 13,
+          "Pívot": 4
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
         "bodyMeasurements": {
@@ -23048,8 +23048,8 @@
         "birthDate": "2001-02-21",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 5,
+          "Alero": 16,
           "Ala-pívot": 20,
           "Pívot": 2
         },
@@ -23123,10 +23123,10 @@
         "lastName": "Brown",
         "birthDate": "2002-09-19",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
@@ -23201,8 +23201,8 @@
         "positions": {
           "Base": 12,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 3,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-grupo-ureta-tizona-burgos",
@@ -23371,10 +23371,10 @@
         "birthDate": "2001-11-13",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 13,
+          "Alero": 4,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
@@ -23448,10 +23448,10 @@
         "lastName": "Round",
         "birthDate": "2000-04-03",
         "positions": {
-          "Base": 12,
+          "Base": 10,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 3,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-caja-rural-cb-zamora",
@@ -23524,11 +23524,11 @@
         "lastName": "Kristensen",
         "birthDate": "1998-08-25",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 1,
+          "Escolta": 6,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 14
         },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
@@ -23600,11 +23600,11 @@
         "lastName": "Palmquist",
         "birthDate": "2000-05-05",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 14,
+          "Pívot": 5
         },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
@@ -23676,10 +23676,10 @@
         "lastName": "Faye",
         "birthDate": "2000-03-10",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 3,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-caja-rural-cb-zamora",
@@ -23752,11 +23752,11 @@
         "lastName": "Carralero",
         "birthDate": "2000-07-24",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 6,
+          "Escolta": 3,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 13,
+          "Pívot": 4
         },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
@@ -23828,10 +23828,10 @@
         "lastName": "Bravo Tapia",
         "birthDate": "2002-09-17",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 4,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-caja-rural-cb-zamora",
@@ -23906,11 +23906,11 @@
         "lastName": "Molina Tapia",
         "birthDate": "2007-05-06",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 4,
+          "Escolta": 4,
+          "Alero": 17,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-caja-rural-cb-zamora",
         "bodyMeasurements": {
@@ -24081,10 +24081,10 @@
         "birthDate": "1998-03-21",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 1,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
@@ -24158,9 +24158,9 @@
         "positions": {
           "Base": 12,
           "Escolta": 20,
-          "Alero": 2,
+          "Alero": 5,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
@@ -24236,9 +24236,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 11,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
@@ -24312,9 +24312,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 15,
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
@@ -24386,11 +24386,11 @@
         "lastName": "Martí",
         "birthDate": "1997-06-19",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 2,
-          "Alero": 12,
+          "Alero": 10,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
@@ -24462,11 +24462,11 @@
         "lastName": "Ordóñez",
         "birthDate": "2003-01-01",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 6,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 10
         },
         "teamId": "team-basquet-menorca",
         "bodyMeasurements": {
@@ -24538,10 +24538,10 @@
         "lastName": "Kejval",
         "birthDate": "2002-01-21",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 5,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-basquet-menorca",
@@ -24614,10 +24614,10 @@
         "lastName": "Leveque",
         "birthDate": "2000-06-11",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 3,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 6,
           "Pívot": 20
         },
         "teamId": "team-basquet-menorca",
@@ -24787,8 +24787,8 @@
         "positions": {
           "Base": 20,
           "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 4,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-cajasol-coto-cordoba",
@@ -24861,11 +24861,11 @@
         "lastName": "Bello",
         "birthDate": "2003-06-25",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 12,
           "Alero": 20,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -24937,10 +24937,10 @@
         "lastName": "Sagnia",
         "birthDate": "2000-08-01",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 1,
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-cajasol-coto-cordoba",
@@ -25013,11 +25013,11 @@
         "lastName": "Rodríguez",
         "birthDate": "1998-01-19",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 6,
+          "Escolta": 4,
+          "Alero": 15,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25089,11 +25089,11 @@
         "lastName": "Cone",
         "birthDate": "2000-12-14",
         "positions": {
-          "Base": 12,
+          "Base": 16,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 4
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25166,10 +25166,10 @@
         "birthDate": "2007-03-20",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
+          "Escolta": 16,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 4
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25243,9 +25243,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 17,
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25317,11 +25317,11 @@
         "lastName": "Nuga",
         "birthDate": "1997-12-27",
         "positions": {
-          "Base": 12,
+          "Base": 8,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 4,
+          "Ala-pívot": 1,
+          "Pívot": 3
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25393,11 +25393,11 @@
         "lastName": "Treviño",
         "birthDate": "2001-09-04",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 1,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 16,
+          "Pívot": 3
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25469,11 +25469,11 @@
         "lastName": "Rosa",
         "birthDate": "1999-07-01",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 1,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 10
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25546,8 +25546,8 @@
         "birthDate": "1997-03-26",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 4,
+          "Alero": 6,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -25621,11 +25621,11 @@
         "lastName": "Nkereuwem",
         "birthDate": "2000-12-08",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 4,
+          "Escolta": 3,
+          "Alero": 1,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 17
         },
         "teamId": "team-cajasol-coto-cordoba",
         "bodyMeasurements": {
@@ -25793,10 +25793,10 @@
         "birthDate": "2000-01-24",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 4,
+          "Alero": 6,
+          "Ala-pívot": 4,
+          "Pívot": 3
         },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
@@ -25868,10 +25868,10 @@
         "lastName": "Moody",
         "birthDate": "1998-01-15",
         "positions": {
-          "Base": 12,
+          "Base": 10,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 5,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-insolac-caja87",
@@ -25944,11 +25944,11 @@
         "lastName": "Soumbey-Alley",
         "birthDate": "1999-02-14",
         "positions": {
-          "Base": 12,
+          "Base": 13,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 5,
+          "Ala-pívot": 4,
+          "Pívot": 3
         },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
@@ -26020,11 +26020,11 @@
         "lastName": "Cecilia",
         "birthDate": "2000-04-12",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 5,
+          "Escolta": 8,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 6,
+          "Pívot": 4
         },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
@@ -26096,11 +26096,11 @@
         "lastName": "Mendikote",
         "birthDate": "1999-03-30",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 6,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 16,
+          "Pívot": 4
         },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
@@ -26172,11 +26172,11 @@
         "lastName": "Dedovic",
         "birthDate": "1997-02-16",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 2,
           "Alero": 20,
           "Ala-pívot": 12,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-insolac-caja87",
         "bodyMeasurements": {
@@ -26248,10 +26248,10 @@
         "lastName": "Vilà",
         "birthDate": "1997-09-11",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Base": 5,
+          "Escolta": 5,
+          "Alero": 5,
+          "Ala-pívot": 11,
           "Pívot": 20
         },
         "teamId": "team-insolac-caja87",
@@ -26325,9 +26325,9 @@
         "birthDate": "2001-06-27",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-insolac-caja87",
@@ -26401,8 +26401,8 @@
         "birthDate": "2001-08-20",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 5,
+          "Alero": 4,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -26572,10 +26572,10 @@
         "birthDate": "1996-01-19",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 10,
+          "Alero": 4,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -26648,9 +26648,9 @@
         "birthDate": "1994-08-07",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 9,
+          "Alero": 1,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-club-ourense-baloncesto",
@@ -26724,10 +26724,10 @@
         "birthDate": "1999-04-26",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 17,
+          "Alero": 6,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -26799,11 +26799,11 @@
         "lastName": "Fernández",
         "birthDate": "2001-12-05",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 16,
+          "Ala-pívot": 4,
+          "Pívot": 1
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -26876,10 +26876,10 @@
         "birthDate": "2004-05-11",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 6,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 8,
+          "Pívot": 4
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -26951,11 +26951,11 @@
         "lastName": "McDonnell",
         "birthDate": "1995-09-13",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 9,
+          "Pívot": 6
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -27027,11 +27027,11 @@
         "lastName": "Zidek",
         "birthDate": "1999-12-13",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 4,
           "Alero": 2,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 16
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -27103,11 +27103,11 @@
         "lastName": "Iglesias",
         "birthDate": "2004-01-10",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 2,
-          "Alero": 2,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 11
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -27179,10 +27179,10 @@
         "lastName": "Nicolau",
         "birthDate": "1997-01-21",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 1,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-club-ourense-baloncesto",
@@ -27255,11 +27255,11 @@
         "lastName": "Valentino Pinedo",
         "birthDate": "2004-04-07",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 8
         },
         "teamId": "team-club-ourense-baloncesto",
         "bodyMeasurements": {
@@ -27427,10 +27427,10 @@
         "birthDate": "2000-03-22",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 6,
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
@@ -27503,8 +27503,8 @@
         "birthDate": "1996-06-14",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
+          "Escolta": 9,
+          "Alero": 3,
           "Ala-pívot": 2,
           "Pívot": 2
         },
@@ -27580,11 +27580,11 @@
         "lastName": "Vázquez",
         "birthDate": "1994-09-08",
         "positions": {
-          "Base": 2,
+          "Base": 1,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 6,
+          "Ala-pívot": 1,
+          "Pívot": 5
         },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
@@ -27656,11 +27656,11 @@
         "lastName": "Falcoz",
         "birthDate": "2002-11-05",
         "positions": {
-          "Base": 12,
+          "Base": 15,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
@@ -27733,10 +27733,10 @@
         "birthDate": "2002-07-18",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 5,
+          "Alero": 13,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
@@ -27809,10 +27809,10 @@
         "birthDate": "1997-07-01",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Escolta": 4,
+          "Alero": 9,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-inveready-askatuak-gipuzkoa",
         "bodyMeasurements": {
@@ -27884,9 +27884,9 @@
         "lastName": "Paukštė",
         "birthDate": "2000-09-10",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 2,
-          "Alero": 2,
+          "Alero": 3,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -27960,8 +27960,8 @@
         "lastName": "Van Komen",
         "birthDate": "1999-09-27",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 6,
           "Alero": 2,
           "Ala-pívot": 2,
           "Pívot": 20
@@ -28132,10 +28132,10 @@
         "birthDate": "1993-02-27",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 6
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28210,10 +28210,10 @@
         "birthDate": "1990-02-07",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 6,
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28287,11 +28287,11 @@
         "lastName": "Parham II",
         "birthDate": "1999-01-08",
         "positions": {
-          "Base": 12,
+          "Base": 9,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 6,
+          "Ala-pívot": 3,
+          "Pívot": 6
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28365,9 +28365,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 17,
+          "Ala-pívot": 6,
+          "Pívot": 6
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28439,11 +28439,11 @@
         "lastName": "Durán",
         "birthDate": "1991-05-01",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 1,
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28515,11 +28515,11 @@
         "lastName": "Kamba",
         "birthDate": "1995-10-05",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 4,
+          "Escolta": 9,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 1,
+          "Pívot": 5
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28592,9 +28592,9 @@
         "birthDate": "1989-09-05",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 3,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 11,
           "Pívot": 2
         },
         "teamId": "team-coviran-granada",
@@ -28669,11 +28669,11 @@
         "lastName": "Van Vliet",
         "birthDate": "1995-07-27",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 4,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 8
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28745,11 +28745,11 @@
         "lastName": "McGrew",
         "birthDate": "1993-02-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 5,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 8
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28821,11 +28821,11 @@
         "lastName": "Niang",
         "birthDate": "2001-08-22",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 1,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 9
         },
         "teamId": "team-coviran-granada",
         "bodyMeasurements": {
@@ -28898,9 +28898,9 @@
         "birthDate": "1998-02-13",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
+          "Escolta": 6,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-coviran-granada",
@@ -28973,10 +28973,10 @@
         "lastName": "Barro",
         "birthDate": "1995-05-10",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Base": 3,
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 8,
           "Pívot": 20
         },
         "teamId": "team-coviran-granada",
@@ -29145,10 +29145,10 @@
         "birthDate": "1994-11-24",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 1,
+          "Alero": 6,
+          "Ala-pívot": 4,
+          "Pívot": 1
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29221,9 +29221,9 @@
         "birthDate": "1999-11-27",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 5,
+          "Alero": 5,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-hla-alicante",
@@ -29296,11 +29296,11 @@
         "lastName": "Manchón",
         "birthDate": "1998-01-29",
         "positions": {
-          "Base": 12,
+          "Base": 17,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 4,
+          "Ala-pívot": 6,
+          "Pívot": 3
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29372,11 +29372,11 @@
         "lastName": "Teague",
         "birthDate": "1997-06-11",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 9,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29448,11 +29448,11 @@
         "lastName": "Pálsson",
         "birthDate": "1997-03-13",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 4,
+          "Escolta": 10,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 3
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29524,10 +29524,10 @@
         "lastName": "Garuba",
         "birthDate": "2004-02-02",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 5,
+          "Escolta": 16,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-hla-alicante",
@@ -29600,11 +29600,11 @@
         "lastName": "Choh",
         "birthDate": "1998-07-17",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 11,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 11,
+          "Pívot": 5
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29676,11 +29676,11 @@
         "lastName": "Dreamer",
         "birthDate": "2000-11-03",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 6,
+          "Escolta": 6,
+          "Alero": 13,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 6
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29752,11 +29752,11 @@
         "lastName": "Korsantia",
         "birthDate": "1998-01-11",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 3,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 8
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29828,11 +29828,11 @@
         "lastName": "Parrado",
         "birthDate": "2000-06-24",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 2,
-          "Alero": 2,
+          "Alero": 4,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 15
         },
         "teamId": "team-hla-alicante",
         "bodyMeasurements": {
@@ -29904,10 +29904,10 @@
         "lastName": "Mikhailov",
         "birthDate": "2002-12-14",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 6,
+          "Alero": 5,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-hla-alicante",
@@ -29980,10 +29980,10 @@
         "lastName": "Gill",
         "birthDate": "1994-10-02",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 6,
+          "Alero": 3,
+          "Ala-pívot": 4,
           "Pívot": 20
         },
         "teamId": "team-hla-alicante",
@@ -30154,10 +30154,10 @@
         "birthDate": "2001-07-28",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 4,
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 1
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
@@ -30230,10 +30230,10 @@
         "birthDate": "2002-10-06",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 6,
+          "Alero": 1,
+          "Ala-pívot": 6,
+          "Pívot": 1
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
@@ -30306,10 +30306,10 @@
         "birthDate": "1996-11-01",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
+          "Escolta": 16,
           "Alero": 2,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
@@ -30381,11 +30381,11 @@
         "lastName": "Lobo",
         "birthDate": "1997-07-31",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 5,
+          "Ala-pívot": 4,
+          "Pívot": 5
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
@@ -30457,10 +30457,10 @@
         "lastName": "Huguet",
         "birthDate": "2002-08-31",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
+          "Alero": 9,
+          "Ala-pívot": 6,
           "Pívot": 2
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
@@ -30533,11 +30533,11 @@
         "lastName": "Matulionis",
         "birthDate": "1991-08-19",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 3,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 16,
+          "Pívot": 4
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
         "bodyMeasurements": {
@@ -30611,10 +30611,10 @@
         "lastName": "Beraza",
         "birthDate": "1999-01-26",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 4,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 8,
           "Pívot": 2
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
@@ -30687,8 +30687,8 @@
         "lastName": "Scariolo",
         "birthDate": "2001-10-21",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 11,
           "Alero": 20,
           "Ala-pívot": 2,
           "Pívot": 2
@@ -30763,9 +30763,9 @@
         "lastName": "Simeunović",
         "birthDate": "1995-04-26",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 5,
+          "Escolta": 4,
+          "Alero": 10,
           "Ala-pívot": 20,
           "Pívot": 2
         },
@@ -30839,9 +30839,9 @@
         "lastName": "Kande",
         "birthDate": "1999-08-24",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 2,
-          "Alero": 2,
+          "Alero": 3,
           "Ala-pívot": 20,
           "Pívot": 12
         },
@@ -30915,10 +30915,10 @@
         "lastName": "Cerdá",
         "birthDate": "2005-06-04",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 1,
+          "Escolta": 5,
+          "Alero": 1,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
@@ -30991,10 +30991,10 @@
         "lastName": "Jackson",
         "birthDate": "2003-06-25",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 5,
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 5,
           "Pívot": 20
         },
         "teamId": "team-fibwi-mallorca-basquet-palma",
@@ -31163,10 +31163,10 @@
         "birthDate": "1997-10-20",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 15,
+          "Alero": 3,
+          "Ala-pívot": 6,
+          "Pívot": 1
         },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
@@ -31241,10 +31241,10 @@
         "birthDate": "1998-06-26",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
@@ -31318,8 +31318,8 @@
         "positions": {
           "Base": 12,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 3,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-movistar-estudiantes",
@@ -31392,11 +31392,11 @@
         "lastName": "Silverio",
         "birthDate": "1998-11-05",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 3
         },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
@@ -31470,11 +31470,11 @@
         "lastName": "Giovannetti",
         "birthDate": "2005-06-14",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 13,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
@@ -31546,10 +31546,10 @@
         "lastName": "Jiménez",
         "birthDate": "2002-09-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 4,
+          "Escolta": 14,
           "Alero": 20,
-          "Ala-pívot": 2,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-movistar-estudiantes",
@@ -31622,11 +31622,11 @@
         "lastName": "Munnings",
         "birthDate": "1994-09-14",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 6,
+          "Escolta": 4,
           "Alero": 20,
-          "Ala-pívot": 12,
-          "Pívot": 2
+          "Ala-pívot": 8,
+          "Pívot": 3
         },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
@@ -31698,11 +31698,11 @@
         "lastName": "Vaulet",
         "birthDate": "1996-03-22",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 6,
+          "Escolta": 5,
+          "Alero": 16,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-movistar-estudiantes",
         "bodyMeasurements": {
@@ -31774,9 +31774,9 @@
         "lastName": "Treier",
         "birthDate": "1999-09-19",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 15,
           "Ala-pívot": 20,
           "Pívot": 2
         },
@@ -31851,9 +31851,9 @@
         "birthDate": "1995-11-19",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Escolta": 1,
+          "Alero": 4,
+          "Ala-pívot": 15,
           "Pívot": 20
         },
         "teamId": "team-movistar-estudiantes",
@@ -31928,10 +31928,10 @@
         "lastName": "Niang",
         "birthDate": "1994-01-01",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 1,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-movistar-estudiantes",
@@ -32005,8 +32005,8 @@
         "birthDate": "1997-06-27",
         "positions": {
           "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 4,
+          "Alero": 1,
           "Ala-pívot": 2,
           "Pívot": 20
         },
@@ -32178,10 +32178,10 @@
         "birthDate": "2002-03-06",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
@@ -32254,10 +32254,10 @@
         "birthDate": "1999-05-06",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 6,
+          "Pívot": 6
         },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
@@ -32331,9 +32331,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 1
         },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
@@ -32408,10 +32408,10 @@
         "lastName": "Belemene",
         "birthDate": "1997-02-19",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 6,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 15,
           "Pívot": 2
         },
         "teamId": "team-flexicar-fuenlabrada",
@@ -32484,11 +32484,11 @@
         "lastName": "Cruz",
         "birthDate": "1991-10-24",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 6,
+          "Escolta": 1,
+          "Alero": 3,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 11
         },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
@@ -32561,10 +32561,10 @@
         "birthDate": "2006-06-09",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 14,
+          "Alero": 6,
+          "Ala-pívot": 6,
+          "Pívot": 1
         },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
@@ -32639,11 +32639,11 @@
         "lastName": "Tapia Aguilar",
         "birthDate": "2001-11-25",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 3,
+          "Escolta": 1,
+          "Alero": 11,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-flexicar-fuenlabrada",
         "bodyMeasurements": {
@@ -32715,10 +32715,10 @@
         "lastName": "Rincón Molina",
         "birthDate": "1999-12-19",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 3,
           "Alero": 2,
-          "Ala-pívot": 12,
+          "Ala-pívot": 8,
           "Pívot": 20
         },
         "teamId": "team-flexicar-fuenlabrada",
@@ -32889,10 +32889,10 @@
         "lastName": "Torres",
         "birthDate": "2003-07-22",
         "positions": {
-          "Base": 12,
+          "Base": 8,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Alero": 4,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-palmer-basket-mallorca-palma",
@@ -32966,10 +32966,10 @@
         "birthDate": "2007-03-14",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 17,
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 5
         },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
@@ -33043,9 +33043,9 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
+          "Alero": 8,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 1
         },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
@@ -33117,11 +33117,11 @@
         "lastName": "Jolinder",
         "birthDate": "2001-11-05",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 4,
           "Alero": 20,
           "Ala-pívot": 12,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
@@ -33193,11 +33193,11 @@
         "lastName": "Brito",
         "birthDate": "2003-03-08",
         "positions": {
-          "Base": 2,
-          "Escolta": 12,
+          "Base": 3,
+          "Escolta": 8,
           "Alero": 20,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 3,
+          "Pívot": 6
         },
         "teamId": "team-palmer-basket-mallorca-palma",
         "bodyMeasurements": {
@@ -33269,10 +33269,10 @@
         "lastName": "Comendador",
         "birthDate": "2001-07-22",
         "positions": {
-          "Base": 2,
+          "Base": 6,
           "Escolta": 2,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 10,
           "Pívot": 2
         },
         "teamId": "team-palmer-basket-mallorca-palma",
@@ -33345,10 +33345,10 @@
         "lastName": "Stoilov",
         "birthDate": "2002-02-07",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 3,
+          "Alero": 3,
+          "Ala-pívot": 3,
           "Pívot": 20
         },
         "teamId": "team-palmer-basket-mallorca-palma",
@@ -33421,10 +33421,10 @@
         "lastName": "Vidal Lozano",
         "birthDate": "1997-04-20",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 5,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 14,
           "Pívot": 2
         },
         "teamId": "team-palmer-basket-mallorca-palma",
@@ -33595,10 +33595,10 @@
         "birthDate": "2000-12-30",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
+          "Escolta": 3,
+          "Alero": 3,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
@@ -33671,10 +33671,10 @@
         "birthDate": "1992-03-23",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 5,
+          "Alero": 4,
+          "Ala-pívot": 4,
+          "Pívot": 4
         },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
@@ -33747,10 +33747,10 @@
         "birthDate": "1996-10-27",
         "positions": {
           "Base": 20,
-          "Escolta": 12,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Escolta": 16,
+          "Alero": 5,
+          "Ala-pívot": 3,
+          "Pívot": 3
         },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
@@ -33824,11 +33824,11 @@
         "lastName": "Townes",
         "birthDate": "1995-09-03",
         "positions": {
-          "Base": 12,
+          "Base": 10,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 5,
+          "Ala-pívot": 4,
+          "Pívot": 6
         },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
@@ -33902,11 +33902,11 @@
         "lastName": "Cremo",
         "birthDate": "1996-01-05",
         "positions": {
-          "Base": 2,
+          "Base": 5,
           "Escolta": 20,
-          "Alero": 12,
+          "Alero": 10,
           "Ala-pívot": 2,
-          "Pívot": 2
+          "Pívot": 4
         },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
@@ -33978,11 +33978,11 @@
         "lastName": "Rodríguez",
         "birthDate": "1999-07-08",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 14,
+          "Ala-pívot": 4,
+          "Pívot": 3
         },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
@@ -34056,10 +34056,10 @@
         "lastName": "Salvó",
         "birthDate": "1994-11-03",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 4,
+          "Escolta": 3,
           "Alero": 20,
-          "Ala-pívot": 12,
+          "Ala-pívot": 13,
           "Pívot": 2
         },
         "teamId": "team-gran-canaria",
@@ -34132,9 +34132,9 @@
         "lastName": "Stumbris",
         "birthDate": "1993-07-09",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 12,
+          "Base": 4,
+          "Escolta": 1,
+          "Alero": 16,
           "Ala-pívot": 20,
           "Pívot": 2
         },
@@ -34208,11 +34208,11 @@
         "lastName": "Pelos",
         "birthDate": "1992-08-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 5,
+          "Escolta": 1,
+          "Alero": 5,
           "Ala-pívot": 20,
-          "Pívot": 12
+          "Pívot": 16
         },
         "teamId": "team-gran-canaria",
         "bodyMeasurements": {
@@ -34284,10 +34284,10 @@
         "lastName": "Fischer",
         "birthDate": "1994-10-29",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 3,
+          "Escolta": 4,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-gran-canaria",
@@ -34458,9 +34458,9 @@
         "birthDate": "1984-02-17",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 5,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 5,
           "Pívot": 2
         },
         "teamId": "team-palencia-baloncesto",
@@ -34536,9 +34536,9 @@
         "birthDate": "1990-07-15",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
+          "Escolta": 6,
           "Alero": 2,
-          "Ala-pívot": 2,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-palencia-baloncesto",
@@ -34613,11 +34613,11 @@
         "lastName": "Rodríguez",
         "birthDate": "1991-10-17",
         "positions": {
-          "Base": 2,
+          "Base": 3,
           "Escolta": 20,
-          "Alero": 2,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Alero": 3,
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
@@ -34693,8 +34693,8 @@
         "positions": {
           "Base": 2,
           "Escolta": 20,
-          "Alero": 12,
-          "Ala-pívot": 2,
+          "Alero": 8,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-palencia-baloncesto",
@@ -34767,11 +34767,11 @@
         "lastName": "González",
         "birthDate": "1991-07-15",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
+          "Base": 5,
+          "Escolta": 4,
           "Alero": 20,
           "Ala-pívot": 12,
-          "Pívot": 2
+          "Pívot": 5
         },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
@@ -34846,9 +34846,9 @@
         "birthDate": "1995-04-26",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 4,
+          "Alero": 3,
+          "Ala-pívot": 3,
           "Pívot": 2
         },
         "teamId": "team-palencia-baloncesto",
@@ -34923,10 +34923,10 @@
         "lastName": "Vucetic",
         "birthDate": "1996-05-14",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Base": 3,
+          "Escolta": 5,
+          "Alero": 3,
+          "Ala-pívot": 1,
           "Pívot": 20
         },
         "teamId": "team-palencia-baloncesto",
@@ -34999,11 +34999,11 @@
         "lastName": "Langarita",
         "birthDate": "2005-01-30",
         "positions": {
-          "Base": 2,
+          "Base": 4,
           "Escolta": 20,
           "Alero": 12,
-          "Ala-pívot": 2,
-          "Pívot": 2
+          "Ala-pívot": 5,
+          "Pívot": 5
         },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
@@ -35075,11 +35075,11 @@
         "lastName": "Dimitrov",
         "birthDate": "1993-03-07",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
+          "Base": 3,
+          "Escolta": 3,
+          "Alero": 6,
           "Ala-pívot": 20,
-          "Pívot": 2
+          "Pívot": 3
         },
         "teamId": "team-palencia-baloncesto",
         "bodyMeasurements": {
@@ -35151,10 +35151,10 @@
         "lastName": "McGrew",
         "birthDate": "1993-02-16",
         "positions": {
-          "Base": 2,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 12,
+          "Base": 3,
+          "Escolta": 4,
+          "Alero": 5,
+          "Ala-pívot": 8,
           "Pívot": 20
         },
         "teamId": "team-palencia-baloncesto",
@@ -35230,9 +35230,9 @@
         "birthDate": "1995-04-26",
         "positions": {
           "Base": 20,
-          "Escolta": 2,
-          "Alero": 2,
-          "Ala-pívot": 2,
+          "Escolta": 3,
+          "Alero": 5,
+          "Ala-pívot": 4,
           "Pívot": 2
         },
         "teamId": "team-palencia-baloncesto",

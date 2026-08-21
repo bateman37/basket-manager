@@ -14,10 +14,10 @@
       "birthDate": "1994-11-24",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 1,
+        "Alero": 6,
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -90,9 +90,9 @@
       "birthDate": "1999-11-27",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 5,
+        "Alero": 5,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-hla-alicante",
@@ -165,11 +165,11 @@
       "lastName": "Manchón",
       "birthDate": "1998-01-29",
       "positions": {
-        "Base": 12,
+        "Base": 17,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 4,
+        "Ala-pívot": 6,
+        "Pívot": 3
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -241,11 +241,11 @@
       "lastName": "Teague",
       "birthDate": "1997-06-11",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 9,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -317,11 +317,11 @@
       "lastName": "Pálsson",
       "birthDate": "1997-03-13",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 4,
+        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 3
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -393,10 +393,10 @@
       "lastName": "Garuba",
       "birthDate": "2004-02-02",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 5,
+        "Escolta": 16,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-hla-alicante",
@@ -469,11 +469,11 @@
       "lastName": "Choh",
       "birthDate": "1998-07-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 11,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 11,
+        "Pívot": 5
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -545,11 +545,11 @@
       "lastName": "Dreamer",
       "birthDate": "2000-11-03",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 6,
+        "Escolta": 6,
+        "Alero": 13,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 6
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -621,11 +621,11 @@
       "lastName": "Korsantia",
       "birthDate": "1998-01-11",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 3,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 8
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -697,11 +697,11 @@
       "lastName": "Parrado",
       "birthDate": "2000-06-24",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 2,
-        "Alero": 2,
+        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 15
       },
       "teamId": "team-hla-alicante",
       "bodyMeasurements": {
@@ -773,10 +773,10 @@
       "lastName": "Mikhailov",
       "birthDate": "2002-12-14",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 6,
+        "Alero": 5,
+        "Ala-pívot": 1,
         "Pívot": 20
       },
       "teamId": "team-hla-alicante",
@@ -849,10 +849,10 @@
       "lastName": "Gill",
       "birthDate": "1994-10-02",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 6,
+        "Alero": 3,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-hla-alicante",

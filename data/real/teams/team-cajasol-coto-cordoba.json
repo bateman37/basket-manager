@@ -15,8 +15,8 @@
       "positions": {
         "Base": 20,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 4,
+        "Ala-pívot": 5,
         "Pívot": 2
       },
       "teamId": "team-cajasol-coto-cordoba",
@@ -89,11 +89,11 @@
       "lastName": "Bello",
       "birthDate": "2003-06-25",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 12,
         "Alero": 20,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 6
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -165,10 +165,10 @@
       "lastName": "Sagnia",
       "birthDate": "2000-08-01",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-cajasol-coto-cordoba",
@@ -241,11 +241,11 @@
       "lastName": "Rodríguez",
       "birthDate": "1998-01-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 6,
+        "Escolta": 4,
+        "Alero": 15,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -317,11 +317,11 @@
       "lastName": "Cone",
       "birthDate": "2000-12-14",
       "positions": {
-        "Base": 12,
+        "Base": 16,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -394,10 +394,10 @@
       "birthDate": "2007-03-20",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
+        "Escolta": 16,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 4
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -471,9 +471,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 17,
+        "Ala-pívot": 4,
+        "Pívot": 4
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -545,11 +545,11 @@
       "lastName": "Nuga",
       "birthDate": "1997-12-27",
       "positions": {
-        "Base": 12,
+        "Base": 8,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 4,
+        "Ala-pívot": 1,
+        "Pívot": 3
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -621,11 +621,11 @@
       "lastName": "Treviño",
       "birthDate": "2001-09-04",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 1,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 16,
+        "Pívot": 3
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -697,11 +697,11 @@
       "lastName": "Rosa",
       "birthDate": "1999-07-01",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 1,
+        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 10
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -774,8 +774,8 @@
       "birthDate": "1997-03-26",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 4,
+        "Alero": 6,
         "Ala-pívot": 2,
         "Pívot": 20
       },
@@ -849,11 +849,11 @@
       "lastName": "Nkereuwem",
       "birthDate": "2000-12-08",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 4,
+        "Escolta": 3,
+        "Alero": 1,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 17
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {

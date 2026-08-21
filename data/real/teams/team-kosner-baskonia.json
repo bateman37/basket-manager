@@ -14,10 +14,10 @@
       "birthDate": "2000-08-03",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 11,
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "1997-07-04",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -171,9 +171,9 @@
       "positions": {
         "Base": 12,
         "Escolta": 20,
-        "Alero": 2,
+        "Alero": 3,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -248,11 +248,11 @@
       "lastName": "Spagnolo",
       "birthDate": "2003-01-10",
       "positions": {
-        "Base": 12,
+        "Base": 14,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 4,
+        "Ala-pívot": 5,
+        "Pívot": 3
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -324,11 +324,11 @@
       "lastName": "Lawson",
       "birthDate": "2000-07-15",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 12,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -400,11 +400,11 @@
       "lastName": "Duarte",
       "birthDate": "1997-06-13",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 4,
+        "Escolta": 16,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -476,11 +476,11 @@
       "lastName": "Stewart Jr",
       "birthDate": "1999-07-28",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 4,
         "Alero": 20,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -552,11 +552,11 @@
       "lastName": "Kurucs",
       "birthDate": "1998-02-05",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 1,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 14,
+        "Pívot": 4
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -628,10 +628,10 @@
       "lastName": "Sedekerskis",
       "birthDate": "1998-01-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 6,
+        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 17,
         "Pívot": 2
       },
       "teamId": "team-kosner-baskonia",
@@ -704,11 +704,11 @@
       "lastName": "Frisch",
       "birthDate": "2002-01-07",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 3,
+        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -780,10 +780,10 @@
       "lastName": "Diop",
       "birthDate": "2002-01-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 6,
         "Pívot": 20
       },
       "teamId": "team-kosner-baskonia",

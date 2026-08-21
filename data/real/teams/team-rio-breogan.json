@@ -14,10 +14,10 @@
       "birthDate": "1994-06-15",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 5,
+        "Alero": 5,
+        "Ala-pívot": 4,
+        "Pívot": 3
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -90,9 +90,9 @@
       "birthDate": "1991-08-17",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 1,
         "Pívot": 2
       },
       "teamId": "team-rio-breogan",
@@ -168,10 +168,10 @@
       "birthDate": "1999-09-27",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
+        "Escolta": 13,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 3
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -245,9 +245,9 @@
       "lastName": "Alonso",
       "birthDate": "1996-05-25",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 20,
-        "Alero": 2,
+        "Alero": 4,
         "Ala-pívot": 2,
         "Pívot": 2
       },
@@ -321,11 +321,11 @@
       "lastName": "Peris",
       "birthDate": "2000-08-06",
       "positions": {
-        "Base": 12,
+        "Base": 8,
         "Escolta": 20,
-        "Alero": 2,
+        "Alero": 3,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -397,11 +397,11 @@
       "lastName": "Aranitovic",
       "birthDate": "1998-01-24",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 4,
+        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -473,10 +473,10 @@
       "lastName": "Brown",
       "birthDate": "1998-09-23",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-rio-breogan",
@@ -549,9 +549,9 @@
       "lastName": "García",
       "birthDate": "2000-08-23",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 2,
-        "Alero": 12,
+        "Alero": 16,
         "Ala-pívot": 20,
         "Pívot": 2
       },
@@ -625,11 +625,11 @@
       "lastName": "Vicedo",
       "birthDate": "1994-08-24",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 8,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -701,11 +701,11 @@
       "lastName": "Andric",
       "birthDate": "1994-01-04",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 3,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -778,9 +778,9 @@
       "birthDate": "1996-09-17",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Escolta": 1,
+        "Alero": 1,
+        "Ala-pívot": 11,
         "Pívot": 20
       },
       "teamId": "team-rio-breogan",
@@ -855,10 +855,10 @@
       "lastName": "Brankovic",
       "birthDate": "2000-11-05",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 3,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-rio-breogan",
@@ -931,10 +931,10 @@
       "lastName": "Kasibabu",
       "birthDate": "1996-04-24",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 6,
+        "Escolta": 4,
+        "Alero": 6,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-rio-breogan",

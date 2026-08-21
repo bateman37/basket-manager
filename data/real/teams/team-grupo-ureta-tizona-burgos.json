@@ -14,10 +14,10 @@
       "birthDate": "1995-12-09",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 3,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -90,9 +90,9 @@
       "birthDate": "1998-10-05",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 3,
+        "Alero": 1,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
@@ -166,10 +166,10 @@
       "birthDate": "2007-03-10",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 9,
+        "Alero": 4,
+        "Ala-pívot": 4,
+        "Pívot": 4
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -243,11 +243,11 @@
       "lastName": "Tate",
       "birthDate": "1998-06-18",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 20,
-        "Alero": 12,
+        "Alero": 8,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -319,11 +319,11 @@
       "lastName": "Jofresa",
       "birthDate": "2001-03-20",
       "positions": {
-        "Base": 12,
+        "Base": 16,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 4,
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -395,11 +395,11 @@
       "lastName": "Urdiain",
       "birthDate": "2000-11-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 15,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -471,11 +471,11 @@
       "lastName": "Czerapowicz",
       "birthDate": "1991-09-15",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 9,
+        "Pívot": 5
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -547,11 +547,11 @@
       "lastName": "Alonso",
       "birthDate": "2001-04-01",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 13,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -623,11 +623,11 @@
       "lastName": "Hernández",
       "birthDate": "1997-02-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 6,
+        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 16,
+        "Pívot": 6
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -700,10 +700,10 @@
       "birthDate": "1998-04-15",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 13,
+        "Pívot": 4
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -776,8 +776,8 @@
       "birthDate": "2001-02-21",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Escolta": 5,
+        "Alero": 16,
         "Ala-pívot": 20,
         "Pívot": 2
       },
@@ -851,10 +851,10 @@
       "lastName": "Brown",
       "birthDate": "2002-09-19",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 2,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
@@ -929,8 +929,8 @@
       "positions": {
         "Base": 12,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 3,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-grupo-ureta-tizona-burgos",

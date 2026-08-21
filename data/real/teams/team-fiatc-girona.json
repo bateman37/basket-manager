@@ -14,10 +14,10 @@
       "birthDate": "2000-06-03",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -92,9 +92,9 @@
       "birthDate": "2004-10-10",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 5,
+        "Alero": 3,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-fiatc-girona",
@@ -170,10 +170,10 @@
       "birthDate": "1999-01-06",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 16,
+        "Alero": 4,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -248,10 +248,10 @@
       "birthDate": "1994-10-21",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 8,
+        "Alero": 3,
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -327,9 +327,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 13,
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -403,11 +403,11 @@
       "lastName": "Busquets",
       "birthDate": "1999-03-02",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 11,
+        "Ala-pívot": 4,
+        "Pívot": 5
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -480,10 +480,10 @@
       "birthDate": "1999-05-10",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 10,
+        "Pívot": 4
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -555,11 +555,11 @@
       "lastName": "N'Guessan",
       "birthDate": "2000-06-12",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -632,10 +632,10 @@
       "birthDate": "1998-12-19",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 6,
+        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 9
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -707,9 +707,9 @@
       "lastName": "Kunc",
       "birthDate": "1999-07-30",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 4,
+        "Alero": 3,
         "Ala-pívot": 2,
         "Pívot": 20
       },
@@ -785,10 +785,10 @@
       "lastName": "Geben",
       "birthDate": "1994-10-20",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 3,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-fiatc-girona",

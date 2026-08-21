@@ -13,10 +13,10 @@
       "lastName": "Torres",
       "birthDate": "2003-07-22",
       "positions": {
-        "Base": 12,
+        "Base": 8,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 4,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-palmer-basket-mallorca-palma",
@@ -90,10 +90,10 @@
       "birthDate": "2007-03-14",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 5,
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -167,9 +167,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
+        "Alero": 8,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -241,11 +241,11 @@
       "lastName": "Jolinder",
       "birthDate": "2001-11-05",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 4,
         "Alero": 20,
         "Ala-pívot": 12,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -317,11 +317,11 @@
       "lastName": "Brito",
       "birthDate": "2003-03-08",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 6
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -393,10 +393,10 @@
       "lastName": "Comendador",
       "birthDate": "2001-07-22",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 10,
         "Pívot": 2
       },
       "teamId": "team-palmer-basket-mallorca-palma",
@@ -469,10 +469,10 @@
       "lastName": "Stoilov",
       "birthDate": "2002-02-07",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-palmer-basket-mallorca-palma",
@@ -545,10 +545,10 @@
       "lastName": "Vidal Lozano",
       "birthDate": "1997-04-20",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 14,
         "Pívot": 2
       },
       "teamId": "team-palmer-basket-mallorca-palma",

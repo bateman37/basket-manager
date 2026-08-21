@@ -14,10 +14,10 @@
       "birthDate": "1996-01-19",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 10,
+        "Alero": 4,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
@@ -90,9 +90,9 @@
       "birthDate": "1994-08-07",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 9,
+        "Alero": 1,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-club-ourense-baloncesto",
@@ -166,10 +166,10 @@
       "birthDate": "1999-04-26",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 17,
+        "Alero": 6,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
@@ -241,11 +241,11 @@
       "lastName": "Fernández",
       "birthDate": "2001-12-05",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 16,
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
@@ -318,10 +318,10 @@
       "birthDate": "2004-05-11",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 8,
+        "Pívot": 4
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
@@ -393,11 +393,11 @@
       "lastName": "McDonnell",
       "birthDate": "1995-09-13",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 9,
+        "Pívot": 6
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
@@ -469,11 +469,11 @@
       "lastName": "Zidek",
       "birthDate": "1999-12-13",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 4,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 16
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
@@ -545,11 +545,11 @@
       "lastName": "Iglesias",
       "birthDate": "2004-01-10",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 2,
-        "Alero": 2,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 11
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {
@@ -621,10 +621,10 @@
       "lastName": "Nicolau",
       "birthDate": "1997-01-21",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 1,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 1,
         "Pívot": 20
       },
       "teamId": "team-club-ourense-baloncesto",
@@ -697,11 +697,11 @@
       "lastName": "Valentino Pinedo",
       "birthDate": "2004-04-07",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 8
       },
       "teamId": "team-club-ourense-baloncesto",
       "bodyMeasurements": {

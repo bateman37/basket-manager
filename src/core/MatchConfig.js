@@ -1239,6 +1239,31 @@
           'Cantera': { pace: 5, pickAndRollUsage: 5, pressActive: 0.05 },
         },
       },
+
+      // --- Sesión de consolidación: conversión de puntuación (1-20) a
+      // estrellas (1-5) de `Tactics.starsFromScore20`, usada por `roleFit`
+      // y por las valoraciones derivadas de quinteto (7.12.28). Antes vivía
+      // hardcodeada como un escalón único cada 4 puntos
+      // (`Math.ceil(score / 4)`), que agrupaba 17-20 en el mismo 5★ sin
+      // distinguir "muy competente" de "el máximo posible" — una de las dos
+      // causas confirmadas por auditoría de la saturación de 5★ en
+      // `roleFit` (junto a los patrones de posición planos, ver
+      // scripts/regenerate-real-positions.js). Decisión YA TOMADA por
+      // Dennis (no una calibración propia de esta sesión): 5 tramos
+      // desiguales, punto de partida calibrable como el resto de
+      // `config.tactics` — "puntos de partida con dirección verificada, no
+      // cifras cerradas" (DESIGN.md 7.12.31/7.12.34, tabla completa en
+      // DESIGN.md 7.12.9). `oneStarMax`/`twoStarMax`/`threeStarMax`/
+      // `fourStarMax` son los límites SUPERIORES (inclusive) de cada
+      // escalón; cualquier puntuación por encima de `fourStarMax` es 5★.
+      starRating: {
+        thresholds: {
+          oneStarMax: 6,
+          twoStarMax: 10,
+          threeStarMax: 14,
+          fourStarMax: 17,
+        },
+      },
     },
   };
 

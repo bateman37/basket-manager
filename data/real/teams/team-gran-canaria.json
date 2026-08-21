@@ -14,10 +14,10 @@
       "birthDate": "2000-12-30",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 3,
+        "Alero": 3,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
@@ -90,10 +90,10 @@
       "birthDate": "1992-03-23",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 5,
+        "Alero": 4,
+        "Ala-pívot": 4,
+        "Pívot": 4
       },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
@@ -166,10 +166,10 @@
       "birthDate": "1996-10-27",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 16,
+        "Alero": 5,
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
@@ -243,11 +243,11 @@
       "lastName": "Townes",
       "birthDate": "1995-09-03",
       "positions": {
-        "Base": 12,
+        "Base": 10,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 5,
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
@@ -321,11 +321,11 @@
       "lastName": "Cremo",
       "birthDate": "1996-01-05",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 20,
-        "Alero": 12,
+        "Alero": 10,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
@@ -397,11 +397,11 @@
       "lastName": "Rodríguez",
       "birthDate": "1999-07-08",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 14,
+        "Ala-pívot": 4,
+        "Pívot": 3
       },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
@@ -475,10 +475,10 @@
       "lastName": "Salvó",
       "birthDate": "1994-11-03",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 13,
         "Pívot": 2
       },
       "teamId": "team-gran-canaria",
@@ -551,9 +551,9 @@
       "lastName": "Stumbris",
       "birthDate": "1993-07-09",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 4,
+        "Escolta": 1,
+        "Alero": 16,
         "Ala-pívot": 20,
         "Pívot": 2
       },
@@ -627,11 +627,11 @@
       "lastName": "Pelos",
       "birthDate": "1992-08-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 1,
+        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 16
       },
       "teamId": "team-gran-canaria",
       "bodyMeasurements": {
@@ -703,10 +703,10 @@
       "lastName": "Fischer",
       "birthDate": "1994-10-29",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 4,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 1,
         "Pívot": 20
       },
       "teamId": "team-gran-canaria",

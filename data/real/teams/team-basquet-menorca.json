@@ -14,10 +14,10 @@
       "birthDate": "1998-03-21",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 1,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 5
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -91,9 +91,9 @@
       "positions": {
         "Base": 12,
         "Escolta": 20,
-        "Alero": 2,
+        "Alero": 5,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -169,9 +169,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -245,9 +245,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 15,
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -319,11 +319,11 @@
       "lastName": "Martí",
       "birthDate": "1997-06-19",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 2,
-        "Alero": 12,
+        "Alero": 10,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -395,11 +395,11 @@
       "lastName": "Ordóñez",
       "birthDate": "2003-01-01",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 6,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 10
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -471,10 +471,10 @@
       "lastName": "Kejval",
       "birthDate": "2002-01-21",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 5,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-basquet-menorca",
@@ -547,10 +547,10 @@
       "lastName": "Leveque",
       "birthDate": "2000-06-11",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 3,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 6,
         "Pívot": 20
       },
       "teamId": "team-basquet-menorca",

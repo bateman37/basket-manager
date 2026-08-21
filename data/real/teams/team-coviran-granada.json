@@ -14,10 +14,10 @@
       "birthDate": "1993-02-27",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 3,
+        "Pívot": 6
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "1990-02-07",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 6,
+        "Alero": 5,
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -169,11 +169,11 @@
       "lastName": "Parham II",
       "birthDate": "1999-01-08",
       "positions": {
-        "Base": 12,
+        "Base": 9,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 6,
+        "Ala-pívot": 3,
+        "Pívot": 6
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -247,9 +247,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 17,
+        "Ala-pívot": 6,
+        "Pívot": 6
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -321,11 +321,11 @@
       "lastName": "Durán",
       "birthDate": "1991-05-01",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 1,
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -397,11 +397,11 @@
       "lastName": "Kamba",
       "birthDate": "1995-10-05",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 4,
+        "Escolta": 9,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 1,
+        "Pívot": 5
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -474,9 +474,9 @@
       "birthDate": "1989-09-05",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 11,
         "Pívot": 2
       },
       "teamId": "team-coviran-granada",
@@ -551,11 +551,11 @@
       "lastName": "Van Vliet",
       "birthDate": "1995-07-27",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 4,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 8
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -627,11 +627,11 @@
       "lastName": "McGrew",
       "birthDate": "1993-02-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 8
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -703,11 +703,11 @@
       "lastName": "Niang",
       "birthDate": "2001-08-22",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 1,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 9
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -780,9 +780,9 @@
       "birthDate": "1998-02-13",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 6,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-coviran-granada",
@@ -855,10 +855,10 @@
       "lastName": "Barro",
       "birthDate": "1995-05-10",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Base": 3,
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 8,
         "Pívot": 20
       },
       "teamId": "team-coviran-granada",

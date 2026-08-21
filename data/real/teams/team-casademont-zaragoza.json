@@ -14,10 +14,10 @@
       "birthDate": "1993-06-16",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-casademont-zaragoza",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "1997-02-17",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 5,
+        "Alero": 4,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-casademont-zaragoza",
       "bodyMeasurements": {
@@ -170,10 +170,10 @@
       "birthDate": "1995-09-05",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 1,
+        "Alero": 5,
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-casademont-zaragoza",
       "bodyMeasurements": {
@@ -247,11 +247,11 @@
       "lastName": "Jaworski",
       "birthDate": "1999-06-21",
       "positions": {
-        "Base": 12,
+        "Base": 10,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 6,
+        "Ala-pívot": 6,
+        "Pívot": 4
       },
       "teamId": "team-casademont-zaragoza",
       "bodyMeasurements": {
@@ -325,10 +325,10 @@
       "lastName": "González",
       "birthDate": "1999-03-20",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
+        "Alero": 8,
+        "Ala-pívot": 6,
         "Pívot": 2
       },
       "teamId": "team-casademont-zaragoza",
@@ -401,11 +401,11 @@
       "lastName": "Homesley",
       "birthDate": "1996-11-27",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 4,
+        "Escolta": 15,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-casademont-zaragoza",
       "bodyMeasurements": {
@@ -480,8 +480,8 @@
         "Base": 2,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 4
       },
       "teamId": "team-casademont-zaragoza",
       "bodyMeasurements": {
@@ -553,9 +553,9 @@
       "lastName": "Fernández",
       "birthDate": "2000-07-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 3,
+        "Escolta": 3,
+        "Alero": 17,
         "Ala-pívot": 20,
         "Pívot": 2
       },
@@ -630,10 +630,10 @@
       "birthDate": "1998-04-29",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 3,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-casademont-zaragoza",
       "bodyMeasurements": {
@@ -705,10 +705,10 @@
       "lastName": "Olaseni",
       "birthDate": "1991-12-29",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 6,
+        "Alero": 4,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-casademont-zaragoza",
@@ -783,10 +783,10 @@
       "lastName": "Birutis",
       "birthDate": "1997-08-27",
       "positions": {
-        "Base": 2,
+        "Base": 1,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 1,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-casademont-zaragoza",

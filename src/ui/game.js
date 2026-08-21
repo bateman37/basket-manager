@@ -1707,7 +1707,7 @@
     return `
       <div class="gm-card">
         <h3>Familiaridad</h3>
-        <p class="gm-muted">Cuánto domina el equipo la táctica declarada arriba — sube jugando partidos reales, no se edita aquí (DESIGN.md 7.12.22).</p>
+        <p class="gm-muted">Cuánto domina el equipo la táctica declarada arriba — sube jugando partidos reales, no se edita aquí.</p>
         ${familiarityBarHtml('Sistema ofensivo', fam.offensiveSystem)}
         ${familiarityBarHtml('Sistema defensivo', fam.defensiveSystem)}
         <h4>Familias de jugada más usadas</h4>
@@ -1732,7 +1732,7 @@
 
     const playTypeRowsHtml = Object.keys(PLAY_TYPE_LABELS).map((key) => `
       <label class="tactics-slider-row">
-        <span>${PLAY_TYPE_LABELS[key]}${key === 'pickAndRoll' ? ' <span class="gm-muted">(único con efecto real en el motor por ahora)</span>' : ''}</span>
+        <span>${PLAY_TYPE_LABELS[key]}</span>
         <input type="range" min="0" max="100" step="5" class="tactics-playtype-input" data-key="${key}" value="${profile.playTypeWeights[key] ?? 0}">
         <span class="tactics-slider-value">${Math.round(profile.playTypeWeights[key] ?? 0)}</span>
       </label>`).join('');
@@ -1750,7 +1750,7 @@
       <div class="gm-card">
         <h3>Pesos de play-type</h3>
         ${playTypeRowsHtml}
-        <p class="gm-muted">El resto del catálogo de play-types (Post Up avanzado, Transition, Isolation con generación real de tiro...) se guarda ya, pero el motor todavía solo usa Pick & Roll — llegará con una entrega futura del sistema táctico.</p>
+        <p class="gm-muted">Pick &amp; Roll, Isolation, Post Up y Transition tienen efecto real en el motor a través de estos pesos: deciden con qué frecuencia se intenta cada jugada y cuánto se explota cada ventana de contraataque. Handoff/DHO, Off Screen y Motion/Flow siguen siendo catálogo de jugadas sin motor propio todavía (ver pestaña Playbook).</p>
       </div>`;
   }
 
@@ -1847,7 +1847,7 @@
     return `
       <div class="gm-card">
         <h3>Playbook</h3>
-        <p class="gm-muted">Catálogo de jugadas disponibles (DESIGN.md 7.12.10). Pick &amp; Roll, Isolation y Post Up ya tienen comportamiento real en el motor según los pesos de play-type de la pestaña Ataque; Handoff/DHO, Off Screen y Motion/Flow quedan como catálogo de datos, sin motor propio todavía. La prioridad/peso de cada jugada individual dentro de una misma familia no es editable todavía — el motor elige automáticamente según el spacing declarado del equipo.</p>
+        <p class="gm-muted">Catálogo de jugadas disponibles. Pick &amp; Roll, Isolation y Post Up ya tienen comportamiento real en el motor según los pesos de play-type de la pestaña Ataque; Handoff/DHO, Off Screen y Motion/Flow quedan como catálogo de datos, sin motor propio todavía. La prioridad/peso de cada jugada individual dentro de una misma familia no es editable todavía — el motor elige automáticamente según el spacing declarado del equipo.</p>
         <div class="gm-table-scroll">
           <table class="gm-table playbook-table">
             <thead>
@@ -1979,7 +1979,7 @@
           <input type="checkbox" id="tactics-auto-timeouts-checkbox" ${situations.autoTimeouts.enabled ? 'checked' : ''}>
           Pedir tiempo muerto automáticamente si el rival mete un parcial (${BM.CONFIG_BASE.match.timeouts.autoTriggerRunPoints}-0 sin respuesta)
         </label>
-        <p class="gm-muted">Con esta opción activada, el asistente pide el tiempo muerto por ti en la primera parada de juego disponible — sin abrir la ventana de intervención. Un tiempo muerto NUNCA aplica un bonus mágico de acierto ni resetea la racha del rival (7.12.24); solo habilita los ajustes que verías igualmente si lo pidieras a mano.</p>
+        <p class="gm-muted">Con esta opción activada, el asistente pide el tiempo muerto por ti en la primera parada de juego disponible — sin abrir la ventana de intervención. Un tiempo muerto NUNCA aplica un bonus mágico de acierto ni resetea la racha del rival; solo habilita los ajustes que verías igualmente si lo pidieras a mano.</p>
       </div>
       <div class="gm-card">
         <h3>Falta táctica intencionada</h3>
@@ -1997,7 +1997,7 @@
       </div>
       <div class="gm-card">
         <h3>Jugadas preparadas — ATO/BLOB/SLOB/Late Clock/Last Possession</h3>
-        <p class="gm-muted">Jugada preferida del catálogo situacional para cada caso (7.12.24) — sin garantía de tiro concreto, su eficacia depende de los jugadores y la cobertura rival. "Elegir automáticamente" sortea entre el catálogo disponible, igual que el resto del playbook.</p>
+        <p class="gm-muted">Jugada preferida del catálogo situacional para cada caso — sin garantía de tiro concreto, su eficacia depende de los jugadores y la cobertura rival. "Elegir automáticamente" sortea entre el catálogo disponible, igual que el resto del playbook.</p>
         ${preferredPlaysHtml}
       </div>`;
   }
@@ -2099,7 +2099,7 @@
       <div class="gm-card">
         <h3>Rival</h3>
         <select id="tactics-rival-select">${optionsHtml}</select>
-        <p class="gm-muted">Informe estadístico objetivo del rival (DESIGN.md 7.12.25: "el mismo informe... disponible al usuario, para evitar asimetría de información" — la CPU rival vería exactamente el mismo tipo de informe sobre tu equipo). Se selecciona automáticamente tu próximo rival de liga cuando se conoce; puedes elegir otro equipo de tu división para explorarlo igual.</p>
+        <p class="gm-muted">Informe estadístico objetivo del rival — la CPU rival ve de ti el mismo tipo de informe que tú ves de ella, para que ninguno de los dos lados juegue con ventaja de información. Se selecciona automáticamente tu próximo rival de liga cuando se conoce; puedes elegir otro equipo de tu división para explorarlo igual.</p>
       </div>`;
 
     if (!rivalTeam) {
@@ -2155,12 +2155,12 @@
       <div class="gm-card">
         <h3>Play-types dominantes (ataque)</h3>
         <table class="gm-table"><thead><tr><th>Play-type</th><th>Frecuencia</th><th>PPP</th></tr></thead><tbody>${playTypeRowsHtml}</tbody></table>
-        <p class="gm-muted">Tiro exterior/interior asistido: ${pctHtml(summary.offense.assistedFgPercent)} · Pérdidas por posesión: ${pctHtml(summary.offense.turnoverRate)} · Calidad de tiro media (aproximación por AdvantageState, 7.12.34): ${summary.offense.averageShotQuality !== null ? summary.offense.averageShotQuality.toFixed(2) : '—'}${smallSampleBadgeHtml(summary.offense.shotQualityN, CONFIG_BASE)}</p>
+        <p class="gm-muted">Tiro exterior/interior asistido: ${pctHtml(summary.offense.assistedFgPercent)} · Pérdidas por posesión: ${pctHtml(summary.offense.turnoverRate)} · Calidad de tiro media (estimación a partir de las ventajas creadas durante el partido): ${summary.offense.averageShotQuality !== null ? summary.offense.averageShotQuality.toFixed(2) : '—'}${smallSampleBadgeHtml(summary.offense.shotQualityN, CONFIG_BASE)}</p>
       </div>
       <div class="gm-card">
         <h3>Coberturas habituales (defensa)</h3>
         <table class="gm-table"><thead><tr><th>Cobertura</th><th>Frecuencia</th><th>PPP concedido</th></tr></thead><tbody>${coverageRowsHtml}</tbody></table>
-        <p class="gm-muted">Eficiencia de mismatch concedida (aproximada por PPP concedido en Switch, 7.12.34): ${pppHtml(summary.defense.mismatchEfficiencyAllowed.pppAllowed)}${smallSampleBadgeHtml(summary.defense.mismatchEfficiencyAllowed.n, CONFIG_BASE)}</p>
+        <p class="gm-muted">Eficiencia de mismatch concedida (aproximada por PPP concedido en Switch): ${pppHtml(summary.defense.mismatchEfficiencyAllowed.pppAllowed)}${smallSampleBadgeHtml(summary.defense.mismatchEfficiencyAllowed.n, CONFIG_BASE)}</p>
       </div>
       <div class="gm-card">
         <h3>Shot profile — propio vs. permitido</h3>
@@ -2918,7 +2918,7 @@
     return `
       <div class="gm-card intervention-panel">
         <h3>${reasonLabel}${reasonDetail}</h3>
-        <p class="gm-muted">Ajustes de GamePlan para este partido — se descartan al terminar salvo que los guardes como táctica base.</p>
+        <p class="gm-muted">Ajustes tácticos para este partido — se descartan al terminar salvo que los guardes como táctica base.</p>
         <div class="intervention-panel__controls">
           <label>Cobertura de P&amp;R
             <select id="intervention-coverage-select">${coverageOptionsHtml}</select>

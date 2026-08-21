@@ -14,10 +14,10 @@
       "birthDate": "2003-02-13",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 8,
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -90,10 +90,10 @@
       "birthDate": "1998-04-24",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 8,
+        "Alero": 5,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 6
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -165,11 +165,11 @@
       "lastName": "Williams",
       "birthDate": "2004-01-01",
       "positions": {
-        "Base": 12,
+        "Base": 15,
         "Escolta": 20,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 6
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -241,11 +241,11 @@
       "lastName": "Goodine",
       "birthDate": "1999-09-29",
       "positions": {
-        "Base": 12,
+        "Base": 13,
         "Escolta": 20,
-        "Alero": 2,
+        "Alero": 4,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -317,11 +317,11 @@
       "lastName": "Hollanders",
       "birthDate": "2001-09-13",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 20,
-        "Alero": 12,
+        "Alero": 15,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -393,11 +393,11 @@
       "lastName": "Brnovic",
       "birthDate": "2000-08-10",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 11,
+        "Pívot": 4
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -469,11 +469,11 @@
       "lastName": "Arias",
       "birthDate": "2006-01-25",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -545,11 +545,11 @@
       "lastName": "Nwaokorie",
       "birthDate": "2002-09-24",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 1,
+        "Escolta": 1,
+        "Alero": 17,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -622,10 +622,10 @@
       "birthDate": "2003-08-30",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 4,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 8
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -697,10 +697,10 @@
       "lastName": "Wisne",
       "birthDate": "2003-09-18",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Base": 5,
+        "Escolta": 5,
+        "Alero": 3,
+        "Ala-pívot": 15,
         "Pívot": 20
       },
       "teamId": "team-alimerka-oviedo",
@@ -773,10 +773,10 @@
       "lastName": "Barro",
       "birthDate": "1995-05-10",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 12,
+        "Ala-pívot": 13,
         "Pívot": 20
       },
       "teamId": "team-alimerka-oviedo",
@@ -849,10 +849,10 @@
       "lastName": "Diarra",
       "birthDate": "2004-07-09",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 3,
+        "Alero": 4,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-alimerka-oviedo",

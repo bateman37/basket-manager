@@ -15,8 +15,8 @@
       "positions": {
         "Base": 20,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 4,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-ucam-murcia",
@@ -90,10 +90,10 @@
       "birthDate": "1997-06-17",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 14,
+        "Alero": 4,
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -168,10 +168,10 @@
       "birthDate": "2000-07-06",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 5,
+        "Alero": 6,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -246,10 +246,10 @@
       "birthDate": "1999-12-02",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 10,
+        "Alero": 3,
+        "Ala-pívot": 4,
+        "Pívot": 3
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -323,11 +323,11 @@
       "lastName": "Ennis",
       "birthDate": "1991-12-26",
       "positions": {
-        "Base": 12,
+        "Base": 14,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 4,
+        "Pívot": 4
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -399,11 +399,11 @@
       "lastName": "Falk",
       "birthDate": "2003-06-25",
       "positions": {
-        "Base": 2,
+        "Base": 1,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 5,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -475,11 +475,11 @@
       "lastName": "Sant-Roos",
       "birthDate": "1991-02-13",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 1,
+        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -551,11 +551,11 @@
       "lastName": "Raieste",
       "birthDate": "1999-03-31",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -628,10 +628,10 @@
       "birthDate": "1999-01-26",
       "positions": {
         "Base": 2,
-        "Escolta": 12,
+        "Escolta": 14,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 1,
+        "Pívot": 5
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -703,11 +703,11 @@
       "lastName": "Nakic",
       "birthDate": "1999-06-01",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 1,
+        "Escolta": 4,
         "Alero": 20,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -780,10 +780,10 @@
       "birthDate": "1996-11-08",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Escolta": 3,
+        "Alero": 11,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -855,11 +855,11 @@
       "lastName": "Steinbergs",
       "birthDate": "2001-08-28",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 4,
+        "Escolta": 4,
+        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -931,11 +931,11 @@
       "lastName": "López de la Torre",
       "birthDate": "2002-03-13",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 6,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -1007,10 +1007,10 @@
       "lastName": "Cate",
       "birthDate": "1997-07-30",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 4,
+        "Escolta": 1,
+        "Alero": 3,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-ucam-murcia",
@@ -1085,10 +1085,10 @@
       "lastName": "Pansa",
       "birthDate": "1997-08-20",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 2,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 1,
         "Pívot": 20
       },
       "teamId": "team-ucam-murcia",
@@ -1163,10 +1163,10 @@
       "lastName": "Diagne",
       "birthDate": "1994-03-06",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 3,
+        "Alero": 1,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-ucam-murcia",
