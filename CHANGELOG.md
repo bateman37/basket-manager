@@ -2206,3 +2206,298 @@ ningún resolver de 7.6.
   Tactical Execution de las valoraciones de quinteto (7.12.28); un
   `GamePlan` propio del que los matchups podrían colgar de forma más
   natural (hoy viven en `TacticalProfile`).
+
+## 2026-08-21 (2) — TAC-5: partido vivo y situaciones (DESIGN.md 7.12.33)
+
+Quinta entrega de las 7 planificadas del sistema táctico (7.12). A
+diferencia de TAC-1 a TAC-4 (todas ampliaciones de `Tactics.js` sobre el
+mismo motor de posesión de siempre), esta entrega parte de una decisión
+arquitectónica explícita de Dennis, no negociable: **el motor de partido
+tenía que dejar de ser una función síncrona monolítica y convertirse en
+algo REALMENTE pausable y reanudable**, no una aproximación que solo
+resolviera ajustes entre cuartos — el plan a futuro (velocidades x4/x8/
+x16/x32, cambios de táctica mid-partido, tiempos muertos anti-racha)
+depende de ello, y romper `simulateMatch()` una segunda vez para eso más
+adelante era peor que hacerlo bien ahora.
+
+### 1. Motor de simulación por tramos (`src/core/MatchEngine.js`)
+
+Confirmado por auditoría del código real (no memoria de sesiones
+anteriores): antes de esta entrega, `simulateMatch()` era un
+`do{...}while()` (períodos) anidando un `while(clockRemaining>0)`
+(posesiones) con TODO el estado del partido como variables locales de esa
+única función — nunca devolvía el control hasta terminar el partido
+entero. El "reveal por cuartos" de `game.js` no pausaba nada real, solo
+reproducía `quarterScores` ya calculados de antemano.
+
+- **`createMatchState(homeTeam, awayTeam, config, options)`**: extrae TODO
+  ese estado mutable a un objeto `MatchState` plano y serializable —
+  `boxScore` (Map), `plusMinus` (Map), `quarterScores`, `runningScore`,
+  `scoringRun`, `fastBreakEligible`, `eventLog`, `possessionCount`,
+  `offenseSide`, `period`, `isOvertime`, `teamFouls`, `clockRemaining`,
+  `periodPoints`, `totalElapsedSeconds`, `home/awayRotationState`, más los
+  campos nuevos de esta entrega: `home/awayGamePlan`, `timeouts`
+  (consumo por equipo/segmento), `pendingAto`, `lastTimeoutSide`,
+  `lastTimeoutReason`, `lastPossessionWasDeadBall`,
+  `previousPossessionInboundType`, y `phase`
+  (`'beforePeriod'`/`'inPeriod'`/`'finished'`).
+- **`advanceMatch(state, options)`**: avanza la simulación posesión a
+  posesión (`simulateOnePossessionStep`, extraída literalmente del cuerpo
+  del `while` de antes) hasta el punto de corte pedido en
+  `options.stopAt`: `'possession'` (unidad mínima) | `'quarterEnd'` |
+  `'timeoutTrigger'` | `'matchEnd'` (por defecto). Devuelve
+  `{ state, stoppedReason }` — `state` es el MISMO objeto mutado in situ,
+  se reutiliza la misma referencia en la siguiente llamada. Idempotente
+  una vez `state.phase === 'finished'`.
+- **`buildMatchResult(state)`**: construye el mismo shape de resultado que
+  ya devolvía `simulateMatch()` (`finalScore`/`quarterScores`/
+  `wentToOvertime`/`overtimePeriods`/`possessionCount`/`boxScore`/
+  `eventLog`/`rotation`) — puede llamarse en CUALQUIER instante de
+  `state`, terminado o en pausa, no solo al final.
+- **`simulateMatch()` pasa a ser un wrapper de compatibilidad**:
+  `createMatchState` + `advanceMatch(state, {stopAt:'matchEnd'})` +
+  `buildMatchResult(state)` — MISMA firma, MISMAS `options`, MISMO shape
+  de salida. `League.js`/`Bracket.js`/`Playoffs.js`/`Cup.js`/
+  `Promotion.js`/`CpuLineup.js` no necesitan NINGÚN cambio (confirmado con
+  `git diff --stat`: ninguno de esos archivos aparece en el diff de esta
+  entrega).
+- **Requisito de equivalencia (no negociable), verificado**: simular un
+  partido de una sola llamada y simular el MISMO partido (misma semilla)
+  cortando en cada posesión, por cuarto, o sin ningún timeout disponible
+  (equivalente a por-cuarto) dan el resultado EXACTO — mismo marcador,
+  mismo `quarterScores`, mismo `eventLog` (longitud y contenido
+  idénticos), mismo `boxScore`, mismo `possessionCount`. Verificado con un
+  script Node dedicado (scratchpad de esta sesión, PRNG determinista
+  mulberry32 sustituyendo `Math.random` temporalmente, con reset de
+  `dynamicState.energy` entre simulaciones para no arrancar la segunda ya
+  desgastada por la primera). Un partido sin timeouts solicitados, sin
+  GamePlan y con Auto Timeouts desactivado da el MISMO resultado que antes
+  de esta entrega (`simulatePossession` no cambia, solo se hace pausable
+  el bucle que la envuelve).
+
+### 2. `GamePlan` — overrides de partido (`src/core/Tactics.js`)
+
+- **`Tactics.GamePlan`** (7.12.23): overrides de UN partido concreto, sin
+  tocar el `TacticalProfile` persistente del equipo. Alcance mínimo con
+  pieza real de motor detrás (los 4 campos pedidos explícitamente):
+  `playTypeWeights`, `matchupOverrides`, `pnrCoverage`,
+  `defensiveScheme` (+ `situationalPlays`, ver punto 5). El resto del
+  catálogo de 7.12.23 (target de mismatch, ritmo específico, orientación
+  de shot profile, prioridad de rebote ofensivo, cobertura por jugador
+  rival, over/under por handler, presión/distancia por jugador, negar
+  recepción a estrella...) queda como catálogo de datos SIN
+  comportamiento real, señalado explícitamente.
+- **`Tactics.effectiveTacticalProfile(baseProfile, gamePlan)`**: vista
+  MERGEADA con la MISMA forma que `TacticalProfile` — sin `gamePlan`
+  (`null`, el caso de siempre), devuelve `baseProfile` tal cual, coste
+  cero. El resto de `Tactics.js`/`MatchEngine.js` sigue leyendo
+  `offenseTacticalProfile.*` exactamente igual que antes, sin saber que
+  puede haber un GamePlan detrás — se llama en cada posesión desde
+  `simulateOnePossessionStep`, así que un ajuste del usuario a mitad de
+  partido YA se refleja en la siguiente posesión (el motor pausable del
+  punto 1 es lo que lo hace posible de verdad).
+- **`Tactics.applyGamePlanToProfile(profile, gamePlan)`**: "guardar como
+  táctica base" — el ÚNICO camino explícito para que un GamePlan
+  sobreviva al partido. Sin llamarlo, el GamePlan se descarta al terminar
+  (nunca se persiste en ningún sitio) — regla de persistencia de 7.12.23
+  cumplida por construcción, verificada con el script de invariantes.
+
+### 3. Tiempos muertos como CONFIG (`src/core/MatchConfig.js`)
+
+- **`config.match.timeouts`**: `perHalf: {first:2, second:3}`,
+  `perOvertime:1`, `durationSeconds:60` (referencia FIBA/ACB citada
+  literalmente por 7.12.24), más `lastMinutesThresholdSeconds:120` y
+  `maxInLastMinutesOfFourthQuarter:2` (interpretación de partida de la
+  restricción de "los últimos 2 minutos del 4º cuarto" — 7.12.24 no cierra
+  la cifra exacta, "CONFIG/UX a calibrar después", señalado explícitamente
+  como pendiente de calibración/decisión, 7.12.34) y
+  `autoTriggerRunPoints:8` (el ejemplo literal del prompt, "parcial de
+  8-0", reutilizando el mismo `scoringRun` ya trackeado por 7.6.20 en vez
+  de un segundo contador de racha paralelo).
+- **Seguimiento de consumo en `MatchState.timeouts`**: por equipo y
+  segmento (`firstHalf`/`secondHalf`/`overtime<N>`, cada prórroga con su
+  propio cupo independiente) + contador aparte
+  `usedInLastMinutesOfFourthQuarter` para la restricción adicional.
+  `MatchEngine.canCallTimeout(state, side)` (exportada, para que la UI
+  pueda deshabilitar el botón sin duplicar la validación) y
+  `consumeTimeout`/`requestTimeoutNow` validan siempre contra el máximo
+  configurado — verificado con el script de invariantes (nunca se
+  exceden los máximos, ni la restricción de los últimos 2 minutos).
+- **Regla dura respetada**: ningún tiempo muerto toca `scoringRun` ni
+  `dynamicState.momentum` — su único efecto real es marcar `pendingAto`
+  (para el ATO del punto 5) y habilitar la ventana de intervención de
+  `game.js`.
+
+### 4. Ventanas de intervención — entre cuartos y en tiempo muerto
+
+- **`advanceMatch(state, {stopAt:'timeoutTrigger', autoTimeouts})`**: se
+  detiene en CUALQUIER granularidad que no sea `'matchEnd'` al llegar a un
+  límite de cuarto (`stoppedReason:'quarterEnd'`), y además, dentro de un
+  cuarto, cuando `evaluateTimeoutStop` decide que corresponde un tiempo
+  muerto (`stoppedReason:'timeoutTrigger'`) — reutiliza LITERALMENTE
+  `isDeadBallStoppage` (Rotation.js, el mismo criterio que ya usan las
+  ventanas de sustitución automática, 7.11.2) para saber si el punto
+  actual admite un tiempo muerto real.
+- **`Auto Timeouts`** (`TacticalProfile.situations.autoTimeouts.enabled`,
+  por equipo, desactivado por defecto): si está activo, `advanceMatch`
+  concede el tiempo muerto automáticamente en la primera parada de juego
+  disponible tras un parcial rival de `autoTriggerRunPoints`-0, sin abrir
+  ninguna ventana — 1 regla mínima real, tal como pedía el prompt
+  explícitamente ("1-2 reglas reales... sin abrir ventana de
+  intervención").
+- **`game.js`**: `startLiveMatch()`/`advanceLiveMatch()` conducen el
+  partido de LIGA del usuario sobre este motor; `renderLiveMatchScreen()`
+  muestra el marcador/quarterScores reales hasta el instante en que se
+  pausó y una ventana de intervención (`renderMatchInterventionPanel`) con
+  ajustes de GamePlan (cobertura de P&R, peso de Isolation) para el lado
+  del usuario, botón "Pedir tiempo muerto"
+  (`MatchEngine.requestTimeoutNow`, deshabilitado si `canCallTimeout`
+  devuelve `false`) y "Guardar cambios como táctica base"
+  (`applyGamePlanToProfile`). El reveal sigue mostrándose por cuartos, sin
+  narrar cada posesión intermedia, tal como pedía explícitamente el
+  prompt.
+- **Encaje con `League.js` sin tocarlo**: `MatchEngine.simulateMatch()`
+  acepta `options.precomputedResult` — si se pasa, devuelve ese resultado
+  tal cual en vez de volver a simular. `game.js` juega el partido del
+  usuario de verdad sobre `createMatchState`/`advanceMatch` ANTES de
+  llamar a `league.simulateNextRound()`, y le pasa ese resultado ya
+  resuelto para el partido del usuario (`resolveMatchOptions` devuelve
+  `{precomputedResult}` solo para ese `match`, por referencia — el resto
+  de la jornada se resuelve de golpe, como siempre). Sin esto, League.js
+  volvería a simular el mismo partido con otra secuencia aleatoria —
+  DISTINTO al que el usuario acaba de ver, rompiendo la coherencia con la
+  clasificación. `league.getCurrentRoundMatches()` (ya existente, consulta
+  pura sin efectos secundarios) se usa para saber si/contra quién juega el
+  usuario esta jornada ANTES de pedirle a `League.js` que la resuelva.
+- **Decisión de encaje explícita, señalada en 7.12.24-bis de
+  `DESIGN.md`**: esta entrega solo expone el motor pausable/GamePlan/
+  ventanas de intervención reales para el partido de LIGA del usuario —
+  Copa/Playoff/Ascenso (`Bracket.js`/`Playoffs.js`/`Cup.js`/
+  `Promotion.js`, ninguno tocado) siguen resolviéndose de golpe con el
+  reveal cosmético de siempre (`renderReplayMatchScreen`, código
+  preexistente sin cambios de comportamiento). Motivo: esos módulos
+  resuelven el partido completo dentro de la misma llamada síncrona que
+  decide el emparejamiento home/away del siguiente partido de la serie
+  — no hay forma de saber de antemano contra quién/en qué lado juega el
+  usuario sin tocarlos, a diferencia de `League.js` que sí expone
+  `getCurrentRoundMatches()` por adelantado.
+
+### 5. ATO/BLOB/SLOB/Late Clock/Last Possession (`src/core/Tactics.js`)
+
+- **6 `PlayDefinition` nuevas** en `PLAY_DEFINITIONS`, misma arquitectura
+  que el resto del catálogo (7.12.10) — cada una con `situationType`
+  (`Tactics.SITUATION_TYPES`) y `resolvesAs` (a qué de los 3
+  `REAL_PLAY_FAMILIES` con motor real se resuelve: `pickAndRoll`/
+  `isolation`/`postUp`). Solo 1-2 jugadas por situación (catálogo mínimo,
+  señalado explícitamente como ampliable).
+- **`Tactics.resolveSituationType(situationContext, config)`**: clasifica
+  la posesión — precedencia ATO > Last Possession > Late Clock > BLOB/
+  SLOB. Reutiliza `config.pressure.buzzerBeaterSecondsThreshold` (Last
+  Possession) y `config.lateClock.noFullPlayThresholdSeconds` (Late
+  Clock), ya calibrados para otro propósito — solo
+  `config.tactics.situational.lastPossessionMarginPoints` es una cifra
+  nueva.
+- **`Tactics.planSituationalPossession(params, situationType)`**:
+  sustituye a `planTacticalPossession` SOLO para esa posesión —
+  reutiliza LITERALMENTE `planPickAndRollTactical`/`buildIsolationPlan`/
+  `buildPostUpPlan` (nunca un segundo selector de play-type paralelo,
+  pedido explícito del prompt), con `forcePlay:true` para Pick & Roll
+  (`buildPossessionPlan` gana un parámetro `forcePlay` opcional que salta
+  el sorteo de frecuencia — la jugada se dibuja deliberadamente, no
+  depende de que "toque" el sorteo normal). Sin jugada disponible para
+  esa situación, cae a `planTacticalPossession` normal.
+  `Tactics.chooseSituationalPlayType` prioriza la preferencia declarada
+  por el equipo (`TacticalProfile.situations.preferredPlays`, ya fusionada
+  con el `GamePlan.situationalPlays` de este partido si lo hay).
+- **BLOB/SLOB inferido, aproximación señalada explícitamente**: este
+  motor no modela el saque de banda/fondo como un suceso propio —
+  `MatchEngine` infiere del ÚLTIMO evento de la posesión anterior
+  (canasta de campo anotada = BLOB; cualquier otro final = SLOB). ATO se
+  marca vía `state.pendingAto[side]` (fijado por `consumeTimeout`,
+  consumido en la siguiente posesión EN ATAQUE de ese equipo, sin
+  importar cuántas posesiones defensivas medien).
+
+### 6. Falta táctica intencionada (`src/core/MatchEngine.js`)
+
+- **`evaluateIntentionalFoul()`** (no un resolver de falta nuevo, pedido
+  explícito del prompt): decisión que se evalúa AL PRINCIPIO de la
+  posesión (antes de cualquier planificación táctica normal, para no
+  gastar un sorteo de play-type que no se va a completar), gatillada por
+  `TacticalProfile.situations.tacticalFoul` (`enabled`/`marginPoints`/
+  `secondsRemaining`, desactivado por defecto — pestaña Situaciones).
+  Objetivo: el rival EN PISTA con peor `freeThrows`. Committer: se evita
+  al jugador propio con 4 faltas personales SI hay alternativa razonable
+  en pista (si es el único disponible, se usa igual). La CPU usa
+  exactamente esta misma función — solo lee `defenseTacticalProfile`, no
+  distingue si el equipo es del usuario o gestionado por la CPU.
+  Decisión de encaje señalada explícitamente: solo se evalúa en el último
+  período regular o en prórroga (`period >= quartersTotal`) — 7.12.24 no
+  cierra el umbral óptimo de segundos/margen, verificado con un
+  escenario dirigido en el script de invariantes.
+- Registra la falta reutilizando el MISMO camino que una falta defensiva
+  normal (`recordPersonalFoul`/`handleFreeThrowSequence`, con/sin bonus),
+  nunca un resolver nuevo.
+
+### 7. Pantalla de Tácticas — sub-pestaña Situaciones (`src/ui/game.js`)
+
+- **6ª sub-pestaña** `renderTacticsSituationsTab()` (mismo criterio visual
+  que las 5 anteriores, confirmadas intactas con Playwright): checkbox de
+  Auto Timeouts, checkbox + 2 inputs numéricos de falta táctica
+  intencionada, y un `<select>` por cada una de las 5 situaciones
+  especiales para elegir la jugada preferida del catálogo situacional
+  (`preferredPlays`) o dejarlo en "Elegir automáticamente". Todo muta
+  `team.tacticalProfile.situations.*` directamente, mismo patrón que la
+  sub-pestaña Defensa.
+
+### Verificación
+
+- **Script Node de invariantes** (scratchpad de la sesión, no forma parte
+  del repo — mismo criterio que TAC-2/TAC-3/TAC-4): equivalencia
+  partido-completo vs. por-tramos (posesión/cuarto) EXACTA con semilla
+  controlada; reglas de tiempos muertos (máximos por mitad/prórroga y
+  restricción de últimos 2 minutos nunca excedidos, en un partido
+  completo pidiendo tiempo muerto en cada oportunidad); falta táctica
+  intencionada (objetivo = peor `freeThrows` en pista, jugador con 4
+  faltas evitado con alternativa) en un escenario dirigido; `GamePlan`
+  aplicado de verdad (`effectiveTacticalProfile` refleja el override) y
+  no persistente salvo `applyGamePlanToProfile` explícito. Además, tres
+  simulaciones de temporada/partido completas (18 equipos ficticios/34
+  jornadas vía `League.js` sin cambios; 20 partidos con
+  GamePlan+AutoTimeouts+falta táctica+petición de tiempo muerto activos
+  simultáneamente; un partido con alineaciones reales de `Rotation.js` de
+  ambos lados) sin errores.
+- **Playwright** (scratchpad de la sesión): landing → "Empezar
+  temporada" → selección de equipo real → pantalla de Tácticas (confirma
+  las 5 sub-pestañas anteriores intactas + navega Situaciones, activa
+  Auto Timeouts y falta táctica) → alineación válida asignada
+  directamente sobre el estado (reutilizando `CpuLineup.buildCpuLineup`,
+  no es el objetivo de este test cubrir la pantalla de Alineación) →
+  "jugar siguiente jornada" → partido completo con 3 ventanas de
+  intervención reales (fin de cuarto) hasta el marcador final, sin
+  errores de consola (filtrado el único error de red esperable en este
+  entorno: la Google Font externa de `index.html`, sin red saliente a
+  fonts.googleapis.com, nada que ver con esta entrega).
+- **`git diff --stat`**: solo `DESIGN.md`, `src/core/MatchConfig.js`,
+  `src/core/MatchEngine.js`, `src/core/Tactics.js`, `src/ui/game.css`,
+  `src/ui/game.js`. Ninguno de `League.js`/`Bracket.js`/`Playoffs.js`/
+  `Cup.js`/`Promotion.js`/`CpuLineup.js`/`Rotation.js`/`Recovery.js`/
+  `Calendar.js`/`Player.js`/`Team.js` aparece en el diff — el shape de
+  `simulateMatch()` no cambió, así que ninguno de esos archivos necesitó
+  ningún ajuste.
+
+### Pendiente explícitamente para entregas futuras (ver también DESIGN.md 7.12.24-bis y 7.12.34)
+
+- **TAC-6**: familiaridad táctica/`tacticalExecution` (el gancho
+  `GamePlan.tacticalExecutionOverride` queda preparado, sin efecto) — el
+  eje Rigidez↔Read&React de 7.12.7 también.
+- **TAC-7**: IA táctica de la CPU más allá de Auto Timeouts/falta táctica
+  (los equipos CPU llegan con ambos desactivados por defecto, igual que
+  el usuario — que la CPU los tenga activados por defecto es una
+  decisión de calibración de IA señalada, no resuelta), Data Hub táctico
+  completo.
+- Velocidades de reproducción x4/x8/x16/x32; cambios de táctica
+  posesión-a-posesión (el `GamePlan` ya lo permite estructuralmente, el
+  frontend de esta entrega no lo expone); tiempos muertos conectados a
+  un efecto real sobre Racha/Momento (prohibido explícitamente por
+  7.12.24, no implementado); extender el motor pausable/ventanas de
+  intervención reales a Copa/Playoff/Ascenso.

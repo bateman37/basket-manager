@@ -2730,6 +2730,64 @@ Se cierra el hueco de 7.6 mediante reglas configurables:
 No se fija todavía el umbral óptimo de segundos/marcador: será decisión de
 usuario/CPU y calibración de diseño.
 
+**Actualización TAC-5 (implementado):** el umbral de partida es configurable
+por equipo (`TacticalProfile.situations.tacticalFoul`, pestaña Situaciones,
+7.12.32) — margen de puntos y segundos restantes, desactivado por defecto
+(7.12.34, regresión). Decisión de encaje señalada explícitamente: solo se
+evalúa en el último período regular o en prórroga (perder tiempo en un
+cuarto intermedio no tiene sentido real), y el objetivo es siempre el rival
+EN PISTA con peor TiroLibre (no de toda la plantilla). La opción de falta
+preventiva ganando por 3 antes del triple sigue sin implementar, tal como
+permite explícitamente este apartado.
+
+### 7.12.24-bis Visión futura pendiente de esta sección (TAC-5)
+
+Con el motor de partido ya pausable/reanudable por tramos (7.12.33, TAC-5),
+quedan señaladas como diseño pendiente de una sesión futura dedicada — **no
+implementadas en TAC-5**, con el mismo nivel de detalle que el resto de
+"pendientes" de 7.12.34:
+
+- **Velocidades de reproducción del partido (x4/x8/x16/x32):** una vez el
+  motor es pausable/reanudable por tramos, el frontend podrá avanzar la
+  simulación en tramos más grandes que un cuarto (`advanceMatch` ya admite
+  cualquier punto de corte, no solo posesión/cuarto/timeout — un futuro
+  "tramo de N segundos" es la misma función, otro criterio de parada),
+  actualizando el marcador progresivamente sin reveal completo posesión a
+  posesión, para partidos que el usuario quiere resolver rápido sin perder
+  la posibilidad de intervenir. Pendiente: diseño de la UI de selector de
+  velocidad, y de qué tan grueso es cada tramo a cada velocidad.
+- **Cambios de táctica en mitad del partido, no solo entre cuartos o en
+  tiempo muerto:** el `GamePlan` de TAC-5 ya se puede actualizar entre
+  llamadas a `advanceMatch()` (el motor lee `homeGamePlan`/`awayGamePlan`
+  en cada posesión, ver `Tactics.effectiveTacticalProfile`), pero el
+  frontend de TAC-5 solo expone esa capacidad en los cortes de cuarto/
+  timeout ya existentes. Pendiente: diseño de qué ajustes tienen sentido
+  permitir sin parar el partido del todo (¿un cambio de cobertura
+  instantáneo penaliza por sorpresa/falta de preparación? ¿todo ajuste
+  requiere antes un tiempo muerto o parada de juego real, como en el
+  baloncesto de verdad?).
+- **Tiempos muertos para romper rachas del rival:** 7.9 (Racha/momento
+  anímico) y 7.6-20 (parcial de anotación colectivo) existen y se
+  actualizan durante la simulación, pero TAC-5 NO los conecta a ningún
+  efecto de tiempo muerto (7.12.24 ya lo prohíbe explícitamente como bonus
+  mágico — `MatchEngine.consumeTimeout`/`evaluateTimeoutStop` no tocan
+  `scoringRun` ni `dynamicState.momentum` en ningún punto). Pendiente de
+  diseño futuro: si un tiempo muerto debe tener algún efecto real y acotado
+  sobre la racha activa (ej. cortarla de raíz, o solo ralentizar su
+  decaimiento), y cómo evitar que se convierta en una herramienta mecánica
+  de "resetear la suerte del rival" sin justificación de juego real —
+  requiere su propia sesión de diseño y calibración, no una decisión de
+  esta entrega.
+- **Extender el motor pausable/GamePlan/ventanas de intervención reales a
+  Copa/Playoff/Ascenso:** TAC-5 solo los expone para el partido de LIGA del
+  usuario (decisión de encaje explícita, ver CHANGELOG) — los partidos de
+  bracket siguen resolviéndose de golpe y revelándose por cuartos como
+  antes de TAC-5. Ampliarlo exige que `Series.playNextGame`/
+  `Bracket.playNextGame` (o quien los llame desde `game.js`) puedan conocer
+  de antemano el emparejamiento home/away del siguiente partido antes de
+  jugarlo — hoy solo se sabe en el momento de jugarlo — sin tocar
+  `Bracket.js`/`Playoffs.js`/`Cup.js`/`Promotion.js` más de lo necesario.
+
 ### 7.12.25 IA táctica de equipos CPU
 
 Los equipos CPU utilizan **exactamente el mismo sistema táctico**, sin bonuses
@@ -3297,8 +3355,16 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   fuera (este motor resuelve el poste en una sola pasada, sin sub-pasos de
   catch/dribble sobre los que distinguirlos). Matchups individuales
   (7.12.17): se declaran por ID de jugador real, no por nombre de rol
-  ("la estrella rival"), y viven dentro de `TacticalProfile` en vez de un
-  `GamePlan` propio (que no existe todavía como entidad independiente).
+  ("la estrella rival"). **Actualización TAC-5:** `GamePlan` (7.12.23) ya
+  existe como entidad propia — `matchupOverrides` sigue viviendo también
+  en `TacticalProfile` (identidad persistente del equipo, "mi defensor X
+  marca siempre al jugador Y" fuera de un partido concreto), pero un
+  `GamePlan` de partido puede declarar un `matchupOverrides` DISTINTO solo
+  para ese partido (ver 7.12.23/7.12.24 más abajo), fusionado sobre el
+  perfil base sin mutarlo (`Tactics.effectiveTacticalProfile`). No hace
+  falta elegir entre los dos sitios: son la identidad base y el ajuste de
+  partido, respectivamente, mismo patrón que `pnrCoverage`/
+  `playTypeWeights`/`defensiveScheme`.
   Press (7.12.15): sin el desgaste extra de Energía que describe el
   propio 7.12.15 — exigiría tocar `Rotation.js`/`Recovery.js`, fuera de
   alcance de esta entrega. Transición defensiva (7.12.20): aproximada por
@@ -3310,6 +3376,34 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   `config.tactics.defense`/`press`/`transitionDefense`/`postUp` son puntos
   de partida con dirección verificada, no cifras cerradas — pendientes de
   calibración masiva junto al resto de 7.12.31.
+- **TAC-5, nuevos pendientes**: BLOB/SLOB (7.12.24) se infiere del ÚLTIMO
+  evento de la posesión anterior (canasta de campo anotada = BLOB,
+  cualquier otro final = SLOB) — aproximación deliberada, señalada
+  explícitamente: un último tiro libre anotado también sería BLOB en la
+  realidad y este motor no distingue ese matiz dentro de una secuencia de
+  tiros libres (ver `MatchEngine.simulateOnePossessionStep`). El catálogo
+  de jugadas situacionales (ATO/BLOB/SLOB/Late Clock/Last Possession) tiene
+  solo 1-2 `PlayDefinition` por situación, no un sub-playbook completo —
+  ampliar el catálogo de datos después es barato. Los umbrales de
+  `resolveSituationType` (Last Possession: margen de 3 puntos + últimos 5s,
+  reutilizando `pressure.buzzerBeaterSecondsThreshold`; Late Clock:
+  reutiliza literalmente `lateClock.noFullPlayThresholdSeconds`) y la
+  precedencia ATO > Last Possession > Late Clock > BLOB/SLOB cuando varias
+  condiciones se cumplen a la vez son decisiones de encaje razonables, no
+  cifras/criterio cerrados. `Auto Timeouts`/falta táctica intencionada
+  llegan desactivados por defecto en TODO equipo, incluidos los
+  gestionados por la CPU (7.12.34, regresión exacta con el comportamiento
+  de antes de TAC-5) — que la CPU deba tenerlos activados por defecto para
+  jugar de forma más realista es una decisión de calibración de IA
+  (7.12.25/TAC-7) que esta entrega deja señalada, no resuelta. El motor
+  pausable/GamePlan/ventanas de intervención reales solo se exponen para
+  el partido de LIGA del usuario — Copa/Playoff/Ascenso siguen
+  resolviéndose de golpe con reveal cosmético como antes de TAC-5 (ver
+  7.12.24-bis para el porqué exacto y qué haría falta para extenderlo).
+  Velocidades x4/x8/x16/x32 y cambios de táctica mid-posesión: el motor ya
+  lo permite estructuralmente (`advanceMatch` admite cualquier punto de
+  corte, `GamePlan` se puede mutar entre llamadas), pero el frontend de
+  esta entrega no lo expone — ver 7.12.24-bis.
 
 ### 7.12.35 Fuentes y criterio de diseño
 

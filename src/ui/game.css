@@ -542,3 +542,45 @@
 }
 .tactics-role-fit { color: var(--brick-dark); font-weight: 700; font-size: 12px; margin-top: 2px; }
 .tactics-best-roles { font-size: 11px; text-align: left; min-width: 180px; }
+
+/* --- Situaciones (DESIGN.md 7.12.24/7.12.32, TAC-5) --- */
+.tactics-situational-play {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.tactics-situational-play:last-of-type { border-bottom: none; }
+.tactics-situational-play-select {
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--white-line);
+  max-width: 60%;
+}
+
+/* --- Ventana de intervención en partido (DESIGN.md 7.12.24, TAC-5) --- */
+.intervention-panel { border: 1px solid var(--brick); }
+.intervention-panel h3 { font-family: var(--font-score); text-transform: uppercase; letter-spacing: 0.02em; }
+.intervention-panel__controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+.intervention-panel__controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.intervention-panel__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

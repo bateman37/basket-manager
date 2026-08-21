@@ -59,6 +59,35 @@
       // Umbral de "bonus" (tiros libres por cualquier falta defensiva fuera
       // de tiro) — regla FIBA/ACB: 5ª falta de equipo en el cuarto/prórroga.
       teamFoulBonusThreshold: 5,
+
+      // --- DESIGN.md 7.12.24 (TAC-5): tiempos muertos, como CONFIG y no
+      // como números hardcodeados en la UI. Referencia FIBA/ACB citada
+      // literalmente por 7.12.24: 2 en la primera mitad, 3 en la segunda
+      // (con restricción en los últimos 2 minutos del 4º cuarto), 1 por
+      // prórroga, duración 1 minuto. Si otra competición cambia las
+      // reglas, lo hace por CONFIG (7.2), nunca tocando MatchEngine.js.
+      timeouts: {
+        perHalf: { first: 2, second: 3 },
+        perOvertime: 1,
+        durationSeconds: 60,
+        // 7.12.24: "restricción de los últimos 2 minutos del 4º cuarto" —
+        // DESIGN.md no cierra la cifra exacta ("CONFIG/UX a calibrar
+        // después"). Interpretación de partida (pendiente de calibración/
+        // decisión, 7.12.34): dentro de esa ventana, un equipo no puede
+        // consumir más de `maxInLastMinutesOfFourthQuarter` tiempos muertos
+        // aunque le queden más de su cupo de segunda mitad.
+        lastMinutesThresholdSeconds: 120,
+        maxInLastMinutesOfFourthQuarter: 2,
+        // 7.12.24: "Auto Timeouts... pedir tiempo muerto si el rival mete
+        // un parcial de 8-0" (ejemplo literal del prompt de esta sesión) —
+        // coincide a propósito con `scoringRun.threshold` (más abajo, mismo
+        // valor) porque es exactamente ese parcial ya trackeado por el
+        // motor (Tactics/MatchEngine no reimplementan un segundo contador
+        // de racha); se deja como cifra propia en vez de referenciar
+        // directamente `scoringRun.threshold` para poder calibrarlos por
+        // separado en el futuro sin acoplar ambos sistemas.
+        autoTriggerRunPoints: 8,
+      },
     },
 
     // --- 7.3-bis: interceptos base por tipo de tiro ---
@@ -985,6 +1014,21 @@
       lineupRatings: {
         switchabilityMix: { perimeterDefense: 0.35, interiorDefense: 0.35, agility: 0.3 },
         rimProtectionMix: { interiorDefense: 0.4, blocking: 0.4, jumping: 0.2 },
+      },
+
+      // --- DESIGN.md 7.12.24 (TAC-5): situaciones especiales — solo el
+      // umbral que de verdad necesita un número de CONFIG propio
+      // (Tactics.resolveSituationType). Late Clock reutiliza LITERALMENTE
+      // `lateClock.noFullPlayThresholdSeconds` (7.6.19, ya existente, ver
+      // arriba) y Last Possession reutiliza `pressure.
+      // buzzerBeaterSecondsThreshold` (7.6.17) — ninguno de los dos
+      // duplica una cifra ya calibrada para otro propósito, solo
+      // `lastPossessionMarginPoints` (margen de partido que hace plausible
+      // que ESTA sea la posesión decisiva) es nuevo. Cifra propia,
+      // pendiente de calibración (7.12.34): un partido a 1-3 posesiones de
+      // diferencia con reloj de últimos segundos del período final.
+      situational: {
+        lastPossessionMarginPoints: 3,
       },
     },
   };
