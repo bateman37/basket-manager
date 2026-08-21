@@ -1545,6 +1545,16 @@
   const LINEUP_RATING_LABELS = {
     creation: 'Creación', spacing: 'Spacing', outsideShooting: 'Tiro exterior',
     insideFinishing: 'Finalización interior', offensiveRebound: 'Rebote ofensivo', defensiveRebound: 'Rebote defensivo',
+    // TAC-4 (7.12.28): completadas esta entrega — ver Tactics.computeLineupRatings.
+    switchability: 'Switchability', rimProtection: 'Rim Protection', transitionDefense: 'Transition Defense',
+  };
+  // TAC-4 (7.12.13/7.12.14/7.12.15/7.12.19): etiquetas de la sub-pestaña Defensa.
+  const BASE_SCHEME_LABELS = {
+    'man-to-man': 'Hombre a hombre', '2-3': 'Zona 2-3', '3-2': 'Zona 3-2', '1-3-1': 'Zona 1-3-1',
+  };
+  const PRESS_TYPE_LABELS = { halfCourt: 'A 3/4 de pista', fullCourt: 'A toda pista' };
+  const POST_DOUBLE_TEAM_RULE_LABELS = {
+    never: 'Nunca', starOnly: 'Solo si supera claramente a su defensor', always: 'Siempre que reciba en el poste',
   };
 
   // Quinteto titular actual (7.12.32, vista "Resumen"): mismo criterio que
@@ -1732,11 +1742,91 @@
       </div>`;
   }
 
+  // TAC-4 (7.12.17): TODOS los jugadores reales de ambas divisiones,
+  // agrupados por equipo — solo para el selector de "jugador rival a
+  // marcar" de un matchup declarado (esta pantalla no tiene un rival fijo
+  // de partido, ver Tactics.TacticalProfile.matchupOverrides). Reutiliza
+  // getRealTeamsByDivision (instancias reales de Team/Player ya
+  // reconstruidas, nunca datos planos en la UI — CLAUDE.md, "Interfaz de
+  // juego").
+  function getAllRealTeamsForMatchupTarget() {
+    return ['1ª', '2ª'].flatMap((div) => getRealTeamsByDivision(div));
+  }
+
+  // TAC-4 (7.12.32, sub-pestaña Defensa): capa de presentación pura sobre
+  // `team.tacticalProfile.defensiveScheme`/`matchupOverrides` — igual que
+  // el resto de esta pantalla, no decide ninguna regla táctica propia.
+  function renderTacticsDefenseTab(team) {
+    const profile = team.tacticalProfile;
+    const scheme = profile.defensiveScheme;
+
+    const baseSchemeOptionsHtml = BM.BASE_SCHEMES.map((s) => `
+      <option value="${s}" ${scheme.baseScheme === s ? 'selected' : ''}>${BASE_SCHEME_LABELS[s] || s}</option>`).join('');
+    const pressTypeOptionsHtml = BM.PRESS_TYPES.map((t) => `
+      <option value="${t}" ${scheme.press.type === t ? 'selected' : ''}>${PRESS_TYPE_LABELS[t] || t}</option>`).join('');
+    const postRuleOptionsHtml = BM.POST_DOUBLE_TEAM_RULES.map((r) => `
+      <option value="${r}" ${scheme.postDoubleTeamRule === r ? 'selected' : ''}>${POST_DOUBLE_TEAM_RULE_LABELS[r] || r}</option>`).join('');
+
+    const convocated = getConvocatedPlayers(team);
+    const defenderOptionsHtml = convocated.map((p) => `<option value="${p.id}">${p.fullName}</option>`).join('');
+    const rivalTeams = getAllRealTeamsForMatchupTarget();
+    const rivalOptionsHtml = rivalTeams
+      .filter((rivalTeam) => rivalTeam.id !== team.id)
+      .map((rivalTeam) => `<optgroup label="${rivalTeam.name}">${
+        rivalTeam.roster.map((p) => `<option value="${p.id}">${p.fullName}</option>`).join('')
+      }</optgroup>`).join('');
+
+    const playerNameById = (id) => {
+      const own = team.roster.find((p) => p.id === id);
+      if (own) return own.fullName;
+      const rival = rivalTeams.flatMap((t) => t.roster).find((p) => p.id === id);
+      return rival ? rival.fullName : id;
+    };
+
+    const overridesHtml = Object.keys(profile.matchupOverrides).length === 0
+      ? '<p class="gm-muted">Sin matchups declarados.</p>'
+      : `<ul class="tactics-matchup-list">${
+        Object.entries(profile.matchupOverrides).map(([defenderId, targetId]) => `
+          <li>${playerNameById(defenderId)} marca a ${playerNameById(targetId)}
+            <button class="tactics-matchup-remove-btn" data-defender-id="${defenderId}" type="button">Quitar</button>
+          </li>`).join('')
+      }</ul>`;
+
+    return `
+      <div class="gm-card">
+        <h3>Esquema defensivo base</h3>
+        <select id="tactics-base-scheme-select">${baseSchemeOptionsHtml}</select>
+        <p class="gm-muted">Hombre a hombre es la referencia principal. Una zona nunca da un +X%/-X% de tiro directo: cambia la vulnerabilidad real según el spacing del rival (se estira y sufre contra un quinteto con tiradores de verdad, se contrae sin coste contra uno sin amenaza exterior real) y, en menor medida, según el play-type que intente el rival (Post Up castiga más una 2-3, Pick &amp; Roll/Isolation explotan más una 1-3-1). Match-up Zone y Box-and-One quedan fuera de esta entrega.</p>
+      </div>
+      <div class="gm-card">
+        <h3>Press</h3>
+        <label class="tactics-press-toggle"><input type="checkbox" id="tactics-press-active-checkbox" ${scheme.press.active ? 'checked' : ''}> Presionar el tramo inicial de la posesión rival</label>
+        <select id="tactics-press-type-select">${pressTypeOptionsHtml}</select>
+        <p class="gm-muted">Sube la probabilidad de pérdida temprana del rival y el tiempo que tarda en cruzar medio campo — castiga más a manejadores de balón débiles. El desgaste físico extra de presionar no está modelado todavía.</p>
+      </div>
+      <div class="gm-card">
+        <h3>Doble equipo de poste</h3>
+        <select id="tactics-post-double-team-select">${postRuleOptionsHtml}</select>
+        <p class="gm-muted">Quién dobla lo decide el rol defensivo de cada jugador (pestaña Roles) — el ayudante más cercano (Low Man/Nail Helper/Roamer). El propio anotador posteado decide si encuentra el hueco según su Visión de Juego y Pase.</p>
+      </div>
+      <div class="gm-card">
+        <h3>Matchups individuales</h3>
+        <p class="gm-muted">Asigna a un defensor propio la marca fija de un jugador rival concreto — tiene prioridad sobre la elección automática del motor para ese jugador, salvo que una cobertura o rotación (Switch, doble equipo...) obligue temporalmente a otra. Se declara por jugador real: solo tiene efecto los partidos en los que ese rival concreto aparezca en pista.</p>
+        ${overridesHtml}
+        <div class="tactics-matchup-form">
+          <select id="tactics-matchup-defender-select"><option value="">Mi defensor…</option>${defenderOptionsHtml}</select>
+          <select id="tactics-matchup-target-select"><option value="">Jugador rival…</option>${rivalOptionsHtml}</select>
+          <button id="tactics-matchup-add-btn" type="button">Añadir matchup</button>
+        </div>
+      </div>`;
+  }
+
   const TACTICS_TABS = [
     { id: 'summary', label: 'Resumen' },
     { id: 'attack', label: 'Ataque' },
     { id: 'roles', label: 'Roles' },
     { id: 'playbook', label: 'Playbook' },
+    { id: 'defense', label: 'Defensa' },
   ];
 
   function renderTacticsScreen() {
@@ -1750,6 +1840,7 @@
     else if (activeTab === 'attack') body = renderTacticsAttackTab(team);
     else if (activeTab === 'roles') body = renderTacticsRolesTab(team);
     else if (activeTab === 'playbook') body = renderTacticsPlaybookTab();
+    else if (activeTab === 'defense') body = renderTacticsDefenseTab(team);
 
     container.innerHTML = `
       <h2>Tácticas</h2>
@@ -1811,6 +1902,57 @@
           if (el.value) entry[field] = el.value; else delete entry[field];
           if (Object.keys(entry).length === 0) delete assignments[playerId];
           else assignments[playerId] = entry;
+          renderTacticsScreen();
+        });
+      });
+    }
+
+    // TAC-4 (7.12.32, sub-pestaña Defensa): mutación directa de
+    // `team.tacticalProfile.defensiveScheme`/`matchupOverrides` — mismo
+    // patrón que la pestaña Ataque (sin re-validación al mutar, solo el
+    // constructor de TacticalProfile valida el catálogo).
+    if (activeTab === 'defense') {
+      const baseSchemeSelect = byId('tactics-base-scheme-select');
+      if (baseSchemeSelect) {
+        baseSchemeSelect.addEventListener('change', () => {
+          team.tacticalProfile.defensiveScheme.baseScheme = baseSchemeSelect.value;
+          renderTacticsScreen();
+        });
+      }
+      const pressActiveCheckbox = byId('tactics-press-active-checkbox');
+      if (pressActiveCheckbox) {
+        pressActiveCheckbox.addEventListener('change', () => {
+          team.tacticalProfile.defensiveScheme.press.active = pressActiveCheckbox.checked;
+          renderTacticsScreen();
+        });
+      }
+      const pressTypeSelect = byId('tactics-press-type-select');
+      if (pressTypeSelect) {
+        pressTypeSelect.addEventListener('change', () => {
+          team.tacticalProfile.defensiveScheme.press.type = pressTypeSelect.value;
+          renderTacticsScreen();
+        });
+      }
+      const postDoubleTeamSelect = byId('tactics-post-double-team-select');
+      if (postDoubleTeamSelect) {
+        postDoubleTeamSelect.addEventListener('change', () => {
+          team.tacticalProfile.defensiveScheme.postDoubleTeamRule = postDoubleTeamSelect.value;
+          renderTacticsScreen();
+        });
+      }
+      const addMatchupBtn = byId('tactics-matchup-add-btn');
+      if (addMatchupBtn) {
+        addMatchupBtn.addEventListener('click', () => {
+          const defenderId = byId('tactics-matchup-defender-select').value;
+          const targetId = byId('tactics-matchup-target-select').value;
+          if (!defenderId || !targetId) return;
+          team.tacticalProfile.matchupOverrides[defenderId] = targetId;
+          renderTacticsScreen();
+        });
+      }
+      container.querySelectorAll('.tactics-matchup-remove-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          delete team.tacticalProfile.matchupOverrides[btn.dataset.defenderId];
           renderTacticsScreen();
         });
       });

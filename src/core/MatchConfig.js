@@ -714,12 +714,36 @@
         baseScore: -0.05,
         sensitivity: 0.1,
         noiseSigma: 0.08,
-        // Doble equipo simple (7.12.19 completo es TAC-4): solo si el
-        // postScorer supera claramente a su defensor (margen de rating,
-        // escala 1-20) Y el sorteo lo activa — forma más simple permitida
-        // explícitamente por el prompt de esta sesión.
+        // Umbral/probabilidad de la regla 'starOnly' (7.12.19) — MISMOS
+        // valores que la versión simple de TAC-3, sin cambiar de cifra,
+        // para no romper el rango de regresión con el perfil por defecto
+        // (defaultDoubleTeamRule más abajo).
         doubleTeamRatingMargin: 3,
         doubleTeamProbability: 0.5,
+        // TAC-4 (7.12.19 completo): catálogo de reglas de activación —
+        // 'never'/'starOnly'/'always' son las únicas con comportamiento
+        // real esta entrega. 'onCatch'/'onFirstDribble'/zona objetivo
+        // (matices de timing de 7.12.19) quedan fuera: este motor resuelve
+        // el poste en una sola pasada, sin sub-pasos de catch/dribble
+        // sobre los que distinguirlas — pendiente de calibración/decisión
+        // (7.12.34).
+        doubleTeamRules: ['never', 'starOnly', 'always'],
+        defaultDoubleTeamRule: 'starOnly',
+        // Probabilidad de que el postScorer ENCUENTRE el hueco que deja el
+        // doble equipo (kick-out exitoso), según su propia lectura
+        // (VisiónJuego+Pase) — TAC-3 acreditaba el kick-out el 100% de las
+        // veces; esta entrega lo condiciona a la calidad del pasador
+        // (7.12.19: "la Visión/Pase/Decisión del jugador posteado... deciden
+        // si puede castigar esa superioridad"). Pendiente de calibración
+        // (7.12.31).
+        readMix: { gameVision: 0.5, passing: 0.5 },
+        readBaseProbability: 0.55,
+        readSensitivity: 0.35,
+        // Penalización de calidad de tiro (mismo canal que
+        // `shotAdjustment`, nunca un resolver de pérdida nuevo) cuando el
+        // doble equipo llega y el postScorer NO encuentra el hueco — tiro
+        // forzado con dos defensores encima.
+        doubleTeamFailedReadPenalty: 0.12,
       },
 
       // TAC-3 (7.12.8): presupuesto de referencia para Tactics.selectPlayType
@@ -862,6 +886,105 @@
           roamer: { anticipation: 0.35, gameVision: 0.25, stealing: 0.2, agility: 0.2 },
           defensiveRebounder: { defensiveRebound: 0.45, jumping: 0.25, strength: 0.15, positioning: 0.15 },
         },
+      },
+
+      // --- DESIGN.md 7.12 (Sistema táctico) — TAC-4: defensa avanzada
+      // (7.12.33). Mismo criterio que el resto del módulo: valores de
+      // partida "pendientes de calibración (7.12.31/7.12.34)", 7.12 fija
+      // la estructura, no la cifra final.
+
+      // Esquema defensivo base (7.12.13/7.12.14) — catálogo MÍNIMO: solo
+      // 3 zonas reales (2-3/3-2/1-3-1) además de man-to-man. Match-up Zone
+      // (híbrido zona/hombre) y Box-and-One (exige un jugador objetivo
+      // marcado) quedan fuera de esta entrega, señalados explícitamente
+      // como pendientes — "catálogo mínimo razonable" permitido
+      // explícitamente por el prompt de esta sesión cuando 7.12 no cierra
+      // el catálogo exacto.
+      defense: {
+        baseSchemes: ['man-to-man', '2-3', '3-2', '1-3-1'],
+        defaultBaseScheme: 'man-to-man',
+        // Efecto de zona sobre AdvantageState (7.12.14: "debe cambiar qué
+        // defensor es responsable... dónde aparece una sobrecarga",
+        // NUNCA un opponent3P+X/opponentInside-Y directo). Se modela como
+        // el mismo tipo de término acotado que ya usa
+        // computeSpacingAdvantageTerm para el spacing individual — la
+        // pieza dominante es `spacingSensitivity` (una zona debe ser
+        // MÁS vulnerable a un quinteto con effectiveSpacing real alto que
+        // a uno sin tiradores reales, invariante nuevo de esta entrega),
+        // `baseScoreByScheme` es solo el punto de partida estructural de
+        // cada zona antes de mirar a los jugadores reales (mismo patrón
+        // que `advantage.coverageBaseScore` para coberturas de P&R).
+        zone: {
+          baseScoreByScheme: {
+            '2-3': -0.05, // protege pintura por defecto (7.12.14)
+            '3-2': -0.02, // más presencia perimetral, menos protección interior
+            '1-3-1': 0.03, // presiona líneas de pase, pero las rotaciones largas dejan huecos de media distancia
+          },
+          spacingSensitivity: 0.35,
+          spacingNeutral: 0.55,
+          // "1-2 contramedidas reales" mínimas pedidas explícitamente
+          // (punto 2 del prompt de esta sesión), conectadas al play-type
+          // YA elegido por Tactics.selectPlayType (7.12.8), sin inventar
+          // un sub-sistema de jugadas anti-zona completo: Post Up ataca
+          // el alto poste que deja libre una 2-3 (7.12.14, "riesgos en
+          // high post"); Pick & Roll/Isolation explotan el hueco de una
+          // 1-3-1 tras el trap (7.12.14, "exige rotaciones largas") vía
+          // skip-pass/kick-out. Overload y otras contramedidas de
+          // playbook completo quedan fuera, señaladas explícitamente.
+          playTypeCounters: {
+            '2-3': { postUp: 0.06 },
+            '1-3-1': { pickAndRoll: 0.05, isolation: 0.03 },
+          },
+          maxEffect: 0.14,
+        },
+      },
+
+      // Press (7.12.15) — solo el tramo INICIAL de la posesión, antes de
+      // decidir play-type: modula la probabilidad de rollTurnover() YA
+      // EXISTENTE (nunca un resolver nuevo) y el reloj consumido en
+      // cruzar medio campo, según la calidad de manejo/decisión del
+      // equipo atacante (un press castiga más a manejadores débiles).
+      // Desgaste extra de Energía por presionar (7.12.15) queda fuera —
+      // exigiría tocar Rotation.js/Recovery.js, vetado explícitamente
+      // para esta entrega.
+      press: {
+        types: ['halfCourt', 'fullCourt'],
+        turnoverBoost: { halfCourt: 0.25, fullCourt: 0.6 },
+        clockCostSeconds: { halfCourt: 0.5, fullCourt: 1.5 },
+        maxMultiplier: 2.2,
+        neutralHandling: 10, // escala 1-20, aproxima un manejador de nivel medio
+        handlingMix: { ballHandling: 0.4, gameVision: 0.3, pressureDecisionMaking: 0.3 },
+      },
+
+      // Transición defensiva (7.12.20) — modificador DENTRO de la ventana
+      // de contraataque YA EXISTENTE (7.6 acción 14, nunca la ventana en
+      // sí): un repliegue malo (media de Velocidad/ÉticaDeTrabajo/
+      // Posicionamiento del quinteto que acaba de perder el balón) amplía
+      // la ventaja de contraataque más allá de lo que ya da la ventana;
+      // uno excelente puede neutralizarla parcialmente. No modela
+      // "cuántos jugadores cargaron el rebote" de forma explícita (7.12.20
+      // lo describe así, pero este motor no distingue por jugador quién
+      // cargó el rebote vs quién se replegó) — aproximación por atletismo
+      // agregado del quinteto, señalada como simplificación.
+      transitionDefense: {
+        retreatMix: { topSpeed: 0.35, workRate: 0.35, positioning: 0.3 },
+        neutral: 12, // escala 1-20, aproxima un quinteto de nivel medio
+        sensitivity: 0.02,
+        maxEffect: 0.12,
+      },
+
+      // Valoraciones derivadas de quinteto (7.12.28) que TAC-2 dejó fuera
+      // explícitamente por falta de piezas de defensa avanzada
+      // (Switchability/Rim Protection) — ya hay una base de datos sólida
+      // tras esta entrega (DefensiveScheme, matchups, transición
+      // defensiva) para completarlas; Transition Defense reutiliza
+      // LITERALMENTE `transitionDefense.retreatMix` de arriba, no una
+      // aproximación nueva. POA Defense/Transition Offense/Tactical
+      // Execution siguen fuera (ninguna pedida por el prompt de esta
+      // entrega), señaladas explícitamente en el CHANGELOG.
+      lineupRatings: {
+        switchabilityMix: { perimeterDefense: 0.35, interiorDefense: 0.35, agility: 0.3 },
+        rimProtectionMix: { interiorDefense: 0.4, blocking: 0.4, jumping: 0.2 },
       },
     },
   };

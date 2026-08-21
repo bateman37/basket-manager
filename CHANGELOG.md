@@ -1996,3 +1996,213 @@ de TAC-2).
   (Flex, Princeton Elbow/entry, Post Split, High-Low, Pistol); motor real
   para Handoff/DHO, Off Screen y Motion/Flow (hoy solo catálogo de datos);
   prioridad/peso editable por jugada en la pantalla de Playbook.
+
+## 2026-08-21 — TAC-4: defensa avanzada (DESIGN.md 7.12.33)
+
+Cuarta entrega de las 7 planificadas del sistema táctico (7.12). Introduce
+por primera vez un `DefensiveScheme` real (esquema base + press), matchups
+individuales declarados, doble equipo de poste completo (sustituye la
+versión simple de TAC-3) y transición defensiva — todo enganchado dentro
+de las piezas ya existentes de TAC-1/TAC-2/TAC-3 (`AdvantageState`,
+`resolveTacticalAssist`, la ventana de contraataque de 7.6), sin duplicar
+ningún resolver de 7.6.
+
+- **`TacticalProfile.defensiveScheme`** (7.12.13/7.12.14/7.12.15/7.12.19):
+  `baseScheme` (`man-to-man`/`2-3`/`3-2`/`1-3-1`), `press: { active, type
+  }` (`halfCourt`/`fullCourt`) y `postDoubleTeamRule` (`never`/`starOnly`/
+  `always`). `man-to-man` + press inactivo + `starOnly` (con el MISMO
+  umbral/probabilidad que TAC-3) reproducen exactamente el comportamiento
+  de antes de esta entrega (7.12.34, compatibilidad) — verificado con el
+  script de esta sesión.
+- **Defensa de zona con efecto real** (7.12.14):
+  `Tactics.computeZoneAdvantageTerm()` — término ACOTADO y aditivo (mismo
+  patrón que `computeSpacingAdvantageTerm`, evita doble conteo, 7.12.4),
+  NUNCA un `opponent3P+X`/`opponentInside-Y` directo. La pieza dominante
+  es la sensibilidad al `effectiveSpacing` REAL del ataque: una zona es
+  más vulnerable a un quinteto con tiradores de verdad (la estira) que a
+  uno sin amenaza exterior (se contrae sin coste) — invariante nuevo,
+  verificado. Conectado en los 3 play-types con motor real (Pick & Roll/
+  Isolation/Post Up). Dos contramedidas mínimas por play-type (pedidas
+  explícitamente como "1-2 contramedidas reales"): Post Up castiga más
+  una 2-3 (alto poste libre) que Isolation; Pick & Roll/Isolation
+  explotan más una 1-3-1 (rotaciones largas tras el trap) que Post Up.
+- **Press con efecto real** (7.12.15): `Tactics.computePressEffect()` —
+  MODULA la probabilidad del `rollTurnover()` YA EXISTENTE de
+  `MatchEngine.js` (nunca un resolver nuevo) y el reloj consumido en
+  cruzar medio campo, según la calidad de manejo/decisión
+  (ballHandling+gameVision+pressureDecisionMaking) del equipo atacante —
+  castiga más a un equipo con mal manejo que a uno con buen manejo.
+  Neutro `{1, 0}` sin press activo. El desgaste extra de Energía por
+  presionar (7.12.15) queda fuera explícitamente — exigiría tocar
+  `Rotation.js`/`Recovery.js`, vetado para esta entrega.
+- **Doble equipo de poste completo** (7.12.19, sustituye la versión
+  simple de TAC-3): `Tactics.pickDoubleTeamHelper()` elige AL AYUDANTE
+  que dobla por su ROL DEFENSIVO (`lowMan`/`nailHelper`/`roamer` de
+  `DEFENSIVE_ROLES`, TAC-2) — primera vez que `roleAssignments` se
+  consume REALMENTE en el motor (antes solo alimentaba `roleFit`/UI); ese
+  mismo ayudante, por construcción, es quien contesta el kick-out si el
+  postScorer encuentra el hueco (no un segundo sorteo genérico
+  independiente). `Tactics.resolvePostReadSuccess()` condiciona el
+  kick-out a la calidad de lectura/pase del propio postScorer
+  (VisiónJuego+Pase) — TAC-3 lo acreditaba el 100% de las veces; si falla
+  la lectura, tiro forzado con penalización de calidad (canal
+  `shotAdjustment` ya existente, ningún resolver de pérdida nuevo).
+  `Tactics.resolvePostDoubleTeamDecision()` con 3 reglas reales
+  (`never`/`starOnly`/`always`); `onCatch`/`onFirstDribble` (matices de
+  timing de 7.12.19) quedan fuera, señalado explícitamente.
+- **Matchups individuales declarados** (7.12.17):
+  `TacticalProfile.matchupOverrides` (`defenderId -> targetPlayerId`) —
+  prioridad sobre la selección ponderada genérica SOLO para ese jugador
+  concreto, aplicado en `MatchEngine.js` en los dos puntos donde antes se
+  usaba un `pickWeighted` genérico (defensor inicial para pérdida/falta,
+  defensor final del tiro) vía `Tactics.resolveMatchupOverride()` — CEDE
+  ante cualquier reasignación por cobertura/rotación que Tactics.js ya
+  haya decidido (Switch, roller, doble equipo...), tal como reconoce
+  explícitamente el propio 7.12.17 ("salvo que una rotación/cambio
+  defensivo obligue temporalmente a otro matchup").
+- **Transición defensiva** (7.12.20): `Tactics.computeTransitionDefenseAdjustment()`
+  — modificador DENTRO de la ventana de contraataque YA EXISTENTE (7.6
+  acción 14, nunca la ventana en sí), según el atletismo agregado
+  (Velocidad+ÉticaDeTrabajo+Posicionamiento) del quinteto que acaba de
+  perder el balón: un repliegue malo amplía la ventaja de contraataque
+  más allá de lo que ya da la ventana; uno excelente puede neutralizarla
+  parcialmente. Aproximación por atletismo agregado del quinteto — este
+  motor no distingue por jugador quién cargó el rebote ofensivo vs quién
+  se replegó, señalado como simplificación explícita.
+- **Valoraciones derivadas de quinteto completadas** (7.12.28): TAC-2 dejó
+  fuera Switchability/Rim Protection/Transition Defense por falta de
+  piezas de defensa avanzada — ya hay una base de datos sólida
+  (`DefensiveScheme`, matchups, transición defensiva) para completarlas
+  con sentido; Transition Defense reutiliza LITERALMENTE la misma mezcla
+  que `computeTransitionDefenseAdjustment`, no una aproximación nueva.
+  Transition Offense/POA Defense/Tactical Execution siguen sin
+  implementar (ninguna pedida por el prompt de esta entrega).
+- **`src/ui/game.js`**: nueva sub-pestaña **Defensa** en
+  `renderTacticsScreen()` (junto a Resumen/Ataque/Roles/Playbook ya
+  existentes) — selector de esquema base, toggle+tipo de press, regla de
+  doble equipo, y un selector simple de matchups (mi defensor + jugador
+  rival real de CUALQUIER equipo de ambas divisiones, reutilizando
+  `getRealTeamsByDivision` — instancias reales de Team/Player, nunca
+  datos planos en la UI, CLAUDE.md). Sin prioridad/peso editable por
+  jugada nuevo más allá de lo ya existente; mismo estilo visual que las
+  sub-pestañas anteriores, sin CSS nuevo.
+- **`DESIGN.md`**: añadido un nuevo bloque de pendientes de TAC-4 en
+  7.12.34 (catálogo de zona/press/doble equipo parcial, matchups por ID
+  no por rol, sin desgaste de Energía del press, transición defensiva
+  aproximada, valoraciones de quinteto pendientes que siguen sin
+  implementar).
+
+### Invariantes demostrados (script Node dedicado, scratchpad de la sesión)
+
+- **Zona vulnerable al spacing real**: con el MISMO quinteto ofensivo
+  (5 tiradores reales), el término de zona 2-3 es `0.030` frente a
+  `-0.140` con un quinteto sin amenaza exterior — más vulnerable con
+  tiradores de verdad, como exige el invariante. Sin esquema o
+  man-to-man, el término es exactamente `0` (regresión). Contramedidas:
+  Post Up vs 2-3 (`0.090`) > Isolation vs 2-3 (`0.030`); Pick & Roll vs
+  1-3-1 (`0.140`) > Post Up vs 1-3-1 (`0.110`).
+- **Doble equipo dirigido por la lectura del postScorer**: un postScorer
+  con VisiónJuego+Pase altos encuentra el hueco en el 83.6% de 500
+  intentos, frente al 31.2% de uno con lectura pobre — no una
+  probabilidad fija ciega. Reglas `never`/`always` se comportan como su
+  nombre indica en cualquier escenario de rating. Con un ayudante con rol
+  Low Man declarado, ese jugador dobla en 60/60 casos de prueba.
+- **Transición defensiva**: mismo tipo de comparación de quintetos —
+  ajuste de `+0.120` (mal repliegue, amplía la ventaja del rival) frente
+  a `-0.120` (buen repliegue, la neutraliza parcialmente).
+- **Press**: neutro `{1, 0}` sin press activo (regresión). Con press a
+  toda pista, un equipo con mal manejo sufre `x2.02` de multiplicador de
+  pérdida frente a `x1.12` de uno con buen manejo — castiga más a los
+  manejadores débiles, como describe 7.12.15.
+- **Matchup individual**: el defensor declarado se fuerza exactamente
+  cuando el objetivo declarado tiene el balón; sin ese objetivo en pista,
+  o sin ningún matchup declarado, el motor sigue con su criterio
+  ponderado genérico de siempre (no-op total).
+- **Regresión de TAC-1/TAC-2/TAC-3**: invariante #1 de Drop/Switch sigue
+  intacto con el perfil por defecto (`drop=0.438 switch=-0.078`); 16
+  partidos completos con perfil por defecto (man-to-man, sin press) dan
+  media de puntos `90.3`/equipo y pérdidas `21.7`/equipo — mismo rango
+  realista que TAC-3 (87-89 pts/equipo).
+- Playwright: sesión completa (equipo real → convocatoria en Alineación →
+  pantalla de Tácticas → Resumen/Ataque/Roles/Playbook intactas → nueva
+  sub-pestaña Defensa → cambiar esquema a zona 2-3, activar press a toda
+  pista, regla de doble equipo "siempre", declarar y confirmar un
+  matchup real) sin errores nuevos de consola/página.
+- Confirmado con `git diff --stat` que solo `MatchConfig.js`,
+  `MatchEngine.js`, `Tactics.js`, `game.js` y `DESIGN.md` (y este
+  `CHANGELOG.md`) cambiaron — `Rotation.js`, `Recovery.js`, `Calendar.js`,
+  `League.js`, `Bracket.js`, `Cup.js`, `Playoffs.js`, `Promotion.js`,
+  `CpuLineup.js`, `SeasonGoals.js`, `Player.js` y `Team.js` no se
+  tocaron (ningún atributo 1-20 nuevo).
+
+### Decisiones/interpretaciones señaladas explícitamente (no cerradas como diseño definitivo)
+
+- **Catálogo mínimo de esquema defensivo base**: solo `man-to-man`/`2-3`/
+  `3-2`/`1-3-1` — Match-up Zone (híbrido zona/hombre) y Box-and-One
+  (exige un jugador objetivo marcado, mecánica propia no modelada) quedan
+  fuera, permitido explícitamente por el prompt ("catálogo mínimo
+  razonable" cuando 7.12 no cierra el catálogo exacto).
+- **Todos los valores numéricos nuevos** de `config.tactics.defense`
+  (zona)/`press`/`transitionDefense`/`postUp` (reglas de doble equipo,
+  lectura) son puntos de partida con dirección verificada, no cifras
+  cerradas — pendientes de calibración (7.12.31/7.12.34).
+- **Solo 2 contramedidas anti-zona mínimas** (Post Up vs 2-3, Pick &
+  Roll/Isolation vs 1-3-1) — sin construir un sub-sistema de jugadas
+  anti-zona completo (Overload, Skip pass como jugada propia), permitido
+  explícitamente por el prompt ("1-2 contramedidas reales" como mínimo).
+- **Doble equipo: solo 3 reglas de activación con comportamiento real**
+  (`never`/`starOnly`/`always`) — `onCatch`/`onFirstDribble` (matices de
+  timing de 7.12.19) quedan fuera porque este motor resuelve el poste en
+  una sola pasada, sin sub-pasos de catch/dribble sobre los que
+  distinguirlos.
+- **Matchups declarados por ID de jugador real, no por nombre/rol**
+  ("la estrella rival"): la pantalla de Tácticas no tiene un rival fijo
+  de partido (se edita fuera de un partido concreto), así que el
+  override solo tiene efecto los partidos en los que ese jugador
+  concreto aparezca en pista — decisión de encaje señalada
+  explícitamente, no un cierre de 7.12.17/`GamePlan` (que no existe
+  todavía como entidad propia).
+- **El matchup NO alimenta el cálculo interno de `AdvantageState`** de
+  Tactics.js (que sigue usando el defensor genéricamente elegido para su
+  propia comparación de rating) — solo determina QUIÉN aparece como
+  defensor final en turnover/falta/tiro. Restructurar el pipeline interno
+  de `planTacticalPossession` para que el matchup alimente también esa
+  comparación de rating se dejó fuera por superar los "puntos de
+  enganche mínimos" que pedía el prompt.
+- **Ayudante del doble equipo elegido por rol declarado, con fallback
+  heurístico** (anticipación+posicionamiento+ética de trabajo) si nadie
+  tiene declarado un rol de ayuda — mismo criterio de heurística nueva
+  mínima que `screenerWeight`/`screenerDefenderWeight` de TAC-1.
+- **Transición defensiva aproximada por atletismo agregado del
+  quinteto**, no por seguimiento individual de "quién cargó el rebote
+  ofensivo vs quién se replegó" (7.12.20 lo describe por jugador) — este
+  motor no distingue esa participación individual, señalado
+  explícitamente como simplificación.
+- **Desgaste extra de Energía del press NO implementado** (7.12.15 lo
+  describe) — exigiría tocar `Rotation.js`/`Recovery.js`, vetado
+  explícitamente para esta entrega.
+- **`averageMixWithAttribute` nueva utilidad genérica mínima** (Tactics.js)
+  — mezcla de atributos ponderada parametrizada por `getAttribute`, sin
+  Fatiga/Consistencia/Presión de Momento, para poder calcular
+  press/transición defensiva DURANTE una posesión sin reimplementar el
+  tratamiento completo de `computeMixRating` (que sí seguiría siendo una
+  duplicación real de fórmula, a diferencia de esta mezcla genérica).
+
+### Pendiente explícitamente para entregas futuras
+
+- **TAC-5**: tiempos muertos, ajustes en vivo entre cuartos, ATO/BLOB/
+  SLOB, falta táctica intencionada.
+- **TAC-6**: familiaridad táctica/`tacticalExecution` — sigue sin efecto
+  real; el eje Rigidez↔Read&React de 7.12.7 también.
+- **TAC-7**: IA táctica de la CPU (los equipos CPU siguen con
+  `DefensiveScheme` por defecto, `man-to-man`, sin press — no se
+  construyó lógica de "la CPU elige zona según su plantilla" en esta
+  entrega, pedido explícito del prompt), Data Hub táctico completo.
+- Match-up Zone y Box-and-One (catálogo de esquema base); reglas de
+  timing "al recibir"/"al primer bote" del doble equipo de poste;
+  sub-sistema de jugadas anti-zona completo (Overload, etc.); desgaste de
+  Energía del press; seguimiento individual de compromiso al rebote
+  ofensivo para transición defensiva; Transition Offense/POA Defense/
+  Tactical Execution de las valoraciones de quinteto (7.12.28); un
+  `GamePlan` propio del que los matchups podrían colgar de forma más
+  natural (hoy viven en `TacticalProfile`).

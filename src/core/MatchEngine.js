@@ -46,7 +46,16 @@
   // selección real de play-type + continuidad, 7.12.8/7.12.10/7.12.11) —
   // planPnrPossession sigue existiendo en Tactics.js tal cual para tests
   // dirigidos de TAC-1/TAC-2, ver Tactics.js.
-  const { planTacticalPossession, resolveTransitionAttempt } = TacticsCore;
+  // DESIGN.md 7.12 (TAC-4): defensa avanzada — matchups individuales
+  // (resolveMatchupOverride, 7.12.17), press (computePressEffect, 7.12.15)
+  // y transición defensiva (computeTransitionDefenseAdjustment, 7.12.20).
+  // Zona (7.12.14) y doble equipo completo de poste (7.12.19) NO necesitan
+  // un punto de enganche nuevo aquí — viven enteramente dentro de
+  // Tactics.planTacticalPossession, que ya recibía defenseTacticalProfile.
+  const {
+    planTacticalPossession, resolveTransitionAttempt,
+    resolveMatchupOverride, computePressEffect, computeTransitionDefenseAdjustment,
+  } = TacticsCore;
 
   // --- Lectura de atributos: cada nombre de MatchConfig se busca en el
   // grupo (technical/physical/mental) al que pertenece en Player.js, sin
@@ -559,9 +568,19 @@
 
   // --- Bloque A: acciones individuales ---
 
-  function rollTurnover(ballHandler, defender, config, pressure, penalties) {
+  // `pressProbabilityMultiplier` (DESIGN.md 7.12.15, TAC-4, opcional):
+  // MODULA la probabilidad de este mismo resolver cuando el equipo
+  // defensor presiona el tramo inicial de la posesión — nunca un
+  // resolver de pérdida nuevo (pedido explícito del prompt). 1 = sin
+  // press (comportamiento idéntico a TAC-1/TAC-2/TAC-3). Se re-acota con
+  // clampEventProbability tras aplicar el multiplicador porque
+  // computeEventProbability ya devuelve un valor acotado a
+  // [0.01, 0.6] — multiplicar por encima de 1 podría superar ese techo.
+  function rollTurnover(ballHandler, defender, config, pressure, penalties, pressProbabilityMultiplier = 1) {
     const action = config.actions.turnover;
-    return Math.random() < computeEventProbability(action, ballHandler, defender, config, pressure, undefined, undefined, penalties);
+    const probability = computeEventProbability(action, ballHandler, defender, config, pressure, undefined, undefined, penalties)
+      * pressProbabilityMultiplier;
+    return Math.random() < clampEventProbability(probability);
   }
 
   function rollSteal(defender, ballHandler, config, pressure, penalties) {
@@ -749,11 +768,30 @@
 
       let ballHandler = tacticalPlan ? tacticalPlan.initialHandler : pickWeighted(offenseFive, usageWeight);
       let onBallDefender = tacticalPlan ? tacticalPlan.initialOnBallDefender : defaultOnBallDefender;
+      // DESIGN.md 7.12.17 (TAC-4): matchup individual declarado por el
+      // equipo defensor — prioridad sobre la selección ponderada genérica
+      // SOLO para el jugador objetivo (7.12.17: "el motor respeta esa
+      // intención... salvo que una rotación/cambio defensivo obligue
+      // temporalmente a otro matchup"). Se aplica aquí, ANTES de que
+      // cualquier cobertura/rotación de Tactics.js pueda reasignar el
+      // defensor final más adelante (Switch, doble equipo de poste...) —
+      // esa reasignación posterior SÍ tiene prioridad sobre el matchup,
+      // que es precisamente la excepción que el propio 7.12.17 reconoce.
+      onBallDefender = resolveMatchupOverride(defenseFive, defenseTacticalProfile, ballHandler.id, onBallDefender);
       // 7.11.3 (C.3): penalización activa de cada uno si está cubriendo una
       // posición de emergencia — 0 si no hay alineación o no aplica.
       let ballHandlerPenalty = getPenalty(offenseRotationState, ballHandler.id);
       const onBallDefenderPenalty = getPenalty(defenseRotationState, onBallDefender.id);
       const playersById = new Map(offenseFive.concat(defenseFive).map((p) => [p.id, p]));
+      // DESIGN.md 7.12.15 (TAC-4): efecto del press del equipo defensor
+      // sobre el tramo inicial de la posesión — SOLO en la primera
+      // iteración (cruzar medio campo ocurre una vez por posesión, no en
+      // cada rebote ofensivo posterior, mismo criterio de gating que
+      // tacticalPlan arriba). Neutro {turnoverMultiplier: 1, clockCost: 0}
+      // sin press activo (7.12.34, compatibilidad).
+      const pressEffect = iteration === 0
+        ? computePressEffect(offenseFive, defenseTacticalProfile, config, getAttribute)
+        : { turnoverMultiplier: 1, clockCost: 0 };
 
       // 7.6.19: últimos segundos de cuarto sin tiempo de jugada completa —
       // fuerza un paso corto (no da tiempo a desarrollar la jugada normal).
@@ -776,6 +814,9 @@
       // violación de posesión de más abajo se dispara igual que con
       // cualquier paso largo.
       if (tacticalPlan && tacticalPlan.clockCost) step += tacticalPlan.clockCost;
+      // DESIGN.md 7.12.15 (TAC-4): cruzar medio campo contra un press
+      // consume reloj adicional — ver comentario de pressEffect arriba.
+      if (pressEffect.clockCost) step += pressEffect.clockCost;
       if (noFullPlayTime) step = Math.min(step, Math.max(1, quarterClockAtIterationStart * 0.6));
 
       if (step >= shotClock) {
@@ -824,8 +865,14 @@
         continue;
       }
 
-      // 6. Pérdida de balón (+ 7. Robo, sub-tirada)
-      if (rollTurnover(ballHandler, onBallDefender, config, pressure, { primary: ballHandlerPenalty, secondary: onBallDefenderPenalty })) {
+      // 6. Pérdida de balón (+ 7. Robo, sub-tirada) — DESIGN.md 7.12.15
+      // (TAC-4): `pressEffect.turnoverMultiplier` modula la probabilidad
+      // de ESTE resolver ya existente (1 = sin press, comportamiento
+      // idéntico a antes de esta entrega).
+      if (rollTurnover(
+        ballHandler, onBallDefender, config, pressure,
+        { primary: ballHandlerPenalty, secondary: onBallDefenderPenalty }, pressEffect.turnoverMultiplier,
+      )) {
         if (rollSteal(onBallDefender, ballHandler, config, pressure, { primary: onBallDefenderPenalty, secondary: ballHandlerPenalty })) {
           recordSteal(boxScore, onBallDefender);
           events.push({ type: 'steal', playerId: onBallDefender.id });
@@ -870,9 +917,18 @@
       // clara de un P&R, ver arriba).
       const shotType = tacticalForcedShotType || pickShotType(ballHandler);
       const isPerimeterShot = shotType === 'threePointShot' || shotType === 'midRangeShot';
-      const shotDefender = tacticalShotDefenderOverride || (isPerimeterShot
+      const genericShotDefender = isPerimeterShot
         ? pickWeighted(defenseFive, (p) => getAttribute(p, 'perimeterDefense') + 1)
-        : pickWeighted(defenseFive, (p) => getAttribute(p, 'interiorDefense') + 1));
+        : pickWeighted(defenseFive, (p) => getAttribute(p, 'interiorDefense') + 1);
+      // DESIGN.md 7.12.17 (TAC-4): el matchup declarado solo sustituye a la
+      // selección ponderada GENÉRICA (`genericShotDefender`) — si Tactics.js
+      // YA reasignó el defensor por una cobertura/rotación concreta
+      // (`tacticalShotDefenderOverride`, ej. Switch, roller, doble equipo),
+      // esa reasignación tiene prioridad, tal como reconoce el propio
+      // 7.12.17 ("salvo que una rotación/cambio defensivo obligue
+      // temporalmente a otro matchup").
+      const shotDefender = tacticalShotDefenderOverride
+        || resolveMatchupOverride(defenseFive, defenseTacticalProfile, ballHandler.id, genericShotDefender);
       const shotDefenderPenalty = getPenalty(defenseRotationState, shotDefender.id) + tacticalExtraShotDefenderPenalty;
 
       // 7.6.14: Contraataque — solo si el equipo REALMENTE lo intentó esta
@@ -894,6 +950,14 @@
       let shotAdjustment = tacticalShotAdjustment;
       if (isPossessionBuzzer || isGameBuzzer || noFullPlayTime) {
         shotAdjustment -= config.pressure.forcedShotPenalty; // tiro forzado
+      }
+      // DESIGN.md 7.12.20 (TAC-4): modificador DENTRO de la ventana de
+      // contraataque ya existente (nunca la ventana en sí) — un repliegue
+      // defensivo malo amplía la ventaja de contraataque en CUALQUIER tipo
+      // de tiro intentado en transición, no solo bandejas (a diferencia del
+      // bono de aceleración de más abajo, que sí es específico de bandeja).
+      if (isFastBreakWindow) {
+        shotAdjustment += computeTransitionDefenseAdjustment(defenseFive, config, getAttribute);
       }
       if (isFastBreakWindow && shotType === 'layup') {
         shotAdjustment += (getAttribute(ballHandler, 'acceleration') / 20) * config.fastBreak.maxBonus;
