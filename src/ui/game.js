@@ -1549,6 +1549,17 @@
   const PNR_COVERAGE_LABELS = { drop: 'Drop', under: 'Under', switch: 'Switch', hedge: 'Hedge', blitz: 'Blitz' };
   const TACTICS_IDENTITY_LABELS = {
     pace: 'Ritmo', earlyOffense: 'Early offense', ballMovement: 'Movimiento de balón', pickAndRollUsage: 'Uso de Pick & Roll',
+    // TAC-6 (7.12.7/7.12.22): primer eje de identidad con efecto real en el
+    // motor (tacticalExecution) desde que se declaró en TAC-2 — 0 = Read &
+    // React puro, 100 = Rigidez pura.
+    rigidity: 'Rigidez ↔ Read & React',
+  };
+  // TAC-6 (7.12.22): etiquetas de la sección "Familiaridad" de Resumen —
+  // solo lectura, mismas familias que PLAY_FAMILY_LABELS/PNR_COVERAGE_LABELS
+  // ya usan en Playbook/Defensa.
+  const FAMILIARITY_FAMILY_LABELS = {
+    pickAndRoll: 'Pick & Roll', isolation: 'Isolation', postUp: 'Post Up',
+    handoff: 'Handoff / DHO', offScreen: 'Off Screen', motionFlow: 'Motion / Flow',
   };
   const PLAY_TYPE_LABELS = { pickAndRoll: 'Pick & Roll', isolation: 'Isolation', postUp: 'Post Up', transition: 'Transition' };
   // TAC-3 (7.12.10): etiquetas de familia para las 3 que ya tienen catálogo
@@ -1616,6 +1627,65 @@
       <div class="gm-card">
         <h3>Valoraciones del quinteto titular</h3>
         ${ratingsHtml}
+      </div>
+      ${renderFamiliaritySection(profile)}`;
+  }
+
+  // TAC-6 (7.12.22/7.12.32): sección de solo lectura — la familiaridad NO
+  // se declara, se gana jugando partidos reales (nunca un editor aquí,
+  // pedido explícito de esta entrega). Muestra familiaridad ofensiva/
+  // defensiva global y las 2-3 familias/coberturas más usadas HASTA AHORA
+  // — como no se registra un contador de uso aparte (7.12.34, decisión de
+  // encaje: no se guarda telemetría de frecuencia todavía, eso es TAC-7/
+  // Data Hub), se aproxima con la MAYOR desviación absoluta respecto al
+  // valor de partida (`FAMILIARITY_DEFAULT`) — una familia/cobertura que
+  // nunca se ha usado se queda exactamente en ese valor de partida, así
+  // que cualquier desviación real solo puede venir de haberla jugado.
+  function familiarityBarHtml(label, level) {
+    const rounded = Math.round(level);
+    return `
+      <div class="tactics-familiarity-row">
+        <span>${label}</span>
+        <div class="tactics-familiarity-bar"><div class="tactics-familiarity-bar-fill" style="width:${rounded}%"></div></div>
+        <strong>${rounded}</strong>
+      </div>`;
+  }
+
+  function topFamiliarityEntries(group, labels, defaultValue, topN) {
+    return Object.keys(group)
+      .map((key) => ({ key, level: group[key], deviation: Math.abs(group[key] - defaultValue) }))
+      .sort((a, b) => b.deviation - a.deviation)
+      .slice(0, topN)
+      .map((entry) => ({ label: labels[entry.key] || entry.key, level: entry.level, used: entry.deviation > 0.5 }));
+  }
+
+  function renderFamiliaritySection(profile) {
+    const fam = profile.familiarity;
+    if (!fam) {
+      // 7.12.34 (compatibilidad): perfil plano/legacy sin `familiarity` —
+      // no debería ocurrir con `new TacticalProfile()`, pero esta pantalla
+      // no debe romperse si algún día aparece uno.
+      return '';
+    }
+    const topFamilies = topFamiliarityEntries(fam.byPlayFamily, FAMILIARITY_FAMILY_LABELS, BM.FAMILIARITY_DEFAULT, 3);
+    const topCoverages = topFamiliarityEntries(fam.byCoverage, PNR_COVERAGE_LABELS, BM.FAMILIARITY_DEFAULT, 3);
+    const familiesHtml = topFamilies.some((e) => e.used)
+      ? topFamilies.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level)).join('')
+      : '<p class="gm-muted">Todavía sin partidos jugados con ninguna familia de jugada por encima del punto de partida.</p>';
+    const coveragesHtml = topCoverages.some((e) => e.used)
+      ? topCoverages.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level)).join('')
+      : '<p class="gm-muted">Todavía sin partidos jugados contra ninguna cobertura rival por encima del punto de partida.</p>';
+
+    return `
+      <div class="gm-card">
+        <h3>Familiaridad</h3>
+        <p class="gm-muted">Cuánto domina el equipo la táctica declarada arriba — sube jugando partidos reales, no se edita aquí (DESIGN.md 7.12.22).</p>
+        ${familiarityBarHtml('Sistema ofensivo', fam.offensiveSystem)}
+        ${familiarityBarHtml('Sistema defensivo', fam.defensiveSystem)}
+        <h4>Familias de jugada más entrenadas</h4>
+        ${familiesHtml}
+        <h4>Coberturas defensivas más entrenadas</h4>
+        ${coveragesHtml}
       </div>`;
   }
 
