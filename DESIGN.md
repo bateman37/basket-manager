@@ -3285,6 +3285,31 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   acciones por posesión de 7.12.11 se implementó con un coste de reloj fijo
   (`config.tactics.continuity`), no una simulación real de la segunda
   acción — pendiente de calibración masiva junto al resto de 7.12.31.
+- **TAC-4, nuevos pendientes**: catálogo de esquema defensivo base con
+  solo 3 zonas reales (`2-3`/`3-2`/`1-3-1`) además de Man-to-Man — Match-up
+  Zone (híbrido zona/hombre) y Box-and-One (exige un jugador objetivo
+  marcado) quedan fuera; el efecto de zona sobre `AdvantageState` conecta
+  solo 1-2 contramedidas mínimas por play-type (Post Up vs 2-3, Pick &
+  Roll/Isolation vs 1-3-1) — un sub-sistema de jugadas anti-zona completo
+  (Overload, etc.) no está modelado. Doble equipo de poste (7.12.19): solo
+  3 reglas de activación con comportamiento real (`never`/`starOnly`/
+  `always`) — los matices de timing "al recibir"/"al primer bote" quedan
+  fuera (este motor resuelve el poste en una sola pasada, sin sub-pasos de
+  catch/dribble sobre los que distinguirlos). Matchups individuales
+  (7.12.17): se declaran por ID de jugador real, no por nombre de rol
+  ("la estrella rival"), y viven dentro de `TacticalProfile` en vez de un
+  `GamePlan` propio (que no existe todavía como entidad independiente).
+  Press (7.12.15): sin el desgaste extra de Energía que describe el
+  propio 7.12.15 — exigiría tocar `Rotation.js`/`Recovery.js`, fuera de
+  alcance de esta entrega. Transición defensiva (7.12.20): aproximada por
+  atletismo agregado del quinteto, sin distinguir por jugador quién cargó
+  el rebote ofensivo vs quién se replegó. De las valoraciones derivadas de
+  quinteto de 7.12.28, esta entrega completa Switchability/Rim Protection/
+  Transition Defense; Transition Offense, POA Defense y Tactical Execution
+  siguen sin implementar. Todos los valores numéricos nuevos de
+  `config.tactics.defense`/`press`/`transitionDefense`/`postUp` son puntos
+  de partida con dirección verificada, no cifras cerradas — pendientes de
+  calibración masiva junto al resto de 7.12.31.
 
 ### 7.12.35 Fuentes y criterio de diseño
 

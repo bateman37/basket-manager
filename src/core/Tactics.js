@@ -91,6 +91,17 @@
   // usa el mejor ajuste real de los otros tres para ese quinteto concreto.
   const SPACING_OPTIONS = ['5-out', '4-out-1-in', '3-out-2-in', 'dynamic'];
 
+  // --- 7.12.13/7.12.14 (TAC-4): esquema defensivo base ---
+  // Catálogo MÍNIMO de zonas reales (ver comentario del mismo catálogo en
+  // MatchConfig.js): Match-up Zone y Box-and-One quedan fuera de esta
+  // entrega, señalado explícitamente como pendiente (7.12.34) — no hay
+  // cifra cerrada en DESIGN.md que obligue a implementarlas ya.
+  const BASE_SCHEMES = ['man-to-man', '2-3', '3-2', '1-3-1'];
+  // --- 7.12.15 (TAC-4): tipos de press ---
+  const PRESS_TYPES = ['halfCourt', 'fullCourt'];
+  // --- 7.12.19 (TAC-4): reglas de activación del doble equipo de poste ---
+  const POST_DOUBLE_TEAM_RULES = ['never', 'starOnly', 'always'];
+
   // Construye un grupo numérico "abierto" (7.12.7/7.12.8: la interfaz no
   // tiene que implementar los 14 ejes/11 play-types completos todavía, pero
   // el objeto debe poder ampliarse sin romper el shape). Rellena las claves
@@ -157,6 +168,47 @@
       // (usageWeight/onBallDefenderWeight, sin sesgo de rol) para él;
       // ver nota de compatibilidad en planPnrPossession/buildPossessionPlan.
       this.roleAssignments = { ...(data.roleAssignments || {}) };
+
+      // --- TAC-4 (7.12.13/7.12.14/7.12.15/7.12.19): DefensiveScheme ---
+      // 'man-to-man' + press inactivo + regla 'starOnly' por defecto
+      // reproducen EXACTAMENTE el comportamiento de TAC-1/TAC-2/TAC-3
+      // (7.12.34, compatibilidad): ningún término de zona/press se activa,
+      // y el doble equipo de poste sigue el mismo umbral/probabilidad que
+      // ya usaba TAC-3 (ver buildPostUpPlan/resolvePostDoubleTeamDecision).
+      const defensiveInput = data.defensiveScheme || {};
+      const baseScheme = defensiveInput.baseScheme || 'man-to-man';
+      if (BASE_SCHEMES.indexOf(baseScheme) === -1) {
+        throw new Error(`TacticalProfile: esquema defensivo desconocido "${baseScheme}" (catálogo: ${BASE_SCHEMES.join(', ')})`);
+      }
+      const pressInput = defensiveInput.press || {};
+      const pressType = pressInput.type || 'halfCourt';
+      if (PRESS_TYPES.indexOf(pressType) === -1) {
+        throw new Error(`TacticalProfile: tipo de press desconocido "${pressType}" (catálogo: ${PRESS_TYPES.join(', ')})`);
+      }
+      const postDoubleTeamRule = defensiveInput.postDoubleTeamRule || 'starOnly';
+      if (POST_DOUBLE_TEAM_RULES.indexOf(postDoubleTeamRule) === -1) {
+        throw new Error(`TacticalProfile: regla de doble equipo de poste desconocida "${postDoubleTeamRule}" (catálogo: ${POST_DOUBLE_TEAM_RULES.join(', ')})`);
+      }
+      this.defensiveScheme = {
+        baseScheme,
+        press: { active: !!pressInput.active, type: pressType },
+        postDoubleTeamRule,
+      };
+
+      // --- TAC-4 (7.12.17): matchups individuales declarados ---
+      // Mapa `defenderId -> targetPlayerId` (forma sugerida literalmente
+      // por el prompt de esta sesión) — "mi defensor X marca siempre al
+      // jugador rival Y", con prioridad sobre la selección ponderada
+      // genérica SOLO para ese jugador concreto (ver
+      // MatchEngine.resolveMatchupOverride). Se declara por ID de
+      // jugador real (no por nombre): la pantalla de Tácticas (game.js)
+      // no tiene un "rival de este partido" fijo (se edita fuera de un
+      // partido concreto), así que el override se guarda de forma
+      // genérica y solo tiene efecto los partidos en los que ese jugador
+      // concreto aparezca en el quinteto rival — decisión de encaje
+      // señalada explícitamente (7.12.34), no un cierre de diseño de
+      // 7.12.17/GamePlan (que no existe todavía como entidad propia).
+      this.matchupOverrides = { ...(data.matchupOverrides || {}) };
     }
   }
 
@@ -187,6 +239,47 @@
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+  }
+
+  // Mezcla de atributos ponderada (1-20), SIN Fatiga/Consistencia/Presión
+  // de Momento — a diferencia de `computeSimpleMix` (TAC-2, más abajo, que
+  // usa el `getPlayerAttribute` INTERNO de este módulo porque se llama
+  // desde game.js sin partido en curso), esta variante recibe
+  // `getAttribute` como parámetro para poder usarse desde funciones que sí
+  // se llaman DURANTE una posesión (press/transición defensiva, TAC-4,
+  // mismo criterio de parametrización que el resto de TAC-1/TAC-3). Nueva
+  // utilidad genérica mínima (sin equivalente ya pasado como parámetro),
+  // igual de heurística que screenerWeight/screenerDefenderWeight.
+  function averageMixWithAttribute(five, mix, getAttribute) {
+    if (!five || five.length === 0) return 0;
+    const perPlayerScores = five.map((player) => {
+      let sum = 0;
+      let total = 0;
+      Object.entries(mix).forEach(([attrName, weight]) => {
+        sum += getAttribute(player, attrName) * weight;
+        total += weight;
+      });
+      return total > 0 ? sum / total : 0;
+    });
+    return perPlayerScores.reduce((a, b) => a + b, 0) / perPlayerScores.length;
+  }
+
+  // --- 7.12.17 (TAC-4): matchups individuales declarados ---
+  // Prioridad sobre la selección ponderada genérica SOLO para el jugador
+  // objetivo declarado (7.12.17: "el motor respeta esa intención siempre
+  // que ambos estén en pista, salvo que una rotación/cambio defensivo
+  // obligue temporalmente a otro matchup") — por eso MatchEngine.js solo
+  // la aplica en los puntos donde, si no hubiera matchup, se usaría un
+  // pickWeighted genérico; NUNCA sustituye a un defensor ya reasignado por
+  // una cobertura/rotación de Tactics.js (Switch, doble equipo, roller
+  // defender...), que representa precisamente esa excepción.
+  function resolveMatchupOverride(defenseFive, defenseTacticalProfile, targetPlayerId, fallbackDefender) {
+    const overrides = defenseTacticalProfile && defenseTacticalProfile.matchupOverrides;
+    if (!overrides) return fallbackDefender;
+    const entry = Object.keys(overrides).find((defenderId) => overrides[defenderId] === targetPlayerId);
+    if (!entry) return fallbackDefender;
+    const forcedDefender = defenseFive.find((p) => p.id === entry);
+    return forcedDefender || fallbackDefender;
   }
 
   // "Quién pone el bloqueo": ponderado por atributos de screener real
@@ -303,6 +396,11 @@
       // computeSpacingAdvantageTerm devuelve 0 y el comportamiento es
       // idéntico al de antes de esta entrega.
       offenseFive, offenseSpacing,
+      // TAC-4 (7.12.14): opcional — esquema defensivo base del equipo que
+      // defiende. Sin él (llamadas legacy de TAC-1/TAC-2/TAC-3, o
+      // 'man-to-man'), computeZoneAdvantageTerm devuelve 0 (7.12.34,
+      // compatibilidad).
+      defenseBaseScheme,
     } = params;
     const cfg = config.tactics.advantage;
     const handlerMix = config.tactics.coverageHandlerMix[coverage] || config.tactics.coverageHandlerMix.drop;
@@ -335,6 +433,9 @@
     // el spacing EFECTIVO real entra a la fórmula — ver
     // computeSpacingAdvantageTerm más abajo.
     raw += computeSpacingAdvantageTerm(offenseFive, offenseSpacing, config);
+    // TAC-4 (7.12.14): único punto donde el esquema defensivo de ZONA entra
+    // a la fórmula de un P&R — ver computeZoneAdvantageTerm más abajo.
+    raw += computeZoneAdvantageTerm(offenseFive, offenseSpacing, defenseBaseScheme, 'pickAndRoll', config);
     return clamp(raw, -1, 1);
   }
 
@@ -613,11 +714,18 @@
       .slice(0, topN);
   }
 
-  // --- 7.12.28: valoraciones derivadas de quinteto (subset de esta entrega) ---
-  // Deja fuera Switchability/Rim Protection/Transition Offense/Transition
-  // Defense/Tactical Execution — dependen de piezas que todavía no existen
-  // (defensa avanzada es TAC-4, familiaridad/tacticalExecution es TAC-6);
-  // señalado también en el CHANGELOG, no se inventan con datos que no hay.
+  // --- 7.12.28: valoraciones derivadas de quinteto ---
+  // TAC-2 dejó fuera Switchability/Rim Protection/Transition Offense/
+  // Transition Defense/Tactical Execution por depender de piezas que
+  // todavía no existían (defensa avanzada era TAC-4, familiaridad/
+  // tacticalExecution es TAC-6). TAC-4 (esta entrega) completa
+  // Switchability/Rim Protection/Transition Defense — ya hay una base de
+  // datos sólida (DefensiveScheme, matchups, transición defensiva, ver
+  // MatchConfig.js `lineupRatings`/`transitionDefense`) para calcularlas
+  // con sentido, pedido explícito del prompt de esta sesión (punto 7).
+  // Transition Offense/POA Defense/Tactical Execution SIGUEN fuera (ninguna
+  // pedida por el prompt de esta entrega) — señalado explícitamente en el
+  // CHANGELOG, no se inventan con datos que no hay.
   const CREATION_MIX = { gameVision: 0.4, passing: 0.35, ballHandling: 0.25 };
   const FINISHING_MIX = { insideShot: 0.5, layup: 0.5 };
 
@@ -630,6 +738,12 @@
       insideFinishing: topNMixAverage(five, FINISHING_MIX, 2),
       offensiveRebound: averageMix(five, { offensiveRebound: 1 }),
       defensiveRebound: averageMix(five, { defensiveRebound: 1 }),
+      switchability: averageMix(five, config.tactics.lineupRatings.switchabilityMix),
+      rimProtection: averageMix(five, config.tactics.lineupRatings.rimProtectionMix),
+      // Reutiliza LITERALMENTE la misma mezcla que
+      // computeTransitionDefenseAdjustment (más abajo) — no una
+      // aproximación distinta solo para mostrar en pantalla.
+      transitionDefense: averageMix(five, config.tactics.transitionDefense.retreatMix),
     };
     const out = {};
     Object.entries(raw).forEach(([key, score]) => { out[key] = { score, stars: starsFromScore20(score) }; });
@@ -864,6 +978,73 @@
     return clamp(term, -cfg.maxEffect, cfg.maxEffect);
   }
 
+  // --- 7.12.14 (TAC-4): efecto real de la defensa de ZONA sobre
+  // AdvantageState — mismo patrón ACOTADO/aditivo que computeSpacingAdvantageTerm
+  // (evita doble conteo, 7.12.4), NUNCA un opponent3P+X/opponentInside-Y
+  // directo (7.12.14 lo prohíbe explícitamente). La pieza dominante es el
+  // término de spacing: una zona debe ser MÁS vulnerable a un quinteto con
+  // effectiveSpacing real alto (la estira) que a uno sin amenaza exterior
+  // real (se contrae sin coste) — invariante nuevo de esta entrega,
+  // verificado en el script de esta sesión. `playTypeCounters` conecta las
+  // "1-2 contramedidas reales" mínimas pedidas por el prompt (Post Up
+  // castiga el alto poste de una 2-3; Pick & Roll/Isolation explotan el
+  // hueco de una 1-3-1 tras el trap) — sin construir un sub-sistema de
+  // jugadas anti-zona completo (Overload, etc., señalado como pendiente).
+  // Sin esquema o 'man-to-man' (7.12.34, compatibilidad): devuelve 0,
+  // comportamiento idéntico a TAC-1/TAC-2/TAC-3.
+  function computeZoneAdvantageTerm(offenseFive, offenseSpacing, defenseBaseScheme, playType, config) {
+    if (!defenseBaseScheme || defenseBaseScheme === 'man-to-man') return 0;
+    if (!offenseFive || !offenseSpacing) return 0;
+    const cfg = config.tactics.defense && config.tactics.defense.zone;
+    if (!cfg) return 0;
+    const baseScore = (cfg.baseScoreByScheme && cfg.baseScoreByScheme[defenseBaseScheme]) || 0;
+    const value = effectiveSpacing(offenseSpacing, offenseFive, config);
+    const spacingTerm = cfg.spacingSensitivity * (value - cfg.spacingNeutral);
+    const counterCfg = cfg.playTypeCounters && cfg.playTypeCounters[defenseBaseScheme];
+    const counterTerm = (counterCfg && counterCfg[playType]) || 0;
+    return clamp(baseScore + spacingTerm + counterTerm, -cfg.maxEffect, cfg.maxEffect);
+  }
+
+  // --- 7.12.15 (TAC-4): efecto real del PRESS sobre el tramo inicial de
+  // la posesión — MODULA la probabilidad del rollTurnover() ya existente
+  // de MatchEngine.js (nunca un resolver nuevo) y el reloj consumido en
+  // cruzar medio campo, según la calidad de manejo/decisión del equipo
+  // atacante (7.12.15: "exige DefensaPerimetral/Agilidad/Aceleración... de
+  // forma táctica" — aquí, desde el punto de vista del ATACANTE que sufre
+  // la presión: ballHandling/gameVision/DecisiónBajoPresión). Sin press
+  // activo (7.12.34, compatibilidad): devuelve el par neutro
+  // {turnoverMultiplier: 1, clockCost: 0}, idéntico a no tener este
+  // término. El desgaste extra de Energía por presionar (7.12.15) queda
+  // fuera — exigiría tocar Rotation.js/Recovery.js, vetado explícitamente
+  // para esta entrega (ver CHANGELOG).
+  function computePressEffect(offenseFive, defenseTacticalProfile, config, getAttribute) {
+    const press = defenseTacticalProfile && defenseTacticalProfile.defensiveScheme && defenseTacticalProfile.defensiveScheme.press;
+    if (!press || !press.active) return { turnoverMultiplier: 1, clockCost: 0 };
+    const cfg = config.tactics.press;
+    const handlingScore = averageMixWithAttribute(offenseFive, cfg.handlingMix, getAttribute); // escala 1-20
+    const deficit = clamp((cfg.neutralHandling - handlingScore) / cfg.neutralHandling, -1, 1); // >0 = manejo pobre
+    const boost = cfg.turnoverBoost[press.type] * (1 + deficit);
+    const turnoverMultiplier = clamp(1 + boost, 1, cfg.maxMultiplier);
+    const clockCost = cfg.clockCostSeconds[press.type] * (1 + Math.max(0, deficit) * 0.5);
+    return { turnoverMultiplier, clockCost };
+  }
+
+  // --- 7.12.20 (TAC-4): transición defensiva — modificador DENTRO de la
+  // ventana de contraataque YA EXISTENTE (7.6 acción 14, nunca la ventana
+  // en sí, pedido explícito del prompt): un repliegue malo (media de
+  // Velocidad/ÉticaDeTrabajo/Posicionamiento del quinteto que acaba de
+  // perder el balón) amplía la ventaja de contraataque; uno excelente
+  // puede neutralizarla parcialmente. Aproximación por atletismo agregado
+  // del quinteto — este motor no distingue por jugador quién cargó el
+  // rebote ofensivo vs quién se replegó (7.12.20 lo describe así),
+  // señalado como simplificación explícita.
+  function computeTransitionDefenseAdjustment(defenseFive, config, getAttribute) {
+    const cfg = config.tactics.transitionDefense;
+    const retreatScore = averageMixWithAttribute(defenseFive, cfg.retreatMix, getAttribute); // escala 1-20
+    const term = cfg.sensitivity * (cfg.neutral - retreatScore);
+    return clamp(term, -cfg.maxEffect, cfg.maxEffect);
+  }
+
   // "Tirador del lado débil" para lecturas de extra-pass/kick-out (7.12.11
   // Rotation forced / doble equipo de Post Up / ayuda tardía de
   // Isolation): ponderado por Tiro exterior + Posicionamiento, excluyendo
@@ -907,6 +1088,8 @@
     const {
       scorer, defender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty,
       offenseFive, offenseSpacing,
+      // TAC-4 (7.12.14): ver nota de computeAdvantageScore arriba.
+      defenseBaseScheme,
     } = params;
     const cfg = config.tactics.isolation;
     const scorerRating = computeMixRating(scorer, cfg.scorerMix, config, pressure, undefined, scorerPenalty);
@@ -914,20 +1097,22 @@
     const noise = gaussianRandom() * cfg.noiseSigma;
     let raw = cfg.baseScore + cfg.sensitivity * (scorerRating - defenderRating) + noise;
     raw += computeSpacingAdvantageTerm(offenseFive, offenseSpacing, config);
+    raw += computeZoneAdvantageTerm(offenseFive, offenseSpacing, defenseBaseScheme, 'isolation', config);
     return clamp(raw, -1, 1);
   }
 
   function buildIsolationPlan(params) {
     const {
-      offenseFive, defenseFive, onBallDefender, offenseTacticalProfile, config, pressure,
+      offenseFive, defenseFive, onBallDefender, offenseTacticalProfile, defenseTacticalProfile, config, pressure,
       computeMixRating, usageWeight, getAttribute, offenseRotationState, defenseRotationState, offenseSpacing,
     } = params;
     const scorer = pickIsolationScorer(offenseFive, offenseTacticalProfile, usageWeight);
     const defender = onBallDefender;
     const scorerPenalty = getPenalty(offenseRotationState, scorer.id);
     const defenderPenalty = getPenalty(defenseRotationState, defender.id);
+    const defenseBaseScheme = defenseTacticalProfile && defenseTacticalProfile.defensiveScheme && defenseTacticalProfile.defensiveScheme.baseScheme;
     const advantageScore = computeIsolationAdvantageScore({
-      scorer, defender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty, offenseFive, offenseSpacing,
+      scorer, defender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty, offenseFive, offenseSpacing, defenseBaseScheme,
     });
     const read6 = resolveRead6(advantageScore, config);
 
@@ -987,10 +1172,55 @@
     return pickWeighted(defenseFive, (p) => getAttribute(p, 'interiorDefense') + getAttribute(p, 'strength') + 1);
   }
 
+  // --- 7.12.19 (TAC-4): ¿quién dobla? El ayudante MÁS CERCANO según su
+  // rol defensivo (7.12.21) — prioriza a quien ya tiene declarado un rol
+  // de ayuda (lowMan/nailHelper/roamer, los 3 roles de DEFENSIVE_ROLES
+  // descritos como "ayuda" en 7.12.21), primera vez que roleAssignments
+  // se consume REALMENTE en el motor (hasta ahora solo alimentaba
+  // roleFit/UI, TAC-2). Sin ninguno declarado, cae al mismo criterio
+  // heurístico que el resto de "quién ayuda" del módulo (anticipación +
+  // posicionamiento + ética de trabajo).
+  const POST_HELP_ROLES = ['lowMan', 'nailHelper', 'roamer'];
+  function pickDoubleTeamHelper(defenseFive, postDefender, defenseTacticalProfile, getAttribute) {
+    const candidates = defenseFive.filter((p) => p.id !== postDefender.id);
+    const assignments = (defenseTacticalProfile && defenseTacticalProfile.roleAssignments) || {};
+    const designated = candidates.filter((p) => POST_HELP_ROLES.indexOf(assignments[p.id] && assignments[p.id].defensiveRole) !== -1);
+    const pool = designated.length > 0 ? designated : candidates;
+    return pickWeighted(pool, (p) => getAttribute(p, 'anticipation') + getAttribute(p, 'positioning') + getAttribute(p, 'workRate') + 1);
+  }
+
+  // --- 7.12.19 (TAC-4): reglas de activación del doble equipo ---
+  // 'starOnly' reproduce EXACTAMENTE el umbral/probabilidad de TAC-3 (no
+  // cambia de cifra, ver MatchConfig.js) para no romper el rango de
+  // regresión con el perfil por defecto. 'never'/'always' son las otras
+  // dos reglas con comportamiento real esta entrega — 'onCatch'/
+  // 'onFirstDribble'/zona objetivo (matices de timing de 7.12.19) quedan
+  // fuera, señalado explícitamente (ver MatchConfig.js).
+  function resolvePostDoubleTeamDecision(rule, scorerRating, defenderRating, config) {
+    const cfg = config.tactics.postUp;
+    if (rule === 'never') return false;
+    if (rule === 'always') return true;
+    return (scorerRating - defenderRating) >= cfg.doubleTeamRatingMargin && Math.random() < cfg.doubleTeamProbability;
+  }
+
+  // --- 7.12.19 (TAC-4): ¿el postScorer ENCUENTRA el hueco que deja el
+  // doble equipo? TAC-3 acreditaba el kick-out el 100% de las veces —
+  // esta entrega lo condiciona a su propia calidad de lectura/pase
+  // (VisiónJuego+Pase, 7.12.19: "la Visión/Pase/Decisión del jugador
+  // posteado... deciden si puede castigar esa superioridad").
+  function resolvePostReadSuccess(postScorer, config, getAttribute) {
+    const cfg = config.tactics.postUp;
+    const readScore = averageMixWithAttribute([postScorer], cfg.readMix, getAttribute); // escala 1-20
+    const probability = clamp(cfg.readBaseProbability + cfg.readSensitivity * ((readScore - 10) / 10), 0.05, 0.95);
+    return Math.random() < probability;
+  }
+
   function computePostUpAdvantageScore(params) {
     const {
       postScorer, postDefender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty,
       offenseFive, offenseSpacing,
+      // TAC-4 (7.12.14): ver nota de computeAdvantageScore arriba.
+      defenseBaseScheme,
     } = params;
     const cfg = config.tactics.postUp;
     const scorerRating = computeMixRating(postScorer, cfg.scorerMix, config, pressure, undefined, scorerPenalty);
@@ -998,42 +1228,57 @@
     const noise = gaussianRandom() * cfg.noiseSigma;
     let raw = cfg.baseScore + cfg.sensitivity * (scorerRating - defenderRating) + noise;
     raw += computeSpacingAdvantageTerm(offenseFive, offenseSpacing, config);
+    raw += computeZoneAdvantageTerm(offenseFive, offenseSpacing, defenseBaseScheme, 'postUp', config);
     return { advantageScore: clamp(raw, -1, 1), scorerRating, defenderRating };
   }
 
   function buildPostUpPlan(params) {
     const {
-      offenseFive, defenseFive, offenseTacticalProfile, config, pressure, computeMixRating,
+      offenseFive, defenseFive, offenseTacticalProfile, defenseTacticalProfile, config, pressure, computeMixRating,
       getAttribute, offenseRotationState, defenseRotationState, offenseSpacing,
     } = params;
     const postScorer = pickPostScorer(offenseFive, offenseTacticalProfile, getAttribute);
     const postDefender = pickPostDefender(defenseFive, getAttribute);
     const scorerPenalty = getPenalty(offenseRotationState, postScorer.id);
     const defenderPenalty = getPenalty(defenseRotationState, postDefender.id);
+    const defenseBaseScheme = defenseTacticalProfile && defenseTacticalProfile.defensiveScheme && defenseTacticalProfile.defensiveScheme.baseScheme;
 
     const { advantageScore, scorerRating, defenderRating } = computePostUpAdvantageScore({
-      postScorer, postDefender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty, offenseFive, offenseSpacing,
+      postScorer, postDefender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty, offenseFive, offenseSpacing, defenseBaseScheme,
     });
 
     const cfg = config.tactics.postUp;
-    const doubleTeamEligible = (scorerRating - defenderRating) >= cfg.doubleTeamRatingMargin;
-    const doubleTeamed = doubleTeamEligible && Math.random() < cfg.doubleTeamProbability;
+    const rule = (defenseTacticalProfile && defenseTacticalProfile.defensiveScheme && defenseTacticalProfile.defensiveScheme.postDoubleTeamRule)
+      || cfg.defaultDoubleTeamRule;
+    const doubleTeamed = resolvePostDoubleTeamDecision(rule, scorerRating, defenderRating, config);
 
     let shooter = postScorer;
     let shotDefender = postDefender;
     let assistCandidate = null;
+    let shotAdjustment = 0;
     let read6;
     if (doubleTeamed) {
-      // 7.12.19 (forma simple, reglas completas pendientes en TAC-4): el
-      // doble equipo fuerza un pase de salida — se trata directamente como
-      // "Defensa en rotación" (7.12.11), sin pasar por el sorteo normal de
-      // AdvantageState, porque el doble equipo YA ES la rotación forzada.
+      // 7.12.19 (completo en esta entrega): el ayudante que dobla (ver
+      // pickDoubleTeamHelper) es, por construcción, quien queda
+      // recuperándose de la rotación — es él quien contesta el kick-out
+      // si el postScorer encuentra el hueco (no un segundo sorteo
+      // genérico independiente de "quién está menos atento").
       read6 = 'rotatingDefense';
-      const weakSide = pickWeakSideShooter(offenseFive, postScorer, getAttribute);
-      if (weakSide) {
-        shooter = weakSide;
-        shotDefender = pickLeastContestedDefender(defenseFive, getAttribute);
-        assistCandidate = postScorer;
+      const helper = pickDoubleTeamHelper(defenseFive, postDefender, defenseTacticalProfile, getAttribute);
+      const readSucceeds = resolvePostReadSuccess(postScorer, config, getAttribute);
+      if (readSucceeds) {
+        const weakSide = pickWeakSideShooter(offenseFive, postScorer, getAttribute);
+        if (weakSide) {
+          shooter = weakSide;
+          shotDefender = helper;
+          assistCandidate = postScorer;
+        }
+      } else {
+        // No encontró el hueco: tiro forzado del propio postScorer con
+        // dos defensores encima — penalización de calidad de tiro dentro
+        // del canal ya existente (shotAdjustment), nunca un resolver de
+        // pérdida nuevo (pedido explícito del prompt).
+        shotAdjustment -= cfg.doubleTeamFailedReadPenalty;
       }
     } else {
       read6 = resolveRead6(advantageScore, config);
@@ -1049,7 +1294,7 @@
       shotDefenderPenalty: 0,
       forcedShotType: null,
       assistCandidate,
-      shotAdjustment: 0,
+      shotAdjustment,
       clockCost: 0,
       read6,
       read3: collapseRead6To3(read6),
@@ -1091,10 +1336,13 @@
 
     const defensivePlan = buildDefensivePlan(defenseTacticalProfile, defenseFive, onBallDefender, config, getAttribute);
     const { coverage, screenerDefender } = defensivePlan;
+    // TAC-4 (7.12.14): esquema defensivo base del equipo que defiende —
+    // 'man-to-man'/ausente deja computeZoneAdvantageTerm en 0 (7.12.34).
+    const defenseBaseScheme = defenseTacticalProfile && defenseTacticalProfile.defensiveScheme && defenseTacticalProfile.defensiveScheme.baseScheme;
 
     const advantageScore = computeAdvantageScore({
       handler, screener, onBallDefender, screenerDefender, coverage, config, pressure,
-      computeMixRating, offenseRotationState, defenseRotationState, offenseFive, offenseSpacing,
+      computeMixRating, offenseRotationState, defenseRotationState, offenseFive, offenseSpacing, defenseBaseScheme,
     });
     const read6 = resolveRead6(advantageScore, config);
     const effectiveOnBallDefender = coverage === 'switch' ? screenerDefender : onBallDefender;
@@ -1147,7 +1395,7 @@
       const handlerPenalty = getPenalty(offenseRotationState, handler.id);
       const secondScore = computeIsolationAdvantageScore({
         scorer: handler, defender: effectiveOnBallDefender, config, pressure, computeMixRating,
-        scorerPenalty: handlerPenalty, defenderPenalty: mismatchPenalty, offenseFive, offenseSpacing,
+        scorerPenalty: handlerPenalty, defenderPenalty: mismatchPenalty, offenseFive, offenseSpacing, defenseBaseScheme,
       });
       const secondRead6 = resolveRead6(secondScore, config);
       if (secondRead6 === 'clearDefenseAdvantage' || secondRead6 === 'stableDefense') {
@@ -1171,7 +1419,7 @@
       // (7.12.11).
       const secondScore = computeAdvantageScore({
         handler, screener, onBallDefender, screenerDefender, coverage, config, pressure,
-        computeMixRating, offenseRotationState, defenseRotationState, offenseFive, offenseSpacing,
+        computeMixRating, offenseRotationState, defenseRotationState, offenseFive, offenseSpacing, defenseBaseScheme,
       });
       const secondRead6 = resolveRead6(secondScore, config);
       if (secondRead6 === 'clearOffenseAdvantage' || secondRead6 === 'brokenDefense' || secondRead6 === 'rotatingDefense') {
@@ -1327,6 +1575,19 @@
     selectPlayType,
     resolveTransitionAttempt,
     planTacticalPossession,
+    // TAC-4 (7.12.33): defensa avanzada — catálogos de esquema/press/regla
+    // de doble equipo, matchups individuales, efecto de zona/press/
+    // transición defensiva sobre AdvantageState/shotAdjustment.
+    BASE_SCHEMES,
+    PRESS_TYPES,
+    POST_DOUBLE_TEAM_RULES,
+    resolveMatchupOverride,
+    computeZoneAdvantageTerm,
+    computePressEffect,
+    computeTransitionDefenseAdjustment,
+    pickDoubleTeamHelper,
+    resolvePostDoubleTeamDecision,
+    resolvePostReadSuccess,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
