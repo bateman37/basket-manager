@@ -186,6 +186,124 @@
   const DEFAULT_FAMILIARITY_BY_FAMILY = defaultsFromKeys(PLAY_FAMILIES, FAMILIARITY_DEFAULT);
   const DEFAULT_FAMILIARITY_BY_COVERAGE = defaultsFromKeys(PNR_COVERAGES, FAMILIARITY_DEFAULT);
 
+  // --- TAC-7 (7.12.27): Data Hub táctico — agregado persistente por
+  // equipo, mismo patrón de encaje que `familiarity` (TAC-6): vive dentro
+  // de `TacticalProfile` (`tacticsTelemetry`), se actualiza posesión a
+  // posesión desde `MatchEngine.simulateOnePossessionStep`
+  // (`updateTacticsTelemetryAfterPossession`, más abajo) y se lee para
+  // construir el informe de rival/derivadas de ataque-defensa-lineups
+  // (`summarizeTacticsTelemetry`). Solo se acumulan AGREGADOS (no cada
+  // posesión cruda de cada partido histórico, decisión de encaje explícita
+  // del punto 1 del prompt de esta entrega, "no necesariamente cada
+  // posesión cruda") — el log crudo posesión a posesión vive únicamente
+  // dentro de `MatchState.telemetryLog` mientras dura CADA partido (ver
+  // MatchEngine.js), nunca se persiste entre partidos.
+  const SHOT_ZONES = ['rim', 'midRange', 'three'];
+  // 'none': posesión sin play-type táctico real (bucle 1v1 de siempre) —
+  // se cuenta igual que un play-type más para poder calcular la
+  // FRECUENCIA real de cada uno sobre el total de posesiones ofensivas
+  // (7.12.27, "frecuencia y PPP por play-type"), no solo sobre las
+  // tácticas.
+  const TELEMETRY_PLAY_TYPES = ['pickAndRoll', 'isolation', 'postUp', 'none'];
+
+  function buildEmptyCountPointsStats() {
+    return { possessions: 0, points: 0 };
+  }
+  function buildEmptyShotZoneStats() {
+    return { attempts: 0, made: 0 };
+  }
+  function buildEmptyLineupTelemetryStats() {
+    return {
+      offensePossessions: 0, offensePoints: 0, defensePossessions: 0, defensePointsAllowed: 0,
+      spacingSum: 0, spacingCount: 0,
+    };
+  }
+  function cloneCountPointsGroup(keys, source) {
+    const out = {};
+    keys.forEach((key) => {
+      const src = source && source[key];
+      out[key] = {
+        possessions: Number(src && src.possessions) || 0,
+        points: Number(src && (src.points !== undefined ? src.points : src.pointsAllowed)) || 0,
+      };
+    });
+    return out;
+  }
+  function cloneShotZoneGroup(source) {
+    const out = {};
+    SHOT_ZONES.forEach((key) => {
+      const src = source && source[key];
+      out[key] = { attempts: Number(src && src.attempts) || 0, made: Number(src && src.made) || 0 };
+    });
+    return out;
+  }
+  function cloneCoverageGroup(source) {
+    const out = {};
+    PNR_COVERAGES.forEach((key) => {
+      const src = source && source[key];
+      out[key] = {
+        possessions: Number(src && src.possessions) || 0,
+        pointsAllowed: Number(src && src.pointsAllowed) || 0,
+      };
+    });
+    return out;
+  }
+  // `byPlayDefinition` crece con el catálogo REAL usado (no un catálogo
+  // fijo de claves como el resto de grupos): se clona tal cual llega, sin
+  // forzar ninguna clave concreta — nuevas PLAY_DEFINITIONS futuras no
+  // exigen tocar este shape.
+  function clonePlayDefinitionGroup(source) {
+    const out = {};
+    Object.keys(source || {}).forEach((key) => {
+      const src = source[key];
+      out[key] = { possessions: Number(src.possessions) || 0, points: Number(src.points) || 0 };
+    });
+    return out;
+  }
+  function cloneLineupGroup(source) {
+    const out = {};
+    Object.keys(source || {}).forEach((key) => {
+      const src = source[key] || {};
+      out[key] = {
+        offensePossessions: Number(src.offensePossessions) || 0,
+        offensePoints: Number(src.offensePoints) || 0,
+        defensePossessions: Number(src.defensePossessions) || 0,
+        defensePointsAllowed: Number(src.defensePointsAllowed) || 0,
+        spacingSum: Number(src.spacingSum) || 0,
+        spacingCount: Number(src.spacingCount) || 0,
+      };
+    });
+    return out;
+  }
+
+  function buildTacticsTelemetryAggregate(source) {
+    const s = source || {};
+    const offense = s.offense || {};
+    const defense = s.defense || {};
+    return {
+      games: Number(s.games) || 0,
+      offense: {
+        possessions: Number(offense.possessions) || 0,
+        points: Number(offense.points) || 0,
+        byPlayType: cloneCountPointsGroup(TELEMETRY_PLAY_TYPES, offense.byPlayType),
+        byPlayDefinition: clonePlayDefinitionGroup(offense.byPlayDefinition),
+        shotZones: cloneShotZoneGroup(offense.shotZones),
+        assistedMade: Number(offense.assistedMade) || 0,
+        unassistedMade: Number(offense.unassistedMade) || 0,
+        turnovers: Number(offense.turnovers) || 0,
+        shotQualitySum: Number(offense.shotQualitySum) || 0,
+        shotQualityCount: Number(offense.shotQualityCount) || 0,
+      },
+      defense: {
+        possessions: Number(defense.possessions) || 0,
+        pointsAllowed: Number(defense.pointsAllowed) || 0,
+        byCoverage: cloneCoverageGroup(defense.byCoverage),
+        shotZonesAllowed: cloneShotZoneGroup(defense.shotZonesAllowed),
+      },
+      lineups: cloneLineupGroup(s.lineups),
+    };
+  }
+
   function clampFamiliarityValue(raw, fallback) {
     const num = Number(raw);
     return Number.isFinite(num) ? clamp(num, 0, 100) : fallback;
@@ -350,6 +468,15 @@
         byCoverage: buildOpenNumericGroup(DEFAULT_FAMILIARITY_BY_COVERAGE, familiarityInput.byCoverage),
         byPlayerRole: cloneByPlayerRole(familiarityInput.byPlayerRole),
       };
+
+      // --- TAC-7 (7.12.27): Data Hub táctico — telemetría agregada
+      // persistente, mismo patrón de encaje que `familiarity` arriba (ver
+      // comentario de `buildTacticsTelemetryAggregate`). Empieza en cero
+      // absoluto (a diferencia de `familiarity`, que arranca en un valor
+      // neutro "ni cero ni máximo"): no hay ninguna telemetría real antes
+      // del primer partido jugado, cero no es una aproximación, es el dato
+      // correcto.
+      this.tacticsTelemetry = buildTacticsTelemetryAggregate(data.tacticsTelemetry);
     }
   }
 
@@ -1022,9 +1149,37 @@
       // computeTransitionDefenseAdjustment (más abajo) — no una
       // aproximación distinta solo para mostrar en pantalla.
       transitionDefense: averageMix(five, config.tactics.transitionDefense.retreatMix),
+      // --- TAC-7 (7.12.28, punto 5): Transition Offense/POA Defense/
+      // Tactical Execution, pendientes desde TAC-2/TAC-4. Las dos primeras
+      // son valoraciones de APTITUD de plantilla (igual que el resto de
+      // esta función): se recalculan al cambiar un jugador sin necesitar
+      // ningún partido jugado, así que NO usan `tacticsTelemetry` (esa
+      // telemetría real de PPP/frecuencia en transición vive en
+      // `summarizeTacticsTelemetry`, un informe distinto, de partidos
+      // jugados). POA Defense reutiliza LITERALMENTE
+      // `roles.defensiveMix.poaStopper` (7.12.21) — es exactamente lo que
+      // ese rol ya mide, no una mezcla nueva.
+      transitionOffense: averageMix(five, config.tactics.lineupRatings.transitionOffenseMix),
+      poaDefense: averageMix(five, config.tactics.roles.defensiveMix.poaStopper),
     };
     const out = {};
     Object.entries(raw).forEach(([key, score]) => { out[key] = { score, stars: starsFromScore20(score) }; });
+    // Tactical Execution SÍ depende de `tacticalProfile` (familiaridad de
+    // sistema + eje Rigidez↔Read & React, TAC-6) — no es una mezcla
+    // simple de atributos como el resto de `raw`, así que se calcula
+    // aparte reutilizando LITERALMENTE `computeTacticalExecution` (nunca
+    // un segundo cálculo de ejecución colectiva): "complejidad 0" porque
+    // esta es una foto en reposo del quinteto (sin ninguna jugada concreta
+    // elegida todavía), no la ejecución de una posesión real.
+    const familiarityFactor = tacticalProfile.familiarity
+      ? (tacticalProfile.familiarity.offensiveSystem + tacticalProfile.familiarity.defensiveSystem) / 200
+      : FAMILIARITY_DEFAULT / 100;
+    const rigidityAxis = (tacticalProfile.identity && tacticalProfile.identity.rigidity !== undefined)
+      ? tacticalProfile.identity.rigidity : 50;
+    const tacticalExecutionValue = computeTacticalExecution({
+      participants: five, familiarityFactor, complexity: 0, rigidityAxis, config, getAttribute: getPlayerAttribute,
+    });
+    out.tacticalExecution = { score: tacticalExecutionValue * 20, stars: starsFromScore20(tacticalExecutionValue * 20) };
     return out;
   }
 
@@ -2415,6 +2570,364 @@
     return pickWeighted(candidates, inverseWeightFn);
   }
 
+  // =========================================================================
+  // TAC-7 (DESIGN.md 7.12.33): Data Hub táctico — agregación de telemetría
+  // (7.12.27), derivadas de Ataque/Defensa/Lineups con tamaño de muestra, y
+  // Construcción de identidad CPU (7.12.25, alcance acotado — ver
+  // CHANGELOG de esta entrega). AMPLÍA TAC-1 a TAC-6, no los reescribe.
+  // =========================================================================
+
+  function shotZoneFromShotType(shotType) {
+    if (shotType === 'threePointShot') return 'three';
+    if (shotType === 'midRangeShot') return 'midRange';
+    if (shotType === 'insideShot' || shotType === 'layup') return 'rim';
+    return null;
+  }
+
+  function lineupKeyFromIds(ids) {
+    if (!ids || ids.length === 0) return null;
+    return ids.slice().sort().join('|');
+  }
+
+  // --- Punto de enganche de producción: MatchEngine.simulateOnePossessionStep
+  // llama a esto justo después de updateFamiliarityAfterPossession, con el
+  // registro que construye buildPossessionTelemetryRecord (MatchEngine.js).
+  // Puramente aditivo (7.6, "lectura, no simulación"): nunca llama a
+  // Math.random ni decide nada de la posesión — solo acumula sobre
+  // `profile.tacticsTelemetry` (mismo patrón de mutación in situ que
+  // updateFamiliarityAfterPossession sobre `profile.familiarity`).
+  function updateTacticsTelemetryAfterPossession(offenseProfile, defenseProfile, record, config) {
+    if (!record) return;
+    const zone = shotZoneFromShotType(record.shotType);
+
+    if (offenseProfile && offenseProfile.tacticsTelemetry) {
+      const off = offenseProfile.tacticsTelemetry.offense;
+      off.possessions += 1;
+      off.points += record.points;
+      const playTypeKey = record.playType || 'none';
+      if (!off.byPlayType[playTypeKey]) off.byPlayType[playTypeKey] = buildEmptyCountPointsStats();
+      off.byPlayType[playTypeKey].possessions += 1;
+      off.byPlayType[playTypeKey].points += record.points;
+      if (record.playDefinitionId) {
+        if (!off.byPlayDefinition[record.playDefinitionId]) off.byPlayDefinition[record.playDefinitionId] = buildEmptyCountPointsStats();
+        off.byPlayDefinition[record.playDefinitionId].possessions += 1;
+        off.byPlayDefinition[record.playDefinitionId].points += record.points;
+      }
+      if (zone) {
+        off.shotZones[zone].attempts += 1;
+        if (record.outcome === 'made') off.shotZones[zone].made += 1;
+      }
+      if (record.outcome === 'made') {
+        if (record.assistedById) off.assistedMade += 1; else off.unassistedMade += 1;
+      }
+      if (record.outcome === 'turnover') off.turnovers += 1;
+      if (record.shotQuality !== null && record.shotQuality !== undefined) {
+        off.shotQualitySum += record.shotQuality;
+        off.shotQualityCount += 1;
+      }
+      const offenseLineupKey = lineupKeyFromIds(record.offenseFiveIds);
+      if (offenseLineupKey) {
+        const lineups = offenseProfile.tacticsTelemetry.lineups;
+        if (!lineups[offenseLineupKey]) lineups[offenseLineupKey] = buildEmptyLineupTelemetryStats();
+        lineups[offenseLineupKey].offensePossessions += 1;
+        lineups[offenseLineupKey].offensePoints += record.points;
+        if (record.effectiveSpacing !== null && record.effectiveSpacing !== undefined) {
+          lineups[offenseLineupKey].spacingSum += record.effectiveSpacing;
+          lineups[offenseLineupKey].spacingCount += 1;
+        }
+      }
+    }
+
+    if (defenseProfile && defenseProfile.tacticsTelemetry) {
+      const def = defenseProfile.tacticsTelemetry.defense;
+      def.possessions += 1;
+      def.pointsAllowed += record.points;
+      if (record.coverage) {
+        if (!def.byCoverage[record.coverage]) def.byCoverage[record.coverage] = { possessions: 0, pointsAllowed: 0 };
+        def.byCoverage[record.coverage].possessions += 1;
+        def.byCoverage[record.coverage].pointsAllowed += record.points;
+      }
+      if (zone) {
+        def.shotZonesAllowed[zone].attempts += 1;
+        if (record.outcome === 'made') def.shotZonesAllowed[zone].made += 1;
+      }
+      const defenseLineupKey = lineupKeyFromIds(record.defenseFiveIds);
+      if (defenseLineupKey) {
+        const lineups = defenseProfile.tacticsTelemetry.lineups;
+        if (!lineups[defenseLineupKey]) lineups[defenseLineupKey] = buildEmptyLineupTelemetryStats();
+        lineups[defenseLineupKey].defensePossessions += 1;
+        lineups[defenseLineupKey].defensePointsAllowed += record.points;
+      }
+    }
+  }
+
+  // --- Derivadas con tamaño de muestra (7.12.27, "regla dura... toda
+  // métrica derivada debe poder mostrar su tamaño de muestra junto al
+  // valor"). `n` es SIEMPRE el número de posesiones (o partidos, en el
+  // caso de `games`) que sustentan el valor — nunca se devuelve una
+  // derivada sin su `n` acompañante. ---
+  function ppp(points, possessions) {
+    return possessions > 0 ? points / possessions : null;
+  }
+  function pct(made, attempts) {
+    return attempts > 0 ? made / attempts : null;
+  }
+  function isSmallSample(games, possessions, config) {
+    const cfg = config.tactics.telemetry;
+    return games < cfg.minReliableGames || possessions < cfg.minReliablePossessions;
+  }
+
+  // Informe completo de un TacticalProfile — consumido por la sub-pestaña
+  // Rival (game.js) y, en principio, por cualquier pantalla futura que
+  // necesite las mismas derivadas para el propio equipo. Estructura
+  // deliberada en dos "capas" (7.12.27, gancho de Scouting futuro, ver
+  // CHANGELOG de esta entrega): esta función siempre devuelve el dato
+  // CALCULADO completo — cualquier ocultado/difuminado por una futura capa
+  // de Scouting (6.2.2 punto 5, no implementada) debe vivir en la CAPA DE
+  // PRESENTACIÓN (game.js), decidiendo qué de este objeto se muestra, sin
+  // tener que rediseñar este shape.
+  function summarizeTacticsTelemetry(profile, config) {
+    const telemetry = profile && profile.tacticsTelemetry;
+    if (!telemetry) return null;
+    const { games } = telemetry;
+    const off = telemetry.offense;
+    const def = telemetry.defense;
+
+    const byPlayType = {};
+    TELEMETRY_PLAY_TYPES.forEach((key) => {
+      const stats = off.byPlayType[key];
+      byPlayType[key] = {
+        possessions: stats.possessions,
+        frequency: pct(stats.possessions, off.possessions),
+        ppp: ppp(stats.points, stats.possessions),
+        n: stats.possessions,
+      };
+    });
+
+    const byPlayDefinition = {};
+    Object.keys(off.byPlayDefinition).forEach((id) => {
+      const stats = off.byPlayDefinition[id];
+      byPlayDefinition[id] = { possessions: stats.possessions, ppp: ppp(stats.points, stats.possessions), n: stats.possessions };
+    });
+
+    const shotProfile = {};
+    let shotAttemptsTotal = 0;
+    SHOT_ZONES.forEach((zone) => { shotAttemptsTotal += off.shotZones[zone].attempts; });
+    SHOT_ZONES.forEach((zone) => {
+      const stats = off.shotZones[zone];
+      shotProfile[zone] = {
+        frequency: pct(stats.attempts, shotAttemptsTotal),
+        fgPercent: pct(stats.made, stats.attempts),
+        n: stats.attempts,
+      };
+    });
+
+    const shotProfileAllowed = {};
+    let shotAttemptsAllowedTotal = 0;
+    SHOT_ZONES.forEach((zone) => { shotAttemptsAllowedTotal += def.shotZonesAllowed[zone].attempts; });
+    SHOT_ZONES.forEach((zone) => {
+      const stats = def.shotZonesAllowed[zone];
+      shotProfileAllowed[zone] = {
+        frequency: pct(stats.attempts, shotAttemptsAllowedTotal),
+        fgPercentAllowed: pct(stats.made, stats.attempts),
+        n: stats.attempts,
+      };
+    });
+
+    const byCoverage = {};
+    PNR_COVERAGES.forEach((coverage) => {
+      const stats = def.byCoverage[coverage];
+      byCoverage[coverage] = {
+        possessions: stats.possessions,
+        frequency: pct(stats.possessions, def.possessions),
+        pppAllowed: ppp(stats.pointsAllowed, stats.possessions),
+        n: stats.possessions,
+      };
+    });
+
+    const lineups = Object.keys(telemetry.lineups).map((key) => {
+      const l = telemetry.lineups[key];
+      return {
+        lineupKey: key,
+        offensePossessions: l.offensePossessions,
+        defensePossessions: l.defensePossessions,
+        offensiveRating: l.offensePossessions > 0 ? (l.offensePoints / l.offensePossessions) * 100 : null,
+        defensiveRating: l.defensePossessions > 0 ? (l.defensePointsAllowed / l.defensePossessions) * 100 : null,
+        netRating: (l.offensePossessions > 0 && l.defensePossessions > 0)
+          ? ((l.offensePoints / l.offensePossessions) - (l.defensePointsAllowed / l.defensePossessions)) * 100
+          : null,
+        averageEffectiveSpacing: l.spacingCount > 0 ? l.spacingSum / l.spacingCount : null,
+        n: Math.min(l.offensePossessions, l.defensePossessions === 0 ? l.offensePossessions : l.defensePossessions),
+      };
+    }).sort((a, b) => (b.offensePossessions + b.defensePossessions) - (a.offensePossessions + a.defensePossessions));
+
+    return {
+      games,
+      smallSample: isSmallSample(games, off.possessions, config),
+      offense: {
+        possessions: off.possessions,
+        pointsPerPossession: ppp(off.points, off.possessions),
+        byPlayType,
+        byPlayDefinition,
+        shotProfile,
+        assistedFgPercent: pct(off.assistedMade, off.assistedMade + off.unassistedMade),
+        turnoverRate: pct(off.turnovers, off.possessions),
+        averageShotQuality: off.shotQualityCount > 0 ? off.shotQualitySum / off.shotQualityCount : null,
+        shotQualityN: off.shotQualityCount,
+        n: off.possessions,
+      },
+      defense: {
+        possessions: def.possessions,
+        pointsPerPossessionAllowed: ppp(def.pointsAllowed, def.possessions),
+        byCoverage,
+        shotProfileAllowed,
+        // "eficiencia de mismatch concedida" (7.12.27): aproximación
+        // explícita de esta entrega — PPP concedido específicamente en
+        // posesiones resueltas con cobertura Switch (el mismatch real que
+        // el motor modela hoy, 7.12.31 invariante 3), no un cálculo
+        // separado nuevo. Señalado explícitamente: 7.12.27 no da una
+        // fórmula cerrada de "mismatch efficiency", esta es la lectura más
+        // directa posible con los datos ya agregados arriba.
+        mismatchEfficiencyAllowed: { pppAllowed: byCoverage.switch.pppAllowed, n: byCoverage.switch.n },
+        n: def.possessions,
+      },
+      lineups,
+    };
+  }
+
+  // --- Construcción de identidad CPU (7.12.25, alcance acotado a esta
+  // entrega — ver CHANGELOG). Se llama UNA VEZ por equipo CPU al empezar
+  // partida/pretemporada (game.js, startSeason()), NUNCA cada partido — el
+  // `tacticalProfile` que devuelve sustituye por completo al default
+  // universal que construye `new TacticalProfile()`. Evalúa la PLANTILLA
+  // REAL (`team.roster` completo, no solo 5 titulares: 7.12.25 dice
+  // "evalúa... distribución de roles disponibles", no "el quinteto en
+  // pista") usando `roleFit`/`bestRolesForPlayer` YA EXISTENTES — nunca
+  // inventa un segundo cálculo de encaje (mismo dato que la pantalla de
+  // Roles del usuario mostraría para esta plantilla). NO toca el
+  // TacticalProfile del equipo del usuario (game.js decide a quién llamar
+  // esto, este módulo no sabe qué equipo es "del usuario").
+  function bestRoleFitInRoster(roster, roleId, config) {
+    return roster.reduce((best, player) => Math.max(best, roleFit(player, roleId, config).score), 0);
+  }
+
+  // Jugador CONCRETO con mejor `roleFit` de un rol, no solo su puntuación —
+  // necesario para comprobar un atributo distinto (movilidad física) del
+  // MISMO jugador que encaja mejor en el rol, en vez de mezclar el mejor
+  // encaje de un jugador con la movilidad de otro (7.12.25, ejemplo
+  // literal "pívot protector lento": el protector Y su propia movilidad,
+  // no dos jugadores distintos).
+  function findBestPlayerForRole(roster, roleId, config) {
+    let bestPlayer = roster[0];
+    let bestScore = -Infinity;
+    roster.forEach((player) => {
+      const score = roleFit(player, roleId, config).score;
+      if (score > bestScore) { bestScore = score; bestPlayer = player; }
+    });
+    return { player: bestPlayer, score: bestScore };
+  }
+
+  // Sesgo de `clubDNA` (6.2.8) — texto exacto contra el catálogo de
+  // `config.tactics.cpuIdentity.dnaBias` (mismo criterio de mapeo por
+  // texto exacto que `config.tempo.dnaBias`, TAC-1): un ADN no listado no
+  // aplica ningún sesgo. "Sesgo, no orden obligatoria" (7.12.25, cita
+  // literal): se suma/resta sobre la dirección que YA decidió la
+  // evaluación de plantilla más abajo, nunca la sustituye.
+  function resolveClubDnaBias(clubDNA, config) {
+    return (config.tactics.cpuIdentity.dnaBias && config.tactics.cpuIdentity.dnaBias[clubDNA]) || { pace: 0, pickAndRollUsage: 0, pressActive: 0 };
+  }
+
+  function buildCpuTacticalIdentity(team, config) {
+    const roster = team.roster;
+    if (!roster || roster.length === 0) return new TacticalProfile();
+    const cfg = config.tactics.cpuIdentity;
+    const dnaBias = resolveClubDnaBias(team.clubDNA, config);
+    const specialist = cfg.specialistThreshold;
+
+    // --- Señales de plantilla (7.12.25, lista literal del punto 4) ---
+    // Cada señal de "PRESENCIA de especialista" usa `roleFit` (mezcla de
+    // atributos + competencia posicional, ya existente) contra un umbral
+    // fijo — un jugador cualquiera en su posición "natural" con atributos
+    // neutros ya puntúa por debajo de `specialistThreshold` gracias al
+    // peso combinado (verificado con el script de esta entrega), así que
+    // el umbral distingue un especialista real de "alguien que ocupa esa
+    // posición sin más".
+    // Creador real: mejor base/escolta como manejador de P&R.
+    const creatorScore = Math.max(bestRoleFitInRoster(roster, 'primaryCreator', config), bestRoleFitInRoster(roster, 'pnrHandler', config));
+    // Interiores con encaje de Roll/Pop (7.12.25: "pívot móvil").
+    const mobileBigScore = Math.max(bestRoleFitInRoster(roster, 'rollMan', config), bestRoleFitInRoster(roster, 'pickAndPopBig', config));
+    // Interior tradicional dominante (Post).
+    const traditionalBigScore = bestRoleFitInRoster(roster, 'postScorer', config);
+    // Tiro/spacers: mejor spot-up/movement shooter (amenaza real de tiro).
+    const shooterScore = Math.max(bestRoleFitInRoster(roster, 'spotUpShooter', config), bestRoleFitInRoster(roster, 'movementShooter', config));
+    // Movilidad/switchability perimetral (wings) — defensa.
+    const perimeterMobilityScore = Math.max(bestRoleFitInRoster(roster, 'switchDefender', config), bestRoleFitInRoster(roster, 'perimeterDisruptor', config));
+    // Protector de aro LENTO (7.12.25, ejemplo literal "pívot protector
+    // lento"): el jugador con mejor encaje de `rimProtector` es un
+    // especialista real (roleFit) Y, ESE MISMO jugador, tiene movilidad
+    // física baja (Agilidad+Aceleración medias, escala 1-20 pura — sin
+    // blend de posición, a diferencia de roleFit, para no repetir el
+    // mismo suelo que ya distorsiona `weakThreshold` contra roleFit).
+    const rimProtectorBest = findBestPlayerForRole(roster, 'rimProtector', config);
+    const rimProtectorMobility = (getPlayerAttribute(rimProtectorBest.player, 'agility') + getPlayerAttribute(rimProtectorBest.player, 'acceleration')) / 2;
+    const isSlowRimProtector = rimProtectorBest.score >= specialist && rimProtectorMobility < cfg.weakThreshold;
+    // Energía/edad de rotación: media de Energía actual y edad de TODA la
+    // plantilla (7.12.25, "Energía/edad de rotación" — señal de fondo de
+    // banco, no solo del quinteto titular).
+    const averageEnergy = roster.reduce((sum, p) => sum + p.dynamicState.energy, 0) / roster.length;
+    const averageAge = roster.reduce((sum, p) => sum + p.age, 0) / roster.length;
+    const isYoungAthleticRoster = averageAge < 27 && averageEnergy >= 55;
+
+    // --- Dirección (7.12.25, los 4 ejemplos literales como guía) ---
+    // 1. Base creador + interiores móviles + tiradores -> más P&R/spacing abierto.
+    const hasCreatorPnrShooters = creatorScore >= specialist && mobileBigScore >= specialist && shooterScore >= specialist;
+    // 2. Interior dominante + poco tiro -> más Post/spacing cerrado. "Poco
+    // tiro" se lee como AUSENCIA de un especialista de tiro real (no un
+    // roleFit forzado a un mínimo inalcanzable por el suelo posicional),
+    // mismo umbral `specialist` que el resto de señales de presencia.
+    const hasDominantBigWeakShooting = traditionalBigScore >= specialist && shooterScore < specialist;
+    // 3. Muchos wings móviles -> más switch/press/transition.
+    const hasMobileWings = perimeterMobilityScore >= specialist;
+
+    let spacing = DEFAULT_SPACING;
+    if (hasDominantBigWeakShooting) spacing = '3-out-2-in';
+    else if (hasCreatorPnrShooters) spacing = mobileBigScore >= specialist + 3 ? '5-out' : '4-out-1-in';
+
+    const playTypeWeights = { ...DEFAULT_PLAY_TYPE_WEIGHTS };
+    if (hasCreatorPnrShooters) playTypeWeights.pickAndRoll += 15;
+    if (hasDominantBigWeakShooting) { playTypeWeights.postUp += 15; playTypeWeights.pickAndRoll -= 5; }
+    if (creatorScore < specialist) playTypeWeights.isolation += 5;
+    if (hasMobileWings) playTypeWeights.transition += 10;
+
+    const identity = { ...DEFAULT_IDENTITY };
+    identity.pickAndRollUsage = clamp(
+      DEFAULT_IDENTITY.pickAndRollUsage + (hasCreatorPnrShooters ? 15 : 0) + (hasDominantBigWeakShooting ? -10 : 0) + dnaBias.pickAndRollUsage,
+      0, 100,
+    );
+    identity.pace = clamp(DEFAULT_IDENTITY.pace + (hasMobileWings || isYoungAthleticRoster ? 10 : 0) + dnaBias.pace, 0, 100);
+
+    // 4. Pívot protector lento -> más Drop que Switch Everything; wings
+    // móviles -> más Switch/press. Un pívot protector lento pesa MÁS que
+    // wings móviles para esta decisión concreta (7.12.31 invariante 3/4:
+    // un Switch con un pívot lento real detrás sería una combinación
+    // rota, no una decisión táctica válida — regresión explícita del
+    // prompt de esta entrega).
+    let pnrCoverage = 'drop'; // por defecto (7.12.16, cobertura real más habitual — mismo criterio que defaultCoverage)
+    if (isSlowRimProtector) pnrCoverage = 'drop';
+    else if (hasMobileWings) pnrCoverage = 'switch';
+
+    const pressActiveProbability = clamp((hasMobileWings ? 0.5 : 0.15) + dnaBias.pressActive, 0, 1);
+    const pressActive = Math.random() < pressActiveProbability;
+
+    return new TacticalProfile({
+      spacing,
+      pnrCoverage,
+      identity,
+      playTypeWeights,
+      defensiveScheme: { baseScheme: 'man-to-man', press: { active: pressActive, type: 'halfCourt' } },
+    });
+  }
+
   const exportsObj = {
     TacticalProfile,
     PNR_COVERAGES,
@@ -2491,6 +3004,14 @@
     computeTurnoverExecutionMultiplier,
     resolveDefensiveExecutionOverride,
     degradeRead6,
+    // TAC-7 (7.12.33): Data Hub táctico — telemetría agregada, derivadas
+    // con tamaño de muestra e informe de rival, y Construcción de
+    // identidad CPU (7.12.25, alcance acotado).
+    SHOT_ZONES,
+    TELEMETRY_PLAY_TYPES,
+    updateTacticsTelemetryAfterPossession,
+    summarizeTacticsTelemetry,
+    buildCpuTacticalIdentity,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

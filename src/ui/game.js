@@ -70,6 +70,11 @@
     matchReveal: null, // estado de revelado progresivo por cuartos de la pantalla de partido
     statsCompetition: 'league', // 'league' | 'cup' | 'playoffs' — selector de la pantalla de estadísticas
     statsSortKey: 'points', // columna activa de ordenación en la tabla de medias (retoques de estadísticas)
+    // DESIGN.md 7.12.25/7.12.32 (TAC-7): equipo elegido manualmente en el
+    // selector de la sub-pestaña Rival — `null` deja que
+    // renderTacticsRivalTab() elija automáticamente el próximo rival de
+    // liga (getNextLeagueOpponent()) cuando se conoce.
+    tacticsRivalTeamId: null,
     // Alineación (DESIGN.md 7.11.6) — construida por el usuario en la pantalla
     // "Alineación", opcional: si se deja vacía/incompleta, el partido se juega
     // igual que hasta ahora (placeholder sin lineup real, ver MatchEngine.js).
@@ -208,6 +213,22 @@
       // el primer cierre de ciclo. Arrancar una partida es, conceptualmente,
       // también una "pretemporada" (antes de jugar ninguna jornada).
       recalculateSportingGoalsForDivision(teams, CONFIG_BASE);
+      // DESIGN.md 7.12.25 (TAC-7, alcance acotado — Construcción de
+      // identidad CPU): se calcula UNA VEZ por equipo, aquí mismo, "arrancar
+      // una partida nueva" es la pretemporada conceptual de esta primera
+      // temporada (mismo criterio que sportingGoal, línea de arriba) — NO
+      // se repite cada partido (`CpuLineup.js` decide quinteto/minutos
+      // PARTIDO A PARTIDO reutilizando el `tacticalProfile` ya asignado
+      // aquí, no vuelve a calcular identidad, ver CpuLineup.js sin tocar).
+      // Persiste sola en `closeSeasonAndPrepareNext()`: esa función reutiliza
+      // las MISMAS instancias de Team (nunca las reconstruye desde el
+      // bundle), así que `team.tacticalProfile` sobrevive a cada cierre de
+      // ciclo sin ningún enganche adicional. Nunca se toca el equipo del
+      // usuario (`teamId`, el que está a punto de elegir esta llamada).
+      teams.forEach((team) => {
+        if (team.id === teamId) return;
+        team.tacticalProfile = BM.buildCpuTacticalIdentity(team, CONFIG_BASE);
+      });
       state.leagues[div] = new League(teams, (round) => state.calendar.leagueRoundDate(round));
     });
 
@@ -219,6 +240,7 @@
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
     state.matchReveal = null;
+    state.tacticsRivalTeamId = null;
     state.lineup = {
       squadIds: [],
       entries: buildEmptyLineupEntries(),
@@ -1634,13 +1656,13 @@
   // TAC-6 (7.12.22/7.12.32): sección de solo lectura — la familiaridad NO
   // se declara, se gana jugando partidos reales (nunca un editor aquí,
   // pedido explícito de esta entrega). Muestra familiaridad ofensiva/
-  // defensiva global y las 2-3 familias/coberturas más usadas HASTA AHORA
-  // — como no se registra un contador de uso aparte (7.12.34, decisión de
-  // encaje: no se guarda telemetría de frecuencia todavía, eso es TAC-7/
-  // Data Hub), se aproxima con la MAYOR desviación absoluta respecto al
-  // valor de partida (`FAMILIARITY_DEFAULT`) — una familia/cobertura que
-  // nunca se ha usado se queda exactamente en ese valor de partida, así
-  // que cualquier desviación real solo puede venir de haberla jugado.
+  // defensiva global y las 2-3 familias/coberturas más USADAS HASTA AHORA.
+  // TAC-6 solo tenía la aproximación por desviación de familiaridad (sin
+  // contador de frecuencia real); **corregido en TAC-7**: con
+  // `tacticsTelemetry` ya construido (7.12.27), "más usadas" se calcula
+  // ahora con el CONTADOR REAL de posesiones por familia/cobertura, no una
+  // aproximación — la nota de TAC-6/7.12.34 sobre esto queda cerrada, ver
+  // CHANGELOG de esta entrega.
   function familiarityBarHtml(label, level) {
     const rounded = Math.round(level);
     return `
@@ -1651,12 +1673,17 @@
       </div>`;
   }
 
-  function topFamiliarityEntries(group, labels, defaultValue, topN) {
-    return Object.keys(group)
-      .map((key) => ({ key, level: group[key], deviation: Math.abs(group[key] - defaultValue) }))
-      .sort((a, b) => b.deviation - a.deviation)
+  // TAC-7 (7.12.27): ordena por USO REAL (posesiones registradas en
+  // `tacticsTelemetry`), no por desviación de familiaridad — `usageGroup`
+  // es `tacticsTelemetry.offense.byPlayType`/`defense.byCoverage` (mismo
+  // catálogo de claves que `familiarityGroup`, construidos juntos en
+  // `TacticalProfile`).
+  function topUsedFamiliarityEntries(familiarityGroup, usageGroup, labels, topN) {
+    return Object.keys(familiarityGroup)
+      .map((key) => ({ key, level: familiarityGroup[key], uses: (usageGroup[key] && usageGroup[key].possessions) || 0 }))
+      .sort((a, b) => b.uses - a.uses)
       .slice(0, topN)
-      .map((entry) => ({ label: labels[entry.key] || entry.key, level: entry.level, used: entry.deviation > 0.5 }));
+      .map((entry) => ({ label: labels[entry.key] || entry.key, level: entry.level, used: entry.uses > 0 }));
   }
 
   function renderFamiliaritySection(profile) {
@@ -1667,14 +1694,15 @@
       // no debe romperse si algún día aparece uno.
       return '';
     }
-    const topFamilies = topFamiliarityEntries(fam.byPlayFamily, FAMILIARITY_FAMILY_LABELS, BM.FAMILIARITY_DEFAULT, 3);
-    const topCoverages = topFamiliarityEntries(fam.byCoverage, PNR_COVERAGE_LABELS, BM.FAMILIARITY_DEFAULT, 3);
+    const telemetry = profile.tacticsTelemetry;
+    const topFamilies = topUsedFamiliarityEntries(fam.byPlayFamily, telemetry.offense.byPlayType, FAMILIARITY_FAMILY_LABELS, 3);
+    const topCoverages = topUsedFamiliarityEntries(fam.byCoverage, telemetry.defense.byCoverage, PNR_COVERAGE_LABELS, 3);
     const familiesHtml = topFamilies.some((e) => e.used)
       ? topFamilies.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level)).join('')
-      : '<p class="gm-muted">Todavía sin partidos jugados con ninguna familia de jugada por encima del punto de partida.</p>';
+      : '<p class="gm-muted">Todavía sin partidos jugados con ninguna familia de jugada registrada.</p>';
     const coveragesHtml = topCoverages.some((e) => e.used)
       ? topCoverages.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level)).join('')
-      : '<p class="gm-muted">Todavía sin partidos jugados contra ninguna cobertura rival por encima del punto de partida.</p>';
+      : '<p class="gm-muted">Todavía sin partidos jugados contra ninguna cobertura rival registrada.</p>';
 
     return `
       <div class="gm-card">
@@ -1682,9 +1710,9 @@
         <p class="gm-muted">Cuánto domina el equipo la táctica declarada arriba — sube jugando partidos reales, no se edita aquí (DESIGN.md 7.12.22).</p>
         ${familiarityBarHtml('Sistema ofensivo', fam.offensiveSystem)}
         ${familiarityBarHtml('Sistema defensivo', fam.defensiveSystem)}
-        <h4>Familias de jugada más entrenadas</h4>
+        <h4>Familias de jugada más usadas</h4>
         ${familiesHtml}
-        <h4>Coberturas defensivas más entrenadas</h4>
+        <h4>Coberturas defensivas más usadas</h4>
         ${coveragesHtml}
       </div>`;
   }
@@ -1974,6 +2002,182 @@
       </div>`;
   }
 
+  // --- DESIGN.md 7.12.25 (fase de scouting) / 7.12.32 (TAC-7): sub-pestaña
+  // Rival — informe de scouting táctico. Séptima y última vista de la
+  // pantalla de Tácticas (7.12.32 la describe como "GamePlan, matchups e
+  // informe de scouting/análisis" — esta entrega cubre la parte de
+  // informe/análisis; GamePlan/matchups de PARTIDO ya existen en la
+  // ventana de intervención del partido en vivo, TAC-5, sin tocar aquí).
+  const TELEMETRY_PLAY_TYPE_LABELS = { ...PLAY_TYPE_LABELS, none: 'Sin jugada táctica (1v1)' };
+
+  // Próximo rival de LIGA del usuario (7.12.25: "el mismo informe... que
+  // está disponible al usuario" se construye igual para cualquier rival,
+  // pero esta pantalla necesita saber A QUIÉN mirar primero) —
+  // `league.getCurrentRoundMatches()` es una consulta pura ya usada en
+  // Home/Calendario (sin tocar League.js), devuelve los MISMOS objetos
+  // Team en memoria que la liga, nunca una reconstrucción desde el bundle
+  // (a diferencia de `getAllRealTeamsForMatchupTarget()`, que sí
+  // reconstruye — no vale para esto, perdería toda la telemetría/perfil
+  // real acumulado). `null` si el usuario descansa esta jornada o la liga
+  // ya terminó — la pantalla cae a un selector manual (ver
+  // renderTacticsRivalTab).
+  function getNextLeagueOpponent(team) {
+    const league = getUserLeague();
+    if (!league || league.isSeasonComplete) return null;
+    const match = league.getCurrentRoundMatches().find(
+      (m) => m.homeTeam.id === team.id || m.awayTeam.id === team.id,
+    );
+    if (!match) return null;
+    return match.homeTeam.id === team.id ? match.awayTeam : match.homeTeam;
+  }
+
+  // Mapeo INTERPRETATIVO rol ofensivo -> contraparte defensiva más
+  // directa, señalado explícitamente como decisión de encaje propia
+  // (7.12.34: 7.12.25/7.12.32 no cierran qué rol defensivo "responde" a
+  // cada rol ofensivo) — usado SOLO para decidir QUÉ DOS valoraciones ya
+  // calculadas por `Tactics.roleFit` se comparan en la tabla de
+  // mismatches; el número en sí nunca se recalcula aquí, siempre viene de
+  // `roleFit` (pedido explícito del prompt: "reutiliza roleFit... no
+  // inventes un segundo cálculo de encaje").
+  const OFFENSE_TO_DEFENSE_COUNTERPART = {
+    primaryCreator: 'poaStopper', secondaryCreator: 'poaStopper', pnrHandler: 'poaStopper',
+    isolationScorer: 'poaStopper', slasher: 'poaStopper',
+    spotUpShooter: 'screenNavigator', movementShooter: 'screenNavigator', connector: 'nailHelper',
+    postScorer: 'postAnchor', postHub: 'postAnchor', rollMan: 'rimProtector', shortRollPlaymaker: 'rimProtector',
+    pickAndPopBig: 'switchDefender', primaryScreener: 'lowMan', offensiveRebounder: 'defensiveRebounder',
+  };
+
+  // Mismatches potenciales contra el quinteto propio (7.12.25): para cada
+  // titular propio, su MEJOR rol ofensivo (bestRolesForPlayer, ya
+  // existente) contra el mejor encaje rival en la contraparte defensiva
+  // directa (roleFit, ya existente, sobre TODA la plantilla rival — el
+  // rival puede defender con cualquiera de sus convocados, no solo un
+  // quinteto fijo). "Posible ventaja" cuando la diferencia de estrellas es
+  // de al menos 2 — umbral propio, pendiente de calibración/decisión
+  // (7.12.34).
+  function computeMismatchRows(ownFive, rivalTeam, config) {
+    return ownFive.map((player) => {
+      const bestOffense = BM.bestRolesForPlayer(player, 'offensive', config, 1)[0];
+      const counterpartRoleId = OFFENSE_TO_DEFENSE_COUNTERPART[bestOffense.roleId] || 'poaStopper';
+      let bestDefender = null;
+      let bestDefenderFit = null;
+      rivalTeam.roster.forEach((rivalPlayer) => {
+        const fit = BM.roleFit(rivalPlayer, counterpartRoleId, config);
+        if (!bestDefenderFit || fit.score > bestDefenderFit.score) { bestDefenderFit = fit; bestDefender = rivalPlayer; }
+      });
+      return {
+        player, offenseRole: bestOffense, counterpartRoleId, defender: bestDefender, defenderFit: bestDefenderFit,
+        advantage: bestOffense.stars - bestDefenderFit.stars >= 2,
+      };
+    });
+  }
+
+  function smallSampleBadgeHtml(n, config) {
+    const cfg = config.tactics.telemetry;
+    if (n >= cfg.minReliablePossessions) return '';
+    return ` <span class="tactics-small-sample-badge" title="Menos de ${cfg.minReliablePossessions} posesiones registradas — no lo tomes como una verdad táctica estable todavía">muestra pequeña (n=${n})</span>`;
+  }
+
+  function pctHtml(value) {
+    return value === null || value === undefined ? '—' : `${Math.round(value * 100)}%`;
+  }
+  function pppHtml(value) {
+    return value === null || value === undefined ? '—' : value.toFixed(2);
+  }
+
+  function renderTacticsRivalTab(team) {
+    const { CONFIG_BASE } = BM;
+    const autoOpponent = getNextLeagueOpponent(team);
+    const leagueTeams = (getUserLeague() ? getUserLeague().teams : []).filter((t) => t.id !== team.id);
+    const selectedId = state.tacticsRivalTeamId || (autoOpponent ? autoOpponent.id : (leagueTeams[0] && leagueTeams[0].id));
+    const rivalTeam = leagueTeams.find((t) => t.id === selectedId);
+
+    const optionsHtml = leagueTeams.map((t) => `
+      <option value="${t.id}" ${t.id === selectedId ? 'selected' : ''}>${t.fullName}${autoOpponent && t.id === autoOpponent.id ? ' (próximo rival de liga)' : ''}</option>`).join('');
+
+    const selectorHtml = `
+      <div class="gm-card">
+        <h3>Rival</h3>
+        <select id="tactics-rival-select">${optionsHtml}</select>
+        <p class="gm-muted">Informe estadístico objetivo del rival (DESIGN.md 7.12.25: "el mismo informe... disponible al usuario, para evitar asimetría de información" — la CPU rival vería exactamente el mismo tipo de informe sobre tu equipo). Se selecciona automáticamente tu próximo rival de liga cuando se conoce; puedes elegir otro equipo de tu división para explorarlo igual.</p>
+      </div>`;
+
+    if (!rivalTeam) {
+      return `${selectorHtml}<div class="gm-card"><p class="gm-muted">No hay ningún otro equipo disponible en tu liga todavía.</p></div>`;
+    }
+
+    const summary = BM.summarizeTacticsTelemetry(rivalTeam.tacticalProfile, CONFIG_BASE);
+    // DESIGN.md 7.12.27 ("no presentar 2 posesiones, 1.50 PPP como una
+    // verdad táctica estable", cita literal): alerta de muestra pequeña
+    // OBLIGATORIA a nivel de informe completo, además del badge por
+    // métrica individual (`smallSampleBadgeHtml`) — un rival recién
+    // ascendido o en las primeras jornadas de temporada no tiene historial
+    // real todavía.
+    const smallSampleBannerHtml = summary.smallSample
+      ? `<div class="tactics-small-sample-banner">⚠ Muestra pequeña: ${summary.games} partido(s)/${summary.offense.possessions} posesiones registradas contra este rival. Los datos de abajo son una tendencia inicial, no una verdad táctica estable todavía — no tomes 1-2 partidos como un patrón fijo.</div>`
+      : '';
+
+    const playTypeRowsHtml = BM.TELEMETRY_PLAY_TYPES.map((key) => {
+      const stats = summary.offense.byPlayType[key];
+      return `<tr><td>${TELEMETRY_PLAY_TYPE_LABELS[key] || key}</td><td>${pctHtml(stats.frequency)}</td><td>${pppHtml(stats.ppp)}${smallSampleBadgeHtml(stats.n, CONFIG_BASE)}</td></tr>`;
+    }).join('');
+
+    const coverageRowsHtml = BM.PNR_COVERAGES.map((coverage) => {
+      const stats = summary.defense.byCoverage[coverage];
+      return `<tr><td>${PNR_COVERAGE_LABELS[coverage] || coverage}</td><td>${pctHtml(stats.frequency)}</td><td>${pppHtml(stats.pppAllowed)}${smallSampleBadgeHtml(stats.n, CONFIG_BASE)}</td></tr>`;
+    }).join('');
+
+    const shotZoneLabels = { rim: 'Cerca del aro', midRange: 'Media distancia', three: 'Triple' };
+    const shotProfileRowsHtml = BM.SHOT_ZONES.map((zone) => {
+      const own = summary.offense.shotProfile[zone];
+      const allowed = summary.defense.shotProfileAllowed[zone];
+      return `<tr><td>${shotZoneLabels[zone]}</td><td>${pctHtml(own.frequency)} (${pctHtml(own.fgPercent)} de acierto)</td><td>${pctHtml(allowed.frequency)} (${pctHtml(allowed.fgPercentAllowed)} de acierto permitido)</td></tr>`;
+    }).join('');
+
+    const ownFive = getStarterFive(team);
+    const mismatchHtml = ownFive.length < 5
+      ? '<p class="gm-muted">Completa tu quinteto titular en la pantalla de Alineación para ver mismatches potenciales.</p>'
+      : `<table class="gm-table tactics-mismatch-table"><thead><tr><th>Tu jugador</th><th>Su mejor rol</th><th>Mejor defensor rival</th><th></th></tr></thead><tbody>${
+        computeMismatchRows(ownFive, rivalTeam, CONFIG_BASE).map((row) => `
+          <tr class="${row.advantage ? 'tactics-mismatch-advantage' : ''}">
+            <td>${row.player.fullName}</td>
+            <td>${row.offenseRole.label} ${starsHtml(row.offenseRole.stars)}</td>
+            <td>${row.defender.fullName} ${starsHtml(row.defenderFit.stars)}</td>
+            <td>${row.advantage ? 'Posible ventaja' : ''}</td>
+          </tr>`).join('')
+      }</tbody></table>`;
+
+    const bestLineup = summary.lineups[0];
+
+    return `
+      ${selectorHtml}
+      ${smallSampleBannerHtml}
+      <div class="gm-card">
+        <h3>Play-types dominantes (ataque)</h3>
+        <table class="gm-table"><thead><tr><th>Play-type</th><th>Frecuencia</th><th>PPP</th></tr></thead><tbody>${playTypeRowsHtml}</tbody></table>
+        <p class="gm-muted">Tiro exterior/interior asistido: ${pctHtml(summary.offense.assistedFgPercent)} · Pérdidas por posesión: ${pctHtml(summary.offense.turnoverRate)} · Calidad de tiro media (aproximación por AdvantageState, 7.12.34): ${summary.offense.averageShotQuality !== null ? summary.offense.averageShotQuality.toFixed(2) : '—'}${smallSampleBadgeHtml(summary.offense.shotQualityN, CONFIG_BASE)}</p>
+      </div>
+      <div class="gm-card">
+        <h3>Coberturas habituales (defensa)</h3>
+        <table class="gm-table"><thead><tr><th>Cobertura</th><th>Frecuencia</th><th>PPP concedido</th></tr></thead><tbody>${coverageRowsHtml}</tbody></table>
+        <p class="gm-muted">Eficiencia de mismatch concedida (aproximada por PPP concedido en Switch, 7.12.34): ${pppHtml(summary.defense.mismatchEfficiencyAllowed.pppAllowed)}${smallSampleBadgeHtml(summary.defense.mismatchEfficiencyAllowed.n, CONFIG_BASE)}</p>
+      </div>
+      <div class="gm-card">
+        <h3>Shot profile — propio vs. permitido</h3>
+        <table class="gm-table"><thead><tr><th>Zona</th><th>Cuando ataca</th><th>Cuando defiende</th></tr></thead><tbody>${shotProfileRowsHtml}</tbody></table>
+      </div>
+      <div class="gm-card">
+        <h3>Mismatches potenciales contra tu quinteto titular</h3>
+        ${mismatchHtml}
+      </div>
+      <div class="gm-card">
+        <h3>Quinteto más usado (lineup)</h3>
+        ${bestLineup
+          ? `<p>ORtg ${bestLineup.offensiveRating !== null ? bestLineup.offensiveRating.toFixed(1) : '—'} · DRtg ${bestLineup.defensiveRating !== null ? bestLineup.defensiveRating.toFixed(1) : '—'} · Net ${bestLineup.netRating !== null ? bestLineup.netRating.toFixed(1) : '—'}${smallSampleBadgeHtml(bestLineup.n, CONFIG_BASE)}</p>`
+          : '<p class="gm-muted">Sin quintetos registrados todavía.</p>'}
+      </div>`;
+  }
+
   const TACTICS_TABS = [
     { id: 'summary', label: 'Resumen' },
     { id: 'attack', label: 'Ataque' },
@@ -1981,6 +2185,7 @@
     { id: 'playbook', label: 'Playbook' },
     { id: 'defense', label: 'Defensa' },
     { id: 'situations', label: 'Situaciones' },
+    { id: 'rival', label: 'Rival' },
   ];
 
   function renderTacticsScreen() {
@@ -1996,6 +2201,7 @@
     else if (activeTab === 'playbook') body = renderTacticsPlaybookTab();
     else if (activeTab === 'defense') body = renderTacticsDefenseTab(team);
     else if (activeTab === 'situations') body = renderTacticsSituationsTab(team);
+    else if (activeTab === 'rival') body = renderTacticsRivalTab(team);
 
     container.innerHTML = `
       <h2>Tácticas</h2>
@@ -2150,6 +2356,21 @@
           renderTacticsScreen();
         });
       });
+    }
+
+    // DESIGN.md 7.12.25/7.12.32 (TAC-7): selector de rival — solo elige
+    // A QUIÉN mirar (`state.tacticsRivalTeamId`), nunca muta ningún
+    // `tacticalProfile` (a diferencia del resto de sub-pestañas de esta
+    // pantalla, que sí editan la táctica propia) — informe de solo
+    // lectura.
+    if (activeTab === 'rival') {
+      const rivalSelect = byId('tactics-rival-select');
+      if (rivalSelect) {
+        rivalSelect.addEventListener('change', () => {
+          state.tacticsRivalTeamId = rivalSelect.value;
+          renderTacticsScreen();
+        });
+      }
     }
   }
 

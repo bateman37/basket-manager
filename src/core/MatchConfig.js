@@ -1024,6 +1024,20 @@
       lineupRatings: {
         switchabilityMix: { perimeterDefense: 0.35, interiorDefense: 0.35, agility: 0.3 },
         rimProtectionMix: { interiorDefense: 0.4, blocking: 0.4, jumping: 0.2 },
+        // --- DESIGN.md 7.12.28 (TAC-7, punto 5): Transition Offense/POA
+        // Defense, pendientes desde TAC-2/TAC-4 por falta de base sólida.
+        // POA Defense reutiliza LITERALMENTE `roles.defensiveMix.poaStopper`
+        // (arriba) en vez de una mezcla nueva — es exactamente lo que ese
+        // rol ya mide. Transition Offense es mezcla nueva mínima (mismo
+        // criterio heurístico que el resto de `lineupRatings`): velocidad
+        // real en el contraataque (topSpeed/acceleration, ya usada en
+        // `fastBreak`/`transitionDefense` para el lado contrario) + Visión
+        // de Juego para la decisión de pase de salida + Bandeja para
+        // finalizar. Ambas son valoraciones de APTITUD de plantilla (se
+        // recalculan al cambiar un jugador, 7.12.28), no telemetría de
+        // partidos jugados — la telemetría real de transición (PPP/
+        // frecuencia) vive en `tacticsTelemetry`, ver Tactics.js.
+        transitionOffenseMix: { acceleration: 0.35, topSpeed: 0.25, gameVision: 0.2, layup: 0.2 },
       },
 
       // --- DESIGN.md 7.12.24 (TAC-5): situaciones especiales — solo el
@@ -1171,6 +1185,59 @@
         // disponible (rotación tardía/mal ejecutada) cuando el
         // tacticalExecution de la defensa es bajo.
         defensiveMisexecutionMaxProbability: 0.2,
+      },
+
+      // --- DESIGN.md 7.12.27 (TAC-7): Data Hub táctico — umbrales de
+      // "muestra pequeña" para la advertencia obligatoria de 7.12.27 ("no
+      // presentar 2 posesiones, 1.50 PPP como una verdad táctica estable").
+      // Cifras propias, pendientes de calibración/decisión (7.12.34): un
+      // puñado de partidos/posesiones es un punto de partida razonable, no
+      // un umbral estadístico riguroso (no hay intervalo de confianza real
+      // detrás, solo "hay muy poco que mirar todavía").
+      telemetry: {
+        minReliableGames: 3,
+        minReliablePossessions: 15,
+      },
+
+      // --- DESIGN.md 7.12.25 (TAC-7, alcance acotado): Construcción de
+      // identidad CPU — pesos de la heurística de Tactics.buildCpuTacticalIdentity.
+      // Cifras propias, pendientes de calibración (7.12.34): fijan la
+      // DIRECCIÓN (qué señales de plantilla mueven qué parte del perfil),
+      // no una calibración validada por simulación masiva.
+      cpuIdentity: {
+        // Umbral (escala roleFit 1-20) por encima del cual se considera que
+        // la plantilla tiene un especialista REAL en ese rol (no solo "el
+        // menos malo de los cinco") — usado para decidir spacing/playType/
+        // cobertura por presencia/ausencia de arquetipo, no por comparación
+        // relativa entre plantillas (una plantilla floja no debe leerse como
+        // "todo lo contrario" solo por ser la peor de las dos). 15 y no un
+        // valor más bajo: `roleFit` combina un 30% de competencia posicional
+        // que por sí sola ya empuja a ~13 a CUALQUIER jugador con atributos
+        // neutros en su posición "natural" (verificado con el script de
+        // invariantes de esta entrega) — el umbral tiene que superar ese
+        // suelo para distinguir un especialista real de "alguien que ocupa
+        // esa posición sin más".
+        specialistThreshold: 15,
+        // Umbral (escala 1-20 pura, sin blend de posición — usado solo
+        // contra medias de atributo físico directas, ej. movilidad del
+        // protector de aro, nunca contra un roleFit ya blendeado con
+        // posición) por debajo del cual una cualidad física se considera
+        // ausente/pobre.
+        weakThreshold: 9,
+        // Sesgo de identidad por `clubDNA` (6.2.8) — NUNCA una orden
+        // obligatoria (7.12.25, cita literal), un empujón pequeño y acotado
+        // sobre la dirección ya decidida por la plantilla real. Mismo
+        // criterio de mapeo por texto exacto que `tempo.dnaBias` (TAC-1);
+        // un ADN de club no listado aquí no aplica ningún sesgo (0 en los
+        // 3 ejes). `pace`/`pickAndRollUsage` son puntos (0-100) sumados
+        // directo al eje de identidad; `pressActive` es una probabilidad
+        // adicional de activar press por defecto.
+        dnaBias: {
+          'Ritmo alto': { pace: 12, pickAndRollUsage: 5, pressActive: 0.15 },
+          'Defensa': { pace: -5, pickAndRollUsage: 0, pressActive: 0.2 },
+          'Veteranía': { pace: -10, pickAndRollUsage: -5, pressActive: -0.1 },
+          'Cantera': { pace: 5, pickAndRollUsage: 5, pressActive: 0.05 },
+        },
       },
     },
   };

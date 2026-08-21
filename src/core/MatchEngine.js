@@ -71,6 +71,13 @@
     // cuenta, solo lo consume y hace crecer la familiaridad al terminar
     // cada posesión.
     updateFamiliarityAfterPossession,
+    // DESIGN.md 7.12.27 (TAC-7): Data Hub táctico — agregación persistente
+    // de telemetría sobre `TacticalProfile.tacticsTelemetry` (mismo patrón
+    // que `updateFamiliarityAfterPossession` arriba, ver Tactics.js).
+    // `effectiveSpacing` se reutiliza LITERALMENTE (ya existía desde TAC-2)
+    // solo para computar el spacing efectivo medio por lineup, sin
+    // duplicar esa fórmula.
+    updateTacticsTelemetryAfterPossession, effectiveSpacing,
   } = TacticsCore;
 
   // --- Lectura de atributos: cada nombre de MatchConfig se busca en el
@@ -797,6 +804,129 @@
       coverage: plan.coverage || null,
       offenseParticipantIds: plan.offenseParticipantIds || [],
       defenseParticipantIds: plan.defenseParticipantIds || [],
+      // DESIGN.md 7.12.27 (TAC-7): resto de campos que `tacticalPlan` YA
+      // tenía calculados para esta jugada concreta (shooter/shotDefender/
+      // asistencia causal/lectura/AdvantageState/situación) — se exponen
+      // aquí para el registro de telemetría de
+      // `buildPossessionTelemetryRecord`, sin volver a calcular nada
+      // (mismo criterio que los 5 campos de arriba, ya existentes desde
+      // TAC-6).
+      shooterId: plan.shooter ? plan.shooter.id : null,
+      shotDefenderId: plan.shotDefender ? plan.shotDefender.id : null,
+      assistCandidateId: plan.assistCandidate ? plan.assistCandidate.id : null,
+      forcedShotType: plan.forcedShotType || null,
+      read3: plan.read3 || null,
+      continuityState: plan.continuityState || null,
+      advantageScore: typeof plan.advantageScore === 'number' ? plan.advantageScore : null,
+      situational: plan.situational || null,
+    };
+  }
+
+  // --- DESIGN.md 7.12.27 (TAC-7): Data Hub táctico — registro mínimo de
+  // telemetría de UNA posesión ya resuelta. Puramente de LECTURA: no llama
+  // a Math.random, no decide nada del partido, solo reorganiza datos que
+  // `context`/`result` ya tenían calculados (regla de integración #1,
+  // 7.12.30, aplicada aquí igual que a `buildTacticalUsage`) — verificado
+  // con el script de equivalencia del CHANGELOG de esta entrega.
+  //
+  // Campos de 7.12.27 DELIBERADAMENTE fuera de este registro, señalados
+  // explícitamente (sin dato real disponible sin inventarlo, o sin
+  // instrumentar más `simulatePossession` de lo que esta entrega considera
+  // prudente sobre una función ya delicada):
+  // - "número de pases relevantes": el motor no simula pases individuales
+  //   fuera del propio P&R/Post Up, no hay nada real que registrar.
+  // - "reloj de posesión al finalizar": el `shotClock` es una variable
+  //   interna de `simulatePossession` que nunca se devuelve (los rebotes
+  //   ofensivos lo resetean a mitad de posesión) — exponerlo exigiría
+  //   tocar el shape de retorno de esa función en cada punto de salida,
+  //   fuera de alcance de esta entrega.
+  // - `shotDefenderId` en un tiro NO táctico (sin `tacticalPlan`) y sin
+  //   tapón: la posesión 1v1 de siempre elige un defensor de tiro
+  //   internamente sin devolverlo — solo se captura cuando viene de un
+  //   `tacticalPlan` (Pick & Roll/Isolation/Post Up) o de un tapón
+  //   (`blockedShot` sí lleva `defenderId`).
+  // `shotQuality`: no existe todavía un valor numérico cerrado de 7.12.5
+  // (7.12.34 lo confirma pendiente) — se aproxima con `advantageScore`
+  // reescalado a 0-1 ÚNICAMENTE cuando la posesión tuvo un `tacticalPlan`
+  // real (es la pieza más parecida ya calculada, evita inventar un segundo
+  // cálculo); sin `tacticalPlan`, queda `null` en vez de un número
+  // inventado.
+  function classifyPossessionOutcome(events) {
+    if (events.some((e) => e.type === 'turnover' || e.type === 'steal' || e.type === 'shotClockViolation')) return 'turnover';
+    if (events.some((e) => e.type === 'shootingFoulAndOne' || e.type === 'fieldGoalMade')) return 'made';
+    if (events.some((e) => e.type === 'shootingFoul')) return 'shootingFoulMiss';
+    if (events.some((e) => e.type === 'fieldGoalMiss')) return 'missed';
+    if (events.some((e) => e.type === 'defensiveFoul')) return 'defensiveFoul';
+    return 'other';
+  }
+
+  const SHOT_OUTCOME_EVENT_TYPES = ['fieldGoalMade', 'fieldGoalMiss', 'turnover', 'shotClockViolation'];
+
+  function findShotTypeFromEvents(events) {
+    const shotEvent = events.find((e) => e.shotType);
+    return shotEvent ? shotEvent.shotType : null;
+  }
+
+  function findShooterIdFromEvents(events) {
+    const shotEvent = events.find((e) => SHOT_OUTCOME_EVENT_TYPES.indexOf(e.type) !== -1);
+    return shotEvent ? shotEvent.playerId : null;
+  }
+
+  function findShotDefenderIdFromEvents(events) {
+    const blockEvent = events.find((e) => e.type === 'blockedShot');
+    return blockEvent ? blockEvent.defenderId : null;
+  }
+
+  function buildPossessionTelemetryRecord(state, context, offenseTeam, defenseTeam, offenseFive, defenseFive, result) {
+    const usage = result.tacticalUsage;
+    const outcome = classifyPossessionOutcome(result.events);
+    const offenseSpacing = context.offenseTacticalProfile && context.offenseTacticalProfile.spacing;
+    // DESIGN.md 7.12.6: reutiliza LITERALMENTE Tactics.effectiveSpacing (no
+    // se duplica la fórmula) — solo para agregar la telemetría de
+    // "spacing efectivo medio" por quinteto/lineup (7.12.27).
+    const effectiveSpacingValue = offenseSpacing
+      ? effectiveSpacing(offenseSpacing, offenseFive, state.config) : null;
+    return {
+      gameId: state.gameId,
+      period: state.period,
+      clockRemaining: context.quarterClockRemaining,
+      scoreHome: context.runningScore.home,
+      scoreAway: context.runningScore.away,
+      offenseTeamId: offenseTeam.id,
+      defenseTeamId: defenseTeam.id,
+      offenseFiveIds: offenseFive.map((p) => p.id),
+      defenseFiveIds: defenseFive.map((p) => p.id),
+      // Fase (7.12.27): la ventana de contraataque de esta posesión YA
+      // estaba abierta o no ANTES de resolverla (`context.fastBreakEligible`,
+      // heredado de si la posesión anterior terminó en rebote largo/tapón/
+      // pérdida) — no si de verdad se intentó explotarla (esa decisión
+      // vive dentro de `simulatePossession`, sin devolverse).
+      phase: context.fastBreakEligible ? 'transition' : 'halfCourt',
+      playType: usage ? usage.playType : null,
+      playDefinitionId: usage ? usage.playDefinitionId : null,
+      initiatorId: usage && usage.offenseParticipantIds.length > 0 ? usage.offenseParticipantIds[0] : null,
+      screenerId: usage && usage.playType === 'pickAndRoll' && usage.offenseParticipantIds.length > 1
+        ? usage.offenseParticipantIds[1] : null,
+      offenseParticipantIds: usage ? usage.offenseParticipantIds : [],
+      defenseParticipantIds: usage ? usage.defenseParticipantIds : [],
+      coverage: usage ? usage.coverage : null,
+      continuityState: usage ? usage.continuityState : null,
+      read3: usage ? usage.read3 : null,
+      advantageScore: usage ? usage.advantageScore : null,
+      shotQuality: usage && typeof usage.advantageScore === 'number'
+        ? clamp((usage.advantageScore + 1) / 2, 0, 1) : null,
+      shotType: (usage && usage.forcedShotType) || findShotTypeFromEvents(result.events),
+      shooterId: (usage && usage.shooterId) || findShooterIdFromEvents(result.events),
+      shotDefenderId: (usage && usage.shotDefenderId) || findShotDefenderIdFromEvents(result.events),
+      outcome,
+      points: result.points,
+      assistedById: outcome === 'made' && usage ? usage.assistCandidateId : null,
+      situational: usage ? usage.situational : null,
+      gamePlanActive: {
+        offense: !!(context.offenseSide === 'home' ? state.homeGamePlan : state.awayGamePlan),
+        defense: !!(context.defenseSide === 'home' ? state.homeGamePlan : state.awayGamePlan),
+      },
+      effectiveSpacing: effectiveSpacingValue,
     };
   }
 
@@ -1578,6 +1708,30 @@
     // play-type táctico real (no crece nada, 7.12.34).
     updateFamiliarityAfterPossession(offenseBaseProfile, defenseBaseProfile, result.tacticalUsage, config);
 
+    // Quinteto real en pista de cada lado DURANTE esta posesión — mismo
+    // snapshot que ya usaba +/- (más abajo), adelantado aquí para no
+    // volver a calcularlo: DESIGN.md 7.12.27 (TAC-7) lo necesita también
+    // para el registro de telemetría (quinteto ofensivo/defensivo real).
+    const offenseFiveForPlusMinus = context.offenseRotationState
+      ? getOnCourtFive(context.offenseRotationState) : selectOnCourtFive(offenseSquad);
+    const defenseFiveForPlusMinus = context.defenseRotationState
+      ? getOnCourtFive(context.defenseRotationState) : selectOnCourtFive(defenseSquad);
+
+    // DESIGN.md 7.12.27 (TAC-7): Data Hub táctico — registro de telemetría
+    // por posesión, puramente OBSERVACIÓN (lee `context`/`result`, ya
+    // calculados; no llama a Math.random ni decide nada del partido) — ver
+    // buildPossessionTelemetryRecord más abajo y el script de equivalencia
+    // del CHANGELOG de esta entrega. `state.telemetryEnabled` (por defecto
+    // `true`, ver createMatchState) permite desactivarlo para ese mismo
+    // test de equivalencia; desactivado, este bloque entero es un no-op.
+    if (state.telemetryEnabled) {
+      const telemetryRecord = buildPossessionTelemetryRecord(
+        state, context, offenseTeam, defenseTeam, offenseFiveForPlusMinus, defenseFiveForPlusMinus, result,
+      );
+      state.telemetryLog.push(telemetryRecord);
+      updateTacticsTelemetryAfterPossession(offenseBaseProfile, defenseBaseProfile, telemetryRecord, config);
+    }
+
     // Simplificación de Fase 1 (sin cambios): el final de período solo se
     // comprueba ENTRE posesiones, no dentro de una posesión en curso.
     state.clockRemaining -= result.elapsed;
@@ -1591,10 +1745,6 @@
     // +/- (retoques de estadísticas): quinteto en pista de cada lado
     // DURANTE esta posesión.
     const plusMinusDiff = result.points - result.defensePoints;
-    const offenseFiveForPlusMinus = context.offenseRotationState
-      ? getOnCourtFive(context.offenseRotationState) : selectOnCourtFive(offenseSquad);
-    const defenseFiveForPlusMinus = context.defenseRotationState
-      ? getOnCourtFive(context.defenseRotationState) : selectOnCourtFive(defenseSquad);
     offenseFiveForPlusMinus.forEach((p) => state.plusMinus.set(p.id, state.plusMinus.get(p.id) + plusMinusDiff));
     defenseFiveForPlusMinus.forEach((p) => state.plusMinus.set(p.id, state.plusMinus.get(p.id) - plusMinusDiff));
 
@@ -1663,6 +1813,21 @@
         finishCurrentPeriod(state);
         if (isMatchOver(state)) {
           state.phase = 'finished';
+          // DESIGN.md 7.12.27 (TAC-7): "games" con telemetría agregada —
+          // se incrementa EXACTAMENTE una vez por partido, en esta única
+          // transición a 'finished' (nunca dentro de buildMatchResult, que
+          // puede llamarse varias veces sobre el mismo `state` en pausa,
+          // ver comentario de esa función). Perfiles PERSISTENTES
+          // (`state.home/awayTacticalProfile`), mismo criterio que la
+          // familiaridad — nunca la vista efectiva fusionada con GamePlan.
+          if (state.telemetryEnabled) {
+            if (state.homeTacticalProfile && state.homeTacticalProfile.tacticsTelemetry) {
+              state.homeTacticalProfile.tacticsTelemetry.games += 1;
+            }
+            if (state.awayTacticalProfile && state.awayTacticalProfile.tacticsTelemetry) {
+              state.awayTacticalProfile.tacticsTelemetry.games += 1;
+            }
+          }
           return { state, stoppedReason: 'matchEnd' };
         }
         state.phase = 'beforePeriod';
@@ -1683,6 +1848,15 @@
       }
     }
   }
+
+  // DESIGN.md 7.12.27 (TAC-7): identificador de partido para la telemetría
+  // por posesión — no existía ningún concepto de "id de partido" en el
+  // motor antes de esta entrega. Contador simple, NUNCA basado en
+  // Math.random() (ver createMatchState más abajo): usar el generador de
+  // aleatoriedad compartido para esto desplazaría la secuencia de tiradas
+  // de TODO el partido, rompiendo el requisito de equivalencia exacta
+  // con/sin telemetría — un contador determinista no tiene ese riesgo.
+  let matchTelemetryCounter = 0;
 
   // Construye el `MatchState` inicial — ver comentario del bloque TAC-5
   // arriba para la lista completa de campos y su procedencia.
@@ -1769,6 +1943,21 @@
       // el siguiente período) | 'inPeriod' (dentro de un período en curso)
       // | 'finished' (partido resuelto, advanceMatch ya no hace nada).
       phase: 'beforePeriod',
+      // DESIGN.md 7.12.27 (TAC-7): Data Hub táctico.
+      // `gameId`: determinista (contador, nunca Math.random — ver nota de
+      // `matchTelemetryCounter` arriba), único por llamada a
+      // createMatchState. `telemetryEnabled` (por defecto `true`,
+      // `options.telemetryEnabled === false` lo desactiva): controla el
+      // bloque entero de `simulateOnePossessionStep` que construye/agrega
+      // telemetría — usado por el script de equivalencia del CHANGELOG de
+      // esta entrega para demostrar que activarlo no cambia el resultado
+      // del partido. `telemetryLog`: array de registros por posesión (7.6,
+      // "lectura, no simulación") — vive en `state`, no en ningún sitio
+      // persistente entre partidos (eso es `tacticalProfile.tacticsTelemetry`,
+      // agregado por `updateTacticsTelemetryAfterPossession`, ver Tactics.js).
+      gameId: `match-${homeTeam.id}-${awayTeam.id}-${++matchTelemetryCounter}`,
+      telemetryEnabled: options.telemetryEnabled !== false,
+      telemetryLog: [],
     };
   }
 
@@ -1795,6 +1984,14 @@
       },
       eventLog: state.eventLog,
       rotation: { home: rotationSummary(state.homeRotationState), away: rotationSummary(state.awayRotationState) },
+      // DESIGN.md 7.12.27 (TAC-7): `gameId`/`telemetryLog` — lectura pura de
+      // `state`, igual que el resto de este resultado (ver comentario de
+      // la función: válido en cualquier instante, terminado o en pausa).
+      // `telemetryLog` es `[]` (no `null`) con la telemetría desactivada,
+      // para no obligar a quien lo consuma a comprobar dos formas de
+      // "vacío".
+      gameId: state.gameId,
+      telemetryLog: state.telemetryLog,
     };
   }
 
