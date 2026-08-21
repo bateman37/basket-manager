@@ -150,8 +150,69 @@
   // dos sitios) — MatchConfig.js es la fuente para lo que SÍ consume
   // funciones con `config` como parámetro (ej. resolvePnrFrequency).
   const DEFAULT_SPACING = '4-out-1-in';
-  const DEFAULT_IDENTITY = { pace: 50, earlyOffense: 50, ballMovement: 50, pickAndRollUsage: 50 };
+  // TAC-6 (7.12.7/7.12.22): `rigidity` se añade a los ejes de identidad —
+  // TAC-2/TAC-3 dejaron el eje Rigidez↔Read & React SEÑALADO en DESIGN.md
+  // pero sin campo real (no "sin efecto en el motor": no existía ni
+  // siquiera como número en `identity`). 50 = punto neutro, mismo criterio
+  // que el resto de ejes. Ver `computeTacticalExecution` más abajo, primer
+  // consumidor real tras dos entregas aplazándolo (7.12.34).
+  const DEFAULT_IDENTITY = { pace: 50, earlyOffense: 50, ballMovement: 50, pickAndRollUsage: 50, rigidity: 50 };
   const DEFAULT_PLAY_TYPE_WEIGHTS = { pickAndRoll: 30, isolation: 15, postUp: 10, transition: 15 };
+
+  // --- TAC-6 (7.12.22): Familiaridad Táctica — catálogos/defaults ---
+  // Familias reconocidas por el playbook (7.12.10, mismos 6 valores que
+  // `PlayDefinition.family` más abajo) — listadas aquí de forma literal
+  // (en vez de derivarlas de PLAY_DEFINITIONS) para que el shape de
+  // `familiarity.byPlayFamily` de un TacticalProfile recién creado no
+  // dependa del orden de declaración del archivo.
+  const PLAY_FAMILIES = ['pickAndRoll', 'isolation', 'postUp', 'handoff', 'offScreen', 'motionFlow'];
+  // Valor inicial (0-100) de un TacticalProfile recién creado — "ni cero
+  // total ni máxima" (pedido explícito de esta entrega): debe coincidir
+  // con `config.tactics.familiarity.default` de MatchConfig.js (mismo
+  // criterio de duplicación documentada que DEFAULT_IDENTITY/
+  // DEFAULT_PLAY_TYPE_WEIGHTS arriba, que tampoco se leen de `config` en
+  // el constructor).
+  const FAMILIARITY_DEFAULT = 55;
+  // Valor inicial la PRIMERA vez que un jugador recibe familiaridad de rol
+  // (nunca al crear el perfil — `byPlayerRole` empieza vacío, ver
+  // TacticalProfile más abajo) — debe coincidir con
+  // `config.tactics.familiarity.roleDefaultInitial`.
+  const FAMILIARITY_ROLE_DEFAULT_INITIAL = 35;
+  function defaultsFromKeys(keys, value) {
+    const obj = {};
+    keys.forEach((key) => { obj[key] = value; });
+    return obj;
+  }
+  const DEFAULT_FAMILIARITY_BY_FAMILY = defaultsFromKeys(PLAY_FAMILIES, FAMILIARITY_DEFAULT);
+  const DEFAULT_FAMILIARITY_BY_COVERAGE = defaultsFromKeys(PNR_COVERAGES, FAMILIARITY_DEFAULT);
+
+  function clampFamiliarityValue(raw, fallback) {
+    const num = Number(raw);
+    return Number.isFinite(num) ? clamp(num, 0, 100) : fallback;
+  }
+
+  // `familiarity.byPlayerRole` (7.12.22, familiaridad individual del
+  // jugador con su rol — decisión de encaje explícita: NO puede vivir en
+  // Player.js, vetado para nuevos atributos 1-20, así que vive aquí como
+  // mapa por `playerId`, mismo patrón que `roleAssignments`).
+  // `offensiveRoleId`/`defensiveRoleId` en `null` significa "todavía sin
+  // ningún rol de ese lado registrado" (distinto de un rol YA registrado
+  // que cambia — ver `growPlayerRoleFamiliarity`, el primer caso arranca en
+  // `roleDefaultInitial`, el segundo en `roleChangeResetValue`, más bajo).
+  function cloneByPlayerRole(source) {
+    const out = {};
+    if (!source) return out;
+    Object.keys(source).forEach((playerId) => {
+      const entry = source[playerId] || {};
+      out[playerId] = {
+        offensiveRoleId: entry.offensiveRoleId || null,
+        offensiveLevel: clampFamiliarityValue(entry.offensiveLevel, FAMILIARITY_ROLE_DEFAULT_INITIAL),
+        defensiveRoleId: entry.defensiveRoleId || null,
+        defensiveLevel: clampFamiliarityValue(entry.defensiveLevel, FAMILIARITY_ROLE_DEFAULT_INITIAL),
+      };
+    });
+    return out;
+  }
 
   // Perfil táctico de un equipo (7.12.2: "identidad ofensiva y defensiva
   // persistente"). TAC-1 solo tenía `pnrCoverage`; TAC-2 añade spacing, ejes
@@ -255,6 +316,40 @@
         // (GamePlan.situationalPlays), sin tocar este objeto persistente.
         preferredPlays: { ...(situationsInput.preferredPlays || {}) },
       };
+
+      // --- TAC-6 (7.12.22): Familiaridad Táctica ---
+      // Estado DINÁMICO del savegame, deliberadamente SEPARADO del resto
+      // del perfil (decisión de encaje explícita, punto 1 de esta entrega):
+      // el usuario declara QUÉ táctica quiere jugar (identity/roleAssignments/
+      // playTypeWeights/defensiveScheme, todo lo de arriba); `familiarity`
+      // mide CUÁNTO el equipo domina todavía esa declaración — nunca se
+      // edita a mano desde la pantalla de Tácticas, solo se OBSERVA (ver
+      // game.js) y crece/decae jugando partidos reales (ver
+      // updateFamiliarityAfterPossession más abajo).
+      // `offensiveSystem`/`defensiveSystem` (globales) y `byPlayFamily`/
+      // `byCoverage` (grupos abiertos, mismo patrón que identity/
+      // playTypeWeights de arriba) parten de FAMILIARITY_DEFAULT.
+      // `byPlayerRole` (individual del jugador con su rol, 7.12.9/7.12.21)
+      // empieza VACÍO como roleAssignments/matchupOverrides — se rellena la
+      // primera vez que ese jugador participa en una posesión con un rol
+      // asignado, no al crear el perfil (7.12.34, compatibilidad: un
+      // equipo recién creado o cargado de una partida sin este campo
+      // recibe familiaridad neutra de partida, nunca null/undefined).
+      // Familiaridad de QUINTETO con estructuras específicas (7.12.22,
+      // marcada EXPLÍCITAMENTE como opcional en la primera implementación):
+      // NO se modela aquí — este shape no obliga a enumerar combinaciones
+      // de cinco jugadores para añadirla después; podría vivir como un
+      // mapa adicional `byLineupKey` (clave = ids de los 5 ordenados) sin
+      // tocar ninguno de los campos de abajo, señalado explícitamente como
+      // pendiente (7.12.34).
+      const familiarityInput = data.familiarity || {};
+      this.familiarity = {
+        offensiveSystem: clampFamiliarityValue(familiarityInput.offensiveSystem, FAMILIARITY_DEFAULT),
+        defensiveSystem: clampFamiliarityValue(familiarityInput.defensiveSystem, FAMILIARITY_DEFAULT),
+        byPlayFamily: buildOpenNumericGroup(DEFAULT_FAMILIARITY_BY_FAMILY, familiarityInput.byPlayFamily),
+        byCoverage: buildOpenNumericGroup(DEFAULT_FAMILIARITY_BY_COVERAGE, familiarityInput.byCoverage),
+        byPlayerRole: cloneByPlayerRole(familiarityInput.byPlayerRole),
+      };
     }
   }
 
@@ -298,10 +393,20 @@
       // se combina con `preferredPlays` persistente en
       // effectiveTacticalProfile() (esta entrada gana si ambas existen).
       this.situationalPlays = { ...(overrides.situationalPlays || {}) };
-      // Gancho explícito para TAC-6 (familiaridad/tacticalExecution) — sin
-      // efecto todavía en esta entrega (7.12.34, mismo criterio que
-      // `complexity` de PlayDefinition desde TAC-3).
-      this.tacticalExecutionOverride = null;
+      // TAC-6 (7.12.22): primer uso real del gancho que TAC-5 dejó
+      // preparado sin efecto ("Gancho explícito para TAC-6", ver
+      // CHANGELOG de esa entrega). Número 0-1: sustituye DIRECTAMENTE el
+      // `tacticalExecution` calculado (familiaridad+atributos+complejidad,
+      // ver resolveTacticalExecutionValue más abajo) para el equipo dueño
+      // de este GamePlan, SOLO en este partido — pensado para casos
+      // manuales/futuros (ej. una IA de scouting de TAC-7 que ya sabe que
+      // el rival prepara un plan simplificado esta noche), sin editor
+      // propio en la pantalla de Tácticas todavía (7.12.34, señalado
+      // explícitamente). `null`/no finito (por defecto): sin efecto, se
+      // calcula con normalidad — mismo comportamiento que antes de esta
+      // entrega.
+      const overrideValue = Number(overrides.tacticalExecutionOverride);
+      this.tacticalExecutionOverride = Number.isFinite(overrideValue) ? clamp(overrideValue, 0, 1) : null;
     }
   }
 
@@ -494,10 +599,36 @@
   // decisión de diseño ya tomada por 7.12.16, no una interpretación propia.
   // `screenerDefender` elegido del quinteto real (defenseFive), excluyendo
   // a quien ya defiende de cerca (onBallDefender).
-  function buildDefensivePlan(defenseTacticalProfile, defenseFive, onBallDefender, config, getAttribute) {
+  // `defenseTacticalExecutionOverride` (TAC-6, opcional): ver
+  // GamePlan.tacticalExecutionOverride más abajo — `undefined`/no finito
+  // en llamadas legacy de TAC-1/TAC-2/TAC-3 (sin este parámetro), cae al
+  // tacticalExecution calculado con normalidad (7.12.34, compatibilidad).
+  function buildDefensivePlan(defenseTacticalProfile, defenseFive, onBallDefender, config, getAttribute, defenseTacticalExecutionOverride) {
     const coverage = (defenseTacticalProfile && defenseTacticalProfile.pnrCoverage) || config.tactics.defaultCoverage;
     const candidates = defenseFive.filter((p) => p.id !== onBallDefender.id);
-    const screenerDefender = pickWeighted(candidates, (p) => screenerDefenderWeight(p, getAttribute));
+    const properScreenerDefender = pickWeighted(candidates, (p) => screenerDefenderWeight(p, getAttribute));
+
+    // TAC-6 (7.12.22, "error de switch"): estimación TEMPRANA del
+    // tacticalExecution defensivo, con SOLO `onBallDefender` (el propio
+    // `screenerDefender` es la pieza que este mecanismo puede corromper —
+    // no puede depender de sí mismo para decidir si se corrompe). Sin
+    // `familiarity` en el perfil (objeto plano legacy, 7.12.34
+    // compatibilidad), `resolveRelevantFamiliarity` ya cae al neutro
+    // FAMILIARITY_DEFAULT, así que esto tiene un efecto pequeño y acotado
+    // incluso sin ningún dato táctico nuevo.
+    const preReadFamiliarity = resolveRelevantFamiliarity(defenseTacticalProfile, 'defensive', 'pickAndRoll', coverage, [onBallDefender.id]);
+    const preReadExecution = resolveTacticalExecutionValue(defenseTacticalExecutionOverride, {
+      participants: [onBallDefender],
+      familiarityFactor: preReadFamiliarity,
+      complexity: config.tactics.familiarity.coverageComplexity[coverage],
+      rigidityAxis: 50,
+      config,
+      getAttribute,
+    });
+    const screenerDefender = resolveDefensiveExecutionOverride(
+      properScreenerDefender, candidates, preReadExecution, config,
+      (p) => 1 / (screenerDefenderWeight(p, getAttribute) + 1) + 0.01,
+    );
     return { coverage, screenerDefender };
   }
 
@@ -1346,6 +1477,8 @@
     const {
       offenseFive, defenseFive, onBallDefender, offenseTacticalProfile, defenseTacticalProfile, config, pressure,
       computeMixRating, usageWeight, getAttribute, offenseRotationState, defenseRotationState, offenseSpacing,
+      // TAC-6 (7.12.23): ver GamePlan.tacticalExecutionOverride.
+      offenseTacticalExecutionOverride, defenseTacticalExecutionOverride,
     } = params;
     const scorer = pickIsolationScorer(offenseFive, offenseTacticalProfile, usageWeight);
     const defender = onBallDefender;
@@ -1355,7 +1488,35 @@
     const advantageScore = computeIsolationAdvantageScore({
       scorer, defender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty, offenseFive, offenseSpacing, defenseBaseScheme,
     });
-    const read6 = resolveRead6(advantageScore, config);
+    let read6 = resolveRead6(advantageScore, config);
+
+    // TAC-6 (7.12.22): tacticalExecution — Isolation no tiene una jugada
+    // concreta de PLAY_DEFINITIONS elegida por familia (siempre
+    // 'isolationClearout'), así que su complejidad se lee directamente del
+    // catálogo (ver getPlayDefinition más abajo).
+    const isoDefinition = getPlayDefinition('isolationClearout');
+    const complexity = isoDefinition ? isoDefinition.complexity : 0;
+    const offenseParticipantIds = [scorer.id];
+    const defenseParticipantIds = [defender.id];
+    const offenseFamiliarity = resolveRelevantFamiliarity(offenseTacticalProfile, 'offensive', 'isolation', null, offenseParticipantIds);
+    const defenseFamiliarity = resolveRelevantFamiliarity(defenseTacticalProfile, 'defensive', 'isolation', null, defenseParticipantIds);
+    const offenseTacticalExecution = resolveTacticalExecutionValue(offenseTacticalExecutionOverride, {
+      participants: [scorer],
+      familiarityFactor: offenseFamiliarity,
+      complexity,
+      rigidityAxis: offenseTacticalProfile && offenseTacticalProfile.identity && offenseTacticalProfile.identity.rigidity,
+      config,
+      getAttribute,
+    });
+    const defenseTacticalExecution = resolveTacticalExecutionValue(defenseTacticalExecutionOverride, {
+      participants: [defender],
+      familiarityFactor: defenseFamiliarity,
+      complexity,
+      rigidityAxis: 50,
+      config,
+      getAttribute,
+    });
+    read6 = applyTacticalExecutionMisread(read6, offenseTacticalExecution, config);
 
     // Continuidad (7.12.11): una gran penetración que colapsa la defensa
     // (rotatingDefense/brokenDefense) genera una lectura de kick-out — solo
@@ -1392,6 +1553,12 @@
       read6,
       read3: collapseRead6To3(read6),
       advantageScore,
+      // TAC-6 (7.12.22): ver planPickAndRollTactical para el mismo criterio.
+      coverage: null,
+      offenseParticipantIds,
+      defenseParticipantIds,
+      tacticalExecution: { offense: offenseTacticalExecution, defense: defenseTacticalExecution },
+      turnoverExecutionMultiplier: computeTurnoverExecutionMultiplier(offenseTacticalExecution, config),
     };
   }
 
@@ -1477,6 +1644,8 @@
     const {
       offenseFive, defenseFive, offenseTacticalProfile, defenseTacticalProfile, config, pressure, computeMixRating,
       getAttribute, offenseRotationState, defenseRotationState, offenseSpacing,
+      // TAC-6 (7.12.23): ver GamePlan.tacticalExecutionOverride.
+      offenseTacticalExecutionOverride, defenseTacticalExecutionOverride,
     } = params;
     const postScorer = pickPostScorer(offenseFive, offenseTacticalProfile, getAttribute);
     const postDefender = pickPostDefender(defenseFive, getAttribute);
@@ -1486,6 +1655,33 @@
 
     const { advantageScore, scorerRating, defenderRating } = computePostUpAdvantageScore({
       postScorer, postDefender, config, pressure, computeMixRating, scorerPenalty, defenderPenalty, offenseFive, offenseSpacing, defenseBaseScheme,
+    });
+
+    // TAC-6 (7.12.22): tacticalExecution — se calcula ANTES de decidir el
+    // doble equipo porque el `helper` (si lo hay) todavía no existe;
+    // participantes defensivos iniciales = solo `postDefender` (mismo
+    // criterio de estimación temprana que buildDefensivePlan usa con
+    // `onBallDefender`).
+    const postDefinition = getPlayDefinition('postEntry');
+    const complexity = postDefinition ? postDefinition.complexity : 0;
+    const offenseParticipantIds = [postScorer.id];
+    const offenseFamiliarity = resolveRelevantFamiliarity(offenseTacticalProfile, 'offensive', 'postUp', null, offenseParticipantIds);
+    const defenseFamiliarityPreHelp = resolveRelevantFamiliarity(defenseTacticalProfile, 'defensive', 'postUp', null, [postDefender.id]);
+    const offenseTacticalExecution = resolveTacticalExecutionValue(offenseTacticalExecutionOverride, {
+      participants: [postScorer],
+      familiarityFactor: offenseFamiliarity,
+      complexity,
+      rigidityAxis: offenseTacticalProfile && offenseTacticalProfile.identity && offenseTacticalProfile.identity.rigidity,
+      config,
+      getAttribute,
+    });
+    const defenseTacticalExecutionPreHelp = resolveTacticalExecutionValue(defenseTacticalExecutionOverride, {
+      participants: [postDefender],
+      familiarityFactor: defenseFamiliarityPreHelp,
+      complexity,
+      rigidityAxis: 50,
+      config,
+      getAttribute,
     });
 
     const cfg = config.tactics.postUp;
@@ -1498,6 +1694,7 @@
     let assistCandidate = null;
     let shotAdjustment = 0;
     let read6;
+    const defenseParticipantIds = [postDefender.id];
     if (doubleTeamed) {
       // 7.12.19 (completo en esta entrega): el ayudante que dobla (ver
       // pickDoubleTeamHelper) es, por construcción, quien queda
@@ -1505,7 +1702,17 @@
       // si el postScorer encuentra el hueco (no un segundo sorteo
       // genérico independiente de "quién está menos atento").
       read6 = 'rotatingDefense';
-      const helper = pickDoubleTeamHelper(defenseFive, postDefender, defenseTacticalProfile, getAttribute);
+      const properHelper = pickDoubleTeamHelper(defenseFive, postDefender, defenseTacticalProfile, getAttribute);
+      // TAC-6 (7.12.22, "dos defensores ayudando al mismo jugador"): con
+      // tacticalExecution defensivo bajo, el ayudante que de verdad llega
+      // puede NO ser el que el rol de ayuda declarado señalaba (rotación
+      // mal comunicada/tardía) — ver resolveDefensiveExecutionOverride.
+      const helperCandidates = defenseFive.filter((p) => p.id !== postDefender.id);
+      const helper = resolveDefensiveExecutionOverride(
+        properHelper, helperCandidates, defenseTacticalExecutionPreHelp, config,
+        (p) => 1 / (getAttribute(p, 'anticipation') + getAttribute(p, 'positioning') + getAttribute(p, 'workRate') + 1) + 0.01,
+      );
+      defenseParticipantIds.push(helper.id);
       const readSucceeds = resolvePostReadSuccess(postScorer, config, getAttribute);
       if (readSucceeds) {
         const weakSide = pickWeakSideShooter(offenseFive, postScorer, getAttribute);
@@ -1523,6 +1730,11 @@
       }
     } else {
       read6 = resolveRead6(advantageScore, config);
+      // 7.12.22 ("lectura incorrecta"): solo tiene sentido degradar la
+      // lectura NORMAL — con doble equipo, `read6` ya es una decisión
+      // deliberada de la defensa (rotatingDefense fijo), no una lectura
+      // que el ataque pueda "leer mal" por su cuenta.
+      read6 = applyTacticalExecutionMisread(read6, offenseTacticalExecution, config);
     }
 
     return {
@@ -1540,6 +1752,12 @@
       read6,
       read3: collapseRead6To3(read6),
       advantageScore,
+      // TAC-6 (7.12.22): ver planPickAndRollTactical para el mismo criterio.
+      coverage: null,
+      offenseParticipantIds,
+      defenseParticipantIds,
+      tacticalExecution: { offense: offenseTacticalExecution, defense: defenseTacticalExecutionPreHelp },
+      turnoverExecutionMultiplier: computeTurnoverExecutionMultiplier(offenseTacticalExecution, config),
     };
   }
 
@@ -1569,13 +1787,16 @@
       offenseTacticalProfile, defenseTacticalProfile, offenseFive, defenseFive, onBallDefender,
       config, pressure, computeMixRating, getAttribute, usageWeight,
       offenseRotationState, defenseRotationState, offenseSpacing, shotClockRemaining, forcePlay,
+      // TAC-6 (7.12.23): ver GamePlan.tacticalExecutionOverride — `undefined`
+      // en llamadas legacy (7.12.34, compatibilidad).
+      offenseTacticalExecutionOverride, defenseTacticalExecutionOverride,
     } = params;
 
     const possessionPlan = buildPossessionPlan(offenseTacticalProfile, offenseFive, config, usageWeight, getAttribute, forcePlay);
     if (!possessionPlan) return null;
     const { handler, screener } = possessionPlan;
 
-    const defensivePlan = buildDefensivePlan(defenseTacticalProfile, defenseFive, onBallDefender, config, getAttribute);
+    const defensivePlan = buildDefensivePlan(defenseTacticalProfile, defenseFive, onBallDefender, config, getAttribute, defenseTacticalExecutionOverride);
     const { coverage, screenerDefender } = defensivePlan;
     // TAC-4 (7.12.14): esquema defensivo base del equipo que defiende —
     // 'man-to-man'/ausente deja computeZoneAdvantageTerm en 0 (7.12.34).
@@ -1585,13 +1806,49 @@
       handler, screener, onBallDefender, screenerDefender, coverage, config, pressure,
       computeMixRating, offenseRotationState, defenseRotationState, offenseFive, offenseSpacing, defenseBaseScheme,
     });
-    const read6 = resolveRead6(advantageScore, config);
+    let read6 = resolveRead6(advantageScore, config);
     const effectiveOnBallDefender = coverage === 'switch' ? screenerDefender : onBallDefender;
     const rollerDefender = (coverage === 'switch' || coverage === 'blitz' || coverage === 'hedge')
       ? onBallDefender : screenerDefender;
 
     const chosenPlay = choosePlayDefinition('pickAndRoll', offenseTacticalProfile, config);
     const playDefinitionId = chosenPlay ? chosenPlay.id : 'basicHighPnr';
+    const complexity = chosenPlay ? chosenPlay.complexity : 0;
+
+    // TAC-6 (7.12.22): tacticalExecution de ataque/defensa para ESTA
+    // posesión (familiaridad relevante + atributos de ejecución colectiva
+    // + energía/experiencia + complejidad de la jugada elegida — ver
+    // computeTacticalExecution). `offenseParticipantIds`/
+    // `defenseParticipantIds` son también los 4 protagonistas ya conocidos
+    // de esta jugada (7.12.22, familiaridad individual del jugador con su
+    // rol) — se exponen en el plan devuelto para que
+    // updateFamiliarityAfterPossession (MatchEngine) sepa a quién hacer
+    // crecer.
+    const offenseParticipantIds = [handler.id, screener.id];
+    const defenseParticipantIds = [effectiveOnBallDefender.id, rollerDefender.id];
+    const offenseFamiliarity = resolveRelevantFamiliarity(offenseTacticalProfile, 'offensive', 'pickAndRoll', null, offenseParticipantIds);
+    const defenseFamiliarity = resolveRelevantFamiliarity(defenseTacticalProfile, 'defensive', 'pickAndRoll', coverage, defenseParticipantIds);
+    const offenseTacticalExecution = resolveTacticalExecutionValue(offenseTacticalExecutionOverride, {
+      participants: [handler, screener],
+      familiarityFactor: offenseFamiliarity,
+      complexity,
+      rigidityAxis: offenseTacticalProfile && offenseTacticalProfile.identity && offenseTacticalProfile.identity.rigidity,
+      config,
+      getAttribute,
+    });
+    const defenseTacticalExecution = resolveTacticalExecutionValue(defenseTacticalExecutionOverride, {
+      participants: [effectiveOnBallDefender, rollerDefender],
+      familiarityFactor: defenseFamiliarity,
+      complexity,
+      rigidityAxis: 50,
+      config,
+      getAttribute,
+    });
+    // 7.12.22 ("lectura incorrecta"): una ejecución ofensiva baja puede
+    // degradar la lectura real un escalón — la ventaja que AdvantageState
+    // SÍ generó se pierde por mala ejecución colectiva, nunca por una
+    // resta plana de atributo (regla dura, no negociable).
+    read6 = applyTacticalExecutionMisread(read6, offenseTacticalExecution, config);
 
     const continuityState = resolveContinuityState(read6, coverage);
     const continuityCfg = config.tactics.continuity;
@@ -1696,6 +1953,18 @@
       read3: collapseRead6To3(read6),
       continuityState,
       advantageScore,
+      // TAC-6 (7.12.22): expuestos para updateFamiliarityAfterPossession
+      // (MatchEngine) y para telemetría/debug de tacticalExecution, mismo
+      // criterio que `advantageScore` (7.12.33: "un flag de debug/consola
+      // basta").
+      coverage,
+      offenseParticipantIds,
+      defenseParticipantIds,
+      tacticalExecution: { offense: offenseTacticalExecution, defense: defenseTacticalExecution },
+      // TAC-6 (7.12.22, "pérdida ofensiva de sistema"): multiplicador sobre
+      // rollTurnover() YA EXISTENTE en MatchEngine.js — 1 con ejecución
+      // perfecta, ver computeTurnoverExecutionMultiplier.
+      turnoverExecutionMultiplier: computeTurnoverExecutionMultiplier(offenseTacticalExecution, config),
     };
   }
 
@@ -1866,6 +2135,286 @@
     return plan;
   }
 
+  // =========================================================================
+  // TAC-6 (DESIGN.md 7.12.33): Familiaridad Táctica, `tacticalExecution` y
+  // primera conexión real del eje Rigidez↔Read & React (7.12.7/7.12.22).
+  // AMPLÍA TAC-1 a TAC-5, no los reescribe. 7.12.22 admite explícitamente
+  // "no se cierra todavía la curva matemática" — todo lo de aquí es un
+  // mecanismo de PARTIDA simple y explicable (rendimientos decrecientes,
+  // cruces acotados), documentado como primera versión, no como cifra
+  // cerrada (ver CHANGELOG/DESIGN.md de esta entrega para el detalle de
+  // cada decisión).
+  // =========================================================================
+
+  // --- Crecimiento de familiaridad (7.12.22, "minutos reales ejecutando
+  // el sistema" + "alta complejidad limita... la velocidad de subida") ---
+  // Rendimientos decrecientes hacia 100 (nunca crece indefinido): a nivel 0
+  // el incremento es máximo; cerca de 100 tiende a 0, así que el nivel se
+  // ESTABILIZA cerca del techo sin necesitar un tope duro aparte. La
+  // Complejidad (0-100, `PlayDefinition.complexity`) RALENTIZA el
+  // incremento (nunca añade un techo distinto — eso ya lo cubre el
+  // exponente de rendimientos decrecientes): con el mismo número de usos,
+  // una jugada compleja tarda más en acercarse a 100 que una simple.
+  function computeFamiliarityGrowth(currentLevel, complexity, config) {
+    const cfg = config.tactics.familiarity;
+    const diminishing = Math.pow(clamp(1 - currentLevel / 100, 0, 1), cfg.diminishingExponent);
+    const complexityFactor = (complexity === undefined || complexity === null)
+      ? 1
+      : clamp(1 - (complexity / 100) * cfg.complexitySlowdown, cfg.minComplexityFactor, 1);
+    return cfg.baseGrowthPerUse * diminishing * complexityFactor;
+  }
+
+  function growFamiliarityValue(currentLevel, complexity, config) {
+    return clamp(currentLevel + computeFamiliarityGrowth(currentLevel, complexity, config), 0, 100);
+  }
+
+  // --- Familiaridad individual del jugador con su rol (7.12.9/7.12.21/
+  // 7.12.22) --- Un jugador SIN rol asignado en `profile.roleAssignments`
+  // no tiene familiaridad de rol que crecer para esa posesión (ni penaliza
+  // ni premia, comportamiento neutro — mismo criterio que el resto del
+  // motor cuando falta una asignación). `offensiveRoleId`/`defensiveRoleId`
+  // en `null` (nunca asignado antes) arranca en `roleDefaultInitial`; un
+  // rol DISTINTO al del último partido registrado arranca en
+  // `roleChangeResetValue` (más bajo, "no hereda la familiaridad del rol
+  // anterior" — invariante explícito de esta entrega). El mismo rol que ya
+  // tenía sigue acumulando con `growFamiliarityValue` normal.
+  function growPlayerRoleFamiliarity(profile, playerId, side, config) {
+    const assignment = profile.roleAssignments && profile.roleAssignments[playerId];
+    const roleId = assignment && (side === 'offensive' ? assignment.offensiveRole : assignment.defensiveRole);
+    if (!roleId) return;
+    const cfg = config.tactics.familiarity;
+    const roleKey = side === 'offensive' ? 'offensiveRoleId' : 'defensiveRoleId';
+    const levelKey = side === 'offensive' ? 'offensiveLevel' : 'defensiveLevel';
+    const byPlayerRole = profile.familiarity.byPlayerRole;
+    let entry = byPlayerRole[playerId];
+    if (!entry) {
+      entry = {
+        offensiveRoleId: null, offensiveLevel: cfg.roleDefaultInitial,
+        defensiveRoleId: null, defensiveLevel: cfg.roleDefaultInitial,
+      };
+      byPlayerRole[playerId] = entry;
+    }
+    if (entry[roleKey] !== roleId) {
+      entry[levelKey] = entry[roleKey] === null ? cfg.roleDefaultInitial : cfg.roleChangeResetValue;
+      entry[roleKey] = roleId;
+    } else {
+      entry[levelKey] = growFamiliarityValue(entry[levelKey], undefined, config);
+    }
+  }
+
+  // Aplica el crecimiento de UNA posesión resuelta con play-type táctico
+  // real a los perfiles PERSISTENTES de equipo (nunca a la vista EFECTIVA
+  // de `effectiveTacticalProfile` — un GamePlan de partido no debe
+  // "aprender" nada que sobreviva al partido; la familiaridad es identidad
+  // real de equipo, mutando `Team.js.tacticalProfile` in situ igual que el
+  // resto de esta pantalla). `tacticalUsage` (`null` si la posesión no fue
+  // táctica: sin TacticalProfile o el sorteo cayó en "ninguno") — 7.12.22
+  // solo cuenta "minutos reales EJECUTANDO EL SISTEMA", así que una
+  // posesión no táctica no hace crecer nada. Nivel de granularidad elegido
+  // para esta entrega (7.12.22, "se puede resolver... de forma más simple
+  // al final de cada partido agregando el uso real"): POSESIÓN a posesión
+  // dentro de `advanceMatch` (más fino que "al final del partido", sin
+  // necesitar acumular un contador aparte por partido) — ver
+  // MatchEngine.simulateOnePossessionStep, único punto que la llama.
+  function updateFamiliarityAfterPossession(offenseProfile, defenseProfile, tacticalUsage, config) {
+    if (!tacticalUsage) return;
+    const definition = getPlayDefinition(tacticalUsage.playDefinitionId);
+    const complexity = definition ? definition.complexity : undefined;
+    const cfg = config.tactics.familiarity;
+
+    if (offenseProfile && offenseProfile.familiarity) {
+      const fam = offenseProfile.familiarity;
+      const currentFamily = fam.byPlayFamily[tacticalUsage.playType] !== undefined
+        ? fam.byPlayFamily[tacticalUsage.playType] : FAMILIARITY_DEFAULT;
+      const familyGrowth = computeFamiliarityGrowth(currentFamily, complexity, config);
+      fam.byPlayFamily[tacticalUsage.playType] = clamp(currentFamily + familyGrowth, 0, 100);
+      fam.offensiveSystem = clamp(fam.offensiveSystem + familyGrowth * cfg.systemGrowthShare, 0, 100);
+      (tacticalUsage.offenseParticipantIds || []).forEach((playerId) => {
+        growPlayerRoleFamiliarity(offenseProfile, playerId, 'offensive', config);
+      });
+    }
+
+    if (defenseProfile && defenseProfile.familiarity) {
+      const fam = defenseProfile.familiarity;
+      if (tacticalUsage.coverage) {
+        // Pick & Roll: familiaridad por COBERTURA (7.12.16) — complejidad
+        // nominal de la cobertura ejecutada (`coverageComplexity`, decisión
+        // de encaje propia de esta entrega, 7.12.34: 7.12.16 no da una
+        // cifra de complejidad por cobertura como sí hace `PlayDefinition`
+        // para el playbook ofensivo).
+        const currentCoverage = fam.byCoverage[tacticalUsage.coverage] !== undefined
+          ? fam.byCoverage[tacticalUsage.coverage] : FAMILIARITY_DEFAULT;
+        const coverageComplexity = cfg.coverageComplexity[tacticalUsage.coverage];
+        const coverageGrowth = computeFamiliarityGrowth(currentCoverage, coverageComplexity, config);
+        fam.byCoverage[tacticalUsage.coverage] = clamp(currentCoverage + coverageGrowth, 0, 100);
+        fam.defensiveSystem = clamp(fam.defensiveSystem + coverageGrowth * cfg.systemGrowthShare, 0, 100);
+      } else {
+        // Isolation/Post Up (decisión de encaje, 7.12.34): sin cobertura de
+        // P&R que aprender — no se inventa una "cobertura" ficticia para
+        // estos dos play-types, solo alimentan el sistema defensivo global.
+        const genericGrowth = computeFamiliarityGrowth(fam.defensiveSystem, complexity, config);
+        fam.defensiveSystem = clamp(fam.defensiveSystem + genericGrowth * cfg.systemGrowthShare, 0, 100);
+      }
+      (tacticalUsage.defenseParticipantIds || []).forEach((playerId) => {
+        growPlayerRoleFamiliarity(defenseProfile, playerId, 'defensive', config);
+      });
+    }
+  }
+
+  // --- Familiaridad relevante para ESTA jugada (0-1) — agrega sistema +
+  // familia/cobertura + individual de rol de los participantes (7.12.22,
+  // "cruza... la familiaridad relevante para la jugada en curso"). Media
+  // simple de las 3 capas (pendiente de calibración/decisión, 7.12.34: no
+  // hay ponderación cerrada entre capas en DESIGN.md) — un participante SIN
+  // rol declarado no penaliza ni premia (usa `FAMILIARITY_ROLE_DEFAULT_INITIAL`
+  // como neutro, ni el valor de partida completo ni cero). Sin
+  // TacticalProfile/familiarity (objeto plano legacy, 7.12.34
+  // compatibilidad): devuelve el neutro `FAMILIARITY_DEFAULT`.
+  function resolveRelevantFamiliarity(profile, side, playType, coverage, participantIds) {
+    if (!profile || !profile.familiarity) return FAMILIARITY_DEFAULT / 100;
+    const fam = profile.familiarity;
+    const systemLevel = side === 'offensive' ? fam.offensiveSystem : fam.defensiveSystem;
+    let specificLevel;
+    if (side === 'offensive') {
+      specificLevel = fam.byPlayFamily[playType] !== undefined ? fam.byPlayFamily[playType] : FAMILIARITY_DEFAULT;
+    } else {
+      specificLevel = coverage
+        ? (fam.byCoverage[coverage] !== undefined ? fam.byCoverage[coverage] : FAMILIARITY_DEFAULT)
+        : fam.defensiveSystem;
+    }
+    const roleLevels = (participantIds || [])
+      .map((id) => fam.byPlayerRole[id])
+      .filter(Boolean)
+      .map((entry) => (side === 'offensive' ? entry.offensiveLevel : entry.defensiveLevel))
+      .filter((level) => level !== undefined && level !== null);
+    const roleAverage = roleLevels.length > 0
+      ? roleLevels.reduce((a, b) => a + b, 0) / roleLevels.length
+      : FAMILIARITY_ROLE_DEFAULT_INITIAL;
+    const average = (systemLevel + specificLevel + roleAverage) / 3;
+    return clamp(average, 0, 100) / 100;
+  }
+
+  // --- `tacticalExecution` (7.12.22) — cruce de familiaridad, atributos de
+  // ejecución colectiva (TrabajoEnEquipo/Concentración/Posicionamiento/
+  // VisiónJuego+DecisiónBajoPresión), Energía/Experiencia y la Complejidad
+  // requerida de la jugada en curso. Rango 0-1 (elección de esta entrega,
+  // documentada en MatchConfig.js). Regla dura no negociable (7.12.22): el
+  // resultado NUNCA se usa como resta plana a un atributo de la jugada —
+  // solo modula qué RAMA/PROBABILIDAD de un mecanismo YA EXISTENTE se toma
+  // (ver applyTacticalExecutionMisread/computeTurnoverExecutionMultiplier/
+  // resolveDefensiveExecutionOverride más abajo).
+  //
+  // Eje Rigidez↔Read & React (7.12.7), primera conexión real tras dos
+  // entregas aplazándolo (TAC-2/TAC-3): `rigidityAxis` (0-100, identity.
+  // rigidity del equipo — 50 neutro si no se declara un eje real para
+  // defensa, que no tiene esta identidad) interpola el TECHO y el
+  // EXPONENTE de la curva familiaridad→ejecución. Rigidez alta (→100):
+  // techo más alto pero exponente >1 (convexo: castiga con más dureza la
+  // familiaridad baja, "sufre más los errores"). Read & React (→0): techo
+  // algo más bajo pero exponente <1 (cóncavo: "levanta" el resultado con
+  // familiaridad baja, "más tolerante", menos dependiente de un guion
+  // fijo). rigidity=50 interpola a medio camino, sin caso especial.
+  function computeTacticalExecution(params) {
+    const {
+      participants, familiarityFactor, complexity, rigidityAxis, config, getAttribute,
+    } = params;
+    const cfg = config.tactics.tacticalExecution;
+    const rigidity = clamp(rigidityAxis === undefined || rigidityAxis === null ? 50 : rigidityAxis, 0, 100) / 100;
+    const ceiling = cfg.readAndReactCeiling + rigidity * (cfg.rigidityCeiling - cfg.readAndReactCeiling);
+    const exponent = cfg.readAndReactExponent + rigidity * (cfg.rigidityExponent - cfg.readAndReactExponent);
+    const familiarityTerm = Math.pow(clamp(familiarityFactor, 0, 1), exponent) * ceiling;
+
+    const attributeScore = averageMixWithAttribute(participants, cfg.attributeMix, getAttribute) / 20;
+    const energyScore = participants.length > 0
+      ? participants.reduce((sum, p) => sum + p.dynamicState.energy, 0) / (participants.length * 100)
+      : 1;
+    // Normaliza `player.experience` (contador sin techo fijo, escala
+    // propia, no 1-20) reutilizando LITERALMENTE `pressure.
+    // experienceBonusDivisor` (7.5) — misma idea de "veteranía
+    // normalizada" que ya usa `computeMixRating`, no una segunda escala
+    // inventada para esta entrega.
+    const experienceScore = participants.length > 0
+      ? clamp(participants.reduce((sum, p) => sum + p.experience, 0)
+        / participants.length / config.pressure.experienceBonusDivisor, 0, 1)
+      : 0;
+    const complexityPenalty = ((complexity || 0) / 100) * cfg.complexityPenaltyWeight;
+
+    const raw = familiarityTerm * cfg.familiarityWeight
+      + attributeScore * cfg.attributeWeight
+      + energyScore * cfg.energyWeight
+      + experienceScore * cfg.experienceWeight
+      - complexityPenalty;
+    return clamp(raw, 0, 1);
+  }
+
+  // `GamePlan.tacticalExecutionOverride` (7.12.23, gancho que TAC-5 dejó
+  // preparado SIN efecto real — ver Tactics.js de esa entrega): esta
+  // entrega le da su primer uso. Un número 0-1 sustituye DIRECTAMENTE el
+  // `tacticalExecution` calculado para el equipo dueño de ese GamePlan,
+  // SOLO en este partido — pensado para casos manuales/futuros (ej. una
+  // IA de scouting de TAC-7 que ya sabe que el rival prepara un plan
+  // simplificado esta noche), sin editor propio en la pantalla de
+  // Tácticas todavía (7.12.34). `null`/no finito: sin efecto, se calcula
+  // con normalidad.
+  function resolveTacticalExecutionValue(overrideValue, computeParams) {
+    const num = Number(overrideValue);
+    if (Number.isFinite(num)) return clamp(num, 0, 1);
+    return computeTacticalExecution(computeParams);
+  }
+
+  // --- Errores reconocibles de 7.12.22 con punto de enganche real en el
+  // motor existente (3 de los 10 listados, priorizados por tener una pieza
+  // de motor real que modular sin crear un resolver nuevo — el resto queda
+  // señalado explícitamente como pendiente en CHANGELOG/DESIGN.md) ---
+
+  // "Lectura incorrecta" / "pérdida de continuidad": orden de read6 de
+  // MEJOR a PEOR para el ataque (7.12.4) — degradar un escalón representa
+  // que la ventaja que AdvantageState SÍ generó se pierde por mala
+  // ejecución colectiva, nunca por falta de talento (el talento ya está
+  // dentro de `advantageScore`). En el extremo peor (clearDefenseAdvantage)
+  // no hay nada más que degradar.
+  const READ6_BEST_TO_WORST = [
+    'brokenDefense', 'rotatingDefense', 'clearOffenseAdvantage',
+    'smallOffenseAdvantage', 'stableDefense', 'clearDefenseAdvantage',
+  ];
+  function degradeRead6(read6) {
+    const idx = READ6_BEST_TO_WORST.indexOf(read6);
+    if (idx === -1 || idx === READ6_BEST_TO_WORST.length - 1) return read6;
+    return READ6_BEST_TO_WORST[idx + 1];
+  }
+  // Probabilidad inversa al tacticalExecution ofensivo: 0 con ejecución
+  // perfecta (1), máxima (`misreadMaxProbability`) con ejecución nula (0).
+  // Se aplica SOLO a la primera lectura de la posesión (7.12.34, decisión
+  // de encaje: no se duplica sobre las lecturas de la segunda acción de
+  // continuidad, para no acumular dos degradaciones en la misma posesión).
+  function applyTacticalExecutionMisread(read6, tacticalExecution, config) {
+    const probability = config.tactics.tacticalExecution.misreadMaxProbability * (1 - clamp(tacticalExecution, 0, 1));
+    return Math.random() < probability ? degradeRead6(read6) : read6;
+  }
+
+  // "Pérdida ofensiva de sistema": multiplicador sobre `rollTurnover()` YA
+  // EXISTENTE en MatchEngine.js (nunca un resolver nuevo, mismo patrón que
+  // `computePressEffect`, 7.12.15) — 1 (sin efecto) con tacticalExecution=1,
+  // hasta `turnoverMaxMultiplier` con tacticalExecution=0.
+  function computeTurnoverExecutionMultiplier(tacticalExecution, config) {
+    const cfg = config.tactics.tacticalExecution;
+    return 1 + (cfg.turnoverMaxMultiplier - 1) * (1 - clamp(tacticalExecution, 0, 1));
+  }
+
+  // "Ayuda defensiva tarde" / "error de switch" / "dos defensores ayudando
+  // al mismo jugador": con probabilidad inversa al tacticalExecution
+  // defensivo, la selección de un defensor de cobertura/ayuda YA HECHA por
+  // `buildDefensivePlan`/`pickDoubleTeamHelper` se sustituye por el
+  // candidato MENOS preparado disponible (`inverseWeightFn`, mismo
+  // criterio que `pickLeastContestedDefender` ya usa para el closeout
+  // tardío) — representa una rotación mal comunicada/tardía, nunca un
+  // resolver de falta/tiro nuevo.
+  function resolveDefensiveExecutionOverride(properPick, candidates, tacticalExecution, config, inverseWeightFn) {
+    const probability = config.tactics.tacticalExecution.defensiveMisexecutionMaxProbability * (1 - clamp(tacticalExecution, 0, 1));
+    if (candidates.length === 0 || Math.random() >= probability) return properPick;
+    return pickWeighted(candidates, inverseWeightFn);
+  }
+
   const exportsObj = {
     TacticalProfile,
     PNR_COVERAGES,
@@ -1927,6 +2476,21 @@
     resolveSituationType,
     chooseSituationalPlayType,
     planSituationalPossession,
+    // TAC-6 (7.12.33): Familiaridad Táctica, `tacticalExecution` y primera
+    // conexión real del eje Rigidez↔Read & React (7.12.22/7.12.7).
+    PLAY_FAMILIES,
+    FAMILIARITY_DEFAULT,
+    FAMILIARITY_ROLE_DEFAULT_INITIAL,
+    computeFamiliarityGrowth,
+    growFamiliarityValue,
+    updateFamiliarityAfterPossession,
+    resolveRelevantFamiliarity,
+    computeTacticalExecution,
+    resolveTacticalExecutionValue,
+    applyTacticalExecutionMisread,
+    computeTurnoverExecutionMultiplier,
+    resolveDefensiveExecutionOverride,
+    degradeRead6,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

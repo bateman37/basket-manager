@@ -62,6 +62,15 @@
     // son el punto de enganche del sub-playbook de ATO/BLOB/SLOB/Late
     // Clock/Last Possession (7.12.24).
     effectiveTacticalProfile, resolveSituationType, planSituationalPossession,
+    // DESIGN.md 7.12.22 (TAC-6): Familiaridad Táctica — único punto de
+    // enganche de producción que necesita este archivo. El resto de la
+    // mecánica de tacticalExecution (misread/turnover/defensa) vive
+    // ENTERAMENTE dentro de Tactics.planTacticalPossession/
+    // planSituationalPossession (ver `tacticalPlan.turnoverExecutionMultiplier`
+    // más abajo) — MatchEngine.js no calcula tacticalExecution por su
+    // cuenta, solo lo consume y hace crecer la familiaridad al terminar
+    // cada posesión.
+    updateFamiliarityAfterPossession,
   } = TacticsCore;
 
   // --- Lectura de atributos: cada nombre de MatchConfig se busca en el
@@ -773,6 +782,24 @@
   // rebote ofensivo o falta defensiva sin bonus) ---
   const MAX_POSSESSION_ITERATIONS = 12; // guarda de seguridad anti-bucle-infinito
 
+  // DESIGN.md 7.12.22 (TAC-6): resumen mínimo de USO táctico de una
+  // posesión, expuesto en `result.tacticalUsage` para que
+  // `simulateOnePossessionStep` pueda hacer crecer la familiaridad
+  // correspondiente sin que este archivo tenga que conocer el shape
+  // interno completo del `tacticalPlan` de Tactics.js. `null` si la
+  // posesión no tuvo play-type táctico real (7.12.34, compatibilidad: esas
+  // posesiones no alimentan ninguna familiaridad).
+  function buildTacticalUsage(plan) {
+    if (!plan) return null;
+    return {
+      playType: plan.playType,
+      playDefinitionId: plan.playDefinitionId,
+      coverage: plan.coverage || null,
+      offenseParticipantIds: plan.offenseParticipantIds || [],
+      defenseParticipantIds: plan.defenseParticipantIds || [],
+    };
+  }
+
   // `context`: { pressure, quarterClockRemaining, fastBreakEligible,
   // offenseTempoBias, scoringRunActiveSide, offenseSide, defenseSide,
   // offenseRotationState, defenseRotationState, runningScore, period,
@@ -794,7 +821,21 @@
     const {
       pressure, offenseRotationState, defenseRotationState, offenseTacticalProfile, defenseTacticalProfile,
       runningScore, period, situational,
+      // DESIGN.md 7.12.22/7.12.23 (TAC-6): ver GamePlan.tacticalExecutionOverride
+      // (Tactics.js) — `undefined` si ninguno de los dos lados tiene
+      // GamePlan asignado este partido (7.12.34, compatibilidad).
+      offenseTacticalExecutionOverride, defenseTacticalExecutionOverride,
     } = context;
+    // DESIGN.md 7.12.22 (TAC-6): la posesión resuelta con play-type táctico
+    // real de la PRIMERA iteración (única que puede tener `tacticalPlan`,
+    // ver más abajo) — capturada en una variable de ámbito de función
+    // porque `tacticalPlan` en sí es una `const` declarada DENTRO del
+    // bucle (se pierde en la siguiente iteración tras un rebote ofensivo/
+    // falta sin bonus). `updateFamiliarityAfterPossession`
+    // (MatchEngine.simulateOnePossessionStep) necesita conocerla en
+    // CUALQUIER punto de retorno de esta función, no solo el que coincide
+    // con la iteración en que se calculó.
+    let resolvedTacticalPlan = null;
 
     for (let iteration = 0; iteration < MAX_POSSESSION_ITERATIONS; iteration++) {
       const offenseFive = offenseRotationState ? getOnCourtFive(offenseRotationState) : selectOnCourtFive(offenseSquad);
@@ -848,7 +889,7 @@
           pointsScored += result.pointsMade;
           elapsedTotal += result.timeSpent;
           if (result.possessionContinues) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
-          return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
+          return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
         }
         // Sin bonus: saque de banda, la posesión sigue con el mismo equipo
         // (misma simplificación que la falta defensiva normal sin bonus).
@@ -879,12 +920,15 @@
         offenseRotationState, defenseRotationState,
         offenseSpacing: offenseTacticalProfile && offenseTacticalProfile.spacing,
         shotClockRemaining: shotClock,
+        offenseTacticalExecutionOverride, defenseTacticalExecutionOverride,
       };
       const tacticalPlan = iteration === 0
         ? (situationType
           ? planSituationalPossession(tacticalPossessionParams, situationType)
           : planTacticalPossession(tacticalPossessionParams))
         : null;
+      // DESIGN.md 7.12.22 (TAC-6): ver nota de `resolvedTacticalPlan` arriba.
+      if (tacticalPlan) resolvedTacticalPlan = tacticalPlan;
 
       let ballHandler = tacticalPlan ? tacticalPlan.initialHandler : pickWeighted(offenseFive, usageWeight);
       let onBallDefender = tacticalPlan ? tacticalPlan.initialOnBallDefender : defaultOnBallDefender;
@@ -945,7 +989,7 @@
         recordTurnover(boxScore, ballHandler);
         events.push({ type: 'shotClockViolation', playerId: ballHandler.id });
         applyInterventionWear([ballHandler.id], playersById, config);
-        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true };
+        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
       }
       elapsedTotal += step;
       shotClock -= step;
@@ -977,7 +1021,7 @@
           pointsScored += result.pointsMade;
           elapsedTotal += result.timeSpent;
           if (result.possessionContinues) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
-          return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
+          return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
         }
         // Sin bonus: saque de banda, la posesión sigue con el mismo equipo
         // y el mismo reloj restante (simplificación: FIBA resetea a 14s si
@@ -988,10 +1032,16 @@
       // 6. Pérdida de balón (+ 7. Robo, sub-tirada) — DESIGN.md 7.12.15
       // (TAC-4): `pressEffect.turnoverMultiplier` modula la probabilidad
       // de ESTE resolver ya existente (1 = sin press, comportamiento
-      // idéntico a antes de esta entrega).
+      // idéntico a antes de esta entrega). DESIGN.md 7.12.22 (TAC-6,
+      // "pérdida ofensiva de sistema"): `tacticalPlan.turnoverExecutionMultiplier`
+      // se combina con el de press (ambos multiplican la misma probabilidad
+      // base, nunca un segundo resolver) — 1 sin play-type táctico esta
+      // posesión (7.12.34, compatibilidad).
+      const turnoverExecutionMultiplier = tacticalPlan ? tacticalPlan.turnoverExecutionMultiplier : 1;
       if (rollTurnover(
         ballHandler, onBallDefender, config, pressure,
-        { primary: ballHandlerPenalty, secondary: onBallDefenderPenalty }, pressEffect.turnoverMultiplier,
+        { primary: ballHandlerPenalty, secondary: onBallDefenderPenalty },
+        pressEffect.turnoverMultiplier * turnoverExecutionMultiplier,
       )) {
         if (rollSteal(onBallDefender, ballHandler, config, pressure, { primary: onBallDefenderPenalty, secondary: ballHandlerPenalty })) {
           recordSteal(boxScore, onBallDefender);
@@ -1001,7 +1051,7 @@
         }
         recordTurnover(boxScore, ballHandler);
         applyInterventionWear([ballHandler.id, onBallDefender.id], playersById, config);
-        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true };
+        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: true, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
       }
 
       // DESIGN.md 7.12.4/7.12.11 (TAC-1, generalizado en TAC-3 a los 3
@@ -1157,7 +1207,7 @@
           elapsedTotal += result.timeSpent;
           events.push({ type: 'shootingFoulAndOne', playerId: ballHandler.id });
           if (result.possessionContinues) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
-          return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
+          return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
         }
         const result = handleFreeThrowSequence(
           ballHandler, isThree ? 3 : 2, offenseFive, defenseFive, boxScore, config, pressure,
@@ -1167,13 +1217,13 @@
         elapsedTotal += result.timeSpent;
         events.push({ type: 'shootingFoul', playerId: ballHandler.id });
         if (result.possessionContinues) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
-        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
+        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
       }
 
       if (made) {
         pointsScored += shotType === 'threePointShot' ? 3 : 2;
         events.push({ type: 'fieldGoalMade', playerId: ballHandler.id, shotType });
-        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
+        return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
       }
 
       // Fallo (limpio o taponado): se disputa el rebote.
@@ -1186,6 +1236,7 @@
         defensePoints,
         events,
         fastBreakTrigger: blocked || rebound.isLongRebound,
+        tacticalUsage: buildTacticalUsage(resolvedTacticalPlan),
       };
     }
 
@@ -1193,7 +1244,7 @@
     // (caso extremo, no debería ocurrir con las probabilidades base), se
     // corta la posesión aquí para no bucle infinito.
     events.push({ type: 'possessionSafetyGuard' });
-    return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
+    return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
   }
 
   // Toma hasta 12 jugadores de la plantilla como convocatoria de partido
@@ -1505,11 +1556,27 @@
         scoreDiffAbs: Math.abs(state.runningScore.home - state.runningScore.away),
         inboundType: state.previousPossessionInboundType,
       },
+      // DESIGN.md 7.12.22/7.12.23 (TAC-6): ver GamePlan.tacticalExecutionOverride
+      // (Tactics.js) — `null` sin GamePlan asignado este partido para ese
+      // lado (7.12.34, compatibilidad: sin efecto, tacticalExecution se
+      // calcula con normalidad).
+      offenseTacticalExecutionOverride: offenseGamePlan ? offenseGamePlan.tacticalExecutionOverride : null,
+      defenseTacticalExecutionOverride: defenseGamePlan ? defenseGamePlan.tacticalExecutionOverride : null,
     };
 
     const result = simulatePossession(
       offenseTeam, defenseTeam, offenseSquad, defenseSquad, state.teamFouls, config, state.boxScore, context,
     );
+
+    // DESIGN.md 7.12.22 (TAC-6): la familiaridad crece sobre los perfiles
+    // PERSISTENTES (`offenseBaseProfile`/`defenseBaseProfile` —
+    // `team.tacticalProfile` en sí, nunca la vista EFECTIVA fusionada con
+    // el GamePlan de este partido, que se descarta al terminar por
+    // 7.12.23) — mutación in situ, mismo patrón que el resto de esta
+    // pantalla (roleAssignments/matchupOverrides ya se editan igual desde
+    // game.js). `result.tacticalUsage` es `null` si la posesión no tuvo
+    // play-type táctico real (no crece nada, 7.12.34).
+    updateFamiliarityAfterPossession(offenseBaseProfile, defenseBaseProfile, result.tacticalUsage, config);
 
     // Simplificación de Fase 1 (sin cambios): el final de período solo se
     // comprueba ENTRE posesiones, no dentro de una posesión en curso.

@@ -502,6 +502,35 @@
 .tactics-ratings-table td:first-child { font-weight: 600; }
 .tactics-stars { color: var(--brick-dark); font-weight: 700; letter-spacing: 0.02em; }
 
+/* TAC-6 (7.12.22/7.12.32): sección Familiaridad de Resumen — solo lectura. */
+.tactics-familiarity-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.tactics-familiarity-row span:first-child { flex: 0 0 180px; }
+.tactics-familiarity-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--court-bg-alt);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tactics-familiarity-bar-fill {
+  height: 100%;
+  background: var(--brick-dark);
+  border-radius: 4px;
+}
+.tactics-familiarity-row strong {
+  font-family: var(--font-score);
+  min-width: 28px;
+  text-align: right;
+  color: var(--brick-dark);
+}
+#gm-tactics h4 { margin: 12px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink-soft); }
+
 .tactics-slider-row {
   display: flex;
   align-items: center;

@@ -2501,3 +2501,272 @@ reproducía `quarterScores` ya calculados de antemano.
   un efecto real sobre Racha/Momento (prohibido explícitamente por
   7.12.24, no implementado); extender el motor pausable/ventanas de
   intervención reales a Copa/Playoff/Ascenso.
+
+## 2026-08-21 (3) — TAC-6: Familiaridad Táctica, `tacticalExecution` y complejidad (DESIGN.md 7.12.33)
+
+Sexta de las siete entregas del sistema táctico (7.12). A diferencia de
+TAC-1 a TAC-5, la sección de diseño que cubre esta entrega (7.12.22) es
+deliberadamente abierta — el propio `DESIGN.md` admite explícitamente "no se
+cierra todavía la curva matemática". Esto no es una omisión a rellenar de
+golpe: significa que esta entrega construye una PRIMERA VERSIÓN concreta con
+mecanismos simples y explicables, documentada como tal, no una fórmula
+cerrada que nadie ha validado. Cada decisión de modelado de abajo se marca
+explícitamente como punto de partida pendiente de calibración (7.12.34),
+igual que se hizo con la Ruta A del motor pausable en TAC-5.
+
+### 1. Dónde vive la Familiaridad (`src/core/Tactics.js`)
+
+Decisión de encaje explícita, pedida por el prompt de esta sesión: la
+familiaridad de EQUIPO/SISTEMA vive dentro de `TacticalProfile.familiarity`,
+persistida en `Team.js` junto al resto del perfil pero deliberadamente
+SEPARADA (el usuario declara la táctica; `familiarity` mide cuánto la
+domina):
+
+```
+familiarity: {
+  offensiveSystem: 0-100,
+  defensiveSystem: 0-100,
+  byPlayFamily: { pickAndRoll, isolation, postUp, handoff, offScreen, motionFlow },
+  byCoverage: { drop, under, switch, hedge, blitz },
+  byPlayerRole: { [playerId]: { offensiveRoleId, offensiveLevel, defensiveRoleId, defensiveLevel } },
+}
+```
+
+- **`byPlayerRole`** es la familiaridad INDIVIDUAL del jugador con su rol
+  (7.12.9/7.12.21) — no puede vivir en `Player.js` (vetado para atributos
+  1-20 nuevos), así que vive aquí como mapa por `playerId`, mismo patrón que
+  `roleAssignments` ya usa. Empieza VACÍO (como `roleAssignments`/
+  `matchupOverrides`) — se rellena la primera vez que ese jugador participa
+  en una posesión con un rol asignado, no al crear el perfil.
+- **Familiaridad de QUINTETO con estructuras específicas**: NO implementada
+  (7.12.22 la marca explícitamente como opcional en la primera
+  implementación). El shape elegido no obliga a enumerar combinaciones de
+  cinco jugadores para añadirla después — podría vivir como un mapa
+  adicional `byLineupKey` sin tocar ninguno de los campos de arriba.
+- **Valores de partida** (`config.tactics.familiarity` en `MatchConfig.js`,
+  duplicados como constantes en `Tactics.js` siguiendo el mismo patrón que
+  `DEFAULT_IDENTITY`/`DEFAULT_PLAY_TYPE_WEIGHTS`): 55/100 para
+  `offensiveSystem`/`defensiveSystem`/cada entrada de `byPlayFamily`/
+  `byCoverage` de un `TacticalProfile` recién creado — ni cero total ni
+  máxima, pedido explícito del prompt. 35/100 la primera vez que un jugador
+  recibe un `roleAssignment` (más bajo que el de sistema/familia: es más
+  específico, se empieza a aprender jugando el rol). 15/100 cuando el
+  `roleAssignment` de un jugador CAMBIA de un partido a otro (no hereda la
+  familiaridad del rol anterior — invariante explícito verificado en el
+  script de esta sesión).
+
+### 2. Crecimiento y caída (`Tactics.computeFamiliarityGrowth`/`growFamiliarityValue`/`updateFamiliarityAfterPossession`)
+
+7.12.22 lista 4 causas de crecimiento y 5 de caída/límite; esta entrega solo
+tenía pieza real de motor para dos, tal como el prompt anticipaba:
+
+- **Minutos reales ejecutando el sistema**: se acumula POSESIÓN A POSESIÓN
+  dentro de `MatchEngine.simulateOnePossessionStep` (nivel de granularidad
+  elegido de los dos que permitía el prompt — más fino que "agregar el uso
+  al final del partido", sin necesitar un contador aparte). Cada posesión
+  resuelta con play-type táctico real (P&R/Isolation/Post Up) hace crecer:
+  la familia de jugada correspondiente (`byPlayFamily`) y, a ritmo atenuado
+  (`systemGrowthShare`), el sistema ofensivo global; la cobertura defensiva
+  ejecutada (`byCoverage`, solo P&R — Isolation/Post Up no tienen
+  "cobertura" que aprender, alimentan solo el sistema defensivo global) y,
+  atenuado, el sistema defensivo global; la familiaridad individual de rol
+  de los participantes con un `roleAssignment` declarado. Fórmula de
+  crecimiento: rendimientos decrecientes hacia 100
+  (`growth *= (1 - nivel/100)^diminishingExponent`, así que el nivel se
+  ESTABILIZA cerca del techo sin necesitar un tope duro aparte) frenados por
+  la Complejidad (`PlayDefinition.complexity` para familias; una
+  complejidad NOMINAL propia por cobertura —
+  `coverageComplexity: {drop:15, under:15, switch:45, hedge:65, blitz:65}`,
+  decisión de encaje propia: 7.12.16 no da una cifra de complejidad por
+  cobertura como sí hace `PlayDefinition` para el playbook).
+- **Alta complejidad limita la velocidad de subida** (no un techo aparte,
+  que ya cubre el exponente de rendimientos decrecientes): reutiliza
+  literalmente `PlayDefinition.complexity`, ya existente desde TAC-3 sin
+  efecto real hasta ahora salvo desempatar selección — verificado con
+  script de invariantes: la misma familia con el mismo número de usos
+  alcanza un nivel más bajo si la jugada elegida es de complejidad alta.
+- **Cambio de `roleAssignment` de un partido a otro**: implementado como el
+  reinicio bajo descrito en el punto 1 — si el rol declarado de un jugador
+  para un lado (ofensivo/defensivo) cambia respecto al último valor
+  registrado, su familiaridad de ese rol se reinicia a
+  `roleChangeResetValue` (15) en vez de heredar el nivel anterior; si no
+  cambia, sigue acumulando con normalidad.
+- **Entrenamiento táctico futuro / pretemporada**: FUERA de esta entrega —
+  dependen de la sección 9 (Progresión) y del cierre de ciclo de temporada,
+  ninguno de los dos existe todavía. Comentario de gancho dejado en el
+  código (`growPlayerRoleFamiliarity`/`updateFamiliarityAfterPossession`),
+  sin implementar nada.
+- **Nuevos fichajes / periodos largos sin usar una familia**: FUERA de esta
+  entrega — exigirían enganchar el módulo de fichajes (no existe todavía) y
+  el ciclo de temporada; sin un punto de enganche limpio con lo que ya
+  existe, se señala como pendiente en vez de forzar un acoplamiento
+  improvisado con `SeasonGoals.js`/cierre de ciclo (3.4).
+
+### 3. `tacticalExecution` (`Tactics.computeTacticalExecution`)
+
+Rango 0-1 (elección de esta entrega, documentada en `MatchConfig.js`: mismo
+rango que `advantageScore`/probabilidades del motor, se combina
+directamente sin reescalar). Cruza, en la mezcla ponderada que pide
+7.12.22:
+
+- **Familiaridad relevante** (`Tactics.resolveRelevantFamiliarity`): media
+  de sistema + familia/cobertura + individual de rol de los participantes
+  de ESTA jugada (0-1), elevada a un exponente y multiplicada por un techo
+  que dependen del eje Rigidez↔Read & React (ver punto 4).
+- **`TrabajoEnEquipo`/`Concentración`/`Posicionamiento`/`VisiónJuego`/
+  `DecisiónBajoPresión`**: mezcla ponderada de los participantes
+  (`config.tactics.tacticalExecution.attributeMix`) — `TrabajoEnEquipo`
+  entra aquí precisamente por la excepción que 7.12.18 ya reservaba
+  ("participa en `tacticalExecution`... NO aumenta la probabilidad técnica
+  de tiro/robo/tapón/rebote por sí solo"), confirmado en `DESIGN.md` antes
+  de usarlo.
+- **Energía**: `dynamicState.energy` directo de los participantes — NO se
+  duplica el cálculo de Fatiga de 7.5-bis (pedido explícito del prompt),
+  solo se usa el dato ya existente como factor de entrada.
+- **Experiencia**: `player.experience` normalizado con el MISMO divisor que
+  ya usa `computeMixRating` (`pressure.experienceBonusDivisor`, 7.5) — no
+  se inventa una segunda escala de "veteranía".
+- **Complejidad requerida**: penalización DIRECTA (no solo vía familiaridad)
+  de `PlayDefinition.complexity` de la jugada elegida esta posesión.
+
+**Regla dura respetada** (verificada revisando cada punto de enganche antes
+de escribirlo): NUNCA una resta plana a un atributo de la jugada. Los 3
+errores reconocibles con mecanismo real esta entrega (de los 10 que lista
+7.12.22 — priorizados por tener ya un punto de enganche real en el motor,
+tal como pedía el prompt):
+
+- **Pérdida ofensiva de sistema**: `tacticalPlan.turnoverExecutionMultiplier`
+  modula `MatchEngine.rollTurnover()` YA EXISTENTE (se combina
+  multiplicativamente con `pressEffect.turnoverMultiplier` de TAC-4, nunca
+  un segundo resolver) — 1 (sin efecto) con ejecución perfecta, hasta
+  `turnoverMaxMultiplier` (1.4) con ejecución nula.
+- **Lectura incorrecta / pérdida de continuidad**:
+  `Tactics.applyTacticalExecutionMisread` degrada la lectura de
+  `AdvantageState` (6 categorías, 7.12.4) un escalón hacia el peor
+  resultado para el ataque, con probabilidad inversa al tacticalExecution
+  ofensivo (`misreadMaxProbability`, 0.25 máximo) — se aplica SOLO a la
+  primera lectura de cada posesión (no a las lecturas de la segunda acción
+  de continuidad, para no acumular dos degradaciones seguidas); con doble
+  equipo de poste activo tampoco se aplica (esa lectura ya es una decisión
+  deliberada de la defensa, no algo que el ataque pueda "leer mal" por su
+  cuenta).
+- **Ayuda defensiva tarde / error de switch / dos defensores ayudando al
+  mismo jugador** (los tres fusionados en un único mecanismo, mismo punto
+  de enganche): `Tactics.resolveDefensiveExecutionOverride` sustituye, con
+  probabilidad inversa al tacticalExecution defensivo
+  (`defensiveMisexecutionMaxProbability`, 0.2 máximo), la selección YA
+  HECHA de `screenerDefender` (`buildDefensivePlan`, estimando el
+  tacticalExecution defensivo solo con `onBallDefender` — el propio
+  `screenerDefender` es la pieza que se puede corromper, no puede depender
+  de sí mismo) o del ayudante del doble equipo de poste
+  (`pickDoubleTeamHelper`, estimando con `postDefender` antes de conocer al
+  ayudante) por el candidato MENOS preparado disponible (mismo criterio que
+  `pickLeastContestedDefender` ya usa para el closeout tardío).
+
+Quedan SIN mecanismo propio en esta primera versión (señalado explícitamente
+en vez de inventar un resolver nuevo para forzarlos): mal timing de
+pantalla/corte, spacing roto, pase tarde, dos jugadores ocupando el mismo
+espacio, closeout equivocado. Ninguno tenía ya un punto de enganche real en
+el motor existente sin crear un resolver nuevo — 7.12.22 no exige modelar
+los 10, solo priorizar los que sí lo tienen.
+
+`GamePlan.tacticalExecutionOverride` (7.12.23): TAC-5 dejó este campo
+preparado sin efecto ("gancho explícito para TAC-6"); esta entrega le da su
+primer uso — un número 0-1 sustituye directamente el `tacticalExecution`
+calculado, SOLO para el partido de ese `GamePlan`, sin editor propio en la
+pantalla de Tácticas todavía (pensado para casos manuales/futuros, ej. una
+IA de scouting de TAC-7).
+
+### 4. Eje Rigidez↔Read & React (`DESIGN.md` 7.12.7)
+
+Tercera vez que se menciona este eje (TAC-2, TAC-3) y primera en la que
+tiene efecto real — antes ni siquiera existía como campo en `identity`, solo
+estaba señalado en el texto de `DESIGN.md`. Se añade
+`identity.rigidity` (0-100, 50 neutro, mismo criterio que el resto de ejes)
+y se conecta a `computeTacticalExecution`: interpola el TECHO
+(`readAndReactCeiling` 0.85 ↔ `rigidityCeiling` 0.95) y el EXPONENTE
+(`readAndReactExponent` 0.65 ↔ `rigidityExponent` 1.6) de la curva
+familiaridad→ejecución. Un equipo más Rigidez alcanza un techo más alto con
+familiaridad alta, pero el exponente >1 (convexo) castiga con más dureza la
+familiaridad baja ("sufre más los errores"); un equipo más Read & React
+tiene un techo algo más bajo, pero el exponente <1 (cóncavo) "levanta" el
+resultado con familiaridad baja ("más tolerante", menos dependiente de un
+guion fijo). `rigidity=50` (neutro) interpola a medio camino entre ambos
+pares, sin caso especial. Solo se aplica al lado OFENSIVO (la defensa usa
+rigidez neutra fija — 7.12.13/7.12.14 no define un eje de identidad
+defensiva equivalente).
+
+### 5. Pantalla de Tácticas (`src/ui/game.js`/`game.css`)
+
+Nueva sección "Familiaridad" dentro de la sub-pestaña Resumen (ya
+existente, ninguna sub-pestaña nueva — 7.12.22 la describe como "estado que
+se observa", no se configura): familiaridad de sistema ofensivo/defensivo
+(barras 0-100) y las 2-3 familias de jugada / coberturas defensivas MÁS
+ENTRENADAS. Como esta entrega no registra un contador de uso/frecuencia
+aparte (eso es telemetría de 7.12.27, TAC-7/Data Hub), "más entrenadas" se
+aproxima con la mayor desviación absoluta respecto al valor de partida —
+una familia/cobertura nunca usada se queda exactamente en el valor inicial,
+así que cualquier desviación real solo puede venir de haberla jugado
+(decisión de encaje señalada explícitamente, no una cifra de diseño).
+Sin ningún uso todavía, muestra un mensaje explicativo en vez de una lista
+vacía. Sección de solo lectura, sin ningún editor — mismo criterio visual
+(`gm-card`/`gm-muted`) que el resto de la pantalla.
+
+### Verificación
+
+- **Script Node de invariantes** (scratchpad de la sesión, no forma parte
+  del repo — mismo criterio que TAC-1 a TAC-5): balance de TAC-1 a TAC-5
+  intacto con familiaridad en su valor inicial por defecto (6 partidos de
+  prueba, puntuación total por partido en rango realista); familiaridad de
+  una familia de jugada sube con uso repetido y se estabiliza cerca de un
+  techo (60 usos simulados, el último incremento cae por debajo de 0.5
+  puntos); una jugada de complejidad alta (70) alcanza un nivel más bajo
+  que una de complejidad baja (15) con el mismo número de usos (60);
+  cambio de `roleAssignment` arranca con familiaridad de rol baja, no
+  hereda la del rol anterior; `tacticalExecution` bajo (familiaridad 0)
+  produce multiplicador de pérdida de balón mayor y frecuencia medible
+  mayor de "lectura incorrecta" (2000 tiradas) que `tacticalExecution` alto
+  (familiaridad 100), mismo mecanismo. Además, comparación de balance
+  agregada (20 partidos con los 3 mecanismos de TAC-6 neutralizados vs. 20
+  con sus valores reales): puntuación total por partido 172.6→167.0
+  (-3.2%), pérdidas de balón por partido 44.8→49.4 (+10.3%) — cambio real y
+  medible (el objetivo explícito de esta entrega) pero no un desequilibrio
+  perceptible del balance ya demostrado en TAC-1 a TAC-5.
+- **Playwright** (scratchpad de la sesión): landing → "Empezar temporada"
+  → selección de equipo real → pantalla de Tácticas, confirmando las 6
+  sub-pestañas anteriores intactas (Resumen/Ataque/Roles/Playbook/
+  Defensa/Situaciones) y que Resumen ahora muestra la sección
+  "Familiaridad" (sistema ofensivo/defensivo en 55, sin familias/
+  coberturas por encima del punto de partida en un perfil recién creado,
+  como se espera) sin errores de consola relevantes (el único error de red
+  observado es la Google Font externa de `index.html` sin salida a
+  fonts.googleapis.com en este entorno, nada que ver con esta entrega,
+  igual que en el Playwright de TAC-5).
+- **`git diff --stat`**: `DESIGN.md`, `src/core/MatchConfig.js`,
+  `src/core/MatchEngine.js`, `src/core/Tactics.js`, `src/ui/game.css`,
+  `src/ui/game.js`. Ninguno de `Rotation.js`/`Recovery.js`/`Calendar.js`/
+  `League.js`/`Bracket.js`/`Cup.js`/`Playoffs.js`/`Promotion.js`/
+  `CpuLineup.js`/`Player.js`/`Team.js` aparece en el diff — el
+  `TacticalProfile` que ya persiste en `Team.js` desde TAC-2 absorbe el
+  nuevo shape de familiaridad sin tocar `Team.js` en sí, mismo patrón que
+  TAC-4 usó con `defensiveScheme`.
+
+### Pendiente explícitamente para entregas futuras (ver también DESIGN.md 7.12.34)
+
+- Familiaridad de QUINTETO con estructuras específicas (explícitamente
+  opcional en la primera implementación de 7.12.22); entrenamiento táctico
+  detallado (sección 9, sin diseñar); decaimiento de familiaridad por
+  fichajes/cambios de plantilla ligado al ciclo de temporada (sin punto de
+  enganche limpio todavía).
+- Los 5 errores reconocibles de 7.12.22 sin mecanismo propio (mal timing de
+  pantalla/corte, spacing roto, pase tarde, dos jugadores en el mismo
+  espacio, closeout equivocado).
+- **TAC-7**: telemetría completa de 7.12.27 (Data Hub), incluida la
+  frecuencia de uso real de cada familia/cobertura que permitiría mostrar
+  "más usadas recientemente" con datos reales en vez de la aproximación por
+  desviación de esta entrega; IA táctica de la CPU más allá de lo ya
+  existente.
+- Calibración cuantitativa final de todos los valores numéricos nuevos de
+  `config.tactics.familiarity`/`tacticalExecution` contra datos reales tras
+  simulación masiva (7.12.31) — esta entrega solo verifica DIRECCIÓN, no
+  cifras cerradas, tal como 7.12.22 admite explícitamente.

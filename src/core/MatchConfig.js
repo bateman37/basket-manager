@@ -822,7 +822,17 @@
       // 0-100 (igual que el ejemplo ilustrativo de 7.12.29); `playTypeWeights`
       // no son un reparto de 100 posesiones, solo prioridad relativa (7.12.8).
       identity: {
-        defaults: { pace: 50, earlyOffense: 50, ballMovement: 50, pickAndRollUsage: 50 },
+        // TAC-6 (7.12.7/7.12.22): `rigidity` se añade a los ejes de
+        // identidad por defecto — TAC-2/TAC-3 lo dejaron declarado en
+        // DESIGN.md pero SIN campo real en `identity` (el eje no existía
+        // ni en `TacticalProfile` ni aquí, no solo "sin efecto en el
+        // motor"). 50 = punto neutro (ni Rigidez ni Read & React puro),
+        // mismo criterio de neutralidad que el resto de ejes de
+        // `defaults`. 0 = Read & React total, 100 = Rigidez total — ver
+        // `Tactics.computeTacticalExecution`, único consumidor real por
+        // ahora (7.12.34: primera conexión de este eje tras dos entregas
+        // aplazándolo).
+        defaults: { pace: 50, earlyOffense: 50, ballMovement: 50, pickAndRollUsage: 50, rigidity: 50 },
         // Punto neutro de `pickAndRollUsage` (7.12.7) que reproduce EXACTAMENTE
         // `pnrFrequency` de arriba sin modulación — con este valor, un equipo
         // con TacticalProfile por defecto sortea P&R con la misma frecuencia
@@ -1029,6 +1039,138 @@
       // diferencia con reloj de últimos segundos del período final.
       situational: {
         lastPossessionMarginPoints: 3,
+      },
+
+      // --- DESIGN.md 7.12.22 (TAC-6): Familiaridad Táctica ---
+      // "No se cierra todavía la curva matemática" (frase literal de
+      // 7.12.22) — estos valores son un mecanismo de PARTIDA simple y
+      // explicable (rendimientos decrecientes hacia un techo de 100, sin
+      // curva cerrada validada), no cifras calibradas. Pendiente de
+      // calibración/decisión explícita (7.12.34).
+      familiarity: {
+        // Valor inicial (0-100) de `offensiveSystem`/`defensiveSystem` y de
+        // cada entrada de `byPlayFamily`/`byCoverage` en un TacticalProfile
+        // recién creado — ni cero total ni máxima (pedido explícito de esta
+        // entrega): una plantilla recién empezada no domina el sistema,
+        // pero tampoco parte de cero absoluto (ya hubo algo de pretemporada
+        // implícita antes del primer partido simulado).
+        default: 55,
+        // Valor inicial la PRIMERA vez que un jugador recibe un
+        // `roleAssignment` en una `TacticalProfile` (antes de disputar
+        // ningún partido con ese rol) — mismo criterio "ni cero ni máximo"
+        // que `default`, pero deliberadamente más bajo: la familiaridad
+        // INDIVIDUAL de rol es más específica que la de sistema/familia, se
+        // empieza a aprender jugando el rol, no antes.
+        roleDefaultInitial: 35,
+        // Valor al que se RESETEA la familiaridad individual de un jugador
+        // cuando su `roleAssignment` CAMBIA de un partido a otro (7.12.22:
+        // "cambios frecuentes de rol" hacen caer la familiaridad) — mucho
+        // más bajo que `roleDefaultInitial`: un cambio de rol a mitad de
+        // temporada es peor que empezar de cero con la plantilla nueva
+        // (arrastra hábitos del rol anterior que hay que desaprender).
+        roleChangeResetValue: 15,
+        // Incremento base (puntos de 0-100) por CADA posesión resuelta con
+        // esa familia de jugada/cobertura/rol — antes de aplicar
+        // rendimientos decrecientes (`diminishingExponent`) y el freno de
+        // complejidad (`complexitySlowdown`). Punto de partida: con uso
+        // repetido y sin complejidad, tarda decenas de posesiones en
+        // acercarse al techo de 100, no partidos enteros ni un solo uso.
+        baseGrowthPerUse: 2.2,
+        // Rendimientos decrecientes (7.12.22: "no se cierra la curva
+        // matemática", pero SÍ exige que no crezca indefinido sin límite):
+        // growth *= (1 - nivel/100)^diminishingExponent — a nivel 0 el
+        // exponente no importa (factor 1); cerca de 100 el incremento real
+        // tiende a 0, así que el nivel se ESTABILIZA cerca del techo en vez
+        // de superarlo, sin necesitar un tope duro aparte.
+        diminishingExponent: 1.4,
+        // Freno de Complejidad (7.12.10 `PlayDefinition.complexity`, 0-100):
+        // una jugada más compleja debe tardar más en alcanzar familiaridad
+        // alta que una simple con el mismo número de usos — se aplica como
+        // un factor que RALENTIZA el incremento (nunca un techo aparte, que
+        // ya cubre `diminishingExponent`). `minComplexityFactor` evita que
+        // la jugada más compleja del catálogo (Spain P&R, complexity=70)
+        // deje de aprenderse por completo.
+        complexitySlowdown: 0.6,
+        minComplexityFactor: 0.3,
+        // Complejidad NOMINAL de cada cobertura defensiva (7.12.16 no da una
+        // cifra de complejidad por cobertura como sí hace `PlayDefinition`
+        // para el playbook ofensivo — decisión de encaje propia de esta
+        // entrega, señalada explícitamente): Drop/Under son coberturas de
+        // base, un cambio (Switch) exige más coordinación, y Hedge/Blitz
+        // (doblar el balón y recuperar el rotación) son las más exigentes,
+        // mismo agrupamiento "Hedge/Blitz" que ya usa 7.12.16.
+        coverageComplexity: { drop: 15, under: 15, switch: 45, hedge: 65, blitz: 65 },
+        // Fracción del incremento de familia/cobertura que ADEMÁS suma
+        // (atenuada) a la familiaridad de SISTEMA global (offensiveSystem/
+        // defensiveSystem) — la misma posesión alimenta las dos capas a la
+        // vez, a ritmo distinto (7.12.22 no dice que sean independientes,
+        // solo que son capas MÍNIMAS distintas de un mismo estado).
+        systemGrowthShare: 0.55,
+      },
+
+      // --- DESIGN.md 7.12.22 (TAC-6): `tacticalExecution` ---
+      // Rango 0-1 (elección de esta entrega, documentada: mismo rango que
+      // `advantageScore`/probabilidades del motor, para poder combinarse
+      // directamente con `shotAdjustment`/multiplicadores existentes sin
+      // reescalar). "No se cierra la curva matemática" aplica también aquí
+      // — pesos/exponentes de partida, no cifras calibradas (7.12.34).
+      tacticalExecution: {
+        // Peso de cada componente en la mezcla final (no tienen que sumar
+        // exactamente 1: `complexityPenaltyWeight` se RESTA aparte, el
+        // resto de pesos sí suman 1 para que el máximo teórico sea ~1).
+        familiarityWeight: 0.45,
+        attributeWeight: 0.30,
+        energyWeight: 0.15,
+        experienceWeight: 0.10,
+        // Mezcla de atributos "de ejecución colectiva" (7.12.22: TrabajoEnEquipo,
+        // Concentración, Posicionamiento, VisiónJuego/DecisiónBajoPresión
+        // para lecturas) — TrabajoEnEquipo entra aquí precisamente por la
+        // excepción de 7.12.18 ("participa en tacticalExecution... NO
+        // aumenta la probabilidad técnica de tiro/robo/tapón/rebote por sí
+        // solo").
+        attributeMix: {
+          teamwork: 0.3, concentration: 0.25, positioning: 0.2, gameVision: 0.15, pressureDecisionMaking: 0.1,
+        },
+        // --- Eje Rigidez↔Read & React (7.12.7), primera conexión real ---
+        // Un equipo más Rigidez (rigidity→100) alcanza un techo de
+        // `tacticalExecution` MÁS ALTO con familiaridad alta, pero un
+        // exponente >1 castiga con más dureza la familiaridad baja (sistema
+        // estructurado que se desmorona sin entrenarlo). Un equipo más Read
+        // & React (rigidity→0) tiene un techo algo MÁS BAJO (nunca ejecuta
+        // tan perfecto como un sistema muy trabajado) pero un exponente <1
+        // "levanta" el resultado con familiaridad baja (menos dependiente
+        // de un guion fijo, se adapta mejor sin rodaje). rigidity=50
+        // (neutro, valor por defecto de `identity`) interpola a medio
+        // camino entre ambos pares — reproduce un punto intermedio
+        // razonable, no un caso especial.
+        rigidityCeiling: 0.95,
+        readAndReactCeiling: 0.85,
+        rigidityExponent: 1.6,
+        readAndReactExponent: 0.65,
+        // Penalización DIRECTA (no vía familiaridad) de la Complejidad
+        // requerida de la jugada en curso (0-100) — 7.12.22 la cruza como
+        // factor propio, no solo como freno de la curva de familiarity.
+        complexityPenaltyWeight: 0.12,
+        // --- Errores reconocibles (7.12.22) con punto de enganche real ---
+        // "Lectura incorrecta"/"pérdida de continuidad": probabilidad de
+        // que la posesión DEGRADE su lectura (read6) una categoría cuando
+        // tacticalExecution es bajo — 0 con tacticalExecution=1 (ejecución
+        // perfecta, nunca empeora la lectura por su cuenta), máximo con
+        // tacticalExecution=0.
+        misreadMaxProbability: 0.25,
+        // "Pérdida ofensiva de sistema": multiplicador sobre rollTurnover()
+        // YA EXISTENTE (nunca un resolver nuevo, mismo patrón que
+        // `press.turnoverBoost`) cuando tacticalExecution es bajo — 1 (sin
+        // efecto) con tacticalExecution=1, hasta `turnoverMaxMultiplier`
+        // con tacticalExecution=0.
+        turnoverMaxMultiplier: 1.4,
+        // "Ayuda defensiva tarde"/"error de switch"/"dos defensores
+        // ayudando al mismo jugador": probabilidad de que la SELECCIÓN de
+        // ayudante/defensor de cobertura de la DEFENSA (pickDoubleTeamHelper/
+        // screenerDefender) se sustituya por el candidato MENOS preparado
+        // disponible (rotación tardía/mal ejecutada) cuando el
+        // tacticalExecution de la defensa es bajo.
+        defensiveMisexecutionMaxProbability: 0.2,
       },
     },
   };
