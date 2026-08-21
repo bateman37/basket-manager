@@ -13,12 +13,17 @@
 //    ver comentario en Promotion.js, solo exige una League con la
 //    temporada regular completa).
 //  - Se avanza jornada a jornada con un botón ("jugar siguiente jornada").
-//  - El partido del equipo del usuario en cada jornada se ve en una
-//    pantalla de simulación con revelado progresivo por cuartos (el motor
-//    no tiene punto de entrada por cuartos — MatchEngine.simulateMatch()
-//    es monolítico, ver DESIGN.md 7.1 — así que se simula el partido
-//    completo de una vez y la INTERFAZ revela quarterScores progresivamente,
-//    no el motor).
+//  - El partido de LIGA del equipo del usuario se juega de verdad sobre el
+//    motor pausable de DESIGN.md 7.12.24/7.12.33 (TAC-5):
+//    MatchEngine.createMatchState/advanceMatch se detienen de verdad en
+//    fin de cuarto y en cada tiempo muerto disparado, con ventanas de
+//    intervención reales (GamePlan/tiempos muertos) — ver
+//    startLiveMatch()/advanceLiveMatch()/renderLiveMatchScreen() más abajo.
+//    Los partidos de Copa/Playoff/Ascenso (Bracket.js/Playoffs.js/Cup.js/
+//    Promotion.js, sin tocar en esta entrega) siguen resolviéndose de
+//    golpe con MatchEngine.simulateMatch() y esta pantalla solo revela
+//    quarterScores progresivamente (modo 'replay', decisión de encaje
+//    señalada explícitamente — ver playNextMatchWithLineup()).
 
 (function (global) {
   const BM = global.BasketManager;
@@ -336,6 +341,16 @@
     state.seasonCloseSummary = null;
 
     const matches = league.simulateNextRound(undefined, resolveMatchOptions);
+    finishRoundBookkeeping(matches, state.division, league);
+  }
+
+  // Cola de cierre común a AMBOS caminos de jugar una jornada de liga: el
+  // de siempre (simulateNextRound(), toda la jornada de golpe — sigue
+  // usándose cuando el equipo del usuario no juega esta jornada) y el
+  // nuevo de TAC-5 (finishUserLeagueMatch(), tras terminar el partido del
+  // usuario sobre el motor pausable) — evita duplicar recuperación de
+  // Energía/creación de brackets/jornada de fondo en dos sitios.
+  function finishRoundBookkeeping(matches, division, league) {
     state.lastRoundMatches = matches;
 
     // DESIGN.md 7.11.5 (cierre de integración): recuperación de Energía
@@ -345,11 +360,12 @@
       applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
     });
 
-    createBracketsIfDue(state.division, league);
+    createBracketsIfDue(division, league);
 
-    // Partido del equipo del usuario en esta jornada, si lo tenía —
-    // se guarda para revelarlo en la pantalla de partido (progresivo por
-    // cuartos), en vez de mostrar el resultado ya hecho en el calendario.
+    // Partido del equipo del usuario en esta jornada, si lo tenía — para
+    // partidos jugados sobre el motor pausable (TAC-5) esto ya está
+    // resuelto (ver finishUserLeagueMatch), pero se recalcula igual para
+    // no duplicar el criterio de búsqueda en dos sitios.
     const userMatch = matches.find(
       (m) => m.homeTeam.id === state.userTeamId || m.awayTeam.id === state.userTeamId,
     );
@@ -551,10 +567,12 @@
 
   // Puente entre el shape de Bracket/PromotionPlayoff.playNextGame()
   // ({ gameNumber, homeEntry, awayEntry, result }) y el shape que espera
-  // startMatchReveal()/renderMatchScreen() ({ homeTeam, awayTeam, result }),
-  // igual que ya se hace con state.pendingUserMatch para partidos de liga
-  // — así todo partido de bracket se revela cuarto a cuarto igual que uno
-  // de liga, sin tocar Bracket.js/Cup.js/Playoffs.js/Promotion.js.
+  // startReplayMatchReveal()/renderMatchScreen() ({ homeTeam, awayTeam,
+  // result }), igual que ya se hace con state.pendingUserMatch para
+  // partidos de liga — así todo partido de bracket se revela cuarto a
+  // cuarto igual que antes de TAC-5, sin tocar Bracket.js/Cup.js/
+  // Playoffs.js/Promotion.js (decisión de encaje explícita, ver
+  // playNextMatchWithLineup()/DESIGN.md 7.12.24-bis).
   // `resolveOptions` (opcional, DESIGN.md 7.11.6): ver
   // buildLineupMatchOptionsResolver() más abajo — se reenvía tal cual a
   // Bracket.playNextGame(). Sin argumento, comportamiento idéntico a antes.
@@ -689,12 +707,11 @@
     if (playBtn) {
       playBtn.addEventListener('click', () => {
         if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
-        simulateNextRound(buildLineupMatchOptionsResolver(team).resolveMatchOptions);
-        if (state.pendingUserMatch) {
-          goToScreen('match');
-        } else {
-          renderHomeScreen();
-        }
+        // DESIGN.md 7.12.24 (TAC-5): unificado con playNextMatchWithLineup()
+        // — el partido del usuario ahora se juega de verdad sobre el motor
+        // pausable (ventanas de intervención reales), no solo se revela un
+        // resultado ya calculado de antemano.
+        playNextMatchWithLineup(team);
       });
     }
 
@@ -1716,9 +1733,11 @@
       const readsHtml = play.reads
         .map((r) => `${r.label} <span class="gm-muted">(vs ${r.vs.map((c) => PNR_COVERAGE_LABELS[c] || c).join('/')})</span>`)
         .join('<br>');
+      const situationalBadge = play.situationType
+        ? ` <span class="gm-muted">(situacional: ${SITUATION_TYPE_LABELS[play.situationType] || play.situationType})</span>` : '';
       return `
         <tr>
-          <td>${play.name}${hasRealEngine ? '' : ' <span class="gm-muted">(catálogo, sin motor propio todavía)</span>'}</td>
+          <td>${play.name}${situationalBadge}${hasRealEngine ? '' : ' <span class="gm-muted">(catálogo, sin motor propio todavía)</span>'}</td>
           <td>${familyLabel}</td>
           <td>${participantsHtml}</td>
           <td>${spacingHtml}</td>
@@ -1821,12 +1840,77 @@
       </div>`;
   }
 
+  // --- DESIGN.md 7.12.24/7.12.32 (TAC-5): sub-pestaña Situaciones ---
+  // Reglas de Auto Timeouts, prioridad de jugadas ATO/BLOB/SLOB/Late
+  // Clock/Last Possession y reglas de falta táctica intencionada — TODAS
+  // viven en `team.tacticalProfile.situations` (persistente, "GamePlan
+  // base" que cita 7.12.32), mismo patrón de mutación directa que el
+  // resto de sub-pestañas (Defensa, por ejemplo). Un GamePlan de partido
+  // concreto puede sobreescribir SOLO `preferredPlays` para ese partido
+  // (ver Tactics.GamePlan/effectiveTacticalProfile), nunca desde aquí.
+  const SITUATION_TYPE_LABELS = {
+    ATO: 'ATO (tras tiempo muerto)',
+    BLOB: 'BLOB (saque de fondo)',
+    SLOB: 'SLOB (saque de banda)',
+    lateClock: 'Late Clock (pocos segundos de posesión)',
+    lastPossession: 'Last Possession (última posesión)',
+  };
+
+  function renderTacticsSituationsTab(team) {
+    const { situations } = team.tacticalProfile;
+
+    const preferredPlaysHtml = BM.SITUATION_TYPES.map((situationType) => {
+      const candidates = BM.PLAY_DEFINITIONS.filter((p) => p.situationType === situationType);
+      const current = situations.preferredPlays[situationType] || '';
+      const optionsHtml = candidates.map((p) => `
+        <option value="${p.id}" ${current === p.id ? 'selected' : ''}>${p.name}</option>`).join('');
+      return `
+        <label class="tactics-situational-play">
+          ${SITUATION_TYPE_LABELS[situationType] || situationType}
+          <select class="tactics-situational-play-select" data-situation-type="${situationType}">
+            <option value="">Elegir automáticamente</option>
+            ${optionsHtml}
+          </select>
+        </label>`;
+    }).join('');
+
+    return `
+      <div class="gm-card">
+        <h3>Auto Timeouts</h3>
+        <label class="tactics-press-toggle">
+          <input type="checkbox" id="tactics-auto-timeouts-checkbox" ${situations.autoTimeouts.enabled ? 'checked' : ''}>
+          Pedir tiempo muerto automáticamente si el rival mete un parcial (${BM.CONFIG_BASE.match.timeouts.autoTriggerRunPoints}-0 sin respuesta)
+        </label>
+        <p class="gm-muted">Con esta opción activada, el asistente pide el tiempo muerto por ti en la primera parada de juego disponible — sin abrir la ventana de intervención. Un tiempo muerto NUNCA aplica un bonus mágico de acierto ni resetea la racha del rival (7.12.24); solo habilita los ajustes que verías igualmente si lo pidieras a mano.</p>
+      </div>
+      <div class="gm-card">
+        <h3>Falta táctica intencionada</h3>
+        <label class="tactics-press-toggle">
+          <input type="checkbox" id="tactics-tactical-foul-checkbox" ${situations.tacticalFoul.enabled ? 'checked' : ''}>
+          Activar falta táctica intencionada en el último cuarto/prórroga
+        </label>
+        <label>Margen de puntos (perdiendo por esto o menos)
+          <input type="number" id="tactics-tactical-foul-margin-input" min="1" max="30" value="${situations.tacticalFoul.marginPoints}">
+        </label>
+        <label>Segundos restantes de partido
+          <input type="number" id="tactics-tactical-foul-seconds-input" min="1" max="120" value="${situations.tacticalFoul.secondsRemaining}">
+        </label>
+        <p class="gm-muted">El objetivo es siempre el rival en pista con peor Tiro Libre; el jugador propio con 4 faltas personales nunca comete la falta si hay alternativa. La CPU usa exactamente esta misma regla cuando la tiene activada.</p>
+      </div>
+      <div class="gm-card">
+        <h3>Jugadas preparadas — ATO/BLOB/SLOB/Late Clock/Last Possession</h3>
+        <p class="gm-muted">Jugada preferida del catálogo situacional para cada caso (7.12.24) — sin garantía de tiro concreto, su eficacia depende de los jugadores y la cobertura rival. "Elegir automáticamente" sortea entre el catálogo disponible, igual que el resto del playbook.</p>
+        ${preferredPlaysHtml}
+      </div>`;
+  }
+
   const TACTICS_TABS = [
     { id: 'summary', label: 'Resumen' },
     { id: 'attack', label: 'Ataque' },
     { id: 'roles', label: 'Roles' },
     { id: 'playbook', label: 'Playbook' },
     { id: 'defense', label: 'Defensa' },
+    { id: 'situations', label: 'Situaciones' },
   ];
 
   function renderTacticsScreen() {
@@ -1841,6 +1925,7 @@
     else if (activeTab === 'roles') body = renderTacticsRolesTab(team);
     else if (activeTab === 'playbook') body = renderTacticsPlaybookTab();
     else if (activeTab === 'defense') body = renderTacticsDefenseTab(team);
+    else if (activeTab === 'situations') body = renderTacticsSituationsTab(team);
 
     container.innerHTML = `
       <h2>Tácticas</h2>
@@ -1957,6 +2042,45 @@
         });
       });
     }
+
+    if (activeTab === 'situations') {
+      const autoTimeoutsCheckbox = byId('tactics-auto-timeouts-checkbox');
+      if (autoTimeoutsCheckbox) {
+        autoTimeoutsCheckbox.addEventListener('change', () => {
+          team.tacticalProfile.situations.autoTimeouts.enabled = autoTimeoutsCheckbox.checked;
+          renderTacticsScreen();
+        });
+      }
+      const tacticalFoulCheckbox = byId('tactics-tactical-foul-checkbox');
+      if (tacticalFoulCheckbox) {
+        tacticalFoulCheckbox.addEventListener('change', () => {
+          team.tacticalProfile.situations.tacticalFoul.enabled = tacticalFoulCheckbox.checked;
+          renderTacticsScreen();
+        });
+      }
+      const marginInput = byId('tactics-tactical-foul-margin-input');
+      if (marginInput) {
+        marginInput.addEventListener('change', () => {
+          team.tacticalProfile.situations.tacticalFoul.marginPoints = Number(marginInput.value);
+          renderTacticsScreen();
+        });
+      }
+      const secondsInput = byId('tactics-tactical-foul-seconds-input');
+      if (secondsInput) {
+        secondsInput.addEventListener('change', () => {
+          team.tacticalProfile.situations.tacticalFoul.secondsRemaining = Number(secondsInput.value);
+          renderTacticsScreen();
+        });
+      }
+      container.querySelectorAll('.tactics-situational-play-select').forEach((select) => {
+        select.addEventListener('change', () => {
+          const { situationType } = select.dataset;
+          if (select.value) team.tacticalProfile.situations.preferredPlays[situationType] = select.value;
+          else delete team.tacticalProfile.situations.preferredPlays[situationType];
+          renderTacticsScreen();
+        });
+      });
+    }
   }
 
   // Construye el `{ homeSquad/awaySquad, homeLineup/awayLineup }` de
@@ -2049,15 +2173,117 @@
     const resolvers = buildLineupMatchOptionsResolver(team);
 
     if (activeBracket) {
+      // DESIGN.md 7.12.24 (TAC-5): decisión de encaje explícita — los
+      // partidos de Copa/Playoff/Ascenso siguen resolviéndose de golpe
+      // (Bracket.js/Playoffs.js/Cup.js/Promotion.js no se tocan en esta
+      // entrega) y revelándose por cuartos como ANTES de esta entrega
+      // (`renderMatchScreen` modo 'replay' más abajo) — el motor
+      // REALMENTE pausable de esta entrega se expone solo para el partido
+      // de liga del usuario (el flujo con más volumen de juego). Ampliar
+      // esto a bracket es trabajo pendiente señalado explícitamente
+      // (CHANGELOG de esta entrega), no un olvido.
       playBracketGameWithReveal(activeBracket.bracket, resolvers.resolveBracketOptions);
       return;
     }
 
-    simulateNextRound(resolvers.resolveMatchOptions);
-    if (state.pendingUserMatch) {
-      goToScreen('match');
-    } else {
-      goToScreen('home');
+    startUserLeagueMatch(team, resolvers.resolveMatchOptions);
+  }
+
+  // --- DESIGN.md 7.12.24/7.12.33 (TAC-5): partido de liga del usuario
+  // jugado de verdad sobre el motor pausable (MatchEngine.createMatchState/
+  // advanceMatch), con ventanas de intervención reales entre cuartos y en
+  // cada tiempo muerto disparado — sustituye al "reveal" cosmético de
+  // antes de esta entrega (que solo reproducía un resultado ya calculado
+  // de antemano por League.simulateNextRound()). ---
+  //
+  // `league.getCurrentRoundMatches()` es una consulta pura (no avanza
+  // `currentRound` ni muta nada, ver League.js) — se usa aquí para saber
+  // SI el equipo del usuario juega esta jornada y contra quién ANTES de
+  // pedirle a League.js que resuelva la jornada, sin tocar League.js.
+  function startUserLeagueMatch(team, resolveMatchOptions) {
+    const league = getUserLeague();
+    if (league.isSeasonComplete) return;
+    const roundMatches = league.getCurrentRoundMatches();
+    const userMatch = roundMatches.find((m) => m.homeTeam.id === team.id || m.awayTeam.id === team.id);
+
+    if (!userMatch) {
+      // Jornada con nº impar de equipos: el equipo del usuario descansa.
+      // Comportamiento idéntico al de antes de esta entrega — toda la
+      // jornada se resuelve de golpe, sin pantalla de partido.
+      simulateNextRound(resolveMatchOptions);
+      goToScreen(state.pendingUserMatch ? 'match' : 'home');
+      return;
+    }
+
+    const engineOptions = resolveMatchOptions(userMatch) || {};
+    startLiveMatch(userMatch.homeTeam, userMatch.awayTeam, engineOptions, (finalResult) => {
+      finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions);
+    });
+    goToScreen('match');
+  }
+
+  // Encaje con League.js (sin tocarlo): el partido del usuario YA se ha
+  // simulado de verdad, posesión a posesión, con las ventanas de
+  // intervención que el usuario haya usado — `options.precomputedResult`
+  // (MatchEngine.simulateMatch, ver comentario allí) hace que
+  // League.simulateNextRound() REUTILICE ese resultado exacto para ESE
+  // partido en vez de volver a simularlo (que generaría un partido
+  // DISTINTO, con otra secuencia aleatoria, y rompería la coherencia entre
+  // lo que el usuario vio y lo que cuenta para la clasificación). El resto
+  // de partidos de la jornada se resuelven de golpe, igual que siempre.
+  function finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions) {
+    state.seasonCloseSummary = null;
+    const matches = league.simulateNextRound(undefined, (match) => {
+      if (match === userMatch) return { precomputedResult: finalResult };
+      return resolveMatchOptions(match);
+    });
+    finishRoundBookkeeping(matches, state.division, league);
+  }
+
+  // --- Motor de partido en vivo (TAC-5): envoltorio mínimo de
+  // MatchEngine.createMatchState/advanceMatch para la pantalla de
+  // partido. `engineOptions`: mismo shape que ya aceptaba
+  // MatchEngine.simulateMatch (homeSquad/homeLineup/homeTacticalProfile,
+  // etc.) — se le añade aquí un GamePlan de partido inicial (sin
+  // overrides todavía, 7.12.23) para cada lado, así que la ventana de
+  // intervención siempre tiene un GamePlan real que mutar en vez de tener
+  // que crear uno la primera vez que el usuario toca algo.
+  function startLiveMatch(homeTeam, awayTeam, engineOptions, onFinished) {
+    const options = {
+      ...engineOptions,
+      homeGamePlan: engineOptions.homeGamePlan || new BM.GamePlan(homeTeam.tacticalProfile),
+      awayGamePlan: engineOptions.awayGamePlan || new BM.GamePlan(awayTeam.tacticalProfile),
+    };
+    const matchState = BM.createMatchState(homeTeam, awayTeam, BM.CONFIG_BASE, options);
+    state.matchReveal = {
+      mode: 'live',
+      matchState,
+      stoppedReason: null,
+      homeTeam,
+      awayTeam,
+      onFinished,
+    };
+    advanceLiveMatch();
+  }
+
+  // Avanza el partido en vivo hasta la siguiente ventana de intervención
+  // real (fin de cuarto o tiempo muerto disparado) o hasta el final —
+  // `Auto Timeouts` (7.12.24, sub-pestaña Situaciones) se lee de
+  // `TacticalProfile.situations.autoTimeouts.enabled` de cada equipo en
+  // el momento de avanzar (no una vez al principio), así que un cambio en
+  // la pestaña Situaciones ya se refleja en la siguiente llamada.
+  function advanceLiveMatch() {
+    const reveal = state.matchReveal;
+    if (!reveal || reveal.mode !== 'live' || reveal.matchState.phase === 'finished') return;
+    const { matchState, homeTeam, awayTeam } = reveal;
+    const autoTimeouts = {
+      home: homeTeam.tacticalProfile.situations.autoTimeouts.enabled,
+      away: awayTeam.tacticalProfile.situations.autoTimeouts.enabled,
+    };
+    const { stoppedReason } = BM.advanceMatch(matchState, { stopAt: 'timeoutTrigger', autoTimeouts });
+    reveal.stoppedReason = stoppedReason;
+    if (stoppedReason === 'matchEnd' && reveal.onFinished) {
+      reveal.onFinished(BM.buildMatchResult(matchState));
     }
   }
 
@@ -2083,8 +2309,16 @@
     if (screen === 'competitions') renderCompetitionsScreen();
     if (screen === 'stats') renderStatsScreen();
     if (screen === 'match') {
-      if (state.pendingUserMatch && (!state.matchReveal || state.matchReveal.match !== state.pendingUserMatch)) {
-        startMatchReveal(state.pendingUserMatch);
+      // DESIGN.md 7.12.24 (TAC-5): el modo 'live' (partido de liga del
+      // usuario sobre el motor pausable) ya deja `state.matchReveal`
+      // preparado ANTES de navegar aquí (ver startLiveMatch) — este
+      // guardia solo arranca el modo 'replay' de siempre (partidos de
+      // bracket, ya resueltos de golpe por Bracket.js/Playoffs.js/etc.,
+      // sin tocar esos archivos en esta entrega).
+      const isLiveReveal = state.matchReveal && state.matchReveal.mode === 'live';
+      if (!isLiveReveal && state.pendingUserMatch
+        && (!state.matchReveal || state.matchReveal.match !== state.pendingUserMatch)) {
+        startReplayMatchReveal(state.pendingUserMatch);
       }
       renderMatchScreen();
     }
@@ -2104,25 +2338,36 @@
   }
 
   // ---------------------------------------------------------------------
-  // Pantalla: simulación de partido — revelado progresivo por cuartos.
-  // El motor (MatchEngine.simulateMatch) resuelve el partido entero de una
-  // vez (no tiene punto de entrada por cuartos, ver DESIGN.md 7.1); esta
-  // pantalla NO simula nada por su cuenta — solo va revelando, cuarto a
-  // cuarto, los datos ya calculados en match.result.quarterScores. El
-  // boxScore final (por jugador) solo se muestra al llegar al último
-  // período disponible.
+  // Pantalla: simulación de partido.
+  //
+  // DESIGN.md 7.12.24 (TAC-5): dos modos de revelado, ver
+  // `state.matchReveal.mode`:
+  //
+  // - 'live' (partido de LIGA del usuario, el camino nuevo de esta
+  //   entrega): el motor (MatchEngine.createMatchState/advanceMatch) SÍ
+  //   pausa de verdad entre cuartos y en cada tiempo muerto disparado —
+  //   startLiveMatch()/advanceLiveMatch() (más arriba) ya dejan
+  //   `state.matchReveal` listo antes de entrar a esta pantalla.
+  // - 'replay' (partidos de Copa/Playoff/Ascenso, decisión de encaje
+  //   señalada explícitamente en playNextMatchWithLineup): el motor
+  //   resuelve el partido entero de una vez (Bracket.js/Playoffs.js/
+  //   Cup.js/Promotion.js, sin tocar) y esta pantalla solo va revelando,
+  //   cuarto a cuarto, los datos ya calculados en match.result.
+  //   quarterScores — comportamiento idéntico al de antes de esta
+  //   entrega.
   // ---------------------------------------------------------------------
-  function startMatchReveal(match) {
+  function startReplayMatchReveal(match) {
     const result = match.result;
     const totalPeriods = result.quarterScores.home.length; // incluye prórrogas si las hubo
     state.matchReveal = {
+      mode: 'replay',
       match,
       period: 0, // nº de períodos ya revelados
       totalPeriods,
     };
   }
 
-  function currentRevealScore() {
+  function currentReplayScore() {
     const { match, period } = state.matchReveal;
     const qs = match.result.quarterScores;
     let home = 0; let away = 0;
@@ -2193,21 +2438,33 @@
       return;
     }
 
+    if (reveal.mode === 'live') { renderLiveMatchScreen(container, reveal); return; }
+    renderReplayMatchScreen(container, reveal);
+  }
+
+  function renderPeriodChips(quarterScoresHome, quarterScoresAway, revealedCount, totalPeriods, totalRegularQuarters) {
+    const chips = [];
+    for (let i = 0; i < totalPeriods; i += 1) {
+      const revealed = i < revealedCount;
+      chips.push(`
+        <div class="period-chip ${revealed ? 'is-revealed' : ''}">
+          <span class="period-chip__label">${periodLabel(i, totalRegularQuarters)}</span>
+          <span class="period-chip__score">${revealed ? `${quarterScoresHome[i]}-${quarterScoresAway[i]}` : '–'}</span>
+        </div>`);
+    }
+    return chips.join('');
+  }
+
+  // Modo 'replay' (Copa/Playoff/Ascenso, ver comentario del bloque
+  // anterior) — comportamiento idéntico al de antes de esta entrega.
+  function renderReplayMatchScreen(container, reveal) {
     const { match } = reveal;
     const result = match.result;
     const totalRegularQuarters = 4; // DESIGN.md 7.1: FIBA/ACB, 4 cuartos siempre
-    const score = currentRevealScore();
+    const score = currentReplayScore();
     const isFullyRevealed = reveal.period >= reveal.totalPeriods;
 
-    const periodChips = [];
-    for (let i = 0; i < reveal.totalPeriods; i++) {
-      const revealed = i < reveal.period;
-      periodChips.push(`
-        <div class="period-chip ${revealed ? 'is-revealed' : ''}">
-          <span class="period-chip__label">${periodLabel(i, totalRegularQuarters)}</span>
-          <span class="period-chip__score">${revealed ? `${result.quarterScores.home[i]}-${result.quarterScores.away[i]}` : '–'}</span>
-        </div>`);
-    }
+    const periodChipsHtml = renderPeriodChips(result.quarterScores.home, result.quarterScores.away, reveal.period, reveal.totalPeriods, totalRegularQuarters);
 
     const overtimeNote = isFullyRevealed && result.wentToOvertime
       ? `<p class="gm-muted">Partido resuelto en prórroga (${result.overtimePeriods}).</p>` : '';
@@ -2242,7 +2499,7 @@
           <span class="scoreboard__name">${match.awayTeam.name}</span>
         </div>
       </div>
-      <div class="period-chips">${periodChips.join('')}</div>
+      <div class="period-chips">${periodChipsHtml}</div>
       ${overtimeNote}
       <button id="gm-advance-match-btn" class="gm-btn gm-btn--primary">${advanceBtnLabel}</button>
       ${boxScoreSection}
@@ -2258,6 +2515,172 @@
       reveal.period = Math.min(reveal.period + 1, reveal.totalPeriods);
       renderMatchScreen();
     });
+  }
+
+  const STOPPED_REASON_LABELS = {
+    quarterEnd: 'Descanso entre cuartos',
+    timeoutTrigger: 'Tiempo muerto',
+    possession: 'Pausa',
+  };
+
+  // Modo 'live' (TAC-5): partido de liga del usuario sobre el motor
+  // REALMENTE pausable — la ventana de intervención (7.12.24) se muestra
+  // siempre que `matchState.phase !== 'finished'` (el motor ya se ha
+  // detenido de verdad en fin de cuarto o en un tiempo muerto disparado,
+  // no hay nada más que revelar de golpe). El reveal sigue mostrándose
+  // por cuartos/eventos destacados, nunca posesión a posesión (7.12.24:
+  // "no convierte el juego en narración jugada a jugada").
+  function renderLiveMatchScreen(container, reveal) {
+    const { matchState, homeTeam, awayTeam } = reveal;
+    const config = BM.CONFIG_BASE;
+    const totalRegularQuarters = config.match.quarters;
+    const isFinished = matchState.phase === 'finished';
+    const result = BM.buildMatchResult(matchState);
+
+    const score = matchState.runningScore;
+    const revealedPeriods = matchState.quarterScores.home.length;
+    const totalPeriodsSoFar = isFinished ? revealedPeriods : Math.max(revealedPeriods, matchState.period);
+    const periodChipsHtml = renderPeriodChips(matchState.quarterScores.home, matchState.quarterScores.away, revealedPeriods, totalPeriodsSoFar, totalRegularQuarters);
+
+    const overtimeNote = isFinished && result.wentToOvertime
+      ? `<p class="gm-muted">Partido resuelto en prórroga (${result.overtimePeriods}).</p>` : '';
+
+    const boxScoreSection = isFinished ? `
+      <div class="boxscore-grid">
+        <div>
+          <h3>${homeTeam.fullName}</h3>
+          ${renderTeamBoxScore(result.boxScore.home)}
+        </div>
+        <div>
+          <h3>${awayTeam.fullName}</h3>
+          ${renderTeamBoxScore(result.boxScore.away)}
+        </div>
+      </div>
+      <div class="gm-card team-totals">
+        ${renderTeamTotals(result, { homeTeam, awayTeam })}
+      </div>
+    ` : '<p class="gm-muted">El resumen de estadísticas por jugador aparece al terminar el partido.</p>';
+
+    const advanceBtnLabel = isFinished ? 'Volver a Inicio' : (matchState.period >= totalRegularQuarters ? 'Continuar ▸' : 'Siguiente cuarto ▸');
+
+    const interventionHtml = isFinished ? '' : renderMatchInterventionPanel(reveal);
+
+    container.innerHTML = `
+      <div class="scoreboard">
+        <div class="scoreboard__team">
+          <span class="scoreboard__name">${homeTeam.name}</span>
+          <span class="scoreboard__score">${score.home}</span>
+        </div>
+        <div class="scoreboard__vs">—</div>
+        <div class="scoreboard__team">
+          <span class="scoreboard__score">${score.away}</span>
+          <span class="scoreboard__name">${awayTeam.name}</span>
+        </div>
+      </div>
+      <div class="period-chips">${periodChipsHtml}</div>
+      ${overtimeNote}
+      ${interventionHtml}
+      <button id="gm-advance-match-btn" class="gm-btn gm-btn--primary">${advanceBtnLabel}</button>
+      ${boxScoreSection}
+    `;
+
+    byId('gm-advance-match-btn').addEventListener('click', () => {
+      if (isFinished) {
+        state.matchReveal = null;
+        state.pendingUserMatch = null;
+        goToScreen('home');
+        return;
+      }
+      advanceLiveMatch();
+      renderMatchScreen();
+    });
+
+    wireMatchInterventionPanel(container, reveal);
+  }
+
+  // Ventana de intervención real (DESIGN.md 7.12.24): resumen agregado
+  // hasta este instante + ajustes disponibles del GamePlan (7.12.23) del
+  // equipo del usuario + pedir tiempo muerto — SOLO el lado del usuario
+  // tiene controles (el rival, gestionado por CPU, usa Auto
+  // Timeouts/falta táctica igual que cualquier equipo, sin pantalla).
+  function renderMatchInterventionPanel(reveal) {
+    const { matchState, homeTeam, awayTeam, stoppedReason } = reveal;
+    const userTeam = getUserTeam();
+    const userSide = userTeam && userTeam.id === homeTeam.id ? 'home' : (userTeam && userTeam.id === awayTeam.id ? 'away' : null);
+    const reasonLabel = STOPPED_REASON_LABELS[stoppedReason] || 'Pausa';
+    let reasonDetail = '';
+    if (stoppedReason === 'timeoutTrigger' && matchState.lastTimeoutSide) {
+      const teamName = matchState.lastTimeoutSide === 'home' ? homeTeam.name : awayTeam.name;
+      const reasonWord = matchState.lastTimeoutReason === 'auto' ? 'automático (Auto Timeouts)' : 'solicitado';
+      reasonDetail = ` — ${teamName}, ${reasonWord}`;
+    }
+
+    if (!userSide) {
+      return `<div class="gm-card intervention-panel"><p class="gm-muted">${reasonLabel}${reasonDetail}.</p></div>`;
+    }
+
+    const userGamePlan = userSide === 'home' ? matchState.homeGamePlan : matchState.awayGamePlan;
+    const canTimeout = BM.canCallTimeout(matchState, userSide);
+    const coverageOptionsHtml = BM.PNR_COVERAGES.map((c) => `
+      <option value="${c}" ${userGamePlan.pnrCoverage === c ? 'selected' : ''}>${PNR_COVERAGE_LABELS[c] || c}</option>`).join('');
+
+    return `
+      <div class="gm-card intervention-panel">
+        <h3>${reasonLabel}${reasonDetail}</h3>
+        <p class="gm-muted">Ajustes de GamePlan para este partido — se descartan al terminar salvo que los guardes como táctica base.</p>
+        <div class="intervention-panel__controls">
+          <label>Cobertura de P&amp;R
+            <select id="intervention-coverage-select">${coverageOptionsHtml}</select>
+          </label>
+          <label>Peso de Isolation
+            <input type="range" id="intervention-isolation-input" min="0" max="100" value="${userGamePlan.playTypeWeights.isolation}">
+            <span class="tactics-slider-value">${userGamePlan.playTypeWeights.isolation}</span>
+          </label>
+        </div>
+        <div class="intervention-panel__actions">
+          <button id="intervention-timeout-btn" type="button" class="gm-btn" ${canTimeout ? '' : 'disabled'}>Pedir tiempo muerto</button>
+          <button id="intervention-save-gameplan-btn" type="button" class="gm-btn">Guardar cambios como táctica base</button>
+        </div>
+      </div>`;
+  }
+
+  function wireMatchInterventionPanel(container, reveal) {
+    const { matchState, homeTeam, awayTeam } = reveal;
+    const userTeam = getUserTeam();
+    const userSide = userTeam && userTeam.id === homeTeam.id ? 'home' : (userTeam && userTeam.id === awayTeam.id ? 'away' : null);
+    if (!userSide) return;
+    const userGamePlan = userSide === 'home' ? matchState.homeGamePlan : matchState.awayGamePlan;
+
+    const coverageSelect = byId('intervention-coverage-select');
+    if (coverageSelect) {
+      coverageSelect.addEventListener('change', () => {
+        userGamePlan.pnrCoverage = coverageSelect.value;
+      });
+    }
+    const isolationInput = byId('intervention-isolation-input');
+    if (isolationInput) {
+      isolationInput.addEventListener('input', () => {
+        const valueEl = isolationInput.parentElement.querySelector('.tactics-slider-value');
+        if (valueEl) valueEl.textContent = isolationInput.value;
+      });
+      isolationInput.addEventListener('change', () => {
+        userGamePlan.playTypeWeights.isolation = Number(isolationInput.value);
+      });
+    }
+    const timeoutBtn = byId('intervention-timeout-btn');
+    if (timeoutBtn) {
+      timeoutBtn.addEventListener('click', () => {
+        BM.requestTimeoutNow(matchState, userSide);
+        renderMatchScreen();
+      });
+    }
+    const saveGamePlanBtn = byId('intervention-save-gameplan-btn');
+    if (saveGamePlanBtn) {
+      saveGamePlanBtn.addEventListener('click', () => {
+        BM.applyGamePlanToProfile(userTeam.tacticalProfile, userGamePlan);
+        renderMatchScreen();
+      });
+    }
   }
 
   // `?? 0` en sumLines: manejo defensivo para partidos guardados ANTES de

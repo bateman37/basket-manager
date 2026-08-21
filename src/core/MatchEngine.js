@@ -55,6 +55,13 @@
   const {
     planTacticalPossession, resolveTransitionAttempt,
     resolveMatchupOverride, computePressEffect, computeTransitionDefenseAdjustment,
+    // DESIGN.md 7.12 (TAC-5): motor pausable/GamePlan/situaciones —
+    // effectiveTacticalProfile() fusiona TacticalProfile+GamePlan sin que
+    // el resto de este archivo (ni de Tactics.js) tenga que enterarse de
+    // que existe un GamePlan; resolveSituationType/planSituationalPossession
+    // son el punto de enganche del sub-playbook de ATO/BLOB/SLOB/Late
+    // Clock/Last Possession (7.12.24).
+    effectiveTacticalProfile, resolveSituationType, planSituationalPossession,
   } = TacticsCore;
 
   // --- Lectura de atributos: cada nombre de MatchConfig se busca en el
@@ -714,23 +721,80 @@
     return made ? 1 : 0;
   }
 
+  // --- DESIGN.md 7.12.24 (TAC-5): falta táctica intencionada ---
+  // Decisión de SI el equipo defensor busca activamente una falta esta
+  // posesión — NUNCA un resolver de falta nuevo (pedido explícito del
+  // prompt de esta sesión): si decide que sí, la falta se registra
+  // directamente en simulatePossession() reutilizando exactamente el mismo
+  // camino que ya existe para una falta defensiva sin bonus/con bonus
+  // (recordPersonalFoul/handleFreeThrowSequence), solo que con el
+  // committer/objetivo elegidos aquí en vez de onBallDefender/ballHandler
+  // genéricos. La CPU usa las mismas reglas (7.12.24, "regla dura") porque
+  // esta función solo lee `defenseTacticalProfile.situations.tacticalFoul`
+  // — no distingue si ese perfil es de un equipo gestionado por el usuario
+  // o por la CPU. Reglas configurables (Tactics.js, sub-pestaña
+  // Situaciones, 7.12.32): desactivada por defecto (7.12.34, regresión).
+  //
+  // Decisión de encaje señalada explícitamente (7.12.34, pendiente de
+  // calibración): solo se evalúa en el último período regular o en
+  // prórroga (`period >= quartersTotal`) — hacer falta táctica para
+  // detener el reloj en un cuarto intermedio no tiene sentido real
+  // (sobra tiempo de sobra para remontar de forma normal), DESIGN.md 7.12.24
+  // no lo prohíbe ni lo exige explícitamente.
+  function evaluateIntentionalFoul(
+    offenseFive, defenseFive, defenseTacticalProfile, boxScore, config,
+    period, quartersTotal, quarterClockRemaining, offenseScore, defenseScore,
+  ) {
+    const rules = defenseTacticalProfile && defenseTacticalProfile.situations && defenseTacticalProfile.situations.tacticalFoul;
+    if (!rules || !rules.enabled) return null;
+    if (period < quartersTotal) return null;
+    if (quarterClockRemaining > rules.secondsRemaining) return null;
+    if (offenseScore === undefined || defenseScore === undefined) return null;
+    const trailingBy = offenseScore - defenseScore; // >0 si la defensa (quien haría la falta) va perdiendo
+    if (trailingBy <= 0 || trailingBy > rules.marginPoints) return null;
+
+    // 7.12.24: "priorizar receptor/objetivo con peor TiroLibre cuando sea
+    // posible" — el rival con peor TiroLibre EN PISTA, no de toda la
+    // plantilla (solo esos 5 pueden recibir la falta esta posesión).
+    const target = offenseFive.reduce(
+      (worst, p) => (getAttribute(p, 'freeThrows') < getAttribute(worst, 'freeThrows') ? p : worst),
+      offenseFive[0],
+    );
+    // 7.12.24: "evitar que el jugador propio con 4 faltas personales sea
+    // quien comete la falta si existe alternativa razonable" — se excluye
+    // del pool salvo que sea el único disponible (sin alternativa).
+    const withoutFourFouls = defenseFive.filter((p) => getStatLine(boxScore, p).personalFouls < 4);
+    const pool = withoutFourFouls.length > 0 ? withoutFourFouls : defenseFive;
+    const fouler = pickWeighted(pool, onBallDefenderWeight);
+    return { target, fouler };
+  }
+
   // --- Una posesión completa (puede encadenar varios intentos si hay
   // rebote ofensivo o falta defensiva sin bonus) ---
   const MAX_POSSESSION_ITERATIONS = 12; // guarda de seguridad anti-bucle-infinito
 
   // `context`: { pressure, quarterClockRemaining, fastBreakEligible,
   // offenseTempoBias, scoringRunActiveSide, offenseSide, defenseSide,
-  // offenseRotationState, defenseRotationState }. Las dos últimas (7.11,
-  // opcionales): si un equipo no aporta alineación real (Rotation.js), su
-  // rotationState es `null` y el comportamiento es el de siempre
-  // (selectOnCourtFive placeholder, sin penalización de polivalencia).
+  // offenseRotationState, defenseRotationState, runningScore, period,
+  // isOvertime, situational }. Las dos de rotación (7.11, opcionales): si
+  // un equipo no aporta alineación real (Rotation.js), su rotationState es
+  // `null` y el comportamiento es el de siempre (selectOnCourtFive
+  // placeholder, sin penalización de polivalencia). `runningScore`/
+  // `period`/`isOvertime`/`situational` (TAC-5, 7.12.24): snapshot de solo
+  // lectura del estado de partido, usado por la falta táctica intencionada
+  // y por la resolución de situaciones especiales (ver más abajo) — nunca
+  // mutados desde aquí, el motor de partido (advanceMatch) es la única
+  // fuente de verdad de ese estado.
   function simulatePossession(offenseTeam, defenseTeam, offenseSquad, defenseSquad, teamFouls, config, boxScore, context) {
     let shotClock = config.match.shotClockSeconds;
     let elapsedTotal = 0;
     let pointsScored = 0;
     let defensePoints = 0; // puntos para el equipo defensor (solo vía falta técnica del atacante)
     const events = [];
-    const { pressure, offenseRotationState, defenseRotationState, offenseTacticalProfile, defenseTacticalProfile } = context;
+    const {
+      pressure, offenseRotationState, defenseRotationState, offenseTacticalProfile, defenseTacticalProfile,
+      runningScore, period, situational,
+    } = context;
 
     for (let iteration = 0; iteration < MAX_POSSESSION_ITERATIONS; iteration++) {
       const offenseFive = offenseRotationState ? getOnCourtFive(offenseRotationState) : selectOnCourtFive(offenseSquad);
@@ -748,6 +812,49 @@
       // posesión termina no siendo táctica (ver más abajo).
       const defaultOnBallDefender = pickWeighted(defenseFive, onBallDefenderWeight);
 
+      // DESIGN.md 7.12.24 (TAC-5): falta táctica intencionada — decisión
+      // que se evalúa AQUÍ, en el punto donde ya se van a elegir los
+      // protagonistas de la posesión, ANTES de cualquier planificación
+      // táctica normal (si el equipo defensor va a buscar la falta
+      // deliberadamente, no tiene sentido gastar el sorteo de play-type de
+      // una jugada que no se va a completar). Solo en la primera iteración
+      // (mismo criterio de gating que tacticalPlan/pressEffect): una falta
+      // táctica es una decisión de "esta posesión", no de cada rebote
+      // ofensivo posterior. `null` si las reglas de
+      // `defenseTacticalProfile.situations.tacticalFoul` no están
+      // activadas o no se cumplen las condiciones (7.12.34, compatibilidad:
+      // desactivada por defecto, ver Tactics.js).
+      const intentionalFoulPlan = iteration === 0 ? evaluateIntentionalFoul(
+        offenseFive, defenseFive, defenseTacticalProfile, boxScore, config,
+        period, config.match.quarters, context.quarterClockRemaining,
+        runningScore ? runningScore[context.offenseSide] : undefined,
+        runningScore ? runningScore[context.defenseSide] : undefined,
+      ) : null;
+
+      if (intentionalFoulPlan) {
+        const { target, fouler } = intentionalFoulPlan;
+        teamFouls[defenseTeam.id] = (teamFouls[defenseTeam.id] || 0) + 1;
+        recordPersonalFoul(boxScore, fouler);
+        recordFoulDrawn(boxScore, target);
+        events.push({ type: 'defensiveFoul', playerId: fouler.id, intentional: true });
+        elapsedTotal += 1; // tiempo breve del contacto/parada, cifra propia (no hay jugada de tiro que resolver)
+        applyInterventionWear([fouler.id, target.id], new Map(offenseFive.concat(defenseFive).map((p) => [p.id, p])), config);
+        if (teamFouls[defenseTeam.id] >= config.match.teamFoulBonusThreshold) {
+          const targetPenalty = getPenalty(offenseRotationState, target.id);
+          const result = handleFreeThrowSequence(
+            target, 2, offenseFive, defenseFive, boxScore, config, pressure,
+            targetPenalty, offenseRotationState, defenseRotationState,
+          );
+          pointsScored += result.pointsMade;
+          elapsedTotal += result.timeSpent;
+          if (result.possessionContinues) { shotClock = config.match.offensiveReboundShotClockSeconds; continue; }
+          return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false };
+        }
+        // Sin bonus: saque de banda, la posesión sigue con el mismo equipo
+        // (misma simplificación que la falta defensiva normal sin bonus).
+        continue;
+      }
+
       // DESIGN.md 7.12 (TAC-1, ampliado en TAC-3): SOLO en la primera
       // iteración de la posesión se decide el play-type táctico (7.12.3, la
       // capa táctica se resuelve antes del bucle 1v1, no en cada rebote
@@ -757,14 +864,27 @@
       // Isolation/Post Up, 7.12.8) cae en "ninguno" — en ese caso
       // ballHandler/onBallDefender se eligen EXACTAMENTE como antes de
       // TAC-1 (7.12.34, compatibilidad).
-      const tacticalPlan = iteration === 0 ? planTacticalPossession({
+      //
+      // DESIGN.md 7.12.24 (TAC-5): si `resolveSituationType` identifica
+      // ATO/BLOB/SLOB/Late Clock/Last Possession para esta posesión
+      // concreta, `planSituationalPossession` sustituye a
+      // `planTacticalPossession` como punto de entrada — reutiliza los
+      // mismos 3 motores de play-type (7.12.8/7.12.10), nunca un selector
+      // paralelo (ver Tactics.js).
+      const situationType = iteration === 0 ? resolveSituationType(situational, config) : null;
+      const tacticalPossessionParams = {
         offenseTacticalProfile, defenseTacticalProfile, offenseFive, defenseFive,
         onBallDefender: defaultOnBallDefender,
         config, pressure, computeMixRating, getAttribute, usageWeight,
         offenseRotationState, defenseRotationState,
         offenseSpacing: offenseTacticalProfile && offenseTacticalProfile.spacing,
         shotClockRemaining: shotClock,
-      }) : null;
+      };
+      const tacticalPlan = iteration === 0
+        ? (situationType
+          ? planSituationalPossession(tacticalPossessionParams, situationType)
+          : planTacticalPossession(tacticalPossessionParams))
+        : null;
 
       let ballHandler = tacticalPlan ? tacticalPlan.initialHandler : pickWeighted(offenseFive, usageWeight);
       let onBallDefender = tacticalPlan ? tacticalPlan.initialOnBallDefender : defaultOnBallDefender;
@@ -1126,35 +1246,388 @@
     };
   }
 
-  // --- Partido completo ---
-  // `options.homeSquad`/`options.awaySquad` permiten pasar una convocatoria
-  // ya construida (ej. Team.buildMatchSquadExcludingPosition(), para
-  // pruebas de estrés) en vez de la convocatoria por defecto de
-  // defaultMatchSquad() — si se omiten, el comportamiento es el de siempre.
-  // `options.homeLineup`/`options.awayLineup` (7.11, opcionales): alineación
-  // real construida con Rotation.js ({entries, fixedSegments}) — activa
-  // cuotas de minutos por posición, sustitución automática y polivalencia
-  // de emergencia para ese equipo. Se valida antes de simular (lanza un
-  // error descriptivo si no cuadra, Rotation.describeValidationErrors) en
-  // vez de aceptar una alineación inconsistente en silencio. Si se omite,
-  // el equipo se comporta exactamente como hasta ahora (selectOnCourtFive
-  // placeholder, sin rotación real).
-  // `options.homeTacticalProfile`/`awayTacticalProfile` (DESIGN.md 7.12,
-  // TAC-1, opcionales): instancia de Tactics.TacticalProfile para ese lado,
-  // con PRIORIDAD sobre `homeTeam.tacticalProfile`/`awayTeam.tacticalProfile`
-  // si ambos están presentes — útil para tests dirigidos que necesitan
-  // aislar un perfil concreto sin depender del estado del equipo (mismo
-  // criterio que homeSquad/homeLineup arriba). Sin ninguno de los dos, ese
-  // equipo nunca activa un Pick & Roll táctico (7.12.34, compatibilidad).
+  // =========================================================================
+  // DESIGN.md 7.12.24/7.12.33 (TAC-5): motor de partido REALMENTE pausable
+  // y reanudable. Todo el estado mutable que antes vivía como variables
+  // locales dentro de un único `simulateMatch()` monolítico (boxScore,
+  // plusMinus, quarterScores, runningScore, scoringRun, fastBreakEligible,
+  // eventLog, possessionCount, offenseSide, period, isOvertime, teamFouls,
+  // clockRemaining, periodPoints, totalElapsedSeconds, home/
+  // awayRotationState — ver CHANGELOG de esta entrega) se extrae a un
+  // objeto `MatchState` serializable (createMatchState). `advanceMatch`
+  // avanza esa simulación hasta el siguiente punto de corte configurado
+  // (`options.stopAt`): 'possession' (unidad mínima) | 'quarterEnd' |
+  // 'timeoutTrigger' | 'matchEnd' (por defecto).
   //
-  // Decisión de encaje de TAC-1 (7.12.2), CORREGIDA en TAC-2: TAC-1 pasaba
-  // el perfil SIEMPRE por `options` porque `Team.js` todavía no lo
-  // persistía. Desde TAC-2, `Team.js` inicializa `this.tacticalProfile` en
-  // su constructor (valores por defecto si no se especifica, mismo patrón
-  // que `clubDNA`), así que una partida real ya usa el perfil del equipo
-  // sin que cada llamada tenga que pasarlo a mano — `options` queda como
-  // el override explícito para tests, no como la única vía.
-  function simulateMatch(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
+  // Requisito de equivalencia (no negociable, ver DESIGN.md/CHANGELOG):
+  // simular un partido de una sola llamada (`stopAt: 'matchEnd'`) y
+  // simular el MISMO partido cortando en cada posesión
+  // (`stopAt: 'possession'`, llamando repetidamente hasta `matchEnd`) con
+  // la misma semilla aleatoria deben dar el resultado EXACTO — el punto de
+  // corte solo decide CUÁNDO `advanceMatch` devuelve el control, nunca
+  // cambia qué se calcula ni en qué orden (cada llamada, sea la que sea,
+  // ejecuta exactamente las mismas `simulateOnePossessionStep` en la misma
+  // secuencia; verificado en `scripts/verify-tac5-invariants.js`).
+  // `simulateMatch()` (más abajo) es ahora un wrapper de compatibilidad:
+  // construye el estado inicial, llama a `advanceMatch` con
+  // `stopAt: 'matchEnd'` (que internamente NO se detiene hasta terminar) y
+  // adapta el resultado al MISMO shape que consumían
+  // League.js/Bracket.js/Playoffs.js/Cup.js/Promotion.js antes de esta
+  // entrega — ninguno de esos archivos necesita ningún cambio.
+  // =========================================================================
+
+  // --- 7.12.24: tiempos muertos — seguimiento de uso (config.match.
+  // timeouts, MatchConfig.js) ---
+  // Segmento de partido para las reglas de tiempos muertos: 'firstHalf'/
+  // 'secondHalf' para los períodos regulares, o 'overtime<N>' para la
+  // N-ésima prórroga — cada prórroga tiene su propio cupo independiente
+  // (7.12.24: "1 por prórroga").
+  function currentTimeoutSegment(period, quartersTotal) {
+    const half = Math.ceil(quartersTotal / 2);
+    if (period <= half) return 'firstHalf';
+    if (period <= quartersTotal) return 'secondHalf';
+    return `overtime${period - quartersTotal}`;
+  }
+
+  function timeoutsUsedInSegment(record, segment) {
+    if (segment.indexOf('overtime') === 0) return record.overtime[segment] || 0;
+    return record[segment] || 0;
+  }
+
+  // ¿Puede `side` ('home'|'away') pedir un tiempo muerto AHORA MISMO con el
+  // estado actual de `state`? Exportada además para que game.js pueda
+  // deshabilitar el botón de "pedir tiempo muerto" sin duplicar esta
+  // lógica de validación.
+  function canCallTimeout(state, side) {
+    const config = state.config;
+    const team = side === 'home' ? state.homeTeam : state.awayTeam;
+    const cfg = config.match.timeouts;
+    const segment = currentTimeoutSegment(state.period, config.match.quarters);
+    const record = state.timeouts[team.id];
+    const used = timeoutsUsedInSegment(record, segment);
+    let max;
+    if (segment === 'firstHalf') max = cfg.perHalf.first;
+    else if (segment === 'secondHalf') max = cfg.perHalf.second;
+    else max = cfg.perOvertime;
+    if (used >= max) return false;
+    // 7.12.24: restricción de los últimos 2 minutos del 4º cuarto — tope
+    // adicional independiente del cupo de la segunda mitad.
+    if (segment === 'secondHalf' && state.period === config.match.quarters
+      && state.clockRemaining <= cfg.lastMinutesThresholdSeconds
+      && (record.usedInLastMinutesOfFourthQuarter || 0) >= cfg.maxInLastMinutesOfFourthQuarter) {
+      return false;
+    }
+    return true;
+  }
+
+  function consumeTimeout(state, side) {
+    const config = state.config;
+    const team = side === 'home' ? state.homeTeam : state.awayTeam;
+    const cfg = config.match.timeouts;
+    const segment = currentTimeoutSegment(state.period, config.match.quarters);
+    const record = state.timeouts[team.id];
+    if (segment.indexOf('overtime') === 0) record.overtime[segment] = (record.overtime[segment] || 0) + 1;
+    else record[segment] += 1;
+    if (segment === 'secondHalf' && state.period === config.match.quarters
+      && state.clockRemaining <= cfg.lastMinutesThresholdSeconds) {
+      record.usedInLastMinutesOfFourthQuarter = (record.usedInLastMinutesOfFourthQuarter || 0) + 1;
+    }
+    // 7.12.24: la siguiente posesión EN ATAQUE de este equipo es su ATO —
+    // ver simulateOnePossessionStep, se consume una sola vez.
+    state.pendingAto[side] = true;
+  }
+
+  // Pide un tiempo muerto AHORA MISMO, sin esperar a que `advanceMatch`
+  // simule otra posesión para comprobarlo — pensado para la ventana de
+  // intervención de game.js entre cuartos/tras un tiempo muerto ya
+  // disparado, donde el partido YA está pausado en un punto válido y no
+  // tiene sentido obligar a jugar una posesión más solo para conceder el
+  // tiempo muerto. Devuelve `false` sin consumir nada si `side` no puede
+  // pedirlo ahora (ver canCallTimeout).
+  function requestTimeoutNow(state, side) {
+    if (!canCallTimeout(state, side)) return false;
+    consumeTimeout(state, side);
+    state.lastTimeoutSide = side;
+    state.lastTimeoutReason = 'manual';
+    return true;
+  }
+
+  // ¿Hay una decisión de pedir tiempo muerto pendiente AHORA? `manual`
+  // (petición explícita del usuario, game.js) tiene prioridad sobre
+  // `auto` si ambas aplicaran a la vez. `options.timeoutRequest`:
+  // 'home'|'away'|null — se consume en cuanto se concede, quien la pide
+  // debe volver a pedirla para otro tiempo muerto. `options.autoTimeouts`:
+  // { home, away } — 1-2 reglas mínimas de IA asistente (7.12.24): "pedir
+  // tiempo muerto si el rival mete un parcial de N-0" reutilizando
+  // LITERALMENTE `state.scoringRun` (7.6.20, ya trackeado), sin
+  // reimplementar un segundo contador de racha.
+  function decideTimeoutRequest(state, options) {
+    const config = state.config;
+    const manualSide = options.timeoutRequest;
+    if (manualSide && canCallTimeout(state, manualSide)) {
+      return { side: manualSide, reason: 'manual' };
+    }
+    const autoRules = options.autoTimeouts || {};
+    const sides = ['home', 'away'];
+    for (let i = 0; i < sides.length; i += 1) {
+      const side = sides[i];
+      if (!autoRules[side]) continue;
+      const opponentSide = side === 'home' ? 'away' : 'home';
+      if (state.scoringRun.activeSide === opponentSide
+        && state.scoringRun.points >= config.match.timeouts.autoTriggerRunPoints
+        && canCallTimeout(state, side)) {
+        return { side, reason: 'auto' };
+      }
+    }
+    return null;
+  }
+
+  // Un tiempo muerto solo puede pedirse en una parada de juego real —
+  // reutiliza LITERALMENTE `isDeadBallStoppage` (mismo criterio que ya usan
+  // las ventanas de sustitución automática, 7.11.2), en vez de inventar un
+  // segundo concepto de "parada de juego" paralelo. Si se concede, lo
+  // consume (`consumeTimeout`) inmediatamente — no hay una decisión
+  // separada de "aceptar" tras pausar: pedirlo YA es tomarlo.
+  function evaluateTimeoutStop(state, options) {
+    if (!state.lastPossessionWasDeadBall) return false;
+    const decision = decideTimeoutRequest(state, options);
+    if (!decision) return false;
+    consumeTimeout(state, decision.side);
+    state.lastTimeoutSide = decision.side;
+    state.lastTimeoutReason = decision.reason;
+    return true;
+  }
+
+  // --- Gestión de períodos (extraída del `do{}while()` + `while
+  // (clockRemaining>0)` monolítico de antes de esta entrega) ---
+  function periodDurationSeconds(state) {
+    const config = state.config;
+    return state.isOvertime ? config.match.overtimeMinutes * 60 : (config.match.durationMinutes * 60) / config.match.quarters;
+  }
+
+  function startNextPeriod(state) {
+    const config = state.config;
+    state.period += 1;
+    state.isOvertime = state.period > config.match.quarters;
+    // Las faltas personales (`boxScore`, por jugador) NO se reinician
+    // entre períodos porque `boxScore` es el mismo Map durante todo el
+    // partido; solo `teamFouls` (faltas de EQUIPO, para el bonus) se
+    // reinicia al empezar cada período, cuarto o prórroga por igual.
+    state.teamFouls = { [state.homeTeam.id]: 0, [state.awayTeam.id]: 0 };
+    state.clockRemaining = periodDurationSeconds(state);
+    state.periodPoints = { home: 0, away: 0 };
+    state.phase = 'inPeriod';
+  }
+
+  // Misma condición que el `while (period < quarters || home === away)` de
+  // antes de esta entrega, invertida (aquí se pregunta "¿YA terminó?"): un
+  // partido real nunca termina en empate (7.10), así que sigue habiendo
+  // prórrogas mientras el marcador esté igualado tras jugar los 4 cuartos.
+  function isMatchOver(state) {
+    const config = state.config;
+    return !(state.period < config.match.quarters || state.runningScore.home === state.runningScore.away);
+  }
+
+  function finishCurrentPeriod(state) {
+    // 7.11.2 (C.2): ventana de sustitución de fin de cuarto — punto de
+    // corte natural del partido real, además de las paradas de juego que
+    // ya se evalúan posesión a posesión (ver simulateOnePossessionStep).
+    const homeScoreDiffAtPeriodEnd = state.runningScore.home - state.runningScore.away;
+    if (state.homeRotationState) {
+      runSubstitutionWindow(state.homeRotationState, { period: state.period, scoreDiff: homeScoreDiffAtPeriodEnd, elapsedSeconds: state.totalElapsedSeconds });
+    }
+    if (state.awayRotationState) {
+      runSubstitutionWindow(state.awayRotationState, { period: state.period, scoreDiff: -homeScoreDiffAtPeriodEnd, elapsedSeconds: state.totalElapsedSeconds });
+    }
+    state.quarterScores.home.push(state.periodPoints.home);
+    state.quarterScores.away.push(state.periodPoints.away);
+  }
+
+  // --- Una posesión (extraída del cuerpo del `while(clockRemaining>0)` de
+  // antes de esta entrega) — muta `state` in situ y avanza el turno. ---
+  function simulateOnePossessionStep(state) {
+    const config = state.config;
+    const offenseTeam = state.offenseSide === 'home' ? state.homeTeam : state.awayTeam;
+    const defenseTeam = state.offenseSide === 'home' ? state.awayTeam : state.homeTeam;
+    const offenseSquad = state.offenseSide === 'home' ? state.homeSquad : state.awaySquad;
+    const defenseSquad = state.offenseSide === 'home' ? state.awaySquad : state.homeSquad;
+    const defenseSide = state.offenseSide === 'home' ? 'away' : 'home';
+
+    // 7.5: presión, calculada UNA vez por posesión. En prórroga no hay
+    // "cuartos restantes" que sumar (es un período de muerte súbita
+    // acumulativa) — se usa solo el reloj restante de la propia prórroga
+    // como tiempo restante de partido.
+    const quarterLength = (config.match.durationMinutes * 60) / config.match.quarters;
+    const quartersRemainingAfterThis = state.isOvertime ? 0 : config.match.quarters - state.period;
+    const totalGameSecondsRemaining = state.clockRemaining + quartersRemainingAfterThis * quarterLength;
+    const scoreDiff = Math.abs(state.runningScore.home - state.runningScore.away);
+    const pressure = computePressure(totalGameSecondsRemaining, scoreDiff, config);
+
+    const offenseBaseProfile = state.offenseSide === 'home' ? state.homeTacticalProfile : state.awayTacticalProfile;
+    const defenseBaseProfile = state.offenseSide === 'home' ? state.awayTacticalProfile : state.homeTacticalProfile;
+    const offenseGamePlan = state.offenseSide === 'home' ? state.homeGamePlan : state.awayGamePlan;
+    const defenseGamePlan = state.offenseSide === 'home' ? state.awayGamePlan : state.homeGamePlan;
+
+    // 7.12.24: ¿esta posesión en ataque es el ATO de este equipo? Se
+    // consume aquí (una sola vez, la primera vez que ataca tras su propio
+    // tiempo muerto) sin importar cuántas posesiones defensivas jugara
+    // entre medias (ver consumeTimeout).
+    const afterTimeout = !!state.pendingAto[state.offenseSide];
+    if (afterTimeout) state.pendingAto[state.offenseSide] = false;
+
+    const context = {
+      pressure,
+      quarterClockRemaining: state.clockRemaining,
+      fastBreakEligible: state.fastBreakEligible,
+      offenseTempoBias: getTempoBias(offenseTeam, config),
+      scoringRunActiveSide: state.scoringRun.activeSide,
+      offenseSide: state.offenseSide,
+      defenseSide,
+      offenseRotationState: state.offenseSide === 'home' ? state.homeRotationState : state.awayRotationState,
+      defenseRotationState: state.offenseSide === 'home' ? state.awayRotationState : state.homeRotationState,
+      // DESIGN.md 7.12.23 (TAC-5): vista EFECTIVA de cada perfil, ya
+      // fusionada con el GamePlan de partido de ese lado si lo hay — el
+      // resto del motor (simulatePossession/Tactics.js) sigue leyendo
+      // `offenseTacticalProfile`/`defenseTacticalProfile` exactamente
+      // igual que antes de esta entrega, sin saber que puede haber un
+      // GamePlan detrás (7.12.34, compatibilidad: sin GamePlan asignado,
+      // `effectiveTacticalProfile` devuelve el perfil base tal cual).
+      offenseTacticalProfile: effectiveTacticalProfile(offenseBaseProfile, offenseGamePlan),
+      defenseTacticalProfile: effectiveTacticalProfile(defenseBaseProfile, defenseGamePlan),
+      runningScore: { home: state.runningScore.home, away: state.runningScore.away },
+      period: state.period,
+      isOvertime: state.isOvertime,
+      situational: {
+        afterTimeout,
+        quarterClockRemaining: state.clockRemaining,
+        period: state.period,
+        quartersTotal: config.match.quarters,
+        scoreDiffAbs: Math.abs(state.runningScore.home - state.runningScore.away),
+        inboundType: state.previousPossessionInboundType,
+      },
+    };
+
+    const result = simulatePossession(
+      offenseTeam, defenseTeam, offenseSquad, defenseSquad, state.teamFouls, config, state.boxScore, context,
+    );
+
+    // Simplificación de Fase 1 (sin cambios): el final de período solo se
+    // comprueba ENTRE posesiones, no dentro de una posesión en curso.
+    state.clockRemaining -= result.elapsed;
+    state.totalElapsedSeconds += result.elapsed;
+    state.periodPoints[state.offenseSide] += result.points;
+    state.periodPoints[defenseSide] += result.defensePoints;
+    state.runningScore[state.offenseSide] += result.points;
+    state.runningScore[defenseSide] += result.defensePoints;
+    state.possessionCount[state.offenseSide] += 1;
+
+    // +/- (retoques de estadísticas): quinteto en pista de cada lado
+    // DURANTE esta posesión.
+    const plusMinusDiff = result.points - result.defensePoints;
+    const offenseFiveForPlusMinus = context.offenseRotationState
+      ? getOnCourtFive(context.offenseRotationState) : selectOnCourtFive(offenseSquad);
+    const defenseFiveForPlusMinus = context.defenseRotationState
+      ? getOnCourtFive(context.defenseRotationState) : selectOnCourtFive(defenseSquad);
+    offenseFiveForPlusMinus.forEach((p) => state.plusMinus.set(p.id, state.plusMinus.get(p.id) + plusMinusDiff));
+    defenseFiveForPlusMinus.forEach((p) => state.plusMinus.set(p.id, state.plusMinus.get(p.id) - plusMinusDiff));
+
+    // 7.11.2 (C.2): minutos acumulados del quinteto que estuvo en pista.
+    if (state.homeRotationState) accumulatePlayedTime(state.homeRotationState, result.elapsed);
+    if (state.awayRotationState) accumulatePlayedTime(state.awayRotationState, result.elapsed);
+
+    updateScoringRun(state.scoringRun, state.offenseSide, result.points, config);
+    if (result.defensePoints > 0) updateScoringRun(state.scoringRun, defenseSide, result.defensePoints, config);
+    state.fastBreakEligible = result.fastBreakTrigger;
+
+    // Log interno de eventos (Bloque C incluido) con contexto de cuándo
+    // ocurrieron.
+    result.events.forEach((event) => {
+      state.eventLog.push({ ...event, period: state.period, offenseSide: state.offenseSide });
+    });
+
+    // 7.11.2 (C.2): ventana de sustitución automática — SOLO en paradas de
+    // juego reales (falta/violación, nunca a mitad de jugada viva).
+    const deadBall = isDeadBallStoppage(result.events);
+    if (deadBall) {
+      const homeScoreDiff = state.runningScore.home - state.runningScore.away;
+      if (state.homeRotationState) {
+        runSubstitutionWindow(state.homeRotationState, { period: state.period, scoreDiff: homeScoreDiff, elapsedSeconds: state.totalElapsedSeconds });
+      }
+      if (state.awayRotationState) {
+        runSubstitutionWindow(state.awayRotationState, { period: state.period, scoreDiff: -homeScoreDiff, elapsedSeconds: state.totalElapsedSeconds });
+      }
+    }
+
+    // DESIGN.md 7.12.24 (TAC-5): BLOB/SLOB — aproximación deliberada,
+    // pendiente de calibración (7.12.34): este motor no modela el saque de
+    // banda/fondo como un suceso propio, así que se infiere del ÚLTIMO
+    // evento de la posesión que acaba de terminar — canasta de campo
+    // anotada = saque de FONDO (BLOB) para quien la recibe; cualquier otro
+    // final (pérdida, tapón, violación de reloj, falta sin/con tiros
+    // libres) se trata como saque de BANDA (SLOB), aunque en la realidad
+    // un último tiro libre anotado también sería BLOB — este motor no
+    // distingue ese matiz dentro de una secuencia de tiros libres.
+    const lastEvent = result.events.length > 0 ? result.events[result.events.length - 1] : null;
+    state.previousPossessionInboundType = (lastEvent && lastEvent.type === 'fieldGoalMade') ? 'BLOB' : 'SLOB';
+    state.lastPossessionWasDeadBall = deadBall;
+
+    state.offenseSide = defenseSide;
+  }
+
+  // options: { stopAt: 'possession'|'quarterEnd'|'timeoutTrigger'|
+  // 'matchEnd' (por defecto 'matchEnd'), timeoutRequest: 'home'|'away'|
+  // null, autoTimeouts: { home, away } }. Devuelve { state, stoppedReason }
+  // — `state` es el MISMO objeto mutado in situ (no una copia): se sigue
+  // usando la misma referencia para la siguiente llamada. Idempotente una
+  // vez terminado el partido (`state.phase === 'finished'`): llamar de más
+  // no hace nada raro, solo devuelve 'matchEnd' de nuevo.
+  function advanceMatch(state, options = {}) {
+    const stopAt = options.stopAt || 'matchEnd';
+    if (state.phase === 'finished') return { state, stoppedReason: 'matchEnd' };
+
+    for (;;) {
+      if (state.phase === 'beforePeriod') {
+        startNextPeriod(state);
+      }
+
+      simulateOnePossessionStep(state);
+
+      if (state.clockRemaining <= 0) {
+        finishCurrentPeriod(state);
+        if (isMatchOver(state)) {
+          state.phase = 'finished';
+          return { state, stoppedReason: 'matchEnd' };
+        }
+        state.phase = 'beforePeriod';
+        // Cualquier granularidad que no sea "de golpe" se detiene en el
+        // límite de cuarto — el corte más grueso pedido explícitamente
+        // por el prompt de esta sesión además de posesión/timeoutTrigger.
+        if (stopAt !== 'matchEnd') {
+          return { state, stoppedReason: 'quarterEnd' };
+        }
+        continue;
+      }
+
+      if (stopAt === 'possession') {
+        return { state, stoppedReason: 'possession' };
+      }
+      if (stopAt === 'timeoutTrigger' && evaluateTimeoutStop(state, options)) {
+        return { state, stoppedReason: 'timeoutTrigger' };
+      }
+    }
+  }
+
+  // Construye el `MatchState` inicial — ver comentario del bloque TAC-5
+  // arriba para la lista completa de campos y su procedencia.
+  // `options.homeSquad`/`options.awaySquad`/`options.homeLineup`/
+  // `options.awayLineup`/`options.homeTacticalProfile`/
+  // `options.awayTacticalProfile`: EXACTAMENTE los mismos overrides que ya
+  // aceptaba `simulateMatch()` antes de esta entrega (ver comentarios
+  // originales, sin cambios de comportamiento). `options.homeGamePlan`/
+  // `options.awayGamePlan` (7.12.23, TAC-5, nuevos): instancia de
+  // `Tactics.GamePlan` para ese lado — `null` por defecto (sin ajustes
+  // este partido, comportamiento idéntico al de antes de esta entrega).
+  function createMatchState(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
     const homeSquad = options.homeSquad || defaultMatchSquad(homeTeam);
     const awaySquad = options.awaySquad || defaultMatchSquad(awayTeam);
     const homeTacticalProfile = options.homeTacticalProfile || homeTeam.tacticalProfile || null;
@@ -1172,184 +1645,119 @@
     });
     const homeRotationState = options.homeLineup ? buildRotationState(options.homeLineup, homeSquad, config) : null;
     const awayRotationState = options.awayLineup ? buildRotationState(options.awayLineup, awaySquad, config) : null;
-    let totalElapsedSeconds = 0;
 
     const boxScore = new Map();
     // +/- por jugador (retoques de estadísticas, no forma parte de 7.6):
     // inicializado a 0 para toda la convocatoria, se acumula posesión a
-    // posesión más abajo, y se enriquece en cada línea de boxScore al final.
+    // posesión, y se enriquece en cada línea de boxScore al pedir el
+    // resultado (ver buildMatchResult).
     const plusMinus = new Map();
     homeSquad.concat(awaySquad).forEach((player) => plusMinus.set(player.id, 0));
-    const quarterScores = { home: [], away: [] };
-    const runningScore = { home: 0, away: 0 };
-    // 7.6.20: en vez de tocar dynamicState.momentum de jugadores concretos
-    // (requeriría exponer qué cinco están en pista fuera de
-    // simulatePossession, que los re-elige cada iteración), el parcial de
-    // equipo se modela como un modificador de equipo aparte y más simple —
-    // decisión explícita permitida por la tarea ("o un modificador de
-    // equipo si te parece más limpio").
-    const scoringRun = { side: null, points: 0, activeSide: null };
-    let fastBreakEligible = false;
-    const eventLog = [];
-    const possessionCount = { home: 0, away: 0 };
-
-    // Simplificación de Fase 1: no se modela el salto inicial (jump ball);
-    // el equipo local empieza siempre con la posesión del primer cuarto (y
-    // de cada prórroga, ver 7.10 — DESIGN.md no especifica quién saca en
-    // prórroga, así que se reutiliza la misma simplificación).
-    let offenseSide = 'home';
-
-    const quarterLength = (config.match.durationMinutes * 60) / config.match.quarters;
-    const overtimeLength = config.match.overtimeMinutes * 60;
-
-    // 7.10: se juegan los 4 cuartos siempre, y luego tantas prórrogas de 5
-    // minutos como hagan falta hasta que el marcador quede desempatado al
-    // final de alguna — un partido real nunca termina en empate. Las
-    // faltas personales (`boxScore`, por jugador) NO se reinician entre
-    // períodos porque `boxScore` es el mismo Map durante todo el partido;
-    // solo `teamFouls` (faltas de EQUIPO, para el bonus) se reinicia al
-    // empezar cada período, cuarto o prórroga por igual.
-    let period = 0;
-    let isOvertime = false;
-    do {
-      period += 1;
-      isOvertime = period > config.match.quarters;
-      const periodLength = isOvertime ? overtimeLength : quarterLength;
-
-      const teamFouls = { [homeTeam.id]: 0, [awayTeam.id]: 0 };
-      let clockRemaining = periodLength;
-      const periodPoints = { home: 0, away: 0 };
-
-      while (clockRemaining > 0) {
-        const offenseTeam = offenseSide === 'home' ? homeTeam : awayTeam;
-        const defenseTeam = offenseSide === 'home' ? awayTeam : homeTeam;
-        const offenseSquad = offenseSide === 'home' ? homeSquad : awaySquad;
-        const defenseSquad = offenseSide === 'home' ? awaySquad : homeSquad;
-        const defenseSide = offenseSide === 'home' ? 'away' : 'home';
-
-        // 7.5: presión, calculada UNA vez por posesión. En prórroga no hay
-        // "cuartos restantes" que sumar (es un período de muerte súbita
-        // acumulativa) — se usa solo el reloj restante de la propia
-        // prórroga como tiempo restante de partido.
-        const quartersRemainingAfterThis = isOvertime ? 0 : config.match.quarters - period;
-        const totalGameSecondsRemaining = clockRemaining + quartersRemainingAfterThis * quarterLength;
-        const scoreDiff = Math.abs(runningScore.home - runningScore.away);
-        const pressure = computePressure(totalGameSecondsRemaining, scoreDiff, config);
-
-        const context = {
-          pressure,
-          quarterClockRemaining: clockRemaining,
-          fastBreakEligible,
-          offenseTempoBias: getTempoBias(offenseTeam, config),
-          scoringRunActiveSide: scoringRun.activeSide,
-          offenseSide,
-          defenseSide,
-          offenseRotationState: offenseSide === 'home' ? homeRotationState : awayRotationState,
-          defenseRotationState: offenseSide === 'home' ? awayRotationState : homeRotationState,
-          // DESIGN.md 7.12 (TAC-1): perfil táctico de cada lado EN ESTA
-          // posesión concreta (el ofensivo decide si se intenta P&R; el
-          // defensivo decide con qué cobertura, con fallback si no tiene).
-          offenseTacticalProfile: offenseSide === 'home' ? homeTacticalProfile : awayTacticalProfile,
-          defenseTacticalProfile: offenseSide === 'home' ? awayTacticalProfile : homeTacticalProfile,
-        };
-
-        const result = simulatePossession(
-          offenseTeam, defenseTeam, offenseSquad, defenseSquad, teamFouls, config, boxScore, context,
-        );
-
-        // Simplificación de Fase 1: el final de período solo se comprueba
-        // ENTRE posesiones, no dentro de una posesión en curso.
-        clockRemaining -= result.elapsed;
-        totalElapsedSeconds += result.elapsed;
-        periodPoints[offenseSide] += result.points;
-        periodPoints[defenseSide] += result.defensePoints;
-        runningScore[offenseSide] += result.points;
-        runningScore[defenseSide] += result.defensePoints;
-        possessionCount[offenseSide] += 1;
-
-        // +/- (retoques de estadísticas): quinteto en pista de cada lado
-        // DURANTE esta posesión — con alineación real, el mismo `onCourt`
-        // que ya usó simulatePossession (no cambia a mitad de posesión,
-        // ver más abajo); sin alineación, un nuevo sorteo de
-        // selectOnCourtFive (el mismo placeholder de siempre) para no
-        // dejar el +/- sin calcular en ningún caso.
-        const plusMinusDiff = result.points - result.defensePoints;
-        const offenseFiveForPlusMinus = context.offenseRotationState
-          ? getOnCourtFive(context.offenseRotationState) : selectOnCourtFive(offenseSquad);
-        const defenseFiveForPlusMinus = context.defenseRotationState
-          ? getOnCourtFive(context.defenseRotationState) : selectOnCourtFive(defenseSquad);
-        offenseFiveForPlusMinus.forEach((p) => plusMinus.set(p.id, plusMinus.get(p.id) + plusMinusDiff));
-        defenseFiveForPlusMinus.forEach((p) => plusMinus.set(p.id, plusMinus.get(p.id) - plusMinusDiff));
-
-        // 7.11.2 (C.2): minutos acumulados del quinteto que estuvo en pista
-        // durante esta posesión — no cambia a mitad de jugada viva (las
-        // sustituciones automáticas solo se evalúan más abajo, en fin de
-        // cuarto o parada de juego), así que basta una vez por posesión.
-        if (homeRotationState) accumulatePlayedTime(homeRotationState, result.elapsed);
-        if (awayRotationState) accumulatePlayedTime(awayRotationState, result.elapsed);
-
-        updateScoringRun(scoringRun, offenseSide, result.points, config);
-        if (result.defensePoints > 0) updateScoringRun(scoringRun, defenseSide, result.defensePoints, config);
-        fastBreakEligible = result.fastBreakTrigger;
-
-        // Log interno de eventos (Bloque C incluido) con contexto de cuándo
-        // ocurrieron — sirve para verificar los sistemas de esta fase
-        // (contraataques, parciales, tapones con mate...) y de base para el
-        // futuro sistema de selección de eventos destacados (7.7, Fase 3):
-        // aquí solo se ACUMULA el log completo, no se filtra ni presenta.
-        result.events.forEach((event) => {
-          eventLog.push({ ...event, period, offenseSide });
-        });
-
-        // 7.11.2 (C.2): ventana de sustitución automática — SOLO en paradas
-        // de juego reales (falta/violación, nunca a mitad de jugada viva).
-        // El fin de cuarto se cubre aparte, después de este bucle.
-        if (isDeadBallStoppage(result.events)) {
-          const homeScoreDiff = runningScore.home - runningScore.away;
-          if (homeRotationState) {
-            runSubstitutionWindow(homeRotationState, { period, scoreDiff: homeScoreDiff, elapsedSeconds: totalElapsedSeconds });
-          }
-          if (awayRotationState) {
-            runSubstitutionWindow(awayRotationState, { period, scoreDiff: -homeScoreDiff, elapsedSeconds: totalElapsedSeconds });
-          }
-        }
-
-        offenseSide = defenseSide;
-      }
-
-      // 7.11.2 (C.2): ventana de sustitución de fin de cuarto — punto de
-      // corte natural del partido real, además de las paradas de juego de
-      // dentro del bucle.
-      const homeScoreDiffAtPeriodEnd = runningScore.home - runningScore.away;
-      if (homeRotationState) {
-        runSubstitutionWindow(homeRotationState, { period, scoreDiff: homeScoreDiffAtPeriodEnd, elapsedSeconds: totalElapsedSeconds });
-      }
-      if (awayRotationState) {
-        runSubstitutionWindow(awayRotationState, { period, scoreDiff: -homeScoreDiffAtPeriodEnd, elapsedSeconds: totalElapsedSeconds });
-      }
-
-      quarterScores.home.push(periodPoints.home);
-      quarterScores.away.push(periodPoints.away);
-      // Seguir mientras falten cuartos regulares por jugar, O el marcador
-      // siga empatado tras jugar los 4 (entonces hace falta otra prórroga)
-      // — condicionar solo a `isOvertime` sería un error: justo al acabar
-      // el 4º cuarto empatado, `isOvertime` todavía es `false` (se refiere
-      // al período que se acaba de jugar, no al siguiente).
-    } while (period < config.match.quarters || runningScore.home === runningScore.away);
 
     return {
-      finalScore: runningScore,
-      quarterScores,
-      wentToOvertime: period > config.match.quarters,
-      overtimePeriods: Math.max(0, period - config.match.quarters),
-      possessionCount,
-      boxScore: {
-        home: homeSquad.map((player) => enrichStatLine(getStatLine(boxScore, player), homeRotationState, plusMinus)),
-        away: awaySquad.map((player) => enrichStatLine(getStatLine(boxScore, player), awayRotationState, plusMinus)),
+      config, homeTeam, awayTeam, homeSquad, awaySquad,
+      homeTacticalProfile, awayTacticalProfile,
+      homeRotationState, awayRotationState,
+      // 7.12.23 (TAC-5): GamePlan de partido de cada lado — mutable EN
+      // CUALQUIER MOMENTO entre llamadas a advanceMatch() (game.js asigna/
+      // reasigna `state.homeGamePlan`/`state.awayGamePlan` directamente);
+      // la siguiente posesión ya lo refleja, ver simulateOnePossessionStep.
+      homeGamePlan: options.homeGamePlan || null,
+      awayGamePlan: options.awayGamePlan || null,
+      totalElapsedSeconds: 0,
+      boxScore,
+      plusMinus,
+      quarterScores: { home: [], away: [] },
+      runningScore: { home: 0, away: 0 },
+      // 7.6.20: modificador de equipo (no toca dynamicState.momentum de
+      // jugadores concretos), sin cambios respecto a antes de esta entrega.
+      scoringRun: { side: null, points: 0, activeSide: null },
+      fastBreakEligible: false,
+      eventLog: [],
+      possessionCount: { home: 0, away: 0 },
+      // Simplificación de Fase 1 (sin cambios): el equipo local empieza
+      // siempre con la posesión del primer cuarto y de cada prórroga.
+      offenseSide: 'home',
+      period: 0,
+      isOvertime: false,
+      teamFouls: null,
+      clockRemaining: 0,
+      periodPoints: null,
+      // 7.12.24 (TAC-5): tiempos muertos consumidos por equipo/segmento
+      // (config.match.timeouts) — ver currentTimeoutSegment/
+      // canCallTimeout/consumeTimeout.
+      timeouts: {
+        [homeTeam.id]: { firstHalf: 0, secondHalf: 0, overtime: {}, usedInLastMinutesOfFourthQuarter: 0 },
+        [awayTeam.id]: { firstHalf: 0, secondHalf: 0, overtime: {}, usedInLastMinutesOfFourthQuarter: 0 },
       },
-      eventLog,
-      rotation: { home: rotationSummary(homeRotationState), away: rotationSummary(awayRotationState) },
+      // 7.12.24: ATO pendiente por lado — se marca al conceder un tiempo
+      // muerto y se consume en la siguiente posesión EN ATAQUE de ese
+      // equipo (ver simulateOnePossessionStep).
+      pendingAto: { home: false, away: false },
+      lastTimeoutSide: null,
+      lastTimeoutReason: null,
+      lastPossessionWasDeadBall: false,
+      previousPossessionInboundType: null,
+      // Motor de estados mínimo del partido: 'beforePeriod' (toca empezar
+      // el siguiente período) | 'inPeriod' (dentro de un período en curso)
+      // | 'finished' (partido resuelto, advanceMatch ya no hace nada).
+      phase: 'beforePeriod',
     };
+  }
+
+  // Resultado con el MISMO shape que consumía cualquier llamador de
+  // `simulateMatch()` antes de esta entrega (League.js/Bracket.js/
+  // Playoffs.js/Cup.js/Promotion.js no necesitan ningún cambio) — puede
+  // llamarse en CUALQUIER punto de `state`, terminado o en pausa: los
+  // campos ya acumulados (boxScore/plusMinus/quarterScores/eventLog/...)
+  // son válidos en cualquier instante; `quarterScores` solo incluye los
+  // períodos ya cerrados (el período en curso vive en
+  // `state.periodPoints`, no incluido aquí a propósito — game.js construye
+  // su propio resumen agregado "hasta este instante" para la ventana de
+  // intervención, más simple que este shape completo de fin de partido).
+  function buildMatchResult(state) {
+    return {
+      finalScore: state.runningScore,
+      quarterScores: state.quarterScores,
+      wentToOvertime: state.period > state.config.match.quarters,
+      overtimePeriods: Math.max(0, state.period - state.config.match.quarters),
+      possessionCount: state.possessionCount,
+      boxScore: {
+        home: state.homeSquad.map((player) => enrichStatLine(getStatLine(state.boxScore, player), state.homeRotationState, state.plusMinus)),
+        away: state.awaySquad.map((player) => enrichStatLine(getStatLine(state.boxScore, player), state.awayRotationState, state.plusMinus)),
+      },
+      eventLog: state.eventLog,
+      rotation: { home: rotationSummary(state.homeRotationState), away: rotationSummary(state.awayRotationState) },
+    };
+  }
+
+  // --- Partido completo: wrapper de compatibilidad sobre el motor por
+  // tramos de arriba — MISMA firma, MISMAS `options`, MISMO shape de
+  // resultado que antes de esta entrega (ver comentarios de
+  // createMatchState/buildMatchResult para el detalle de cada campo).
+  // `options.homeTacticalProfile`/`awayTacticalProfile` (DESIGN.md 7.12,
+  // TAC-1): con PRIORIDAD sobre `homeTeam.tacticalProfile`/
+  // `awayTeam.tacticalProfile` si ambos están presentes, igual que
+  // siempre. Un partido sin timeouts solicitados, sin GamePlan y sin Auto
+  // Timeouts (los tres por defecto en `options`/`TacticalProfile`) da el
+  // MISMO resultado, posesión por posesión, que antes de esta entrega
+  // (7.12.34, regresión exacta) — el motor de posesión en sí
+  // (`simulatePossession`) no cambia, solo se hace pausable.
+  function simulateMatch(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
+    // DESIGN.md 7.12.24 (TAC-5): `options.precomputedResult` — encaje con
+    // game.js sin tocar League.js/Bracket.js/Playoffs.js/Cup.js/
+    // Promotion.js: cuando el partido del usuario ya se jugó de verdad,
+    // posesión a posesión, sobre `createMatchState`/`advanceMatch` en la
+    // pantalla de partido (con las ventanas de intervención que haya
+    // usado), game.js pasa aquí ese resultado YA RESUELTO en vez de dejar
+    // que este wrapper lo vuelva a simular — volver a simularlo generaría
+    // un partido DISTINTO (otra secuencia aleatoria), no el que el
+    // usuario acaba de ver. Sin este campo, comportamiento idéntico al de
+    // siempre (simula de verdad, wrapper de compatibilidad).
+    if (options.precomputedResult) return options.precomputedResult;
+    const state = createMatchState(homeTeam, awayTeam, config, options);
+    advanceMatch(state, { stopAt: 'matchEnd' });
+    return buildMatchResult(state);
   }
 
   // `computeMixRating`/`getAttribute` se exportan además de
@@ -1359,7 +1767,21 @@
   // partidos completos — no cambian de comportamiento, ni se usan desde
   // ningún sitio nuevo de producción; MatchEngine.simulateMatch les sigue
   // llamando exactamente igual que antes.
-  const exportsObj = { simulateMatch, defaultMatchSquad, computeMixRating, getAttribute };
+  //
+  // TAC-5 (7.12.33): `createMatchState`/`advanceMatch`/`buildMatchResult`
+  // son el motor pausable en sí — game.js los usa directamente para la
+  // pantalla de partido (ventanas de intervención reales entre cuartos y
+  // en tiempo muerto); `canCallTimeout` se expone para que la UI pueda
+  // deshabilitar el botón de pedir tiempo muerto sin duplicar la validación.
+  const exportsObj = {
+    simulateMatch, defaultMatchSquad, computeMixRating, getAttribute,
+    createMatchState, advanceMatch, buildMatchResult, canCallTimeout, requestTimeoutNow,
+    // `simulatePossession` se expone únicamente para poder verificar en
+    // aislamiento la falta táctica intencionada (7.12.24) con un script
+    // Node dedicado, sin depender del ruido de simular partidos completos
+    // — mismo criterio que computeMixRating/getAttribute más arriba.
+    simulatePossession,
+  };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

@@ -102,6 +102,20 @@
   // --- 7.12.19 (TAC-4): reglas de activación del doble equipo de poste ---
   const POST_DOUBLE_TEAM_RULES = ['never', 'starOnly', 'always'];
 
+  // --- 7.12.24 (TAC-5): catálogo de situaciones especiales ---
+  // ATO (After Time Out), BLOB/SLOB (saque de fondo/banda), Late Clock
+  // (pocos segundos de posesión) y Last Possession (última posesión de
+  // cuarto/partido) — ver PLAY_DEFINITIONS más abajo (situationType) y
+  // MatchEngine.resolveSituationType/planSituationalPossession.
+  const SITUATION_TYPES = ['ATO', 'BLOB', 'SLOB', 'lateClock', 'lastPossession'];
+  // Valores por defecto de TacticalProfile.situations.tacticalFoul — cifras
+  // propias, pendientes de calibración/decisión (7.12.34), NO validadas con
+  // Dennis: "perdiendo por 3 o menos con 24s o menos" es un punto de
+  // partida razonable para empezar a hacer falta intencionada, ajustable
+  // desde la pestaña Situaciones (7.12.32).
+  const DEFAULT_TACTICAL_FOUL_MARGIN = 3;
+  const DEFAULT_TACTICAL_FOUL_SECONDS = 24;
+
   // Construye un grupo numérico "abierto" (7.12.7/7.12.8: la interfaz no
   // tiene que implementar los 14 ejes/11 play-types completos todavía, pero
   // el objeto debe poder ampliarse sin romper el shape). Rellena las claves
@@ -209,7 +223,134 @@
       // señalada explícitamente (7.12.34), no un cierre de diseño de
       // 7.12.17/GamePlan (que no existe todavía como entidad propia).
       this.matchupOverrides = { ...(data.matchupOverrides || {}) };
+
+      // --- TAC-5 (7.12.24/7.12.32, sub-pestaña Situaciones): reglas de
+      // partido persistentes del EQUIPO (no de un GamePlan concreto,
+      // 7.12.23 — un GamePlan de partido puede sobreescribir SOLO
+      // `preferredPlays` para ese partido, ver GamePlan.situationalPlays/
+      // effectiveTacticalProfile más abajo; `autoTimeouts`/`tacticalFoul`
+      // son "identidad" de equipo, igual que defensiveScheme). Por defecto
+      // AMBOS desactivados (7.12.34, compatibilidad/regresión): un equipo
+      // recién creado o cargado de una partida guardada ANTES de esta
+      // entrega nunca pide tiempos muertos automáticos ni fuerza faltas
+      // intencionadas — comportamiento idéntico al de antes de TAC-5. Que
+      // los equipos CPU deban tener esto activado por defecto para jugar de
+      // forma más realista es una decisión de calibración de IA (7.12.25)
+      // que esta entrega deja señalada, no resuelta aquí.
+      const situationsInput = data.situations || {};
+      const autoTimeoutsInput = situationsInput.autoTimeouts || {};
+      const tacticalFoulInput = situationsInput.tacticalFoul || {};
+      this.situations = {
+        autoTimeouts: { enabled: !!autoTimeoutsInput.enabled },
+        tacticalFoul: {
+          enabled: !!tacticalFoulInput.enabled,
+          marginPoints: Number.isFinite(Number(tacticalFoulInput.marginPoints))
+            ? Number(tacticalFoulInput.marginPoints) : DEFAULT_TACTICAL_FOUL_MARGIN,
+          secondsRemaining: Number.isFinite(Number(tacticalFoulInput.secondsRemaining))
+            ? Number(tacticalFoulInput.secondsRemaining) : DEFAULT_TACTICAL_FOUL_SECONDS,
+        },
+        // situationType -> playDefinitionId preferido ("GamePlan base" que
+        // cita 7.12.32 para la sub-pestaña Situaciones) — un GamePlan de
+        // partido concreto puede sobreescribir esto SOLO para ese partido
+        // (GamePlan.situationalPlays), sin tocar este objeto persistente.
+        preferredPlays: { ...(situationsInput.preferredPlays || {}) },
+      };
     }
+  }
+
+  // --- 7.12.23 (TAC-5): GamePlan — overrides de UN partido concreto ---
+  // Regla de persistencia (7.12.23, "regla dura"): al terminar el partido
+  // el GamePlan se descarta sin más — como no se guarda en ningún sitio
+  // persistente (ni en Team.js, ni en ninguna partida guardada), esto se
+  // cumple estructuralmente por construcción: basta con no reutilizar el
+  // mismo GamePlan en el siguiente partido. `applyGamePlanToProfile()` es
+  // el único camino para que algo de un GamePlan sobreviva al partido
+  // ("guardar como táctica base"), y copia explícitamente, nunca implícito.
+  //
+  // Alcance MÍNIMO de esta entrega (7.12.33, priorizar campos con pieza
+  // real del motor detrás): playTypeWeights, matchupOverrides, pnrCoverage,
+  // defensiveScheme, y `situationalPlays` (preferencia de ATO/BLOB/SLOB/
+  // Late Clock/Last Possession SOLO para este partido, 7.12.24). El resto
+  // del catálogo de 7.12.23 (target de mismatch, ritmo específico,
+  // orientación de shot profile, prioridad de rebote ofensivo, cobertura
+  // por jugador rival, over/under por handler, presión/distancia por
+  // jugador, negar recepción a estrella...) queda como catálogo de datos
+  // SIN comportamiento real todavía — señalado explícitamente, no se
+  // inventa una pieza de motor que no existe para sostenerlos.
+  class GamePlan {
+    constructor(baseProfile, overrides = {}) {
+      this.playTypeWeights = overrides.playTypeWeights
+        ? buildOpenNumericGroup(baseProfile.playTypeWeights, overrides.playTypeWeights)
+        : { ...baseProfile.playTypeWeights };
+      this.matchupOverrides = { ...(overrides.matchupOverrides || baseProfile.matchupOverrides) };
+      const coverage = overrides.pnrCoverage || baseProfile.pnrCoverage;
+      if (PNR_COVERAGES.indexOf(coverage) === -1) {
+        throw new Error(`GamePlan: cobertura de P&R desconocida "${coverage}" (catálogo: ${PNR_COVERAGES.join(', ')})`);
+      }
+      this.pnrCoverage = coverage;
+      const schemeOverride = overrides.defensiveScheme || {};
+      this.defensiveScheme = {
+        ...baseProfile.defensiveScheme,
+        ...schemeOverride,
+        press: { ...baseProfile.defensiveScheme.press, ...(schemeOverride.press || {}) },
+      };
+      // 7.12.24: preferencia de jugada situacional SOLO para este partido —
+      // se combina con `preferredPlays` persistente en
+      // effectiveTacticalProfile() (esta entrada gana si ambas existen).
+      this.situationalPlays = { ...(overrides.situationalPlays || {}) };
+      // Gancho explícito para TAC-6 (familiaridad/tacticalExecution) — sin
+      // efecto todavía en esta entrega (7.12.34, mismo criterio que
+      // `complexity` de PlayDefinition desde TAC-3).
+      this.tacticalExecutionOverride = null;
+    }
+  }
+
+  // Vista MERGEADA de un TacticalProfile persistente + un GamePlan de
+  // partido (7.12.23): un objeto plano con la MISMA forma que
+  // TacticalProfile (pnrCoverage/spacing/identity/playTypeWeights/
+  // roleAssignments/defensiveScheme/matchupOverrides/situations) — nunca
+  // una clase nueva ni una mutación del perfil base, así que TODO el resto
+  // de Tactics.js/MatchEngine.js que ya lee `offenseTacticalProfile.*`
+  // sigue funcionando sin cambios, sepa o no que hay un GamePlan detrás
+  // (7.12.30, "7.6 sigue siendo el resolver final" — aquí, "Tactics.js
+  // sigue siendo el único lector de TacticalProfile"). Sin GamePlan (`null`,
+  // el caso de siempre fuera de un partido en curso o de un equipo sin
+  // ajustes este partido), devuelve `baseProfile` tal cual — cero coste,
+  // comportamiento idéntico a antes de esta entrega (7.12.34, regresión).
+  function effectiveTacticalProfile(baseProfile, gamePlan) {
+    if (!baseProfile || !gamePlan) return baseProfile;
+    return {
+      pnrCoverage: gamePlan.pnrCoverage || baseProfile.pnrCoverage,
+      spacing: baseProfile.spacing,
+      identity: baseProfile.identity,
+      playTypeWeights: gamePlan.playTypeWeights || baseProfile.playTypeWeights,
+      roleAssignments: baseProfile.roleAssignments,
+      defensiveScheme: gamePlan.defensiveScheme || baseProfile.defensiveScheme,
+      matchupOverrides: gamePlan.matchupOverrides || baseProfile.matchupOverrides,
+      situations: {
+        ...baseProfile.situations,
+        preferredPlays: { ...baseProfile.situations.preferredPlays, ...gamePlan.situationalPlays },
+      },
+    };
+  }
+
+  // "Guardar como táctica base" (7.12.23): el ÚNICO camino explícito para
+  // que un GamePlan sobreviva al partido — copia sus 4 campos con pieza de
+  // motor real al TacticalProfile persistente del equipo, mutándolo in
+  // situ (mismo patrón que el resto de la pantalla de Tácticas, que ya
+  // muta `team.tacticalProfile.*` directamente desde game.js). Nunca se
+  // llama automáticamente al terminar un partido — si no se llama, el
+  // GamePlan simplemente se descarta (regla de persistencia de 7.12.23).
+  function applyGamePlanToProfile(profile, gamePlan) {
+    profile.playTypeWeights = { ...gamePlan.playTypeWeights };
+    profile.matchupOverrides = { ...gamePlan.matchupOverrides };
+    profile.pnrCoverage = gamePlan.pnrCoverage;
+    profile.defensiveScheme = {
+      ...gamePlan.defensiveScheme,
+      press: { ...gamePlan.defensiveScheme.press },
+    };
+    profile.situations.preferredPlays = { ...profile.situations.preferredPlays, ...gamePlan.situationalPlays };
+    return profile;
   }
 
   // Sorteo ponderado genérico — mismo algoritmo que MatchEngine.pickWeighted
@@ -331,9 +472,15 @@
   // antes de llegar aquí) con el mismo criterio de peso que ya usa
   // MatchEngine (usageWeight) para el handler — pedido explícito del
   // prompt, no se inventa un criterio de selección de handler nuevo.
-  function buildPossessionPlan(offenseTacticalProfile, offenseFive, config, usageWeight, getAttribute) {
+  // `forcePlay` (TAC-5, 7.12.24, opcional): salta el sorteo de frecuencia
+  // — usado SOLO por planSituationalPossession() para una jugada de
+  // ATO/BLOB/SLOB/Late Clock/Last Possession ya elegida del catálogo
+  // situacional (el equipo la dibuja deliberadamente, no depende de que
+  // "toque" el sorteo normal de Pick & Roll). `false`/ausente reproduce
+  // exactamente el comportamiento de siempre (TAC-1 a TAC-4).
+  function buildPossessionPlan(offenseTacticalProfile, offenseFive, config, usageWeight, getAttribute, forcePlay) {
     if (!offenseTacticalProfile) return null;
-    if (Math.random() >= resolvePnrFrequency(offenseTacticalProfile, config)) return null;
+    if (!forcePlay && Math.random() >= resolvePnrFrequency(offenseTacticalProfile, config)) return null;
 
     const handler = pickWeighted(offenseFive, usageWeight);
     const screenerCandidates = offenseFive.filter((p) => p.id !== handler.id);
@@ -893,6 +1040,100 @@
         { id: 'lateHelp', label: 'Kick-out si llega la ayuda tardía', vs: ['blitz', 'hedge'] },
       ],
     },
+
+    // --- TAC-5 (7.12.24): sub-playbook de situaciones especiales — MISMA
+    // arquitectura PlayDefinition que el resto del catálogo (7.12.10: no
+    // garantizan un tiro concreto, "su eficacia depende de jugadores,
+    // cobertura y familiaridad" — la familiaridad en sí sigue sin efecto,
+    // TAC-6). `situationType` (7.12.24, catálogo Tactics.SITUATION_TYPES)
+    // marca a qué situación pertenece; `resolvesAs` indica con qué motor de
+    // los 3 REAL_PLAY_FAMILIES existentes se resuelve de verdad (nunca un
+    // cuarto motor de resolución paralelo, pedido explícito del prompt de
+    // esta sesión — reutiliza planPickAndRollTactical/buildIsolationPlan/
+    // buildPostUpPlan tal cual, ver planSituationalPossession más abajo).
+    // Solo 1-2 jugadas por situación (catálogo mínimo, no las 14+ familias
+    // completas de un playbook real de ATO) — ampliar el catálogo de datos
+    // después es barato, señalado explícitamente como pendiente (7.12.34).
+    {
+      id: 'atoSidePnr',
+      name: 'ATO — P&R lateral tras tiempo muerto',
+      family: 'pickAndRoll',
+      situationType: 'ATO',
+      resolvesAs: 'pickAndRoll',
+      participants: ['handler', 'screener'],
+      compatibleSpacing: ['4-out-1-in', '3-out-2-in', 'dynamic'],
+      complexity: 40,
+      reads: [
+        { id: 'drawnUpPullUp', label: 'Pull-up del handler tras el bloqueo dibujado en el tiempo muerto', vs: ['drop', 'under'] },
+        { id: 'drawnUpRoll', label: 'Finalización del roller sobre la jugada preparada', vs: ['switch', 'blitz', 'hedge'] },
+      ],
+    },
+    {
+      id: 'atoIsolationMismatch',
+      name: 'ATO — Aislar el mismatch buscado en el tiempo muerto',
+      family: 'isolation',
+      situationType: 'ATO',
+      resolvesAs: 'isolation',
+      participants: ['isolationScorer'],
+      compatibleSpacing: ['5-out', '4-out-1-in', 'dynamic'],
+      complexity: 35,
+      reads: [
+        { id: 'directAttack', label: 'Ataque directo al mismatch dibujado', vs: ['drop', 'under', 'switch'] },
+      ],
+    },
+    {
+      id: 'blobPostEntry',
+      name: 'BLOB — Entrada directa al poste tras canasta rival',
+      family: 'postUp',
+      situationType: 'BLOB',
+      resolvesAs: 'postUp',
+      participants: ['postHub'],
+      compatibleSpacing: ['3-out-2-in', '4-out-1-in', 'dynamic'],
+      complexity: 20,
+      reads: [
+        { id: 'directFinish', label: 'Finalización directa desde poste tras el saque de fondo', vs: ['drop', 'under'] },
+      ],
+    },
+    {
+      id: 'slobSidePnr',
+      name: 'SLOB — P&R de saque de banda',
+      family: 'pickAndRoll',
+      situationType: 'SLOB',
+      resolvesAs: 'pickAndRoll',
+      participants: ['handler', 'screener'],
+      compatibleSpacing: ['4-out-1-in', 'dynamic'],
+      complexity: 30,
+      reads: [
+        { id: 'pullUp', label: 'Pull-up tras el bloqueo de saque de banda', vs: ['drop', 'under'] },
+      ],
+    },
+    {
+      id: 'lateClockIsolation',
+      name: 'Late Clock — Isolation con poco reloj de posesión',
+      family: 'isolation',
+      situationType: 'lateClock',
+      resolvesAs: 'isolation',
+      participants: ['isolationScorer'],
+      compatibleSpacing: ['5-out', '4-out-1-in', '3-out-2-in', 'dynamic'],
+      complexity: 15,
+      reads: [
+        { id: 'forcedAttack', label: 'Ataque forzado 1v1 sin tiempo para más', vs: ['drop', 'under', 'switch', 'blitz', 'hedge'] },
+      ],
+    },
+    {
+      id: 'lastPossessionSidePnr',
+      name: 'Last Possession — P&R para el último tiro',
+      family: 'pickAndRoll',
+      situationType: 'lastPossession',
+      resolvesAs: 'pickAndRoll',
+      participants: ['handler', 'screener'],
+      compatibleSpacing: ['4-out-1-in', '3-out-2-in', 'dynamic'],
+      complexity: 45,
+      reads: [
+        { id: 'pullUp', label: 'Último tiro del handler tras el bloqueo', vs: ['drop', 'under'] },
+        { id: 'kickOut', label: 'Kick-out al tirador liberado para el último tiro', vs: ['blitz', 'hedge', 'switch'] },
+      ],
+    },
   ];
 
   // Familias con comportamiento real EN ESTA ENTREGA (7.12.8, punto 2 del
@@ -1327,10 +1568,10 @@
     const {
       offenseTacticalProfile, defenseTacticalProfile, offenseFive, defenseFive, onBallDefender,
       config, pressure, computeMixRating, getAttribute, usageWeight,
-      offenseRotationState, defenseRotationState, offenseSpacing, shotClockRemaining,
+      offenseRotationState, defenseRotationState, offenseSpacing, shotClockRemaining, forcePlay,
     } = params;
 
-    const possessionPlan = buildPossessionPlan(offenseTacticalProfile, offenseFive, config, usageWeight, getAttribute);
+    const possessionPlan = buildPossessionPlan(offenseTacticalProfile, offenseFive, config, usageWeight, getAttribute, forcePlay);
     if (!possessionPlan) return null;
     const { handler, screener } = possessionPlan;
 
@@ -1537,6 +1778,94 @@
     return null;
   }
 
+  // =========================================================================
+  // TAC-5 (DESIGN.md 7.12.33): partido vivo y situaciones — motor de
+  // simulación por tramos (ver MatchEngine.createMatchState/advanceMatch),
+  // GamePlan (arriba), tiempos muertos (config.match.timeouts,
+  // MatchConfig.js) y el sub-playbook de situaciones especiales de este
+  // bloque. AMPLÍA TAC-1 a TAC-4, no los reescribe.
+  // =========================================================================
+
+  // --- 7.12.24: ¿en qué situación especial está esta posesión? ---
+  // `situationContext` (construido por MatchEngine, que es quien conoce el
+  // estado real del partido — reloj/período/marcador/tiempo muerto recién
+  // pedido): { afterTimeout, quarterClockRemaining, period, quartersTotal,
+  // scoreDiffAbs, inboundType }. Precedencia cuando varias condiciones se
+  // cumplen a la vez (decisión de encaje de esta entrega, 7.12.34): ATO >
+  // Last Possession > Late Clock > BLOB/SLOB — un tiempo muerto pedido
+  // justo para el último tiro debe usar la jugada de ATO preparada, no la
+  // genérica de Last Possession; Last Possession (más urgente, más
+  // específica) pesa más que Late Clock genérico; BLOB/SLOB es la más
+  // "de fondo" de las cinco (se cumple en casi cualquier saque de banda/
+  // fondo sin más contexto). `null` si ninguna aplica — posesión normal.
+  function resolveSituationType(situationContext, config) {
+    if (!situationContext) return null;
+    const {
+      afterTimeout, quarterClockRemaining, period, quartersTotal, scoreDiffAbs, inboundType,
+    } = situationContext;
+    if (afterTimeout) return 'ATO';
+    const situationalCfg = config.tactics.situational;
+    const isFinalPeriod = period >= quartersTotal;
+    if (isFinalPeriod
+      && quarterClockRemaining <= config.pressure.buzzerBeaterSecondsThreshold
+      && scoreDiffAbs <= situationalCfg.lastPossessionMarginPoints) {
+      return 'lastPossession';
+    }
+    if (quarterClockRemaining <= config.lateClock.noFullPlayThresholdSeconds) return 'lateClock';
+    if (inboundType === 'BLOB' || inboundType === 'SLOB') return inboundType;
+    return null;
+  }
+
+  // Jugada concreta del catálogo situacional (7.12.24, "no scripting" tal
+  // como el resto de 7.12.10): prioriza la preferencia declarada por el
+  // equipo (`offenseTacticalProfile.situations.preferredPlays`, que ya
+  // incluye la fusión con el GamePlan de este partido si lo hay — ver
+  // effectiveTacticalProfile) si es compatible con `situationType`; si no
+  // hay preferencia o no aplica, sortea entre las jugadas del catálogo para
+  // esa situación, mismo criterio de peso que choosePlayDefinition (menor
+  // complejidad pesa más, sin familiaridad todavía, TAC-6).
+  function chooseSituationalPlayType(situationType, offenseTacticalProfile, config) {
+    const candidates = PLAY_DEFINITIONS.filter((p) => p.situationType === situationType);
+    if (candidates.length === 0) return null;
+    const preferredId = offenseTacticalProfile && offenseTacticalProfile.situations
+      && offenseTacticalProfile.situations.preferredPlays
+      && offenseTacticalProfile.situations.preferredPlays[situationType];
+    if (preferredId) {
+      const preferred = candidates.find((p) => p.id === preferredId);
+      if (preferred) return preferred;
+    }
+    return pickWeighted(candidates, (p) => Math.max(1, 100 - p.complexity));
+  }
+
+  // --- Punto de entrada único de situaciones especiales ---
+  // Sustituye a planTacticalPossession() SOLO cuando resolveSituationType()
+  // ya ha decidido que esta posesión es ATO/BLOB/SLOB/Late Clock/Last
+  // Possession — reutiliza LITERALMENTE planPickAndRollTactical/
+  // buildIsolationPlan/buildPostUpPlan (7.12.8/7.12.10, "no crear un
+  // segundo selector de play-type paralelo", pedido explícito del prompt),
+  // solo que la ELECCIÓN de cuál de los 3 usar viene del catálogo
+  // situacional (`resolvesAs`) en vez del sorteo normal de
+  // Tactics.selectPlayType, y con `forcePlay: true` para Pick & Roll (la
+  // jugada se dibuja deliberadamente, no depende de que "toque" el sorteo
+  // de frecuencia habitual — Isolation/Post Up no tienen ese sorteo previo,
+  // ver buildIsolationPlan/buildPostUpPlan, así que no necesitan forzarse).
+  // Sin jugada disponible para esa situación, o si el equipo no tiene
+  // TacticalProfile (`planPickAndRollTactical`/build* devuelven null), cae
+  // a planTacticalPossession(params) — comportamiento normal, nunca deja
+  // la posesión sin resolver.
+  function planSituationalPossession(params, situationType) {
+    const definition = chooseSituationalPlayType(situationType, params.offenseTacticalProfile, params.config);
+    if (!definition) return planTacticalPossession(params);
+    let plan = null;
+    if (definition.resolvesAs === 'pickAndRoll') plan = planPickAndRollTactical({ ...params, forcePlay: true });
+    else if (definition.resolvesAs === 'isolation') plan = buildIsolationPlan(params);
+    else if (definition.resolvesAs === 'postUp') plan = buildPostUpPlan(params);
+    if (!plan) return planTacticalPossession(params);
+    plan.playDefinitionId = definition.id;
+    plan.situational = situationType;
+    return plan;
+  }
+
   const exportsObj = {
     TacticalProfile,
     PNR_COVERAGES,
@@ -1588,6 +1917,16 @@
     pickDoubleTeamHelper,
     resolvePostDoubleTeamDecision,
     resolvePostReadSuccess,
+    // TAC-5 (7.12.33): partido vivo y situaciones — GamePlan (overrides de
+    // partido), catálogo de situaciones especiales y su punto de enganche
+    // de producción.
+    SITUATION_TYPES,
+    GamePlan,
+    effectiveTacticalProfile,
+    applyGamePlanToProfile,
+    resolveSituationType,
+    chooseSituationalPlayType,
+    planSituationalPossession,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
