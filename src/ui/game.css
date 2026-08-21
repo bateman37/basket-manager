@@ -593,6 +593,30 @@
   max-width: 60%;
 }
 
+/* --- Data Hub / informe de rival (DESIGN.md 7.12.27, TAC-7) --- */
+.tactics-small-sample-banner {
+  background: rgba(184, 69, 31, 0.1);
+  border: 1px solid var(--brick);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  color: var(--brick-dark);
+}
+.tactics-small-sample-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(184, 69, 31, 0.12);
+  color: var(--brick-dark);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.tactics-mismatch-table td:last-child { font-size: 12px; color: var(--win); font-weight: 700; text-align: left; }
+.tactics-mismatch-advantage { background: rgba(43, 122, 63, 0.08); }
+
 /* --- Ventana de intervención en partido (DESIGN.md 7.12.24, TAC-5) --- */
 .intervention-panel { border: 1px solid var(--brick); }
 .intervention-panel h3 { font-family: var(--font-score); text-transform: uppercase; letter-spacing: 0.02em; }

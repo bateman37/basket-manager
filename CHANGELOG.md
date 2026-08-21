@@ -2770,3 +2770,391 @@ vacía. Sección de solo lectura, sin ningún editor — mismo criterio visual
   `config.tactics.familiarity`/`tacticalExecution` contra datos reales tras
   simulación masiva (7.12.31) — esta entrega solo verifica DIRECCIÓN, no
   cifras cerradas, tal como 7.12.22 admite explícitamente.
+
+## 2026-08-21 (4) — TAC-7: Data Hub táctico, informe de rival e identidad automática de la CPU (DESIGN.md 7.12.33)
+
+Séptima y ÚLTIMA entrega planificada del sistema táctico (7.12) — 7.12.33
+no define una TAC-8. Auditado el repo real antes de escribir código (no
+memoria de sesiones anteriores): TAC-1 a TAC-6 estaban íntegras en
+`src/core/Tactics.js` (2502 líneas), `MatchEngine.createMatchState()`/
+`advanceMatch()`/`simulateOnePossessionStep()` ya pausables desde TAC-5, y
+NINGÚN equipo CPU tenía un `TacticalProfile` distinto del default universal
+(confirmado revisando `CpuLineup.js`/`Team.js`: 35 de 36 equipos jugaban con
+exactamente la misma identidad táctica).
+
+### Resolución de alcance — 7.12.33 vs. CHANGELOG informal de TAC-6
+
+7.12.33 define TAC-7 oficialmente como "Data Hub y scouting táctico", sin
+incluir la IA táctica completa de 7.12.25 en su alcance obligatorio. El
+CHANGELOG de TAC-6 apuntaba, de forma más informal, "IA táctica de la CPU
+más allá de lo ya existente" hacia TAC-7 sin que 7.12.33 lo confirme como
+obligatorio. Al ser la última entrega planificada, se resuelve así:
+
+- **Obligatorio** (7.12.33 lo exige explícitamente): telemetría completa
+  de 7.12.27 (subconjunto representativo, ver más abajo), PPP/frequency
+  por play-type, coverage efficiency, shot profile/quality, lineups,
+  informe de rival, alertas de muestra pequeña, gancho estructural de
+  Scouting.
+- **Incluido, acotado a su mínimo real**: Construcción de identidad CPU
+  (7.12.25, primera de sus tres piezas) — sin esto, "scoutear" a un rival
+  CPU siempre descubre la misma identidad genérica, así que el resto de
+  esta entrega no tendría sentido jugar.
+- **Explícitamente FUERA, con nota de visión futura en `DESIGN.md`
+  7.12.25**: Plan de partido CPU basado en scouting real y Ajustes en vivo
+  CPU con anti-sobrerreacción (las otras dos piezas de 7.12.25) —
+  requieren su propia sesión de diseño/calibración, no un cierre
+  apresurado. `playerTendencies` (7.12.26) sigue fuera de la EPIC, el
+  propio `DESIGN.md` lo confirma arquitectura futura.
+
+### 1. Registro de telemetría por posesión (`src/core/MatchEngine.js`)
+
+- **`MatchState.gameId`/`telemetryEnabled`/`telemetryLog`** (nuevos campos
+  de `createMatchState`): `gameId` es un contador determinista
+  (`match-${homeId}-${awayId}-${n}`) — **nunca** `Math.random()`, que
+  desplazaría la secuencia de tiradas de todo el partido. `telemetryEnabled`
+  (`options.telemetryEnabled !== false`, por defecto `true`) controla el
+  bloque entero de registro; `telemetryLog` es el array de registros crudos
+  de ESE partido (nunca persiste entre partidos, ver punto 2).
+- **`buildPossessionTelemetryRecord()`** (nueva, `MatchEngine.js`): se
+  construye en `simulateOnePossessionStep`, justo después de
+  `updateFamiliarityAfterPossession`, reutilizando el quinteto real ya
+  calculado para +/- (`offenseFiveForPlusMinus`/`defenseFiveForPlusMinus`,
+  adelantado en el código para no duplicar `getOnCourtFive`) y los campos
+  ya expuestos por `result.tacticalUsage` (ampliado, ver más abajo).
+  Campos capturados: `gameId`/período/reloj/marcador, quinteto ofensivo y
+  defensivo real, fase (transición/media pista, vía
+  `context.fastBreakEligible`), `playType`/`playId`, initiator/screener,
+  roles activos (`offense/defenseParticipantIds`), cobertura P&R,
+  `advantageScore` (única pieza ya calculada equivalente a "AdvantageState
+  en un punto de la cadena"), counter/continuación (`continuityState`),
+  `shotQuality` (proxy, ver más abajo), tipo de acción final, defensor
+  real del tiro (parcial, ver gap), resultado (`outcome`), asistencia y
+  por quién, situación especial si la hubo, `GamePlan` vigente
+  (`gamePlanActive`). Campos de 7.12.27 explícitamente FUERA, sin dato real
+  disponible sin inventarlo o sin instrumentar más `simulatePossession` de
+  lo prudente: "número de pases relevantes" (no se simulan pases
+  individuales fuera del propio P&R/Post Up); "reloj de posesión al
+  finalizar" (`shotClock` es una variable interna que nunca se devuelve,
+  los rebotes ofensivos la resetean a mitad de posesión); `shotDefenderId`
+  de una posesión NO táctica sin tapón (la rama 1v1 de siempre no expone su
+  defensor de tiro elegido — solo se captura vía `tacticalPlan` o vía el
+  evento `blockedShot`, que sí lleva `defenderId`).
+- **`buildTacticalUsage()` ampliada** (ya existía desde TAC-6, solo
+  exponía 5 campos para familiaridad): añade `shooterId`/`shotDefenderId`/
+  `assistCandidateId`/`forcedShotType`/`read3`/`continuityState`/
+  `advantageScore`/`situational` — TODOS ya calculados por
+  `Tactics.planPickAndRollTactical`/`buildIsolationPlan`/`buildPostUpPlan`
+  para esta jugada concreta, cero cálculo nuevo (regla de integración #1,
+  7.12.30, aplicada igual que a los 5 campos existentes).
+- **`shotQuality` (7.12.5/7.12.34)**: no existe todavía el valor numérico
+  cerrado que pide el diseño (7.12.34 lo confirmaba pendiente antes de esta
+  entrega) — se aproxima con `advantageScore` reescalado de -1..1 a 0..1,
+  SOLO cuando la posesión tuvo un `tacticalPlan` real (es la pieza más
+  parecida ya calculada, evita inventar un segundo cálculo). Sin
+  `tacticalPlan`, queda `null` en vez de un número inventado.
+- **Regla dura de esta entrega, verificada**: el registro de telemetría es
+  observación pura — nunca llama a `Math.random()`, nunca decide nada del
+  partido, solo reorganiza datos que `context`/`result` ya tenían
+  calculados. Verificado con un script de equivalencia (semilla mulberry32
+  fija, mismo par de equipos, energía reseteada entre tiradas): mismo
+  marcador final, mismo `quarterScores`, mismo `eventLog` (longitud y
+  contenido idénticos), mismo `possessionCount` con `telemetryEnabled`
+  `true`/`false`.
+
+### 2. Agregación persistente por equipo (`src/core/Tactics.js`)
+
+- **`TacticalProfile.tacticsTelemetry`** (nuevo campo, mismo patrón de
+  encaje que `familiarity` en TAC-6): agregados por equipo —
+  `offense.{possessions, points, byPlayType, byPlayDefinition, shotZones,
+  assistedMade, unassistedMade, turnovers, shotQualitySum/Count}`,
+  `defense.{possessions, pointsAllowed, byCoverage, shotZonesAllowed}`,
+  `lineups` (mapa por clave de quinteto = ids ordenados y unidos). Empieza
+  en CERO ABSOLUTO (a diferencia de `familiarity`, que arranca en un valor
+  neutro): no hay telemetría real antes del primer partido, cero es el
+  dato correcto, no una aproximación. `games` se incrementa EXACTAMENTE
+  una vez por partido, en la transición a `state.phase = 'finished'` dentro
+  de `advanceMatch` (nunca en `buildMatchResult`, que puede llamarse varias
+  veces sobre el mismo `state` en pausa).
+- **`Tactics.updateTacticsTelemetryAfterPossession()`** (nueva): mutación
+  in situ sobre los perfiles PERSISTENTES (nunca la vista efectiva
+  fusionada con `GamePlan`, mismo criterio que la familiaridad), llamada
+  desde `simulateOnePossessionStep` justo después de
+  `updateFamiliarityAfterPossession`. Solo se acumulan AGREGADOS (decisión
+  de encaje explícita, 7.12.27 lo permite: "no necesariamente cada
+  posesión cruda de cada partido histórico") — el log crudo posesión a
+  posesión vive únicamente en `MatchState.telemetryLog` mientras dura CADA
+  partido, nunca se persiste entre partidos.
+- Verificado con una temporada ficticia completa (18 equipos, 34 jornadas,
+  vía `League.js` sin tocar): `tacticsTelemetry.games` de un equipo = 34
+  jornadas jugadas, `offense.n`/`defense.n` en el rango esperado (~83
+  posesiones/partido), cientos de lineups distintos registrados (rotación
+  real de minutos genera muchas combinaciones de quinteto a lo largo de
+  una temporada).
+
+### 3. Derivadas de Ataque/Defensa/Lineups con tamaño de muestra (`Tactics.js`)
+
+- **`Tactics.summarizeTacticsTelemetry(profile, config)`** (nueva):
+  subconjunto representativo de 7.12.27, priorizado por valor para el
+  informe de rival (punto 4) — Ataque: frecuencia+PPP por play-type
+  (incluye `'none'` = posesión sin play-type táctico, para que la
+  frecuencia sea sobre el TOTAL de posesiones, no solo las tácticas),
+  rim/midrange/3P frequency+FG%, assisted FG%, turnover rate, calidad de
+  tiro media, efectividad por `playDefinitionId`. Defensa: PPP concedido
+  por cobertura, frecuencia de cada cobertura, shot profile permitido,
+  "eficiencia de mismatch concedida" (aproximada explícitamente como PPP
+  concedido en posesiones con cobertura Switch — el único mismatch real
+  que el motor modela hoy, 7.12.31 invariante 3; 7.12.27 no da una fórmula
+  cerrada de "mismatch efficiency", señalado explícitamente). Lineups:
+  ORtg/DRtg/Net aproximado (puntos/posesión × 100) y spacing efectivo medio
+  por quinteto real usado.
+- **Regla dura de 7.12.27, no negociable, cumplida por construcción**:
+  CADA derivada devuelve su `n` (tamaño de muestra) junto al valor — no
+  existe ninguna función de este módulo que devuelva un promedio/frecuencia
+  sin su `n` acompañante. Verificado con un caso dirigido (2 registros
+  manuales con resultado conocido: 3 puntos en Pick & Roll vs Switch, 0
+  puntos en Post Up) contra las 3 categorías: PPP total = 1.5, PPP
+  Pick&Roll = 3, frecuencia Pick&Roll = 0.5, PPP concedido en Switch = 3,
+  ORtg del lineup = 150 — todos coinciden exactamente con el cálculo
+  manual.
+- **`config.tactics.telemetry.minReliableGames`/`minReliablePossessions`**
+  (`MatchConfig.js`, 3 y 15 respectivamente): umbral de "muestra pequeña"
+  — cifras propias, pendientes de calibración/decisión (7.12.34), no un
+  intervalo de confianza estadístico real, solo "hay muy poco que mirar
+  todavía".
+- Métricas del catálogo completo de 7.12.27 dejadas para una ampliación
+  futura del Data Hub, señaladas explícitamente (la arquitectura de
+  telemetría no bloquea añadirlas): efficiency tras DHO/Off Screen/Post/
+  Isolation por separado, Transition Frequency/PPP detallado, FT rate por
+  play-type, ATO PPP, rebote ofensivo vs. puntos concedidos en transición,
+  puntos concedidos tras superar primera línea, eficiencia de zona/man por
+  separado, rebote defensivo por shell.
+
+### 4. Informe de rival — sub-pestaña "Rival" (`src/ui/game.js`/`game.css`)
+
+- **Séptima y última sub-pestaña** de la pantalla de Tácticas
+  (`renderTacticsRivalTab`), junto a las 6 ya existentes (confirmadas
+  intactas con Playwright).
+- **Selección del rival**: `getNextLeagueOpponent(team)` (nueva) consulta
+  `league.getCurrentRoundMatches()` — ya existente, consulta pura, sin
+  tocar `League.js` — para encontrar el próximo rival de LIGA real del
+  usuario; los objetos `Team` devueltos son los MISMOS en memoria que la
+  liga (a diferencia de `getAllRealTeamsForMatchupTarget()`, que
+  RECONSTRUYE equipos desde el bundle solo para nombres de jugador en el
+  formulario de matchups — no vale para esto, perdería toda la telemetría
+  acumulada). Sin partido esta jornada o liga terminada, cae a un selector
+  manual entre los equipos de la división del usuario (`<select
+  id="tactics-rival-select">`), tal como permitía explícitamente el prompt
+  de esta sesión.
+- **Contenido**: play-types dominantes (frecuencia+PPP), coberturas
+  habituales (frecuencia+PPP concedido), shot profile propio/permitido,
+  mismatches potenciales contra el quinteto titular propio, quinteto más
+  usado (ORtg/DRtg/Net) — todo reutilizando
+  `Tactics.summarizeTacticsTelemetry`/`roleFit`/`bestRolesForPlayer` ya
+  existentes, sin ningún cálculo de encaje nuevo.
+- **Mismatches potenciales** (`computeMismatchRows`): para cada titular
+  propio, su MEJOR rol ofensivo (`bestRolesForPlayer`) contra el mejor
+  encaje rival en la contraparte defensiva directa (`roleFit` sobre TODA
+  la plantilla rival convocable, no un quinteto fijo) — el mapeo rol
+  ofensivo → contraparte defensiva (`OFFENSE_TO_DEFENSE_COUNTERPART`) es
+  una decisión de encaje INTERPRETATIVA propia, señalada explícitamente
+  (7.12.25/7.12.32 no cierran qué rol defensivo "responde" a cada rol
+  ofensivo) — el NÚMERO en sí siempre viene de `roleFit`, nunca se
+  recalcula. "Posible ventaja" con diferencia de ≥2 estrellas, umbral
+  propio pendiente de calibración.
+- **Alerta de muestra pequeña, obligatoria** (7.12.27, cita literal: "no
+  presentar 2 posesiones, 1.50 PPP como una verdad táctica estable"): un
+  banner visible cuando `summary.smallSample` (partidos/posesiones por
+  debajo del umbral de `config.tactics.telemetry`), además de un badge por
+  métrica individual con `n` insuficiente — verificado con Playwright en
+  una partida recién empezada (0 partidos contra cualquier rival): el
+  banner aparece.
+- **Gancho de visibilidad limitada por Scouting** (7.12.27, "futura capa"
+  — el módulo de Scouting no existe todavía, 6.2.2 punto 5 lo deja para
+  sesión futura): NO se implementa ningún sistema de visibilidad parcial
+  en esta entrega — el informe se muestra siempre completo. El gancho
+  estructural es la separación entre "dato calculado"
+  (`Tactics.summarizeTacticsTelemetry`, siempre completo) y "dato
+  mostrado" (`game.js`, capa de presentación pura sobre ese objeto) — una
+  futura capa de Scouting podría ocultar/difuminar partes del segundo sin
+  tocar el primero, señalado explícitamente como el gancho dejado, sin
+  implementarlo.
+- **Corrección de una nota obsoleta de TAC-6** (pedido explícito de esta
+  sesión): la sección "Familiaridad" de Resumen mostraba "familias/
+  coberturas más entrenadas" aproximado por desviación de familiaridad
+  (sin contador de uso real, señalado en su momento como pendiente de
+  TAC-7). Con `tacticsTelemetry` ya construido, `topUsedFamiliarityEntries`
+  ordena ahora por el CONTADOR REAL de posesiones — "más entrenadas" pasa
+  a "más usadas", con datos reales en vez de una aproximación.
+
+### 5. Construcción de identidad CPU (`Tactics.buildCpuTacticalIdentity`)
+
+- Se llama UNA VEZ por equipo, dentro de `game.js` `startSeason()`, justo
+  después de construir los equipos reales de cada división y ANTES de
+  crear la `League` — "arrancar una partida nueva" es la pretemporada
+  conceptual de esta primera temporada (mismo criterio ya usado para
+  `recalculateSportingGoalsForDivision` en ese mismo punto). Excluye
+  explícitamente al equipo del usuario (`teamId === state.userTeamId`,
+  comprobado antes de asignar). `CpuLineup.js` NO se toca — decide
+  quinteto/minutos PARTIDO A PARTIDO reutilizando el `tacticalProfile` ya
+  asignado aquí, son eventos de granularidad distinta (confirmado en
+  auditoría, punto 4 del prompt de esta sesión). Persiste sola en
+  `closeSeasonAndPrepareNext()` sin ningún enganche adicional: esa función
+  reutiliza las MISMAS instancias de `Team` (nunca las reconstruye desde
+  el bundle), así que `team.tacticalProfile` sobrevive a cada cierre de
+  ciclo — no se necesitó ningún punto de enganche en `League.js`/
+  `SeasonGoals.js` (de la lista vetada), `game.js` ya bastaba.
+- **Heurística** (`config.tactics.cpuIdentity`, `MatchConfig.js`): evalúa
+  la plantilla real completa (`team.roster`, no solo 5 titulares) contra
+  el catálogo de roles YA EXISTENTE (`Tactics.roleFit`/
+  `bestRolesForPlayer`, nunca un segundo cálculo de encaje) — creador real
+  (`primaryCreator`/`pnrHandler`), interiores con encaje Roll/Pop
+  (`rollMan`/`pickAndPopBig`) vs. interior tradicional (`postScorer`),
+  tiro/spacers (`spotUpShooter`/`movementShooter`), movilidad perimetral
+  (`switchDefender`/`perimeterDisruptor`), protector de aro LENTO
+  (`rimProtector` + movilidad física propia del MISMO jugador, agilidad+
+  aceleración media, sin blend de posición). `clubDNA` aplica un sesgo
+  PEQUEÑO y acotado (`config.tactics.cpuIdentity.dnaBias`, nunca una orden
+  obligatoria — cita literal de 7.12.25) sobre pace/uso de P&R/probabilidad
+  de press, mismo criterio de mapeo por texto exacto que `tempo.dnaBias`
+  (TAC-1).
+- **Umbral `specialistThreshold` = 15 (escala `roleFit` 1-20), no 13**:
+  decisión de calibración verificada durante esta misma sesión —
+  `roleFit` combina 70% mezcla de atributos + 30% competencia posicional,
+  así que CUALQUIER jugador con atributos neutros (10) en su posición
+  "natural" ya puntúa ~13 solo por el blend posicional (verificado con el
+  script de esta entrega). Un umbral de 13 hacía que "tener un jugador en
+  cada posición" (cualquier plantilla de 5+) se leyera como "tener un
+  especialista real" en casi cualquier rol — 15 sí distingue un
+  especialista genuino de "alguien que ocupa esa posición sin más".
+  `weakThreshold` = 9 se usa SOLO contra medias de atributo físico directas
+  (movilidad del protector de aro), nunca contra un `roleFit` ya blendeado
+  con posición (mismo suelo que distorsiona el umbral alto).
+- **Dirección verificada con 4 arquetipos de prueba** (script Node
+  dedicado, scratchpad de esta sesión): (A) base creador + interiores con
+  encaje Roll/Pop + tiradores → más peso de Pick & Roll,
+  `pickAndRollUsage` por encima del neutro; (B) interior dominante + sin
+  especialista de tiro real → `spacing = '3-out-2-in'`, más peso de Post
+  Up, `pnrCoverage = 'drop'`; (C) wings con switchability/perimeterDefense
+  altos → `pnrCoverage = 'switch'`, más peso de Transition + press activo
+  con mayor probabilidad; (D) pívot con `rimProtector` alto y movilidad
+  física baja (agilidad/aceleración) → `pnrCoverage = 'drop'`, nunca
+  `'switch'`. Los 4 resultan en la dirección que describe 7.12.25, no solo
+  "sin romper nada".
+- **Requisito de regresión, verificado**: la identidad recién asignada
+  nunca combina `spacing = '5-out'` con `playTypeWeights.postUp`
+  dominante (los dos branches que los asignan son mutuamente excluyentes
+  en la heurística) — ninguno de los 4 arquetipos ni el smoke test de 6
+  partidos completos con identidades reales produjo una combinación
+  reconocible como rota.
+- Rebote y Energía/edad de rotación (7.12.25, señales listadas) se evalúan
+  como criterio de auditoría de plantilla pero NO mueven ninguna decisión
+  de esta heurística — no hay todavía un eje de `TacticalProfile` con
+  comportamiento real al que conectarlos (ej. "prioridad de rebote
+  ofensivo" es catálogo de `GamePlan` sin pieza de motor, 7.12.23) sin
+  inventar uno, señalado explícitamente en vez de forzar un acoplamiento.
+
+### 6. Valoraciones de quinteto pendientes cerradas (7.12.28, `Tactics.computeLineupRatings`)
+
+- **Transition Offense**: nueva mezcla mínima
+  (`config.tactics.lineupRatings.transitionOffenseMix`: aceleración/
+  velocidad punta/visión de juego/bandeja) — valoración de APTITUD de
+  plantilla, se recalcula al cambiar un jugador sin depender de partidos
+  jugados (mismo criterio que el resto de `computeLineupRatings`).
+- **POA Defense**: reutiliza LITERALMENTE `config.tactics.roles.
+  defensiveMix.poaStopper` (7.12.21) — es exactamente lo que ese rol ya
+  mide, no una mezcla nueva.
+- **Tactical Execution**: única de las tres que SÍ depende de
+  `tacticalProfile` — reutiliza literalmente `Tactics.computeTacticalExecution`
+  (7.12.22) con familiaridad = media de sistema ofensivo/defensivo,
+  complejidad = 0 (foto en reposo del quinteto, sin ninguna jugada
+  concreta elegida todavía, a diferencia de una posesión real) y el eje
+  Rigidez↔Read&React del propio equipo.
+- Las tres eran las últimas 3 de las 12 valoraciones de 7.12.28 sin
+  implementar (TAC-2 dejó las 8 primeras con reservas, TAC-4 cerró
+  Switchability/Rim Protection/Transition Defense) — con esta entrega,
+  7.12.28 queda completo.
+
+### Verificación
+
+- **Script Node de invariantes** (scratchpad de la sesión, no forma parte
+  del repo — mismo criterio que TAC-1 a TAC-6): equivalencia exacta
+  con/sin telemetría (marcador, `quarterScores`, `eventLog`,
+  `possessionCount` idénticos, semilla mulberry32 fija); derivadas de las
+  3 categorías con `n` en cada entrada; caso dirigido con resultado
+  conocido de antemano (PPP/frecuencia/ORtg exactos); identidad CPU
+  verificada por arquetipo (4 rosters de prueba, dirección esperada +
+  regresión de combinación rota); balance TAC-1 a TAC-6 intacto (6
+  partidos ficticios completos, puntuación total en rango realista);
+  temporada ficticia completa de 34 jornadas sin errores, con telemetría
+  agregada coherente al final.
+- **Playwright** (scratchpad de la sesión): landing → "Empezar temporada"
+  → selección de equipo real → pantalla de Tácticas, confirmando las 6
+  sub-pestañas anteriores intactas y navegando la nueva sub-pestaña Rival
+  — el selector auto-detecta el próximo rival REAL de calendario (Liga,
+  vía `getCurrentRoundMatches()`, verificado mostrando su nombre marcado
+  como "(próximo rival de liga)"), la alerta de muestra pequeña aparece en
+  una partida recién empezada (0 partidos contra cualquier rival), la
+  tabla de play-types y la sección de Familiaridad corregida ("más
+  usadas") se renderizan, sin errores de consola relevantes (único error
+  de red esperable en este entorno: la Google Font externa de
+  `index.html`, sin salida a fonts.googleapis.com, nada que ver con esta
+  entrega, igual que en Playwright de TAC-5/TAC-6).
+- **`git diff --stat`** (7 archivos, confirmado con el comando real):
+  `DESIGN.md`, `CHANGELOG.md`, `src/core/MatchConfig.js`, `src/core/
+  MatchEngine.js`, `src/core/Tactics.js`, `src/ui/game.css`, `src/ui/
+  game.js`. Ninguno de `Rotation.js`/`Recovery.js`/`Calendar.js`/
+  `Player.js`/`League.js`/`Bracket.js`/`Cup.js`/`Playoffs.js`/
+  `Promotion.js`/`CpuLineup.js`/`SeasonGoals.js`/`Team.js` (la lista
+  vetada del prompt de esta sesión) aparece en el diff — la Construcción
+  de identidad CPU encontró un punto de enganche limpio dentro de
+  `game.js` (`startSeason()`, ya construye los equipos de cada división
+  ahí mismo, y ya asigna `team.tacticalProfile` — que es un campo mutable
+  público de `Team`, no algo que exigiera cambiar el constructor de
+  `Team.js`) sin necesitar tocar ninguno de los archivos vetados, tal
+  como permitía el prompt si se encontraba uno.
+
+### Resumen final de la EPIC completa (TAC-1 a TAC-7)
+
+Para que una futura sesión de diseño no tenga que releer los 7 CHANGELOG
+completos:
+
+- **TAC-1** — Núcleo táctico de posesión: `PossessionPlan`/`DefensivePlan`/
+  `AdvantageState` (3 ramas) y primera integración real de Pick & Roll con
+  varias coberturas (Drop/Under/Switch/Hedge/Blitz).
+- **TAC-2** — Identidad + spacing + roles: `TacticalProfile` completo
+  (spacing, ejes de identidad, pesos de play-type), `effectiveSpacing()`,
+  catálogo de roles ofensivos/defensivos + `roleFit()`, primeras
+  valoraciones derivadas de quinteto.
+- **TAC-3** — Playbook + generación real de oportunidades: 9 familias de
+  `PlayDefinition`, `AdvantageState` de 6 categorías con continuidad/
+  counters, asistencia causal, Isolation/Post Up con motor real.
+- **TAC-4** — Defensa avanzada: zonas (2-3/3-2/1-3-1), press, doble equipo
+  de poste, matchups individuales, transición defensiva, Switchability/
+  Rim Protection/Transition Defense.
+- **TAC-5** — Partido vivo y situaciones: motor de simulación pausable
+  (`createMatchState`/`advanceMatch`), `GamePlan` de partido, tiempos
+  muertos reales, ATO/BLOB/SLOB/Late Clock/Last Possession, falta táctica
+  intencionada.
+- **TAC-6** — Familiaridad Táctica: `TacticalProfile.familiarity`,
+  `tacticalExecution` (familiaridad+atributos+energía+experiencia+
+  complejidad), eje Rigidez↔Read&React, 3 errores reconocibles con
+  mecanismo real.
+- **TAC-7** — Data Hub y scouting táctico: telemetría por posesión +
+  agregado persistente por equipo, derivadas con tamaño de muestra,
+  informe de rival, identidad automática de equipos CPU (alcance acotado
+  de 7.12.25), cierre de las 3 valoraciones de quinteto pendientes
+  (7.12.28).
+
+### Pendiente explícitamente para sesiones futuras (ver también DESIGN.md 7.12.34)
+
+- Plan de partido CPU basado en scouting real y Ajustes en vivo CPU con
+  anti-sobrerreacción/histéresis/inercia táctica (7.12.25, resto de la IA
+  táctica CPU) — nota de visión futura añadida en `DESIGN.md` 7.12.25,
+  requieren su propia sesión de diseño/calibración.
+- `playerTendencies` (7.12.26) — arquitectura futura fuera de esta EPIC.
+- Sistema real de visibilidad limitada por Scouting (6.2.2 punto 5) —
+  solo el gancho estructural queda dejado en esta entrega.
+- Resto del catálogo de métricas de 7.12.27 no implementadas esta entrega
+  (ver sección 3 arriba) y calibración cuantitativa final de
+  `config.tactics.telemetry`/`cpuIdentity` contra datos reales tras
+  simulación masiva (7.12.31) — esta entrega solo verifica DIRECCIÓN.

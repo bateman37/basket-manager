@@ -2967,6 +2967,39 @@ Se requieren:
 Una CPU cuyo equipo apenas conoce Switch puede usarlo como emergencia, pero
 con peor `tacticalExecution` que su Drop habitual.
 
+**Actualización TAC-7 (7.12.33: última entrega de la EPIC) — alcance real
+implementado y nota de visión futura.** De las tres piezas de esta sección
+(Construcción de identidad / Plan de partido CPU / Ajustes en vivo CPU),
+TAC-7 implementa solo la primera, en su mínimo real: cada equipo CPU recibe
+un `TacticalProfile` inicial derivado de su plantilla real
+(`Tactics.buildCpuTacticalIdentity`, evaluada UNA VEZ al arrancar
+partida/pretemporada, nunca cada partido) en vez del perfil por defecto
+universal — ver CHANGELOG de esta entrega para la heurística exacta y su
+verificación por arquetipo. **Plan de partido CPU** y **Ajustes en vivo
+CPU** quedan explícitamente FUERA de esta EPIC (7.12.33 no define una
+TAC-8), señalados aquí como diseño pendiente de una sesión futura dedicada,
+no como un olvido:
+
+- **Plan de partido CPU basado en scouting real**: la CPU debería, antes de
+  cada partido, consultar el mismo Data Hub que TAC-7 construye para el
+  usuario (`Tactics.summarizeTacticsTelemetry`, ya existe y es simétrico —
+  "el mismo informe estadístico objetivo... para evitar asimetría de
+  información", cita literal de arriba) y traducir eso en un `GamePlan`
+  concreto de ese partido. Falta diseñar QUÉ señales del informe pesan más
+  (¿coverage más castigado del rival? ¿su play-type más eficiente?) y CÓMO
+  se traduce eso en overrides concretos de `GamePlan` — la pieza de datos
+  ya existe, falta la lógica de decisión.
+- **Ajustes en vivo CPU con anti-sobrerreacción**: exige diseñar
+  explícitamente tamaño mínimo de muestra/confianza, histéresis (evitar
+  alternar Drop↔Switch cada dos posesiones), coste de familiaridad al
+  cambiar de cobertura mid-partido (una CPU que apenas conoce Switch puede
+  usarlo de emergencia pero con peor `tacticalExecution`, ya construido en
+  TAC-6 — la pieza existe, falta la lógica de decisión que la dispare) e
+  inercia táctica general. Es la pieza de mayor riesgo de toda la IA CPU
+  (fácil que sobrerreaccione o infrarreaccione de forma perceptible para el
+  usuario) y merece su propia sesión de calibración dedicada, no un cierre
+  apresurado en la última entrega de la EPIC.
+
 ### 7.12.26 Tendencies de jugador — arquitectura futura
 
 Capacidad y comportamiento no son equivalentes. Un jugador puede tener
@@ -3481,7 +3514,16 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   el rebote ofensivo vs quién se replegó. De las valoraciones derivadas de
   quinteto de 7.12.28, esta entrega completa Switchability/Rim Protection/
   Transition Defense; Transition Offense, POA Defense y Tactical Execution
-  siguen sin implementar. Todos los valores numéricos nuevos de
+  siguen sin implementar. **Actualización TAC-7: cerradas.** Con Data Hub
+  (7.12.27) y `tacticalExecution` (7.12.22, TAC-6) ya construidos, TAC-7
+  completa las 3 restantes: Transition Offense/POA Defense son valoraciones
+  de APTITUD de plantilla (mismo criterio que el resto de 7.12.28, se
+  recalculan al cambiar un jugador sin depender de partidos jugados) —
+  POA Defense reutiliza literalmente `roles.defensiveMix.poaStopper`
+  (7.12.21); Tactical Execution reutiliza literalmente
+  `Tactics.computeTacticalExecution` (7.12.22) con complejidad 0 (foto en
+  reposo del quinteto, sin ninguna jugada concreta elegida). Todos los
+  valores numéricos nuevos de
   `config.tactics.defense`/`press`/`transitionDefense`/`postUp` son puntos
   de partida con dirección verificada, no cifras cerradas — pendientes de
   calibración masiva junto al resto de 7.12.31.
@@ -3537,6 +3579,49 @@ Aunque la arquitectura queda preparada, NO se cierra todavía:
   de TAC-6), no cifras cerradas — 7.12.22 admite explícitamente que "no se
   cierra todavía la curva matemática", así que esta calibración queda
   pendiente junto al resto de 7.12.31.
+- **TAC-7, nuevos pendientes** (última entrega de la EPIC, 7.12.33): del
+  catálogo completo de campos de 7.12.27, quedan fuera del registro por
+  posesión, señalados explícitamente (sin dato real disponible sin
+  inventarlo, o sin instrumentar más `MatchEngine.simulatePossession` de lo
+  que esta entrega considera prudente sobre una función ya delicada):
+  "número de pases relevantes" (el motor no simula pases individuales
+  fuera del propio P&R/Post Up); "reloj de posesión al finalizar" (variable
+  interna de `simulatePossession` que nunca se devuelve); `shotDefenderId`
+  de una posesión NO táctica sin tapón (la rama 1v1 de siempre no devuelve
+  su defensor de tiro elegido). `shotQuality` no tiene todavía el valor
+  numérico cerrado que pide 7.12.5 (7.12.34 ya lo confirmaba pendiente) —
+  se aproxima con `advantageScore` reescalado a 0-1 SOLO en posesiones con
+  play-type táctico real, señalado explícitamente como proxy, no como el
+  cálculo final. De las ~25 métricas listadas en 7.12.27, esta entrega
+  implementa un subconjunto representativo por categoría (Ataque: PPP/
+  frecuencia por play-type, shot profile, FG% asistido, pérdidas, calidad
+  de tiro media, efectividad por jugada del playbook; Defensa: PPP
+  concedido por cobertura, shot profile permitido, eficiencia de mismatch
+  aproximada por Switch; Lineups: ORtg/DRtg/Net aproximado, spacing
+  efectivo medio) — quedan para una ampliación futura del Data Hub:
+  efficiency tras DHO/Off Screen/Post/Isolation por separado, Transition
+  Frequency/PPP detallado, FT rate por play-type, ATO PPP, rebote ofensivo
+  vs. puntos concedidos en transición, puntos concedidos tras superar
+  primera línea, eficiencia de zona/man por separado, rebote defensivo por
+  shell. La arquitectura de telemetría (un registro por posesión +
+  agregado persistente por equipo en `TacticalProfile.tacticsTelemetry`)
+  no bloquea añadir ninguna de ellas después. El gancho de visibilidad
+  limitada por Scouting (7.12.27) queda estructural únicamente: el informe
+  de rival siempre se muestra completo en esta entrega — separar "dato
+  calculado" (`Tactics.summarizeTacticsTelemetry`) de "dato mostrado"
+  (`game.js`, capa de presentación) es la separación que permitiría
+  ocultar/difuminar partes sin rediseñar el shape, pero ningún sistema de
+  visibilidad real se implementa todavía (6.2.2 punto 5, Scouting, sigue
+  sin diseñar). Construcción de identidad CPU: umbrales
+  (`config.tactics.cpuIdentity.specialistThreshold`/`weakThreshold`) y
+  sesgo de `clubDNA` por equipo/eje son puntos de partida con dirección
+  verificada por arquetipo (ver CHANGELOG de esta entrega), no cifras
+  cerradas — misma calibración masiva pendiente que el resto de 7.12.31;
+  rebote y Energía/edad de rotación se evalúan como señal de auditoría de
+  plantilla pero no mueven ninguna decisión de esta heurística todavía (no
+  hay un eje de `TacticalProfile` con comportamiento real al que
+  conectarlos sin inventar uno). Plan de partido CPU/Ajustes en vivo CPU:
+  ver nota de visión futura al final de 7.12.25.
 
 ### 7.12.35 Fuentes y criterio de diseño
 
