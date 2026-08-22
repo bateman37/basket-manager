@@ -14,8 +14,8 @@
       "birthDate": "2000-01-19",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 8,
+        "Alero": 4,
         "Ala-pívot": 2,
         "Pívot": 2
       },
@@ -92,10 +92,10 @@
       "birthDate": "1991-08-02",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 5,
+        "Alero": 6,
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -168,10 +168,10 @@
       "birthDate": "1983-05-25",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 6
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -247,10 +247,10 @@
       "lastName": "Fernández",
       "birthDate": "2000-07-15",
       "positions": {
-        "Base": 12,
+        "Base": 8,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 4,
+        "Ala-pívot": 5,
         "Pívot": 2
       },
       "teamId": "team-la-laguna-tenerife",
@@ -325,9 +325,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 1,
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -401,10 +401,10 @@
       "lastName": "Bamba",
       "birthDate": "2001-01-06",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
+        "Alero": 9,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-la-laguna-tenerife",
@@ -477,10 +477,10 @@
       "lastName": "Van Beck",
       "birthDate": "1996-01-22",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
+        "Alero": 8,
+        "Ala-pívot": 6,
         "Pívot": 2
       },
       "teamId": "team-la-laguna-tenerife",
@@ -553,11 +553,11 @@
       "lastName": "Alderete",
       "birthDate": "2002-03-06",
       "positions": {
-        "Base": 2,
+        "Base": 1,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 11,
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -629,11 +629,11 @@
       "lastName": "Giedraitis",
       "birthDate": "1992-08-16",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 6,
+        "Pívot": 3
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -706,10 +706,10 @@
       "birthDate": "1997-05-19",
       "positions": {
         "Base": 2,
-        "Escolta": 12,
+        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 6
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -782,10 +782,10 @@
       "birthDate": "1985-12-05",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Escolta": 1,
+        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 6
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -860,10 +860,10 @@
       "birthDate": "1989-09-17",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 5,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -938,9 +938,9 @@
       "birthDate": "1996-05-07",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 3,
+        "Alero": 4,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-la-laguna-tenerife",
@@ -1015,10 +1015,10 @@
       "lastName": "Shermadini",
       "birthDate": "1989-04-02",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 3,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-la-laguna-tenerife",

@@ -14,10 +14,10 @@
       "birthDate": "2002-03-06",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -90,10 +90,10 @@
       "birthDate": "1999-05-06",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 6,
+        "Pívot": 6
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -167,9 +167,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -244,10 +244,10 @@
       "lastName": "Belemene",
       "birthDate": "1997-02-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 15,
         "Pívot": 2
       },
       "teamId": "team-flexicar-fuenlabrada",
@@ -320,11 +320,11 @@
       "lastName": "Cruz",
       "birthDate": "1991-10-24",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 6,
+        "Escolta": 1,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 11
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -397,10 +397,10 @@
       "birthDate": "2006-06-09",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 14,
+        "Alero": 6,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -475,11 +475,11 @@
       "lastName": "Tapia Aguilar",
       "birthDate": "2001-11-25",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 3,
+        "Escolta": 1,
+        "Alero": 11,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -551,10 +551,10 @@
       "lastName": "Rincón Molina",
       "birthDate": "1999-12-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 3,
         "Alero": 2,
-        "Ala-pívot": 12,
+        "Ala-pívot": 8,
         "Pívot": 20
       },
       "teamId": "team-flexicar-fuenlabrada",

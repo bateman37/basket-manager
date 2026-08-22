@@ -14,10 +14,10 @@
       "birthDate": "2000-01-24",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 4,
+        "Alero": 6,
+        "Ala-pívot": 4,
+        "Pívot": 3
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -89,10 +89,10 @@
       "lastName": "Moody",
       "birthDate": "1998-01-15",
       "positions": {
-        "Base": 12,
+        "Base": 10,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 5,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-insolac-caja87",
@@ -165,11 +165,11 @@
       "lastName": "Soumbey-Alley",
       "birthDate": "1999-02-14",
       "positions": {
-        "Base": 12,
+        "Base": 13,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 5,
+        "Ala-pívot": 4,
+        "Pívot": 3
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -241,11 +241,11 @@
       "lastName": "Cecilia",
       "birthDate": "2000-04-12",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 5,
+        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 6,
+        "Pívot": 4
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -317,11 +317,11 @@
       "lastName": "Mendikote",
       "birthDate": "1999-03-30",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 6,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 16,
+        "Pívot": 4
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -393,11 +393,11 @@
       "lastName": "Dedovic",
       "birthDate": "1997-02-16",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 2,
         "Alero": 20,
         "Ala-pívot": 12,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -469,10 +469,10 @@
       "lastName": "Vilà",
       "birthDate": "1997-09-11",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Base": 5,
+        "Escolta": 5,
+        "Alero": 5,
+        "Ala-pívot": 11,
         "Pívot": 20
       },
       "teamId": "team-insolac-caja87",
@@ -546,9 +546,9 @@
       "birthDate": "2001-06-27",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-insolac-caja87",
@@ -622,8 +622,8 @@
       "birthDate": "2001-08-20",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 5,
+        "Alero": 4,
         "Ala-pívot": 2,
         "Pívot": 20
       },

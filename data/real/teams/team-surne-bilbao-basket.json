@@ -14,10 +14,10 @@
       "birthDate": "2000-06-30",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 4,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -93,9 +93,9 @@
       "positions": {
         "Base": 20,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 3,
+        "Pívot": 4
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -172,7 +172,7 @@
         "Base": 20,
         "Escolta": 2,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-surne-bilbao-basket",
@@ -247,11 +247,11 @@
       "lastName": "Font",
       "birthDate": "1998-03-11",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 9,
+        "Ala-pívot": 6,
+        "Pívot": 3
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -323,10 +323,10 @@
       "lastName": "Hilliard",
       "birthDate": "1993-04-13",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
+        "Alero": 8,
+        "Ala-pívot": 5,
         "Pívot": 2
       },
       "teamId": "team-surne-bilbao-basket",
@@ -401,11 +401,11 @@
       "lastName": "Normantas",
       "birthDate": "1996-10-27",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 16,
+        "Ala-pívot": 3,
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -477,10 +477,10 @@
       "lastName": "Darling",
       "birthDate": "1998-08-30",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 3,
+        "Ala-pívot": 6,
         "Pívot": 2
       },
       "teamId": "team-surne-bilbao-basket",
@@ -556,8 +556,8 @@
         "Base": 2,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 1,
+        "Pívot": 4
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -629,11 +629,11 @@
       "lastName": "Petrasek",
       "birthDate": "1995-08-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 6,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -705,11 +705,11 @@
       "lastName": "Krampelj",
       "birthDate": "1995-03-10",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 1,
         "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 15
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -781,10 +781,10 @@
       "lastName": "Vautier",
       "birthDate": "1998-11-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 5,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-surne-bilbao-basket",
@@ -859,10 +859,10 @@
       "lastName": "Husták",
       "birthDate": "2003-11-04",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 5,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-surne-bilbao-basket",
@@ -937,8 +937,8 @@
       "lastName": "Hlinason",
       "birthDate": "1997-10-28",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 1,
+        "Escolta": 3,
         "Alero": 2,
         "Ala-pívot": 2,
         "Pívot": 20

@@ -14,10 +14,10 @@
       "birthDate": "2000-03-22",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 5,
+        "Alero": 6,
+        "Ala-pívot": 4,
+        "Pívot": 5
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -90,8 +90,8 @@
       "birthDate": "1996-06-14",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 9,
+        "Alero": 3,
         "Ala-pívot": 2,
         "Pívot": 2
       },
@@ -167,11 +167,11 @@
       "lastName": "Vázquez",
       "birthDate": "1994-09-08",
       "positions": {
-        "Base": 2,
+        "Base": 1,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 6,
+        "Ala-pívot": 1,
+        "Pívot": 5
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -243,11 +243,11 @@
       "lastName": "Falcoz",
       "birthDate": "2002-11-05",
       "positions": {
-        "Base": 12,
+        "Base": 15,
         "Escolta": 20,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -320,10 +320,10 @@
       "birthDate": "2002-07-18",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Escolta": 5,
+        "Alero": 13,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -396,10 +396,10 @@
       "birthDate": "1997-07-01",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Escolta": 4,
+        "Alero": 9,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -471,9 +471,9 @@
       "lastName": "Paukštė",
       "birthDate": "2000-09-10",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 2,
-        "Alero": 2,
+        "Alero": 3,
         "Ala-pívot": 2,
         "Pívot": 20
       },
@@ -547,8 +547,8 @@
       "lastName": "Van Komen",
       "birthDate": "1999-09-27",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 6,
         "Alero": 2,
         "Ala-pívot": 2,
         "Pívot": 20

@@ -3158,3 +3158,195 @@ completos:
   (ver sección 3 arriba) y calibración cuantitativa final de
   `config.tactics.telemetry`/`cpuIdentity` contra datos reales tras
   simulación masiva (7.12.31) — esta entrega solo verifica DIRECCIÓN.
+
+## 2026-08-21 (5) — Consolidación: corrección de textos de UI y regeneración de posiciones reales
+
+Sesión de consolidación, no de roadmap — la EPIC táctica (TAC-1 a TAC-7)
+ya está completa y en producción. Corrige textos de interfaz que quedaron
+desactualizados de sesiones anteriores y regenera datos de posiciones que
+se migraron con un placeholder plano. No añade ninguna funcionalidad
+nueva.
+
+### 1. Texto falso sobre play-types en Tácticas → Ataque
+
+La pestaña Ataque decía "el motor todavía solo usa Pick & Roll — llegará
+con una entrega futura del sistema táctico", texto escrito en la sesión de
+TAC-2 y nunca actualizado en las sesiones de TAC-3 a TAC-7. Falso desde
+TAC-3: `Tactics.selectPlayType()` pondera realmente Pick & Roll, Isolation
+y Post Up, y `Tactics.resolveTransitionAttempt()` modula la frecuencia de
+contraataque según el peso de Transition (confirmado verificando ambas
+funciones antes de escribir el texto nuevo). Reescrito para decir la
+verdad actual: Pick & Roll, Isolation, Post Up y Transition tienen efecto
+real; Handoff/DHO, Off Screen y Motion/Flow siguen siendo catálogo sin
+motor propio (confirmado con `Tactics.REAL_PLAY_FAMILIES`, que solo
+contiene `pickAndRoll`/`isolation`/`postUp`). También se quitó la
+etiqueta "(único con efecto real en el motor por ahora)" que colgaba
+específicamente del slider de Pick & Roll, con la misma falsedad.
+
+### 2. Fugas de texto de desarrollador visible al jugador
+
+Corregidos los 7 textos identificados por el prompt de esta sesión, más 1
+adicional que el propio grep de verificación sacó a la luz (el panel de
+intervención de partido en vivo decía "Ajustes de GamePlan para este
+partido", nombrando la clase interna) — 8 en total, todos en
+`<p class="gm-muted">` de `src/ui/game.js`. En todos los casos se
+conservó el contenido explicativo, solo se quitó la referencia a
+"DESIGN.md", números de sección "7.12.X" o nombres de clases internas:
+
+- Familiaridad (Resumen): quitado "(DESIGN.md 7.12.22)".
+- Playbook: quitado "(DESIGN.md 7.12.10)".
+- Situaciones, Auto Timeouts: quitado "(7.12.24)".
+- Situaciones, jugadas preparadas: quitado "(7.12.24)".
+- Rival, selector: de `Informe estadístico objetivo del rival (DESIGN.md
+  7.12.25: "el mismo informe... disponible al usuario, para evitar
+  asimetría de información"...)` a `Informe estadístico objetivo del
+  rival — la CPU rival ve de ti el mismo tipo de informe que tú ves de
+  ella, para que ninguno de los dos lados juegue con ventaja de
+  información.`
+- Rival, resumen de play-types: de `(aproximación por AdvantageState,
+  7.12.34)` a `(estimación a partir de las ventajas creadas durante el
+  partido)`.
+- Rival, resumen de coberturas: quitado ", 7.12.34" de la línea de
+  eficiencia de mismatch.
+- Panel de intervención en partido en vivo (no estaba en la lista
+  original del prompt): de `Ajustes de GamePlan para este partido` a
+  `Ajustes tácticos para este partido`.
+- Verificado con `grep -nE '<(p|span|h[1-6]|label|option)[^>]*>[^<]*(DESIGN\.md|7\.12\.[0-9]|AdvantageState|GamePlan)' src/ui/game.js`
+  tras los cambios: cero coincidencias reales (la única que queda es un
+  falso positivo — `GamePlan` aparece dentro de una expresión
+  `${userGamePlan.playTypeWeights.isolation}` que se evalúa a un número,
+  nunca como texto literal).
+
+### 3. Regeneración del mapa de posiciones de jugadores reales (`scripts/regenerate-real-positions.js`)
+
+**Causa raíz confirmada por auditoría**: `scripts/migrate-positions-to-map.js`
+asignaba un valor PLANO idéntico a todos los jugadores del planeta — 12
+para cualquier posición secundaria que ya estuviera en la lista antigua,
+2 para cualquiera que no lo estuviera. Resultado: solo 3 patrones de
+posición distintos en los 414 jugadores reales (56.8% con
+`20/12/2/2/2`, 42.8% con `20/2/2/2/2`, 0.5% con `20/12/12/2/2`) — la
+polivalencia se sentía idéntica entre cualquier par de jugadores con el
+mismo número de posiciones antiguas.
+
+- **Nuevo script**, adapta la lógica de
+  `playerGenerator.generatePositionMap()` (base + dispersión de ruido
+  aleatorio) en vez de inventar una fórmula nueva, pero ANCLADA a si la
+  posición es HOY 12 o 2 (no a la distancia geométrica al índice del
+  jugador, que solo tiene sentido generando un jugador desde cero) — para
+  no destruir la información real que la migración anterior sí capturó
+  sobre qué posiciones jugaba cada jugador. Posición principal (20)
+  nunca se toca. Secundaria conocida (hoy 12): ruido alrededor de
+  base 12/dispersión 5, acotado a 8-17. No habilitada (hoy 2): ruido
+  alrededor de base 3.5/dispersión 2.5, acotado a 1-6. PRNG determinista
+  (mulberry32) sembrado por `player.id`, no `Math.random()` — reproducible.
+- **Solo toca `positions`** de `data/real/teams/*.json` — verificado con
+  un diff campo a campo de los 414 jugadores (mismo rigor que
+  `scripts/rescale-real-attributes.js`, sin reutilizar su código):
+  ningún atributo técnico/físico/mental/oculto/estado dinámico/
+  `dataSource` cambió. `data/real/sources/todos_los_jugadores_acb_y_feb.txt`
+  NO se tocó (no es una migración de esquema, es una recalibración de
+  valores dentro del esquema ya vigente). Regenera
+  `data/real/real-data-bundle.js` con el mismo formato exacto que
+  `migrate-positions-to-map.js`/`import-real-data.js`.
+- **Resultado verificado**: patrones de posición distintos ANTES: 3.
+  DESPUÉS: **256**. Los 414 jugadores mantienen exactamente una posición
+  en 20. Releídos a mano 3 equipos reales distintos (Barça, Alimerka
+  Oviedo, Bueno Arenas Albacete) tras la regeneración: valores en rango
+  1-20, sin negativos, con variación real entre jugadores del mismo
+  equipo y del mismo puesto.
+
+### 4. Recalibración de la conversión de puntuación a estrellas — decisión ya tomada por Dennis
+
+`Tactics.starsFromScore20(score)` agrupaba 17, 18, 19 y 20 en el mismo
+escalón de 5★ (`Math.ceil(score / 4)`, un solo tramo cada 4 puntos), sin
+distinguir "muy competente" de "el máximo posible" — la segunda causa
+(junto al punto 3) de la saturación de estrellas confirmada por auditoría
+(55.6% de los 414 jugadores reales con 5★ en 3+ roles ofensivos distintos
+antes de esta sesión).
+
+- **5 nuevos umbrales**, decisión ya cerrada por Dennis, no una
+  calibración propia de esta sesión: 1★ (1-6), 2★ (7-10), 3★ (11-14), 4★
+  (15-17), 5★ (18-20). Movidos a `config.tactics.starRating.thresholds`
+  en `MatchConfig.js` (mismo patrón que el resto de bloques de umbrales
+  del archivo) — `starsFromScore20` ya no tiene ningún número suelto en
+  el cuerpo de la función, ahora recibe `config` como segundo parámetro
+  (los 3 sitios donde se llama —`roleFit`/`computeLineupRatings`× 2— ya
+  tenían `config` en su propio scope, sin necesitar plumbing adicional).
+- **`DESIGN.md` actualizado**: tabla completa en 7.12.9 (Roles
+  ofensivos, donde se introduce `roleFit` en estrellas), referencia
+  breve desde 7.12.21 (Roles defensivos) para no duplicarla; el bloque
+  de pendientes de calibración de `roleFit` en 7.12.34 (heredado de
+  TAC-2) se actualizó en el sitio existente en vez de crear una entrada
+  duplicada.
+- **Verificado**: `starsFromScore20(17, CONFIG_BASE)` → 4,
+  `starsFromScore20(18, CONFIG_BASE)` → 5 (antes ambos daban 5). Efecto
+  medido tras este cambio Y la regeneración de posiciones del punto 3
+  juntos: el porcentaje de jugadores reales con 5★ en 3+ roles ofensivos
+  bajó de **55.6% a 27.5%** (114 de 414) — cambio real y medible, sin
+  objetivo numérico exacto perseguido. Sigue siendo un punto de partida
+  calibrable, no una cifra cerrada — misma redacción que el resto de
+  `config.tactics` ("puntos de partida con dirección verificada, no
+  cifras cerradas").
+
+### 5. Estado histórico obsoleto corregido en `DESIGN.md`
+
+- 7.11.7 (Alineación automática CPU): de "Estado: pendiente de
+  implementación — ver prompt de Claude Code asociado" a "Estado:
+  implementado (`src/core/CpuLineup.js`), en producción para todo
+  partido de cualquier división desde la sesión de CPU Lineup".
+- 3.3.4 (Días de descanso): quitada la coletilla "pendiente de merge a
+  `main` en el momento de escribir esto — ver PR en curso" (ya mergeado
+  y en producción desde hace varias sesiones).
+- 7.11.5 (Recuperación de Energía): quitada la misma coletilla de
+  "pendiente de merge — ver PR en curso" del párrafo de "Estado:
+  implementado".
+
+### 6. Comentario obsoleto corregido en `CpuLineup.js`
+
+El comentario sobre `computeMatchImportance` describía
+`team.board.sportingGoal` como una "señal inerte" para equipos reales
+(siempre 'Permanencia', igual para todos) — cierto cuando se escribió,
+falso desde la sesión de cierre de ciclo de temporada:
+`SeasonGoals.js` + `startSeason()` en `game.js` recalculan `sportingGoal`
+real y variable por equipo. Actualizado para reflejarlo, conservando el
+contexto histórico (qué problema resolvió esa sesión y por qué se
+implementó así entonces).
+
+### Verificación
+
+- **Frontend truthfulness**: `grep` sobre literales HTML visibles de
+  `src/ui/game.js` — cero coincidencias reales tras los cambios (ver
+  punto 2).
+- **Interactividad de play-types**: `selectPlayType` con
+  `playTypeWeights.isolation=100` produce Isolation en 1519/2000 tiradas
+  (76%) — reconfirmado, no reinventado (ya lo verificó TAC-3).
+- **Posiciones**: 414 jugadores con exactamente una posición en 20;
+  3→256 patrones distintos; diff campo a campo sin cambios fuera de
+  `positions`; el shape de `positions` sigue siendo el mismo mapa de 5
+  claves 1-20.
+- **Estrellas**: `starsFromScore20(20)` ≠ `starsFromScore20(17)` tras el
+  cambio; los 5 umbrales se leen de `CONFIG_BASE`, confirmado.
+- **Playwright**: recorridas las 6 sub-pestañas de Tácticas (Resumen,
+  Ataque, Roles, Playbook, Defensa, Situaciones) más Rival — ninguna
+  muestra ya las referencias técnicas corregidas (grep sobre el texto
+  visible de cada pestaña, cero coincidencias), y el slider de play-type
+  arrastra y persiste su valor correctamente. Sin errores de consola
+  relevantes (único error de red esperable en este entorno: la Google
+  Font externa de `index.html`).
+- **`git diff --stat`**: `DESIGN.md`, `data/real/real-data-bundle.js`,
+  `data/real/teams/*.json` (36 ficheros), `scripts/regenerate-real-positions.js`
+  (nuevo), `src/core/CpuLineup.js`, `src/core/MatchConfig.js`,
+  `src/core/Tactics.js`, `src/ui/game.js`. Ninguno de `Rotation.js`/
+  `Recovery.js`/`Calendar.js`/`League.js`/`Bracket.js`/`Cup.js`/
+  `Playoffs.js`/`Promotion.js`/`MatchEngine.js`/
+  `data/real/sources/*.txt` aparece en el diff — ningún atributo técnico/
+  físico/mental/oculto de ningún jugador cambió.
+- Suite de regresión previa re-ejecutada (`test-tactics-tac4.js`,
+  `test-season-cycle.js`, `test-phase2.js`,
+  `verify-real-data-import.js`): sin cambios de comportamiento. El
+  scratchpad `test-tactics.js` (TAC-1) falla en su última aserción de
+  turnovers tanto ANTES como DESPUÉS de esta sesión (confirmado con
+  `git stash`) — deriva pre-existente de sesiones posteriores (press de
+  TAC-4, `tacticalExecution` de TAC-6, ambas modulan la probabilidad de
+  pérdida) sobre un umbral fijo escrito en TAC-1, no una regresión de
+  esta sesión.

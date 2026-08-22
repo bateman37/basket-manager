@@ -14,9 +14,9 @@
       "birthDate": "1994-04-23",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 3,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-unicaja",
@@ -94,10 +94,10 @@
       "birthDate": "1992-12-23",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 5
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -173,10 +173,10 @@
       "birthDate": "2000-04-10",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 13,
+        "Alero": 4,
+        "Ala-pívot": 3,
+        "Pívot": 4
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -250,11 +250,11 @@
       "lastName": "Hunt",
       "birthDate": "1997-08-25",
       "positions": {
-        "Base": 12,
+        "Base": 9,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 6,
+        "Ala-pívot": 6,
+        "Pívot": 4
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -326,11 +326,11 @@
       "lastName": "Djedovic",
       "birthDate": "1990-01-12",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 8,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -404,11 +404,11 @@
       "lastName": "Kalinoski",
       "birthDate": "1992-12-19",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 3,
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -482,11 +482,11 @@
       "lastName": "Brazdeikis",
       "birthDate": "1999-01-08",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 14,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -558,10 +558,10 @@
       "lastName": "Barreiro",
       "birthDate": "1997-01-16",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 11,
         "Pívot": 2
       },
       "teamId": "team-unicaja",
@@ -634,9 +634,9 @@
       "lastName": "Noua",
       "birthDate": "1997-02-07",
       "positions": {
-        "Base": 2,
+        "Base": 1,
         "Escolta": 2,
-        "Alero": 2,
+        "Alero": 3,
         "Ala-pívot": 20,
         "Pívot": 2
       },
@@ -710,11 +710,11 @@
       "lastName": "Pérez",
       "birthDate": "1996-01-29",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -787,9 +787,9 @@
       "birthDate": "1992-09-12",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 6,
+        "Alero": 5,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-unicaja",
@@ -865,8 +865,8 @@
       "birthDate": "1994-05-27",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 3,
+        "Alero": 1,
         "Ala-pívot": 2,
         "Pívot": 20
       },
@@ -943,9 +943,9 @@
       "birthDate": "2003-11-15",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 5,
+        "Alero": 3,
+        "Ala-pívot": 6,
         "Pívot": 20
       },
       "teamId": "team-unicaja",

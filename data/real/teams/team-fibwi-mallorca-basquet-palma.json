@@ -14,10 +14,10 @@
       "birthDate": "2001-07-28",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 4,
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
@@ -90,10 +90,10 @@
       "birthDate": "2002-10-06",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 6,
+        "Alero": 1,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
@@ -166,10 +166,10 @@
       "birthDate": "1996-11-01",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
+        "Escolta": 16,
         "Alero": 2,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
@@ -241,11 +241,11 @@
       "lastName": "Lobo",
       "birthDate": "1997-07-31",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 5,
+        "Ala-pívot": 4,
+        "Pívot": 5
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
@@ -317,10 +317,10 @@
       "lastName": "Huguet",
       "birthDate": "2002-08-31",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
+        "Alero": 9,
+        "Ala-pívot": 6,
         "Pívot": 2
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
@@ -393,11 +393,11 @@
       "lastName": "Matulionis",
       "birthDate": "1991-08-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 16,
+        "Pívot": 4
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
       "bodyMeasurements": {
@@ -471,10 +471,10 @@
       "lastName": "Beraza",
       "birthDate": "1999-01-26",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Ala-pívot": 8,
         "Pívot": 2
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
@@ -547,8 +547,8 @@
       "lastName": "Scariolo",
       "birthDate": "2001-10-21",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 11,
         "Alero": 20,
         "Ala-pívot": 2,
         "Pívot": 2
@@ -623,9 +623,9 @@
       "lastName": "Simeunović",
       "birthDate": "1995-04-26",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 5,
+        "Escolta": 4,
+        "Alero": 10,
         "Ala-pívot": 20,
         "Pívot": 2
       },
@@ -699,9 +699,9 @@
       "lastName": "Kande",
       "birthDate": "1999-08-24",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 2,
-        "Alero": 2,
+        "Alero": 3,
         "Ala-pívot": 20,
         "Pívot": 12
       },
@@ -775,10 +775,10 @@
       "lastName": "Cerdá",
       "birthDate": "2005-06-04",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 1,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",
@@ -851,10 +851,10 @@
       "lastName": "Jackson",
       "birthDate": "2003-06-25",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-fibwi-mallorca-basquet-palma",

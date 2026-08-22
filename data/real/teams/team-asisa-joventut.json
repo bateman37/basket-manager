@@ -14,10 +14,10 @@
       "birthDate": "2000-12-12",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 4,
+        "Alero": 3,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "1996-03-22",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 6,
+        "Alero": 4,
+        "Ala-pívot": 4,
+        "Pívot": 5
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -168,9 +168,9 @@
       "birthDate": "1990-01-31",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 13,
+        "Alero": 5,
+        "Ala-pívot": 1,
         "Pívot": 2
       },
       "teamId": "team-asisa-joventut",
@@ -247,10 +247,10 @@
       "birthDate": "1990-10-21",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 1,
+        "Alero": 4,
+        "Ala-pívot": 4,
+        "Pívot": 4
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -328,9 +328,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 11,
+        "Ala-pívot": 6,
+        "Pívot": 5
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -402,11 +402,11 @@
       "lastName": "Reyes",
       "birthDate": "1993-12-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 4,
         "Alero": 20,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -478,11 +478,11 @@
       "lastName": "Kraag",
       "birthDate": "2002-10-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 3,
+        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 6
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -554,11 +554,11 @@
       "lastName": "Sulejmanovic",
       "birthDate": "1995-07-13",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 4,
+        "Escolta": 3,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 17
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -630,11 +630,11 @@
       "lastName": "Cheatham",
       "birthDate": "1995-08-21",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 1,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -706,11 +706,11 @@
       "lastName": "Ruzic",
       "birthDate": "2006-10-04",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 4,
+        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Pívot": 10
       },
       "teamId": "team-asisa-joventut",
       "bodyMeasurements": {
@@ -783,9 +783,9 @@
       "birthDate": "1987-02-17",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 5,
+        "Alero": 3,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-asisa-joventut",
@@ -861,10 +861,10 @@
       "lastName": "Birgander",
       "birthDate": "1997-10-23",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 4,
+        "Alero": 1,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-asisa-joventut",

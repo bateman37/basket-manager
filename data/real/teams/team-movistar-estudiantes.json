@@ -14,10 +14,10 @@
       "birthDate": "1997-10-20",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 15,
+        "Alero": 3,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "1998-06-26",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 5,
+        "Alero": 5,
+        "Ala-pívot": 3,
+        "Pívot": 3
       },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
@@ -169,8 +169,8 @@
       "positions": {
         "Base": 12,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 3,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-movistar-estudiantes",
@@ -243,11 +243,11 @@
       "lastName": "Silverio",
       "birthDate": "1998-11-05",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 3
       },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
@@ -321,11 +321,11 @@
       "lastName": "Giovannetti",
       "birthDate": "2005-06-14",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 13,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
@@ -397,10 +397,10 @@
       "lastName": "Jiménez",
       "birthDate": "2002-09-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 4,
+        "Escolta": 14,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-movistar-estudiantes",
@@ -473,11 +473,11 @@
       "lastName": "Munnings",
       "birthDate": "1994-09-14",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 6,
+        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 8,
+        "Pívot": 3
       },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
@@ -549,11 +549,11 @@
       "lastName": "Vaulet",
       "birthDate": "1996-03-22",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 6,
+        "Escolta": 5,
+        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-movistar-estudiantes",
       "bodyMeasurements": {
@@ -625,9 +625,9 @@
       "lastName": "Treier",
       "birthDate": "1999-09-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 15,
         "Ala-pívot": 20,
         "Pívot": 2
       },
@@ -702,9 +702,9 @@
       "birthDate": "1995-11-19",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Escolta": 1,
+        "Alero": 4,
+        "Ala-pívot": 15,
         "Pívot": 20
       },
       "teamId": "team-movistar-estudiantes",
@@ -779,10 +779,10 @@
       "lastName": "Niang",
       "birthDate": "1994-01-01",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 1,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 1,
         "Pívot": 20
       },
       "teamId": "team-movistar-estudiantes",
@@ -856,8 +856,8 @@
       "birthDate": "1997-06-27",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 4,
+        "Alero": 1,
         "Ala-pívot": 2,
         "Pívot": 20
       },

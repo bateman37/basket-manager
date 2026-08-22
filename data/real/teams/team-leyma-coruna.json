@@ -14,10 +14,10 @@
       "birthDate": "1998-10-17",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 11,
+        "Alero": 6,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "1999-02-22",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 4,
+        "Alero": 1,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -170,10 +170,10 @@
       "birthDate": "2000-06-20",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -247,10 +247,10 @@
       "lastName": "Jorgensen",
       "birthDate": "1996-07-21",
       "positions": {
-        "Base": 12,
+        "Base": 9,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 6,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-leyma-coruna",
@@ -323,11 +323,11 @@
       "lastName": "Dimsa",
       "birthDate": "1994-01-02",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 10,
+        "Ala-pívot": 6,
+        "Pívot": 4
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -399,11 +399,11 @@
       "lastName": "Jou",
       "birthDate": "1997-07-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 3,
+        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 4
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -476,10 +476,10 @@
       "birthDate": "1996-07-23",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 11,
+        "Pívot": 3
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -554,8 +554,8 @@
         "Base": 2,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 4
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -627,11 +627,11 @@
       "lastName": "Radoncic",
       "birthDate": "1999-01-08",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 15,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -703,9 +703,9 @@
       "lastName": "Skapintsev",
       "birthDate": "1998-05-12",
       "positions": {
-        "Base": 2,
+        "Base": 5,
         "Escolta": 2,
-        "Alero": 2,
+        "Alero": 6,
         "Ala-pívot": 2,
         "Pívot": 20
       },
@@ -781,10 +781,10 @@
       "lastName": "Conditt IV",
       "birthDate": "2000-08-22",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 6,
+        "Escolta": 3,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 6,
         "Pívot": 20
       },
       "teamId": "team-leyma-coruna",
@@ -857,10 +857,10 @@
       "lastName": "Silins",
       "birthDate": "1997-07-22",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 6,
         "Pívot": 20
       },
       "teamId": "team-leyma-coruna",

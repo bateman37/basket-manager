@@ -14,10 +14,10 @@
       "birthDate": "1992-04-29",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 1,
+        "Alero": 5,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "2001-01-20",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 1,
+        "Alero": 1,
+        "Ala-pívot": 4,
+        "Pívot": 3
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -170,10 +170,10 @@
       "birthDate": "2002-05-24",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 15,
+        "Alero": 5,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -248,10 +248,10 @@
       "birthDate": "2004-08-09",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 8,
+        "Alero": 6,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -325,11 +325,11 @@
       "lastName": "Kolenda",
       "birthDate": "1999-07-28",
       "positions": {
-        "Base": 12,
+        "Base": 16,
         "Escolta": 20,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 5
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -401,11 +401,11 @@
       "lastName": "Agbo",
       "birthDate": "2001-11-28",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 1,
+        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 3,
+        "Pívot": 4
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -477,11 +477,11 @@
       "lastName": "Tamba",
       "birthDate": "2003-09-04",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 1,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -554,10 +554,10 @@
       "birthDate": "1998-05-15",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Escolta": 3,
+        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -629,11 +629,11 @@
       "lastName": "Allen",
       "birthDate": "2000-01-09",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 4,
+        "Escolta": 1,
+        "Alero": 8,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -705,11 +705,11 @@
       "lastName": "Minchev",
       "birthDate": "1998-10-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 4,
+        "Alero": 1,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -783,8 +783,8 @@
       "positions": {
         "Base": 2,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 1,
+        "Ala-pívot": 3,
         "Pívot": 20
       },
       "teamId": "team-kids-and-us-manresa",
@@ -861,8 +861,8 @@
       "positions": {
         "Base": 2,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Alero": 5,
+        "Ala-pívot": 14,
         "Pívot": 20
       },
       "teamId": "team-kids-and-us-manresa",

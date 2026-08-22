@@ -993,11 +993,22 @@
     return considered.reduce((a, b) => a + b, 0) / considered.length;
   }
 
-  // 1-5 estrellas a partir de una puntuación en escala de atributo (1-20) —
-  // mismo criterio de bucketing que competitionRhythmToStars en game.js
-  // (Math.ceil(score/paso)), adaptado a la escala 1-20 en vez de 0-100.
-  function starsFromScore20(score) {
-    return Math.max(1, Math.min(5, Math.ceil(clamp(score, 1, 20) / 4)));
+  // 1-5 estrellas a partir de una puntuación en escala de atributo (1-20).
+  // Sesión de consolidación: sustituye el escalón único cada 4 puntos
+  // (agrupaba 17-20 en el mismo 5★, una de las causas de la saturación de
+  // estrellas confirmada por auditoría) por 5 tramos desiguales que SÍ
+  // distinguen 17 (4★) de 18-20 (5★) — decisión ya tomada por Dennis, los
+  // umbrales viven en `config.tactics.starRating.thresholds` (nunca
+  // hardcodeados aquí), mismo criterio que el resto de coeficientes
+  // calibrables del sistema táctico (tabla completa en DESIGN.md 7.12.9).
+  function starsFromScore20(score, config) {
+    const t = config.tactics.starRating.thresholds;
+    const clamped = clamp(score, 1, 20);
+    if (clamped <= t.oneStarMax) return 1;
+    if (clamped <= t.twoStarMax) return 2;
+    if (clamped <= t.threeStarMax) return 3;
+    if (clamped <= t.fourStarMax) return 4;
+    return 5;
   }
 
   // --- 7.12.6: effectiveSpacing ---
@@ -1105,7 +1116,7 @@
     const fitWeights = rolesCfg.fitWeights;
     const energyFactor = fitWeights.energyBaseline + fitWeights.energyRange * (player.dynamicState.energy / 100);
     const combined = (mixScore * fitWeights.attributeMixWeight + positionScore * fitWeights.positionLevelWeight) * energyFactor;
-    return { score: combined, stars: starsFromScore20(combined) };
+    return { score: combined, stars: starsFromScore20(combined, config) };
   }
 
   // Los `topN` roles de un lado (ofensivo/defensivo) con mejor `roleFit`
@@ -1163,7 +1174,7 @@
       poaDefense: averageMix(five, config.tactics.roles.defensiveMix.poaStopper),
     };
     const out = {};
-    Object.entries(raw).forEach(([key, score]) => { out[key] = { score, stars: starsFromScore20(score) }; });
+    Object.entries(raw).forEach(([key, score]) => { out[key] = { score, stars: starsFromScore20(score, config) }; });
     // Tactical Execution SÍ depende de `tacticalProfile` (familiaridad de
     // sistema + eje Rigidez↔Read & React, TAC-6) — no es una mezcla
     // simple de atributos como el resto de `raw`, así que se calcula
@@ -1179,7 +1190,7 @@
     const tacticalExecutionValue = computeTacticalExecution({
       participants: five, familiarityFactor, complexity: 0, rigidityAxis, config, getAttribute: getPlayerAttribute,
     });
-    out.tacticalExecution = { score: tacticalExecutionValue * 20, stars: starsFromScore20(tacticalExecutionValue * 20) };
+    out.tacticalExecution = { score: tacticalExecutionValue * 20, stars: starsFromScore20(tacticalExecutionValue * 20, config) };
     return out;
   }
 

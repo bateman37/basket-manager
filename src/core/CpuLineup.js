@@ -184,23 +184,28 @@
 
   // --- Importancia del partido (DESIGN.md 7.11.7, apartado 2.2) ---
   //
-  // NOTA (mismatch con DESIGN.md señalado explícitamente, ver respuesta
-  // final): `team.board.sportingGoal` solo varía de verdad para equipos
-  // FICTICIOS (generados por teamGenerator.js, uno de 'Evitar el
+  // NOTA HISTÓRICA (resuelta, ver DESIGN.md 3.4.3): en la sesión original
+  // de CPU Lineup, `team.board.sportingGoal` solo variaba de verdad para
+  // equipos FICTICIOS (generados por teamGenerator.js, uno de 'Evitar el
   // descenso'/'Consolidarse en la categoría'/'Optar a playoffs'/'Pelear
   // por el título'). Los equipos REALES (los únicos seleccionables desde
-  // "Empezar temporada", ver CLAUDE.md) no traen `board` en los datos
-  // importados, así que Team.js les asigna el valor por defecto fijo
-  // 'Permanencia' — un 5º valor que ni siquiera pertenece al vocabulario
-  // de teamGenerator.js. Con los datos reales de hoy, TODOS los equipos
-  // (usuario y rivales) tienen literalmente el mismo objetivo, así que esta
-  // señal está inerte en una partida real: siempre resuelve a la zona baja
-  // de tabla para todo el mundo. No es una decisión que corresponda tomar
-  // aquí (asignar objetivos de temporada reales por equipo es una decisión
-  // de diseño/económica pendiente de confirmar con Dennis) — se implementa
-  // la lógica exactamente como la describe 7.11.7, lista para funcionar en
-  // cuanto existan objetivos de temporada reales, pero se señala aquí que
-  // hoy no discrimina nada entre equipos reales.
+  // "Empezar temporada", ver CLAUDE.md) no traían `board` en los datos
+  // importados, así que Team.js les asignaba el valor por defecto fijo
+  // 'Permanencia' — un 5º valor que ni siquiera pertenecía al vocabulario
+  // de teamGenerator.js. Con eso, TODOS los equipos (usuario y rivales)
+  // tenían literalmente el mismo objetivo, así que esta señal quedaba
+  // inerte en una partida real: siempre resolvía a la zona baja de tabla
+  // para todo el mundo — se implementó la lógica exactamente como la
+  // describe 7.11.7, lista para funcionar en cuanto existieran objetivos
+  // de temporada reales, señalando explícitamente que todavía no
+  // discriminaba nada entre equipos reales.
+  //
+  // Ya resuelto (sesión de cierre de ciclo de temporada): `SeasonGoals.js`
+  // calcula `sportingGoal` real y variable por equipo (percentil de
+  // overall + reputación), y `startSeason()` en `game.js` lo recalcula
+  // tanto al arrancar una partida nueva como en cada cierre de ciclo — la
+  // señal que consume esta función ya es real para los 36 equipos,
+  // incluidos los reales.
   const HIGH_ZONE_GOALS = new Set(['Pelear por el título', 'Optar a playoffs']);
   const LOW_ZONE_GOALS = new Set(['Evitar el descenso', 'Permanencia']);
 

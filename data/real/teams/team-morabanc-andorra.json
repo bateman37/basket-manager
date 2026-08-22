@@ -14,10 +14,10 @@
       "birthDate": "2000-11-27",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
+        "Escolta": 3,
+        "Alero": 1,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -92,10 +92,10 @@
       "birthDate": "2009-01-10",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 3,
+        "Alero": 3,
+        "Ala-pívot": 3,
+        "Pívot": 6
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -171,9 +171,9 @@
       "positions": {
         "Base": 20,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 1,
+        "Ala-pívot": 6,
+        "Pívot": 5
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -247,11 +247,11 @@
       "lastName": "Best",
       "birthDate": "1992-09-01",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 8,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -323,11 +323,11 @@
       "lastName": "Ortega",
       "birthDate": "1997-08-13",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 14,
+        "Ala-pívot": 3,
+        "Pívot": 5
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -399,10 +399,10 @@
       "lastName": "Robertson",
       "birthDate": "1994-04-20",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Alero": 1,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-morabanc-andorra",
@@ -475,11 +475,11 @@
       "lastName": "Kuric",
       "birthDate": "1989-08-25",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -551,10 +551,10 @@
       "lastName": "Kostadinov",
       "birthDate": "2003-03-25",
       "positions": {
-        "Base": 2,
+        "Base": 1,
         "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Ala-pívot": 5,
         "Pívot": 2
       },
       "teamId": "team-morabanc-andorra",
@@ -628,10 +628,10 @@
       "birthDate": "1999-01-06",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 8,
+        "Pívot": 5
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -704,9 +704,9 @@
       "birthDate": "1994-12-20",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
+        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-morabanc-andorra",
@@ -779,11 +779,11 @@
       "lastName": "McGriff",
       "birthDate": "1997-09-30",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 4,
+        "Escolta": 1,
+        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -855,9 +855,9 @@
       "lastName": "Aquino",
       "birthDate": "2003-01-08",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 4,
         "Ala-pívot": 20,
         "Pívot": 12
       },
@@ -931,10 +931,10 @@
       "lastName": "Pustovyi",
       "birthDate": "1992-06-25",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 4,
+        "Alero": 3,
+        "Ala-pívot": 6,
         "Pívot": 20
       },
       "teamId": "team-morabanc-andorra",
@@ -1007,10 +1007,10 @@
       "lastName": "Radosevic",
       "birthDate": "1990-02-26",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Base": 3,
+        "Escolta": 6,
+        "Alero": 1,
+        "Ala-pívot": 10,
         "Pívot": 20
       },
       "teamId": "team-morabanc-andorra",

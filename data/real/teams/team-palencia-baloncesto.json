@@ -14,9 +14,9 @@
       "birthDate": "1984-02-17",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 5,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 5,
         "Pívot": 2
       },
       "teamId": "team-palencia-baloncesto",
@@ -92,9 +92,9 @@
       "birthDate": "1990-07-15",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
+        "Escolta": 6,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-palencia-baloncesto",
@@ -169,11 +169,11 @@
       "lastName": "Rodríguez",
       "birthDate": "1991-10-17",
       "positions": {
-        "Base": 2,
+        "Base": 3,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
@@ -249,8 +249,8 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
-        "Ala-pívot": 2,
+        "Alero": 8,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-palencia-baloncesto",
@@ -323,11 +323,11 @@
       "lastName": "González",
       "birthDate": "1991-07-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 5,
+        "Escolta": 4,
         "Alero": 20,
         "Ala-pívot": 12,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
@@ -402,9 +402,9 @@
       "birthDate": "1995-04-26",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 4,
+        "Alero": 3,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-palencia-baloncesto",
@@ -479,10 +479,10 @@
       "lastName": "Vucetic",
       "birthDate": "1996-05-14",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 3,
+        "Escolta": 5,
+        "Alero": 3,
+        "Ala-pívot": 1,
         "Pívot": 20
       },
       "teamId": "team-palencia-baloncesto",
@@ -555,11 +555,11 @@
       "lastName": "Langarita",
       "birthDate": "2005-01-30",
       "positions": {
-        "Base": 2,
+        "Base": 4,
         "Escolta": 20,
         "Alero": 12,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
@@ -631,11 +631,11 @@
       "lastName": "Dimitrov",
       "birthDate": "1993-03-07",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 3,
+        "Escolta": 3,
+        "Alero": 6,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 3
       },
       "teamId": "team-palencia-baloncesto",
       "bodyMeasurements": {
@@ -707,10 +707,10 @@
       "lastName": "McGrew",
       "birthDate": "1993-02-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Base": 3,
+        "Escolta": 4,
+        "Alero": 5,
+        "Ala-pívot": 8,
         "Pívot": 20
       },
       "teamId": "team-palencia-baloncesto",
@@ -786,9 +786,9 @@
       "birthDate": "1995-04-26",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-palencia-baloncesto",

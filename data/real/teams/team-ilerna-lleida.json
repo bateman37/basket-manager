@@ -14,10 +14,10 @@
       "birthDate": "1998-01-30",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 1,
+        "Alero": 3,
+        "Ala-pívot": 4,
+        "Pívot": 6
       },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
@@ -90,10 +90,10 @@
       "birthDate": "1999-06-02",
       "positions": {
         "Base": 20,
-        "Escolta": 12,
-        "Alero": 2,
+        "Escolta": 15,
+        "Alero": 5,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
@@ -167,11 +167,11 @@
       "lastName": "Batemon",
       "birthDate": "1997-04-08",
       "positions": {
-        "Base": 12,
+        "Base": 8,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 6,
+        "Ala-pívot": 6,
+        "Pívot": 4
       },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
@@ -245,11 +245,11 @@
       "lastName": "Hughes",
       "birthDate": "1997-02-15",
       "positions": {
-        "Base": 2,
+        "Base": 6,
         "Escolta": 20,
-        "Alero": 2,
+        "Alero": 5,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
@@ -322,9 +322,9 @@
       "birthDate": "1999-02-01",
       "positions": {
         "Base": 2,
-        "Escolta": 12,
+        "Escolta": 14,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Ala-pívot": 3,
         "Pívot": 2
       },
       "teamId": "team-ilerna-lleida",
@@ -397,11 +397,11 @@
       "lastName": "Paulí",
       "birthDate": "1994-05-20",
       "positions": {
-        "Base": 2,
-        "Escolta": 12,
+        "Base": 4,
+        "Escolta": 9,
         "Alero": 20,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
@@ -473,11 +473,11 @@
       "lastName": "Shurna",
       "birthDate": "1990-04-30",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 3,
+        "Escolta": 6,
+        "Alero": 13,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 5
       },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
@@ -549,11 +549,11 @@
       "lastName": "Ejim",
       "birthDate": "1991-03-04",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 12,
+        "Base": 6,
+        "Escolta": 1,
+        "Alero": 9,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 4
       },
       "teamId": "team-ilerna-lleida",
       "bodyMeasurements": {
@@ -625,10 +625,10 @@
       "lastName": "Diagne",
       "birthDate": "1998-12-31",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 5,
+        "Escolta": 4,
+        "Alero": 5,
+        "Ala-pívot": 4,
         "Pívot": 20
       },
       "teamId": "team-ilerna-lleida",
@@ -701,10 +701,10 @@
       "lastName": "Kuath",
       "birthDate": "1998-08-12",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
+        "Base": 1,
+        "Escolta": 6,
+        "Alero": 6,
+        "Ala-pívot": 5,
         "Pívot": 20
       },
       "teamId": "team-ilerna-lleida",
@@ -779,8 +779,8 @@
       "lastName": "Perrin",
       "birthDate": "2004-08-30",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 1,
+        "Escolta": 4,
         "Alero": 2,
         "Ala-pívot": 12,
         "Pívot": 20

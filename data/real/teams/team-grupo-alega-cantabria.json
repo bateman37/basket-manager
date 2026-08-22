@@ -15,9 +15,9 @@
       "positions": {
         "Base": 20,
         "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 4,
+        "Ala-pívot": 4,
+        "Pívot": 4
       },
       "teamId": "team-grupo-alega-cantabria",
       "bodyMeasurements": {
@@ -94,7 +94,7 @@
         "Base": 20,
         "Escolta": 2,
         "Alero": 2,
-        "Ala-pívot": 2,
+        "Ala-pívot": 4,
         "Pívot": 2
       },
       "teamId": "team-grupo-alega-cantabria",
@@ -167,11 +167,11 @@
       "lastName": "Martínez",
       "birthDate": "1998-06-29",
       "positions": {
-        "Base": 12,
+        "Base": 16,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Alero": 3,
+        "Ala-pívot": 5,
+        "Pívot": 4
       },
       "teamId": "team-grupo-alega-cantabria",
       "bodyMeasurements": {
@@ -243,11 +243,11 @@
       "lastName": "Jenkins",
       "birthDate": "2000-07-15",
       "positions": {
-        "Base": 12,
+        "Base": 10,
         "Escolta": 20,
         "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Ala-pívot": 5,
+        "Pívot": 5
       },
       "teamId": "team-grupo-alega-cantabria",
       "bodyMeasurements": {
@@ -321,9 +321,9 @@
       "positions": {
         "Base": 2,
         "Escolta": 20,
-        "Alero": 12,
+        "Alero": 10,
         "Ala-pívot": 2,
-        "Pívot": 2
+        "Pívot": 6
       },
       "teamId": "team-grupo-alega-cantabria",
       "bodyMeasurements": {
@@ -395,11 +395,11 @@
       "lastName": "Seoane",
       "birthDate": "1999-08-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 15,
+        "Pívot": 5
       },
       "teamId": "team-grupo-alega-cantabria",
       "bodyMeasurements": {
@@ -471,11 +471,11 @@
       "lastName": "Alderete",
       "birthDate": "2000-04-22",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
+        "Base": 4,
+        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 2
+        "Ala-pívot": 13,
+        "Pívot": 3
       },
       "teamId": "team-grupo-alega-cantabria",
       "bodyMeasurements": {
@@ -547,11 +547,11 @@
       "lastName": "Rodríguez",
       "birthDate": "1997-08-02",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
+        "Base": 5,
+        "Escolta": 1,
+        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-grupo-alega-cantabria",
       "bodyMeasurements": {
@@ -624,9 +624,9 @@
       "birthDate": "1996-05-11",
       "positions": {
         "Base": 2,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 12,
+        "Escolta": 3,
+        "Alero": 5,
+        "Ala-pívot": 9,
         "Pívot": 20
       },
       "teamId": "team-grupo-alega-cantabria",
