@@ -39,6 +39,8 @@
       <button class="gm-nav__btn" data-screen="home" type="button">Inicio</button>
       <button class="gm-nav__btn" data-screen="lineup" type="button">Alineación</button>
       <button class="gm-nav__btn" data-screen="tactics" type="button">Tácticas</button>
+      <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
+      <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
       <button class="gm-nav__btn" data-screen="competitions" type="button">Competiciones</button>
       <button class="gm-nav__btn" data-screen="stats" type="button">Estadísticas</button>
@@ -60,6 +62,14 @@
 
     <section id="gm-screen-tactics" class="gm-screen">
       <div id="gm-tactics"></div>
+    </section>
+
+    <section id="gm-screen-agenda" class="gm-screen">
+      <div id="gm-agenda"></div>
+    </section>
+
+    <section id="gm-screen-news" class="gm-screen">
+      <div id="gm-news"></div>
     </section>
 
     <section id="gm-screen-calendar" class="gm-screen">
@@ -232,6 +242,11 @@
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>
   <script src="src/core/Promotion.js"></script>
+  <!-- CAL-2 (DESIGN.md 3.5): modelo de evento único para Agenda/Noticias —
+       módulo puro (no conoce BasketManager ni el DOM), pero se carga aquí
+       (después de las competiciones, antes de game.js) por coherencia con
+       el resto de src/core/. -->
+  <script src="src/core/Events.js"></script>
   <!-- TOOLTIP-1 (DESIGN.md 7.12.36): capa de presentación pura sobre los
        catálogos de Tactics.js/MatchConfig.js (fuente única de contenido de
        ayuda contextual de la pantalla de Tácticas) — carga después de

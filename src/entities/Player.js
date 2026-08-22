@@ -322,9 +322,15 @@
         hidden: this.hidden,
         dynamicState: {
           ...this.dynamicState,
-          // Serializado como fecha simple (mismo formato que birthDate),
-          // no como ISO completo con hora — consistencia de guardado.
-          lastMatchDate: this.dynamicState.lastMatchDate ? this.dynamicState.lastMatchDate.toISOString().slice(0, 10) : null,
+          // CAL-1 (DESIGN.md 3.3.1/6, decisión de Recovery): `lastMatchDate`
+          // ahora lleva una hora real con significado (horario real de
+          // partido, ver Calendar.js) — antes de esta entrega se truncaba a
+          // solo fecha aquí ("consistencia de guardado"), lo que habría
+          // destruido esa hora en cualquier guardado/carga futuro y
+          // desincronizado el cálculo de días de descanso justo después de
+          // cargar una partida. Se serializa como ISO completo; `birthDate`
+          // (sin significado horario) sigue truncado a solo fecha arriba.
+          lastMatchDate: this.dynamicState.lastMatchDate ? this.dynamicState.lastMatchDate.toISOString() : null,
         },
       };
     }

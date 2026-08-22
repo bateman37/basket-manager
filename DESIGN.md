@@ -188,22 +188,80 @@ la temporada el primer fin de semana de octubre.
 
 #### 3.3.1 Liga regular: generación de fechas
 
-- **Una jornada = un fin de semana** (sábado y/o domingo): todos los
-  partidos de una misma jornada comparten la misma fecha de referencia
-  de calendario (no se reparten los 9 partidos de una jornada en días
-  distintos); el motor no modela horarios distintos por partido, solo
-  fecha.
-- **Separación entre jornadas consecutivas**: 7 días exactos, salvo el
-  hueco de la Copa (ver 3.3.2).
+**Sustituido por CAL-1** (calendario vivo y avance temporal): hasta esa
+entrega, esta subsección fijaba explícitamente que "el motor no modela
+horarios distintos por partido, solo fecha" y que todos los partidos de
+una jornada compartían la misma fecha de referencia. CAL-1 existe
+precisamente para sustituir esa decisión — no es una ampliación silenciosa,
+es un cambio de comportamiento real y buscado. El comportamiento vigente
+es el siguiente:
+
+- **Fecha+hora real POR PARTIDO** (`Calendar.leagueMatchDateTime()`): cada
+  partido de una jornada tiene su propio instante real de inicio, ya no
+  solo una fecha de jornada compartida. Está permitido que dos partidos
+  coincidan en el mismo horario — lo que no puede pasar es que los 9
+  partidos de una jornada caigan en una única hora fija.
+- **`scheduleProfile`** (`config.calendar.scheduleProfiles`, por división —
+  `MatchConfig.js`): describe, sin ningún número mágico dentro del
+  algoritmo de `Calendar.js`, qué combinaciones de día+hora son plausibles
+  para cada división. Shape real:
+  ```js
+  scheduleProfiles: {
+    '1ª': {
+      weekendSlots: [{ dayOffset, hour, minute, weight }, ...],
+      midweek: { dayOffset, slots: [{ hour, minute, weight }, ...], everyNRounds },
+      lastRoundSlot: { dayOffset, hour, minute },
+    },
+    '2ª': { /* mismo shape, perfil más abierto */ },
+  }
+  ```
+  `dayOffset` es relativo al "sábado ancla" que ya calculaba
+  `leagueRoundDate()` (0 = ese día, -1 = el día anterior, +1 = el
+  siguiente, -3 = 3 días antes). El slot real de cada partido se elige con
+  una función de hash determinista (FNV-1a) sobre
+  `(seasonStartYear, división, jornada, índice del partido en la jornada)`
+  ponderada por `weight` — reproducible (misma temporada = mismo
+  calendario siempre) sin depender de `Math.random()`. Añadir una
+  competición nueva (Europa, Supercopa) es añadir una entrada nueva a
+  `scheduleProfiles`, nunca tocar el algoritmo de `Calendar.js`.
+  - **1ª división**: perfil de fin de semana predominante (viernes noche
+    ocasional de peso bajo, sábado tarde/tarde-noche/noche, domingo
+    mediodía/tarde/tarde-noche).
+  - **2ª división**: perfil algo más abierto (más peso al viernes noche),
+    sin replicar un calendario histórico real.
+- **Jornadas entre semana**: 1 de cada `everyNRounds` (valor de partida: 8)
+  jornadas de liga regular cae en miércoles en vez de fin de semana —
+  decisión de partida documentada aquí, no una cifra real de calendario
+  ACB. Nunca la jornada 1, la última, ni las jornadas 17/18 (semana de
+  Copa, ver 3.3.2), para no acumular casos especiales en la misma semana.
+- **Jornada 34 (última) — horario unificado**: regla dura, sin excepción,
+  por división — todos los partidos de la última jornada de liga regular
+  comparten el mismo `lastRoundSlot`. Evita que se puedan conocer
+  resultados con implicaciones clasificatorias antes de que termine el
+  propio partido. No se detecta qué partidos concretos tienen algo en
+  juego (fuera de alcance de esta primera versión) — se unifica la jornada
+  entera.
+- **Separación entre jornadas consecutivas**: sigue siendo 7 días exactos
+  entre las fechas ANCLA de cada jornada (`leagueRoundDate()`, sin
+  cambios), salvo el hueco de la Copa (ver 3.3.2) — el reparto horario de
+  3.3.1 es una capa sobre esa estructura de fechas ya correcta, nunca una
+  sustitución de ella.
 - **Fecha de inicio de temporada**: primer sábado de octubre del año de
   inicio de temporada (constante de `CONFIG`, no hardcodeada en
-  `League.js`).
-- **Jornadas entre semana**: se descarta modelar la variabilidad real
-  jueves/viernes/sábado/domingo con detalle — toda jornada de liga
-  regular cae en sábado por defecto en esta fase. Simplificación
-  explícita: da una cadencia realista (7 días) sin necesidad de simular
-  ventanas de selecciones nacionales ni derbis con horario especial,
-  ninguno de los cuales está modelado hoy en el motor.
+  `League.js`) — sin cambios.
+- **Copa/Playoffs/Ascenso**: horario real vía `config.calendar.
+  knockoutKickoff` (un único horario de "prime time" para todas las
+  eliminatorias). Limitación de alcance señalada explícitamente:
+  `Bracket.js` no expone a su `dateResolver` qué Series concreta está
+  pidiendo la fecha (todas las series de una misma ronda comparten
+  resolvedor, ver `Bracket.buildRound`), así que no hay variedad horaria
+  ENTRE series simultáneas de una misma ronda sin tocar `Bracket.js` —
+  fuera de alcance de CAL-1 (no estaba en la lista de archivos a tocar).
+  Sí hay variedad de FECHA entre partidos/rondas (`seriesGameGapDays`/
+  `seriesRoundGapDays`, sin cambios), solo la hora del día es fija dentro
+  de una ronda.
+
+**Estado: implementado** (`src/core/Calendar.js`, CAL-1).
 
 #### 3.3.2 Copa: interrupción real de la liga
 
@@ -298,6 +356,119 @@ este bloque, confirmada como correcta: `buildBracketDateResolver` recibe
 explicado en 3.3.3 (una ronda no puede fecharse sin conocer los patrones
 de partidos de la ronda anterior, para no arrancarla antes de que
 termine).
+
+#### 3.3.5 Reloj de mundo (CAL-1)
+
+`currentGameDateTime`: el "ahora" de la partida (ej. "domingo 4 de octubre,
+19:00"), avanza de evento en evento — nunca segundo a segundo ni con
+animación, es tiempo de simulación, no un reloj en tiempo real.
+
+- **Vive en `Calendar`** (`calendar.currentGameDateTime`), no como una
+  propiedad suelta más de `state` en `game.js`. Justificación: `Calendar`
+  ya es la entidad que conoce el eje temporal completo de la temporada
+  (`seasonStartDate`, resolución de fechas de las 4 competiciones) y es
+  compartida por las dos divisiones (`state.calendar`, una sola instancia)
+  — añadirlo aquí evita una segunda fuente de verdad temporal y aprovecha
+  que ya se reconstruye junto con el resto del calendario en cada cierre
+  de ciclo (`closeSeasonAndPrepareNext()`, 3.4.4).
+- **Arranca** en `seasonStartDate` (antes de jugarse nada) y solo avanza
+  hacia delante (`Calendar.advanceTo(dateTime)`, protegido contra
+  retrocesos) cada vez que se resuelve un partido o un juego de bracket en
+  cualquiera de las dos divisiones, tomando siempre el instante más tardío
+  resuelto hasta ese momento.
+- **Nunca retrocede entre temporadas de forma extraña**: al cerrar
+  temporada (3.4.4) se crea un `Calendar` nuevo para `seasonStartYear + 1`,
+  así que el reloj de mundo se reinicia al inicio de la temporada
+  siguiente — comportamiento esperado, no un bug.
+
+#### 3.3.6 Resolución cronológica y parcial de jornada (CAL-1)
+
+Antes de CAL-1, `League.simulateNextRound()` resolvía TODOS los partidos
+pendientes de la jornada actual de una sola vez — una jornada era un
+bloque atómico. CAL-1 sustituye ese modelo por resolución partido a
+partido, sin romper la API existente:
+
+- **`League.resolveMatch(match, config, resolveMatchOptions)`**: resuelve
+  UN partido pendiente concreto (mismo patrón que
+  `Bracket/Series.playNextGame()`, pero aquí el "cursor" lo decide quien
+  llama, no una Serie interna). Actualiza clasificación/enfrentamientos
+  directos y avanza `currentRound` en cuanto la jornada que señala queda
+  completa (`advanceCurrentRoundPointer()`).
+- **`League.getPendingMatchesBefore(beforeDateTime)` /
+  `League.resolveMatchesBefore(beforeDateTime, config, resolveMatchOptions)`**:
+  consulta/resuelve, en orden cronológico, todo lo pendiente con fecha
+  anterior a un instante dado — la pieza que usa el reloj de mundo para
+  "saltar" los partidos CPU-CPU sin necesidad de resolver la jornada
+  entera de golpe.
+- **`League.simulateNextRound()` se conserva como wrapper de
+  compatibilidad**: mismo nombre, misma firma, mismo contrato desde fuera
+  (resuelve toda la jornada actual de una vez) — por dentro ya no repite
+  la lógica de simulación, delega en `resolveMatch` sobre los partidos que
+  sigan `'pending'` de `getCurrentRoundMatches()`. Lo siguen usando tal
+  cual `simulateBackgroundRound()` (la división de fondo se resuelve
+  siempre de golpe, sin reveal, 3.4.1 — no necesita granularidad
+  cronológica) y el camino defensivo de jornada sin partido para el
+  usuario en `game.js`.
+- **Cambio de orquestación central** (`game.js`,
+  `startUserLeagueMatch()`/`resolvePreUserMatches()`): antes de CAL-1, el
+  partido de liga del usuario se jugaba SIEMPRE primero y el resto de la
+  jornada se resolvía después. Ahora es exactamente al revés — al llegar
+  la hora de su partido, `resolvePreUserMatches()` ya ha resuelto (vía
+  `resolveMatchesBefore`) todos los partidos de la jornada (de las dos
+  divisiones) con fecha anterior a la suya; los partidos posteriores de su
+  misma jornada se resuelven después, al terminar el suyo
+  (`finishUserLeagueMatch()`, mismo `simulateNextRound()` de siempre sobre
+  lo que quede pendiente).
+- **Botón "Continuar"** (sustituye a "Jugar siguiente jornada"/"Jugar
+  siguiente partido"): avanza el reloj de mundo hasta el próximo evento
+  que requiere atención, saltando lo que no la requiere. Único punto de
+  parada obligatoria en esta entrega: el partido del usuario — el juego
+  nunca lo simula automáticamente solo por pulsar Continuar. Con 18
+  equipos por división el round-robin no genera jornadas de descanso, así
+  que en la práctica "Continuar" resuelve como mucho una jornada por click
+  (los partidos anteriores al del usuario) antes de parar; no hace falta
+  un bucle de "saltar varias jornadas" en esta primera versión. Mientras
+  hay una Copa/Playoff/Ascenso activo, "Continuar" conserva el
+  comportamiento ya existente (3.2.5): un partido de bracket por click,
+  con reveal cuarto a cuarto, sin tocar `Bracket.js`/`Cup.js`/
+  `Playoffs.js`/`Promotion.js`.
+- **Mecanismo genérico `requiresAttention`** (`game.js`,
+  `buildUserMatchStopEvent(match)`): representación mínima de un punto de
+  parada obligatoria — `{ type: 'match', dateTime, requiresAttention:
+  true, status: 'pending', match }`. Hoy solo lo produce el partido del
+  usuario; se deja como mecanismo genérico (no un catálogo de eventos
+  todavía) para que una futura Agenda/Noticias pueda ampliarlo sin
+  rehacerlo desde cero — CAL-2 debe auditar esto antes de construir su
+  propio modelo de evento, no asumir su forma desde este documento.
+
+#### 3.3.7 Recovery y horario real: decisión tomada
+
+`Recovery.js` sigue operando en **días enteros** (`Math.round`, sin
+cambios) — no se ha evolucionado a una unidad fraccional. Justificación:
+la introducción de horas reales por partido no produce una incoherencia
+apreciable con la fórmula actual, porque:
+
+- Las eliminatorias (Copa/Playoffs/Ascenso), donde los partidos pueden
+  estar separados por solo 2-3 días (`seriesGameGapDays`), usan un único
+  horario fijo (`knockoutKickoff`) para TODOS sus partidos — la diferencia
+  entre dos partidos consecutivos de una misma serie sigue siendo un
+  número EXACTO de días, sin ningún resto de horas que el redondeo
+  distorsione.
+- En liga regular, un mismo equipo juega una sola vez por jornada, así que
+  la variedad horaria dentro de una jornada nunca afecta al cálculo de
+  descanso de un jugador consigo mismo — solo varía la hora ENTRE una
+  jornada y la siguiente (separadas por 7±3 días reales, según el
+  `scheduleProfile`), un rango donde una diferencia de unas pocas horas es
+  despreciable frente al redondeo a día completo.
+
+Si una futura entrega introdujera partidos de liga regular más próximos
+entre sí en el tiempo (fuera de alcance hoy), esta decisión debería
+revisarse. `Player.toJSON()` SÍ se corrigió (ver 7.11.5): antes truncaba
+`lastMatchDate` a solo fecha al serializar ("consistencia de guardado"),
+lo que habría destruido la hora real en cualquier guardado/carga futuro;
+ahora serializa el ISO completo, ya que la hora tiene significado real
+para el cálculo de días de descanso en memoria (aunque el propio cálculo
+siga redondeando a días enteros).
 
 ### 3.4 Cierre de ciclo de temporada y pretemporada
 
@@ -465,6 +636,202 @@ Una vez aplicados los ascensos/descensos (3.4.2), en este orden:
   disponibles (fuera de alcance mientras el proyecto trabaje solo con
   los 36 equipos actuales).
 
+### 3.5 Modelo de evento, Agenda y Noticias (CAL-2)
+
+Segunda y última entrega del bloque temporal abierto por CAL-1 (calendario
+vivo). Construye, sobre el reloj de mundo y la resolución cronológica de
+CAL-1 (3.3.5/3.3.6), dos pantallas nuevas — Agenda y Noticias — y la
+versión definitiva de Home. **No hay CAL-3**: el bloque temporal termina
+aquí (ver nota de cierre al final de esta sección).
+
+#### 3.5.1 Modelo de evento
+
+Shape final (`src/core/Events.js`, módulo puro — no conoce `state` ni el
+DOM, solo construye objetos a partir de datos reales que le pasa
+`game.js`):
+
+```js
+{
+  id, type,               // 'match' | 'competition' | 'news' (catálogo abierto)
+  dateTime, title,
+  relatedCompetition,     // 'league' | 'cup' | 'playoff' | 'promotion' | null
+  relatedTeam, relatedPlayer,
+  requiresAttention,      // boolean — mecanismo genérico de CAL-1 (3.3.6)
+  status,                 // 'pending' | 'resolved'
+  // Solo si type === 'news':
+  newsCategory, priority, body,
+}
+```
+
+Desviación deliberada de la forma orientativa del prompt de esta sesión
+(que sugería `type: 'match' | 'cup' | 'playoff' | ...`, un tipo distinto
+por competición): aquí `type` distingue solo la NATURALEZA del evento
+(partido / hito de competición / noticia), y `relatedCompetition` dice DE
+QUÉ competición — evita una explosión de tipos que en la práctica se
+comportan igual (un partido de Copa y uno de Liga son ambos "un partido
+con fecha, equipos y resultado").
+
+**Catálogo de `type` implementados hoy**: `match`, `competition`, `news`.
+**Reservados, documentados pero NUNCA generados en esta entrega** (STEP 3
+— Jugador Vivo/Progresión/Entrenamiento/Lesiones, sesión de diseño aparte
+todavía sin hacer): `training`, `medical`, `scouting`, `market`,
+`contract`, `board`.
+
+**Mecanismo `requiresAttention`**: CAL-1 ya lo dejó como un booleano suelto
+en un objeto ad-hoc (`buildUserMatchStopEvent()`, game.js) sin una entidad
+de evento real detrás — no existía todavía un catálogo con el que
+integrarlo. CAL-2 no lo cambia de comportamiento (sigue siendo el
+mecanismo de parada obligatoria de "Continuar", ver 3.3.6): lo que hace es
+darle un hogar dentro del modelo de evento ya construido (el evento de
+Agenda del próximo partido del usuario lleva `requiresAttention: true`),
+sin tocar la lógica de parada de CAL-1.
+
+**Fuente única, no negociable**: Agenda y Noticias leen exactamente los
+mismos datos subyacentes.
+- Los eventos de tipo `match`/`competition` de Agenda se **derivan bajo
+  demanda** de `league.schedule`/brackets en cada render — son siempre
+  reconstruibles sin pérdida a partir del estado real ya existente, así
+  que no hace falta guardarlos aparte.
+- Los eventos de tipo `news` se **registran incrementalmente** en
+  `state.newsLog` (array único, consumido tanto por la pantalla Noticias
+  como por Agenda, que los incorpora literalmente al construir su
+  timeline) justo en el instante real en que ocurre el hecho que los
+  sostiene — necesario porque varias categorías (clasificación, rachas)
+  comparan un "antes" y un "después" que solo existen en ese instante
+  (`League.js` muta sus `standing` in situ, no guarda histórico por
+  jornada).
+- Ambos casos leen del MISMO objeto real subyacente (el `match`/`result`
+  de `MatchEngine`, el `team` real): una noticia de resultado y el evento
+  de Agenda del mismo partido citan literalmente `match.result.
+  finalScore`, nunca dos números calculados por caminos distintos.
+
+#### 3.5.2 Noticias — catálogo, fuente real y prioridad
+
+**Regla absoluta**: toda noticia deriva de un hecho real ya existente en
+el estado de la partida — ninguna se genera para "rellenar" el feed.
+Arquitectura fija: primero ocurre el hecho (partido resuelto, clasificación
+recalculada, bracket completado...) → después se construye el evento con
+una plantilla que solo interpola datos de ese hecho.
+
+| Categoría (`newsCategory`) | Fuente real | Dónde se dispara |
+|---|---|---|
+| `result` | `match.result.finalScore` (cualquier competición) | Tras resolver cada partido de la división visible |
+| `performance` | `result.boxScore.home/away[].valoracion` (MatchEngine) | Igual, filtrado por `config.news.bigPerformanceMinValoracion` |
+| `streak` | `league.schedule` ya jugado (resultados consecutivos reales del equipo del usuario) | Tras cada jornada del usuario |
+| `standings` | `league.getStandingsTable()` antes/después de la jornada | Tras cada jornada del usuario |
+| `surprise` (sorpresas) | `team.reputation.sporting` + posición en tabla ANTES del partido (ambos reales, 6.2.1/3.1) | Tras cada partido de la división visible |
+| `competition` | `Cup.createCup`/`Bracket.champion`/`Series.loser`/`Bracket.rounds.length`/resumen de ascenso-descenso de `closeSeasonAndPrepareNext()` | Creación de Copa, campeón, eliminación propia, nueva ronda, ascenso/descenso |
+| `tactical` | `Tactics.summarizeTacticsTelemetry()` (TAC-7), umbral `config.tactics.telemetry.minReliablePossessions` — **el mismo campo que ya usa `smallSampleBadgeHtml`/`renderTacticsRivalTab`, nunca un segundo umbral propio** | Justo antes de cada partido de liga del usuario, sobre la cobertura de P&R con peor `pppAllowed` del próximo rival |
+
+**No implementado, señalado explícitamente** (DESIGN.md pide no
+implementar sin dato real de soporte):
+- **Hitos** (récords de carrera de un jugador): no existe ningún
+  histórico de estadísticas acumuladas por jugador entre partidos/
+  temporadas en el proyecto (`Player.js` no guarda puntos/rebotes de
+  carrera, solo `experience`, un contador sin desglose) — inventar un
+  "récord superado" sin ese dato sería narrativa, no un hecho real. Se
+  deja fuera hasta que exista un histórico real que lo sostenga.
+
+**Alcance deliberadamente reducido de algunas categorías** (evitar ruido,
+"NO NEWS FLUFF"):
+- `streak`/`standings` solo se calculan para el equipo del usuario, no
+  para los 17 rivales de su liga — evita un feed dominado por rachas/
+  cambios de posición ajenos de bajo interés real.
+- `competition` (campeón/eliminación) solo se genera para Copa y Playoff
+  por el título — el Playoff de ascenso no genera su propio "campeón"/
+  "eliminado" porque el hecho relevante (quién asciende) ya lo cubre la
+  noticia de ascenso al cerrar temporada; generar las dos sería duplicar
+  el mismo hecho con dos redacciones.
+- Ninguna noticia se genera para la división de fondo (la que el usuario
+  no tiene abierta, DESIGN.md 3.4.1) — es información que el usuario ni
+  siquiera está mirando; Agenda tampoco muestra sus partidos individuales
+  (si en el futuro se necesita, es una ampliación de alcance, no un bug).
+- Variedad horaria entre series simultáneas de bracket sigue sin existir
+  (limitación de `Bracket.js` ya señalada en 3.3.1) — no afecta a
+  Noticias, solo a que dos partidos de la misma ronda compartan hora si
+  Agenda los muestra el mismo día.
+
+**Prioridad** (`alta`/`media`/`baja`, calculada por cada builder de
+`Events.js` en el momento de construir el evento, nunca recalculada por
+la interfaz):
+- **Alta**: cualquier hecho que involucra directamente al equipo del
+  usuario con implicación real — resultado propio, entrada/salida de
+  puestos de cabeza o de descenso, nuevo líder si es el usuario, racha
+  propia, campeón/eliminación propia, ascenso/descenso propio, sorpresa
+  protagonizada por el usuario.
+- **Media**: hechos de terceros con algo de peso — nuevo líder ajeno,
+  actuación destacada de un jugador del propio equipo, ascenso/descenso
+  ajeno, campeón ajeno de Copa/Playoff, sorpresa ajena.
+- **Baja**: el resto — resultados/actuaciones/rachas ajenas, nueva ronda
+  de competición alcanzada, la noticia táctica ocasional (nunca sube de
+  prioridad, por diseño explícito de 4.2 del prompt de esta sesión).
+
+Home muestra solo las de prioridad `alta` (máximo 3, más recientes
+primero); la pantalla Noticias contiene el feed completo, más reciente
+primero.
+
+#### 3.5.3 Agenda
+
+Formato elegido: **timeline vertical agrupada por día** (no un calendario
+mensual en cuadrícula). Justificación: el usuario juega principalmente
+desde móvil (CLAUDE.md), donde una cuadrícula de mes obliga a celdas
+diminutas y touch targets pequeños; una lista vertical de días con sus
+eventos se lee y se toca bien en una pantalla estrecha, y es el patrón que
+ya usan la mayoría de agendas de referencia en móvil.
+
+- Ventana visible: 3 días hacia atrás + 10 hacia delante desde una fecha
+  ancla (`state.agendaAnchorDate`, `null` = el reloj de mundo actual —
+  Agenda siempre vuelve a "Hoy" al reabrirse tras avanzar con Continuar,
+  no se queda anclada donde se dejó la vista la última vez).
+- Navegación: "Antes"/"Después" desplazan la ventana una semana;
+  "Hoy" vuelve al reloj de mundo actual.
+- El día de hoy (reloj de mundo) se resalta visualmente; el próximo
+  partido del usuario lleva la insignia "Tu partido" (`requiresAttention`).
+- Contenido: partidos de liga **solo del equipo del usuario** (la liga
+  completa de 9 partidos por jornada ya tiene su propia pantalla,
+  Calendario — decisión de encaje explícita, ver 3.5.4) + todos los
+  partidos de Copa/Playoff/Ascenso de la división visible, jugados o el
+  siguiente pendiente de cada serie sin decidir (peek de fecha vía
+  `series.dateResolver`, sin jugarlo) + todos los eventos de tipo `news`
+  del rango de fechas (misma fuente que Noticias, ver 3.5.1).
+
+#### 3.5.4 `renderCalendarScreen()` y Agenda son pantallas distintas
+
+No se ha fusionado ni renombrado `renderCalendarScreen()` (ya existente
+desde antes de CAL-1/CAL-2). Responden preguntas distintas: Calendario
+es "¿cuándo juego?" (lista simple jornada/fecha/hora/sede/rival/resultado
+del equipo del usuario, con la columna de hora añadida en CAL-1); Agenda
+es "¿qué está pasando en mi vida de manager?" (timeline con partidos,
+competición y noticias). Ambas pueden convivir; sí comparten
+`formatMatchDate()`/`formatMatchTime()`/`formatMatchDateTime()`, sin
+necesidad de duplicar ese formato.
+
+#### 3.5.5 Home vivo — versión definitiva de este bloque
+
+Sobre lo que CAL-1 dejó (reloj de mundo visible, botón "Continuar", parada
+obligatoria antes del partido de usuario), esta entrega:
+
+- Sustituye la tarjeta "Última jornada" (CAL-1) por **"Noticias
+  destacadas"** (las de prioridad alta, máximo 3) + accesos directos a
+  Agenda y Noticias. Decisión documentada: los resultados de la última
+  jornada ya aparecen como noticia de resultado (siempre alta prioridad si
+  el usuario está involucrado), así que mantener las dos tarjetas
+  duplicaba la misma información en dos formatos — se simplificó a una
+  sola fuente de verdad visual en Home. `state.lastRoundMatches` se sigue
+  guardando (sin coste, lo usaba solo esa tarjeta) por si una pantalla
+  futura lo necesita, pero ya no tiene su propia tarjeta.
+- El resto de Home (reloj de mundo, tarjeta principal de jornada/bracket/
+  cierre de temporada, botón "Continuar") no cambia respecto a CAL-1.
+
+#### Nota de cierre del bloque temporal (CAL-1 + CAL-2)
+
+**No hay CAL-3.** El bloque corto de UX+tiempo abierto para sustituir la
+limitación "el motor no modela horarios distintos por partido" (3.3.1
+original) termina en esta entrega. "STEP 3" (Jugador Vivo/Progresión/
+Entrenamiento/Lesiones) es una sesión de diseño completamente aparte,
+todavía sin diseñar — ninguna mecánica suya se ha adelantado aquí; los
+tipos de evento reservados en 3.5.1 son solo catálogo, no implementación.
+
 ### Supercopa y competición europea (pendiente)
 
 - **Supercopa** (formato corto, equipos clasificados por resultados de
@@ -486,6 +853,19 @@ Una vez aplicados los ascensos/descensos (3.4.2), en este orden:
   atributos por edad, la evolución de `reputation`/`facilities` entre
   temporadas, y el cálculo de `financialGoal`/`multiYearPlan` de la
   Junta.
+- **CAL-1+CAL-2 (bloque de calendario vivo, 3.3.5/3.3.6/3.5) dejan
+  explícitamente fuera**: cualquier catálogo de eventos de parada
+  obligatoria más allá del partido del usuario (`requiresAttention` es un
+  mecanismo genérico, no un catálogo — nada de entrenamientos/médico/
+  scouting/mercado/contratos como eventos reales, eso es STEP 3, sesión de
+  diseño aparte todavía sin hacer, ver nota de cierre al final de 3.5);
+  noticias de "hitos" de carrera (sin histórico real de estadísticas por
+  jugador que las sostenga, ver 3.5.2); variedad horaria ENTRE series
+  simultáneas de una misma ronda de bracket (limitación de `Bracket.js`,
+  ver 3.3.1); controles secundarios de "Continuar 1 día/3 días/1 semana"
+  (estudiados, no implementados — no hacían falta con el formato de 18
+  equipos sin byes). La Agenda y las Noticias (CAL-2, ver 3.5) YA están
+  implementadas — **no hay CAL-3**.
 
 ## 4. Inicio de partida
 
@@ -1545,7 +1925,10 @@ integración:
 
 **Estado: implementado** (`Calendar.js` + `lastMatchDate` en
 `Player.js` + enganche en el resolver compartido de `game.js`), en
-producción desde hace varias sesiones.
+producción desde hace varias sesiones. CAL-1 (ver 3.3.7): `lastMatchDate`
+lleva ahora hora real con significado (horario real de partido), y
+`Player.toJSON()` se corrigió para serializarla completa (antes se
+truncaba a solo fecha).
 
 **Limitación real detectada y señalada explícitamente por la
 implementación, no corregida en este bloque**: `Recovery` solo puede

@@ -112,6 +112,18 @@
 .team-card__stars { font-size: 12px; color: var(--brick-dark); font-weight: 600; margin-top: 2px; }
 
 /* --- Home --- */
+/* CAL-1 (DESIGN.md 3.3.5): reloj de mundo visible — fecha+hora actual de
+   la partida, siempre por encima del bloque de club/clasificación. */
+.home-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+}
+.home-clock__label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+.home-clock__value { font-family: var(--font-score); font-size: 15px; color: var(--ink); text-transform: uppercase; }
+
 .home-hero {
   display: flex;
   justify-content: space-between;
@@ -145,11 +157,11 @@
 }
 .gm-card h3 { margin-top: 0; font-family: var(--font-score); font-size: 18px; letter-spacing: 0.02em; text-transform: uppercase; }
 
-.match-list { list-style: none; padding: 0; margin: 0; font-size: 14px; }
-.match-list li { padding: 4px 0; border-bottom: 1px solid var(--line); }
-.match-list li:last-child { border-bottom: none; }
-
 .gm-muted { color: var(--ink-soft); font-size: 13px; }
+
+/* CAL-2: accesos rápidos de Home a Agenda/Noticias, bajo la tarjeta de
+   Noticias destacadas. */
+.home-quicklinks { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
 /* --- Botones --- */
 .gm-btn {
@@ -720,3 +732,55 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* --- CAL-2 (DESIGN.md 3.5): Agenda — timeline por día, pensada para móvil
+   (lista vertical, no cuadrícula de mes) --- */
+.agenda-nav { display: flex; gap: 8px; margin-bottom: 16px; }
+.agenda-timeline { display: flex; flex-direction: column; gap: 18px; }
+.agenda-day__header {
+  font-family: var(--font-score);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 14px;
+  color: var(--ink-soft);
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agenda-day.is-today .agenda-day__header { color: var(--brick); border-bottom-color: var(--brick); }
+.agenda-day__events { display: flex; flex-direction: column; gap: 6px; }
+.agenda-event {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--court-bg-alt);
+  font-size: 13px;
+}
+.agenda-event__time { font-variant-numeric: tabular-nums; color: var(--ink-soft); min-width: 42px; }
+.agenda-event__title { flex: 1; }
+.agenda-event.is-pending { opacity: 0.75; font-style: italic; }
+.agenda-event.is-attention { background: rgba(184,69,31,0.12); border: 1px solid var(--brick); font-weight: 600; }
+.gm-badge--attention { background: var(--brick); color: var(--white-line); }
+
+/* --- CAL-2: Noticias — feed de tarjetas, prioridad codificada por color de
+   borde izquierdo (mismo patrón que .team-card__ ya usa border-left). --- */
+.news-feed { display: flex; flex-direction: column; gap: 12px; }
+.news-card {
+  background: var(--white-line);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--ink-soft);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.news-card--priority-alta { border-left-color: var(--brick); }
+.news-card--priority-media { border-left-color: var(--slate); }
+.news-card--priority-baja { border-left-color: var(--line); }
+.news-card__meta { display: flex; gap: 10px; align-items: center; font-size: 11px; margin-bottom: 4px; flex-wrap: wrap; }
+.news-card__priority { text-transform: uppercase; }
+.news-card__title { margin: 4px 0; font-family: var(--font-score); font-size: 15px; letter-spacing: 0.01em; }
+.news-card__body { margin: 0; }
