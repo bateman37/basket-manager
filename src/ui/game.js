@@ -33,7 +33,7 @@
   // (CLAUDE.md: localStorage llegará más adelante, no es parte de esto).
   // ---------------------------------------------------------------------
   const state = {
-    screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'calendar' | 'competitions' | 'stats' | 'match'
+    screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'agenda' | 'news' | 'calendar' | 'competitions' | 'stats' | 'match'
     division: '1ª',
     userTeamId: null,
     // Año real de inicio de temporada (DESIGN.md 3.3, Entidad Calendario) —
@@ -65,6 +65,22 @@
     // mostrarlo una vez en Inicio ("el usuario debe ver que ha pasado
     // algo") — se limpia al jugar la siguiente jornada visible.
     seasonCloseSummary: null,
+    // CAL-2 (DESIGN.md 3.5): fuente ÚNICA de eventos de tipo 'news',
+    // consumida tanto por la pantalla Noticias (feed completo) como por el
+    // resumen de alta prioridad de Home — se añade incrementalmente en
+    // cada punto real de resolución (nunca se recalcula desde cero). Los
+    // eventos de Agenda de tipo 'match'/'competition' NO se guardan aquí
+    // — se derivan bajo demanda de `league.schedule`/brackets en cada
+    // render (ver buildAgendaEvents()), porque son siempre reconstruibles
+    // sin pérdida de información a partir del estado real ya existente;
+    // las noticias de tipo 'standings'/'streak' sí necesitan una
+    // comparación antes/después que solo existe en el instante en que
+    // ocurre el hecho, por eso ESAS se registran aquí en cuanto pasan.
+    newsLog: [],
+    // CAL-2: fecha desde la que se centra la vista de Agenda — `null` usa
+    // el reloj de mundo actual (siempre vuelve a "Hoy" al reabrir Agenda
+    // tras avanzar con Continuar, no se queda anclada a donde se dejó).
+    agendaAnchorDate: null,
     lastRoundMatches: null, // partidos de la última jornada simulada (para pantalla de inicio)
     pendingUserMatch: null, // { match } — partido del usuario de la jornada recién simulada, pendiente de revelar en pantalla de partido
     matchReveal: null, // estado de revelado progresivo por cuartos de la pantalla de partido
@@ -243,6 +259,8 @@
       '2ª': { promotionPlayoff: null },
     };
     state.seasonCloseSummary = null;
+    state.newsLog = [];
+    state.agendaAnchorDate = null;
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
     state.matchReveal = null;
@@ -262,6 +280,62 @@
     const league = getUserLeague();
     if (!league || !state.userTeamId) return null;
     return league.teams.find((t) => t.id === state.userTeamId) || null;
+  }
+
+  // ---------------------------------------------------------------------
+  // CAL-2 (DESIGN.md 3.5): Noticias — utilidades compartidas por todos los
+  // puntos de resolución real que pueden generar una noticia. `Events.js`
+  // (módulo puro) construye los objetos; aquí solo se decide CUÁNDO
+  // llamarlo y se guarda el resultado en `state.newsLog` (fuente única,
+  // ver comentario en `state`).
+  // ---------------------------------------------------------------------
+  const COMPETITION_LABELS = { league: null, cup: 'la Copa', playoff: 'el Playoff por el título', promotion: 'el Playoff de ascenso' };
+  const NEWS_LOG_MAX = 300; // límite razonable de memoria en una sesión larga — no es una regla de diseño
+
+  function pushNews(events) {
+    (Array.isArray(events) ? events : [events]).forEach((event) => {
+      if (!event) return;
+      state.newsLog.push(event);
+    });
+    if (state.newsLog.length > NEWS_LOG_MAX) {
+      state.newsLog.splice(0, state.newsLog.length - NEWS_LOG_MAX);
+    }
+  }
+
+  // Copia ligera de la clasificación en un instante dado — DELIBERADAMENTE
+  // no guarda una referencia a los objetos `standing` originales, porque
+  // `League.js` los muta in situ al resolver partidos (mismo objeto, no
+  // uno nuevo por jornada); sin esta copia, un "antes" capturado antes de
+  // resolver la jornada acabaría reflejando el "después" por referencia
+  // compartida.
+  function captureStandingsSnapshot(league) {
+    return league.getStandingsTable().map((s) => ({ team: s.team, points: s.points }));
+  }
+
+  // Normaliza un partido de bracket ({ homeEntry, awayEntry, result, date })
+  // al shape que esperan los builders de Events.js — mismo patrón que ya
+  // usa `playBracketGameWithReveal` para `state.pendingUserMatch`.
+  function normalizeBracketGame(game) {
+    return { homeTeam: game.homeEntry.team, awayTeam: game.awayEntry.team, date: game.date, result: game.result, status: 'played' };
+  }
+
+  // Noticias de resultado/actuación/sorpresa para un lote de partidos de
+  // LIGA ya resueltos — compartido entre `resolvePreUserMatches()` (los
+  // anteriores al partido del usuario dentro de su jornada) y
+  // `finishRoundBookkeeping()` (el resto), para no generar la noticia de
+  // un mismo partido dos veces ni olvidarla en ninguno de los dos caminos.
+  // `standingsBefore` (opcional): clasificación justo antes de que
+  // arrancara la jornada — se usa como aproximación para TODOS los
+  // partidos del lote (no se recalcula partido a partido dentro de la
+  // misma jornada), suficiente para el criterio de "sorpresa" (3.5.2).
+  function pushLeagueMatchNews(matches, standingsBefore) {
+    matches.forEach((match) => {
+      pushNews(BM.buildResultNewsEvent(match, { userTeamId: state.userTeamId, relatedCompetition: 'league' }));
+      pushNews(BM.buildBigPerformanceNewsEvents(match, BM.CONFIG_BASE, { userTeamId: state.userTeamId, relatedCompetition: 'league' }));
+      if (standingsBefore) {
+        pushNews(BM.buildUpsetNewsEvent(match, standingsBefore, BM.CONFIG_BASE, { userTeamId: state.userTeamId, relatedCompetition: 'league' }));
+      }
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -328,6 +402,15 @@
     if (division === '1ª' && league.currentRound === CUP_TRIGGER_ROUND + 1 && !brackets.cup) {
       const cupDates = state.calendar ? state.calendar.cupRoundDates() : undefined;
       brackets.cup = createCup(league, cupDates);
+      // CAL-2 (DESIGN.md 3.5): noticia de competición SOLO si es la división
+      // visible del usuario — la Copa de la división de fondo no genera
+      // noticias (ver decisión documentada en finishRoundBookkeeping).
+      if (division === state.division) {
+        const qualified = brackets.cup.rounds[0].flatMap((s) => [s.betterEntry.team, s.worseEntry.team]);
+        pushNews(BM.buildBracketCreatedNewsEvent(qualified, {
+          competitionLabel: 'la Copa', relatedCompetition: 'cup', userTeamId: state.userTeamId, dateTime: state.calendar.currentGameDateTime,
+        }));
+      }
     }
 
     if (!league.isSeasonComplete) return;
@@ -373,9 +456,10 @@
     // robustez): aquí SÍ se resuelve la jornada entera de golpe, así que
     // `matches` (recién resueltos) y "la jornada completa" son lo mismo.
     const roundNumber = league.currentRound;
+    const standingsBefore = captureStandingsSnapshot(league);
     const matches = league.simulateNextRound(undefined, resolveMatchOptions);
     const fullRoundMatches = league.schedule.filter((m) => m.round === roundNumber);
-    finishRoundBookkeeping(matches, fullRoundMatches, state.division, league);
+    finishRoundBookkeeping(matches, fullRoundMatches, state.division, league, standingsBefore);
   }
 
   // Cola de cierre común a los caminos de terminar una jornada de liga: el
@@ -391,7 +475,7 @@
   // Matches`: TODOS los partidos de la jornada (incluidos los resueltos
   // antes por CAL-1, ver resolvePreUserMatches) — lo que se muestra en
   // Home como "Última jornada" y de donde se busca el partido del usuario.
-  function finishRoundBookkeeping(newlyResolvedMatches, fullRoundMatches, division, league) {
+  function finishRoundBookkeeping(newlyResolvedMatches, fullRoundMatches, division, league, standingsBefore) {
     state.lastRoundMatches = fullRoundMatches;
 
     // DESIGN.md 7.11.5 (cierre de integración): recuperación de Energía
@@ -406,6 +490,22 @@
     // partidos recién resueltos — nunca hacia atrás (Calendar.advanceTo).
     if (newlyResolvedMatches.length) {
       state.calendar.advanceTo(newlyResolvedMatches[newlyResolvedMatches.length - 1].date);
+    }
+
+    // CAL-2 (DESIGN.md 3.5): Noticias de liga — SOLO para la división
+    // visible (`standingsBefore` únicamente se pasa desde ahí, ver
+    // llamadas). La división de fondo (`simulateBackgroundRound`) no
+    // genera noticias — es "ruido" que el usuario no tiene abierto, ver
+    // decisión documentada en DESIGN.md.
+    if (standingsBefore && division === state.division) {
+      pushLeagueMatchNews(newlyResolvedMatches, standingsBefore);
+      const userTeam = getUserTeam();
+      if (userTeam) {
+        pushNews(BM.buildStreakNewsEvent(league.schedule, userTeam, BM.CONFIG_BASE, { userTeamId: state.userTeamId, relatedCompetition: 'league' }));
+      }
+      pushNews(BM.buildStandingsNewsEvents(standingsBefore, league.getStandingsTable(), BM.CONFIG_BASE, {
+        userTeamId: state.userTeamId, relatedCompetition: 'league', dateTime: state.calendar.currentGameDateTime,
+      }));
     }
 
     createBracketsIfDue(division, league);
@@ -488,6 +588,7 @@
         title: 'Copa',
         roundLabel: getActiveBracketRoundLabel(brackets.cup, ['Cuartos de final', 'Semifinales', 'Final']),
         bracket: brackets.cup,
+        competitionKey: 'cup',
       };
     }
     if (brackets.titlePlayoff && !brackets.titlePlayoff.isComplete) {
@@ -495,6 +596,7 @@
         title: 'Playoff por el título',
         roundLabel: getActiveBracketRoundLabel(brackets.titlePlayoff, ['Cuartos de final', 'Semifinales', 'Final']),
         bracket: brackets.titlePlayoff,
+        competitionKey: 'playoff',
       };
     }
     if (brackets.promotionPlayoff && !brackets.promotionPlayoff.isComplete) {
@@ -504,7 +606,7 @@
         promo.ensureFinalFour();
         roundLabel = getActiveBracketRoundLabel(promo.finalFour, ['Semifinales (Final Four)', 'Final (Final Four)']);
       }
-      return { title: 'Playoff de ascenso', roundLabel, bracket: promo };
+      return { title: 'Playoff de ascenso', roundLabel, bracket: promo, competitionKey: 'promotion' };
     }
     return null;
   }
@@ -538,6 +640,9 @@
     const leagueA = getLeague('1ª');
     const leagueB = getLeague('2ª');
     const bracketsB = getBrackets('2ª');
+    // CAL-2: instante real de cierre, capturado ANTES de sustituir
+    // `state.calendar` por el de la temporada siguiente (paso 4 más abajo).
+    const seasonEndDateTime = state.calendar.currentGameDateTime;
 
     // 1. Ascensos/descensos reales (DESIGN.md 3.4.2) — SOLO team.division
     // cambia; ningún otro campo de jugador/equipo se toca (decisión
@@ -611,9 +716,17 @@
     };
     if (userTeam) state.division = userTeam.division;
 
+    // CAL-2 (DESIGN.md 3.5): noticias de ascenso/descenso — reutiliza
+    // exactamente `promotedTeams`/`relegatedTeams` ya calculados arriba
+    // (Team reales, no recalculados aparte).
+    pushNews(BM.buildPromotionRelegationNewsEvents(promotedTeams, relegatedTeams, {
+      userTeamId: state.userTeamId, dateTime: seasonEndDateTime,
+    }));
+
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
     state.matchReveal = null;
+    state.agendaAnchorDate = null;
     state.seasonCloseSummary = summary;
 
     goToScreen('home');
@@ -630,12 +743,65 @@
   // `resolveOptions` (opcional, DESIGN.md 7.11.6): ver
   // buildLineupMatchOptionsResolver() más abajo — se reenvía tal cual a
   // Bracket.playNextGame(). Sin argumento, comportamiento idéntico a antes.
-  function playBracketGameWithReveal(bracket, resolveOptions) {
+  // Busca la Series (de cualquier ronda YA jugada del bracket) que contiene
+  // este `game` concreto — por identidad de objeto (`series.games`
+  // conserva las mismas instancias que devuelve `playNextGame`), no por
+  // índice de ronda (que puede haber avanzado ya al llamar aquí).
+  function findSeriesForGame(bracketRounds, game) {
+    for (const round of bracketRounds) {
+      const series = round.find((s) => s.games.includes(game));
+      if (series) return series;
+    }
+    return null;
+  }
+
+  function playBracketGameWithReveal(bracket, resolveOptions, competitionKey) {
+    const roundCountBefore = bracket.rounds ? bracket.rounds.length : null;
     const game = bracket.playNextGame(undefined, resolveOptions);
     // DESIGN.md 7.11.5 (cierre de integración): igual que en simulateNextRound(),
     // recuperación de Energía para los dos equipos de este partido de bracket.
     applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date);
     if (game.date) state.calendar.advanceTo(game.date);
+
+    // CAL-2 (DESIGN.md 3.5): noticias de este partido de bracket — solo
+    // división visible (`playBracketGameWithReveal` nunca se llama para la
+    // de fondo, ver drainBackgroundBrackets, decisión documentada).
+    const competitionLabel = COMPETITION_LABELS[competitionKey];
+    const normalized = normalizeBracketGame(game);
+    pushNews(BM.buildResultNewsEvent(normalized, { userTeamId: state.userTeamId, relatedCompetition: competitionKey, competitionLabel }));
+    pushNews(BM.buildBigPerformanceNewsEvents(normalized, BM.CONFIG_BASE, { userTeamId: state.userTeamId, relatedCompetition: competitionKey, competitionLabel }));
+    // Campeón/eliminación: solo para Copa/Playoff por el título — el
+    // Playoff de ascenso ya genera su propia noticia de ascenso al cerrar
+    // temporada (buildPromotionRelegationNewsEvents), decisión de alcance
+    // señalada explícitamente para no duplicar el mismo hecho dos veces.
+    if (competitionKey === 'cup' || competitionKey === 'playoff') {
+      const series = findSeriesForGame(bracket.rounds, game);
+      if (series && series.isDecided) {
+        if (series.loser.team.id === state.userTeamId) {
+          pushNews(BM.buildEliminationNewsEvent(series.loser.team, {
+            competitionLabel, relatedCompetition: competitionKey, userTeamId: state.userTeamId, dateTime: game.date,
+          }));
+        }
+        const finalRound = bracket.rounds[bracket.rounds.length - 1];
+        const isFinalSeries = finalRound.length === 1 && finalRound[0] === series;
+        if (isFinalSeries && bracket.champion && series.winner === bracket.champion) {
+          pushNews(BM.buildChampionNewsEvent(bracket.champion.team, {
+            competitionLabel, relatedCompetition: competitionKey, userTeamId: state.userTeamId, dateTime: game.date,
+          }));
+        } else if (bracket.rounds.length > roundCountBefore) {
+          // Se acaba de completar una ronda entera y arrancar la siguiente
+          // (Bracket.advanceIfPossible, sin recalcular nada aquí) — noticia
+          // de competición de baja prioridad, nunca la de campeón (esa ya
+          // se generó arriba si corresponde).
+          const roundLabel = getActiveBracketRoundLabel(bracket, ['Cuartos de final', 'Semifinales', 'Final']);
+          pushNews(BM.buildBracketRoundReachedNewsEvent(roundLabel, {
+            competitionLabel, relatedCompetition: competitionKey, dateTime: game.date,
+            involvesUser: bracket.currentRound.some((s) => s.betterEntry.team.id === state.userTeamId || s.worseEntry.team.id === state.userTeamId),
+          }));
+        }
+      }
+    }
+
     state.pendingUserMatch = {
       homeTeam: game.homeEntry.team,
       awayTeam: game.awayEntry.team,
@@ -662,9 +828,19 @@
     // para poder mostrar su horario real.
     const userNextMatch = league.isSeasonComplete ? null : findNextPendingMatchForTeam(league, team);
 
-    const lastResultHtml = state.lastRoundMatches
-      ? renderMatchList(state.lastRoundMatches, team.id)
-      : '<p class="gm-muted">Todavía no se ha jugado ninguna jornada.</p>';
+    // CAL-2 (DESIGN.md 3.5): "Última jornada" (CAL-1) se sustituye aquí por
+    // el resumen de Noticias de alta prioridad — decisión documentada en
+    // DESIGN.md: los resultados de la última jornada ya aparecen como
+    // noticia de resultado (siempre alta prioridad si involucran al
+    // equipo del usuario), así que mantener las dos tarjetas duplicaba la
+    // misma información con dos formatos distintos. `state.lastRoundMatches`
+    // se sigue guardando (lo usa Agenda indirectamente al derivar eventos
+    // de `league.schedule`, no hace falta un segundo camino), solo deja de
+    // tener su propia tarjeta en Home.
+    const topNews = [...state.newsLog].filter((e) => e.priority === 'alta').sort((a, b) => b.dateTime - a.dateTime).slice(0, 3);
+    const topNewsHtml = topNews.length
+      ? topNews.map(newsCardHtml).join('')
+      : '<p class="gm-muted">Sin noticias destacadas todavía.</p>';
 
     const nextMatchHtml = league.isSeasonComplete
       ? '<p class="gm-muted">Liga regular terminada.</p>'
@@ -744,8 +920,12 @@
         ${seasonCloseSummaryHtml}
 
         <div class="gm-card">
-          <h3>Última jornada</h3>
-          ${lastResultHtml}
+          <h3>Noticias destacadas</h3>
+          ${topNewsHtml}
+          <div class="home-quicklinks">
+            <button id="gm-goto-agenda-btn" class="gm-btn" type="button">Ver Agenda</button>
+            <button id="gm-goto-news-btn" class="gm-btn" type="button">Ver todas las noticias</button>
+          </div>
         </div>
       </div>
     `;
@@ -759,7 +939,7 @@
     if (bracketBtn) {
       bracketBtn.addEventListener('click', () => {
         if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
-        playBracketGameWithReveal(activeBracket.bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions);
+        playBracketGameWithReveal(activeBracket.bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions, activeBracket.competitionKey);
       });
     }
 
@@ -779,6 +959,9 @@
     if (gotoLineupBtn) {
       gotoLineupBtn.addEventListener('click', () => goToScreen('lineup'));
     }
+
+    byId('gm-goto-agenda-btn').addEventListener('click', () => goToScreen('agenda'));
+    byId('gm-goto-news-btn').addEventListener('click', () => goToScreen('news'));
   }
 
   function matchLabel(match, highlightTeamId) {
@@ -790,11 +973,6 @@
       return `${homeMarker} ${match.result.finalScore.home} — ${match.result.finalScore.away} ${awayMarker}`;
     }
     return `${homeMarker} vs ${awayMarker}`;
-  }
-
-  function renderMatchList(matches, highlightTeamId) {
-    const rows = matches.map((m) => `<li>${matchLabel(m, highlightTeamId)}</li>`).join('');
-    return `<ul class="match-list">${rows}</ul>`;
   }
 
   // ---------------------------------------------------------------------
@@ -856,6 +1034,197 @@
         <thead><tr><th>Jornada</th><th>Fecha</th><th>Hora</th><th>Sede</th><th>Rival</th><th>Resultado</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
+    `;
+  }
+
+  // ---------------------------------------------------------------------
+  // CAL-2 (DESIGN.md 3.5): pantalla Agenda — "¿qué está pasando en mi vida
+  // de manager?", no un renombrado de Calendario (que responde "¿cuándo
+  // juego?"). Formato timeline/lista por día (no calendario mensual
+  // clásico): pensado para móvil, donde una cuadrícula de mes es incómoda
+  // de leer/tocar — decisión justificada en DESIGN.md.
+  //
+  // Fuente de eventos ÚNICA con Noticias (DESIGN.md, "no negociable"):
+  // los de tipo 'match' se derivan bajo demanda de `league.schedule`/
+  // brackets (siempre reconstruibles sin pérdida de información real); los
+  // ya registrados en `state.newsLog` (noticias, competición) se
+  // incorporan literalmente, sin recalcular nada.
+  // ---------------------------------------------------------------------
+  function addDaysLocal(date, days) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  // Clave de agrupación por día en hora LOCAL (no toISOString, que es UTC
+  // y podría desplazar la fecha de un partido de madrugada al día
+  // anterior según el huso horario del navegador).
+  function dateKey(date) { return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`; }
+
+  function formatAgendaDayHeader(date) {
+    const text = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  // Partidos de bracket ya jugados/próximos dentro de `[rangeStart,
+  // rangeEnd]` — `peekNextGameDate` calcula la fecha del PRÓXIMO partido
+  // de una Series sin jugarlo (`series.dateResolver` es una función pura
+  // de `(gameIndexInSeries) => Date`, ya fijada por Calendar.
+  // buildBracketDateResolver — Bracket.js/Series.js sin tocar).
+  function collectBracketAgendaEvents(bracket, competitionKey, rangeStart, rangeEnd, events) {
+    if (!bracket) return;
+    bracket.rounds.forEach((round) => {
+      round.forEach((series) => {
+        series.games.forEach((game) => {
+          if (!game.date || game.date < rangeStart || game.date > rangeEnd) return;
+          events.push(BM.buildMatchAgendaEvent(normalizeBracketGame(game), { relatedCompetition: competitionKey }));
+        });
+        if (!series.isDecided && series.dateResolver) {
+          const nextDate = series.dateResolver(series.games.length);
+          if (nextDate && nextDate >= rangeStart && nextDate <= rangeEnd) {
+            events.push(BM.makeEvent({
+              id: `agenda-pending-${competitionKey}-${series.betterEntry.team.id}-${series.worseEntry.team.id}-${series.games.length}`,
+              type: 'match',
+              dateTime: nextDate,
+              title: `${series.betterEntry.team.fullName} vs ${series.worseEntry.team.fullName}`,
+              relatedCompetition: competitionKey,
+              status: 'pending',
+            }));
+          }
+        }
+      });
+    });
+  }
+
+  // Eventos de Agenda dentro de un rango de fechas — partidos de liga
+  // (SOLO del equipo del usuario, "el foco principal es su propio
+  // calendario", decisión de encaje explícita: la liga completa de 9
+  // partidos por jornada ya tiene su propia pantalla, Calendario) +
+  // partidos de Copa/Playoff/Ascenso de la división visible (todos, no
+  // solo los del usuario — coherente con que el resto del juego ya trata
+  // cada partido de bracket como parte del "viaje" de tu competición,
+  // participe o no tu equipo en ese cruce concreto) + eventos ya
+  // registrados en `state.newsLog` (misma fuente que Noticias). NO se
+  // muestran partidos individuales de la división de fondo — decisión de
+  // alcance documentada en DESIGN.md (ruido de baja relevancia).
+  function buildAgendaEvents(rangeStart, rangeEnd) {
+    const league = getUserLeague();
+    const team = getUserTeam();
+    const nextMatch = league.isSeasonComplete ? null : findNextPendingMatchForTeam(league, team);
+    const events = [];
+
+    league.schedule.forEach((match) => {
+      if (match.homeTeam.id !== team.id && match.awayTeam.id !== team.id) return;
+      if (!match.date || match.date < rangeStart || match.date > rangeEnd) return;
+      events.push(BM.buildMatchAgendaEvent(match, { relatedCompetition: 'league', requiresAttention: match === nextMatch }));
+    });
+
+    const brackets = getBrackets(state.division);
+    collectBracketAgendaEvents(brackets.cup, 'cup', rangeStart, rangeEnd, events);
+    collectBracketAgendaEvents(brackets.titlePlayoff, 'playoff', rangeStart, rangeEnd, events);
+    if (brackets.promotionPlayoff) {
+      collectBracketAgendaEvents(brackets.promotionPlayoff.quarterFinals, 'promotion', rangeStart, rangeEnd, events);
+      collectBracketAgendaEvents(brackets.promotionPlayoff.finalFour, 'promotion', rangeStart, rangeEnd, events);
+    }
+
+    state.newsLog.forEach((event) => {
+      if (event.dateTime && event.dateTime >= rangeStart && event.dateTime <= rangeEnd) events.push(event);
+    });
+
+    return events.sort((a, b) => a.dateTime - b.dateTime);
+  }
+
+  function agendaEventCardHtml(event) {
+    const attentionClass = event.requiresAttention ? 'is-attention' : '';
+    const pendingClass = event.status === 'pending' ? 'is-pending' : '';
+    const priorityClass = event.priority ? `agenda-event--priority-${event.priority}` : '';
+    const badge = event.requiresAttention ? '<span class="gm-badge gm-badge--attention">Tu partido</span>' : '';
+    return `
+      <div class="agenda-event ${attentionClass} ${pendingClass} ${priorityClass}">
+        <span class="agenda-event__time">${formatMatchTime(event.dateTime)}</span>
+        <span class="agenda-event__title">${event.title}</span>
+        ${badge}
+      </div>`;
+  }
+
+  function renderAgendaScreen() {
+    const container = byId('gm-agenda');
+    const anchor = state.agendaAnchorDate || state.calendar.currentGameDateTime;
+    const rangeStart = addDaysLocal(anchor, -3);
+    const rangeEnd = addDaysLocal(anchor, 10);
+    const events = buildAgendaEvents(rangeStart, rangeEnd);
+    const todayKey = dateKey(state.calendar.currentGameDateTime);
+
+    const groups = new Map();
+    events.forEach((event) => {
+      const key = dateKey(event.dateTime);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(event);
+    });
+    const sortedKeys = [...groups.keys()].sort();
+
+    const daysHtml = sortedKeys.map((key) => {
+      const dayEvents = groups.get(key);
+      const isToday = key === todayKey;
+      return `
+        <div class="agenda-day ${isToday ? 'is-today' : ''}">
+          <div class="agenda-day__header">${formatAgendaDayHeader(dayEvents[0].dateTime)}${isToday ? ' <span class="gm-badge gm-badge--done">HOY</span>' : ''}</div>
+          <div class="agenda-day__events">${dayEvents.map(agendaEventCardHtml).join('')}</div>
+        </div>`;
+    }).join('') || '<p class="gm-muted">No hay eventos en este rango de fechas.</p>';
+
+    container.innerHTML = `
+      <h2>Agenda</h2>
+      <div class="agenda-nav">
+        <button id="agenda-prev-btn" class="gm-btn" type="button">◂ Antes</button>
+        <button id="agenda-today-btn" class="gm-btn" type="button">Hoy</button>
+        <button id="agenda-next-btn" class="gm-btn" type="button">Después ▸</button>
+      </div>
+      <div class="agenda-timeline">${daysHtml}</div>
+    `;
+
+    byId('agenda-prev-btn').addEventListener('click', () => { state.agendaAnchorDate = addDaysLocal(anchor, -7); renderAgendaScreen(); });
+    byId('agenda-next-btn').addEventListener('click', () => { state.agendaAnchorDate = addDaysLocal(anchor, 7); renderAgendaScreen(); });
+    byId('agenda-today-btn').addEventListener('click', () => { state.agendaAnchorDate = null; renderAgendaScreen(); });
+  }
+
+  // ---------------------------------------------------------------------
+  // CAL-2 (DESIGN.md 3.5): pantalla Noticias — feed completo de
+  // `state.newsLog` (fuente única con Agenda, ver comentario en `state`),
+  // más reciente primero. Cada noticia ya trae su categoría/prioridad
+  // calculada por Events.js en el momento real en que ocurrió el hecho —
+  // esta pantalla solo pinta, no decide nada.
+  // ---------------------------------------------------------------------
+  const NEWS_PRIORITY_LABELS = { alta: 'Alta', media: 'Media', baja: 'Baja' };
+  const NEWS_CATEGORY_LABELS = {
+    result: 'Resultado', performance: 'Actuación', streak: 'Racha', standings: 'Clasificación',
+    competition: 'Competición', tactical: 'Táctica', surprise: 'Sorpresa',
+  };
+
+  function newsCardHtml(event) {
+    return `
+      <div class="news-card news-card--priority-${event.priority || 'baja'}">
+        <div class="news-card__meta">
+          <span class="gm-badge news-card__priority">${NEWS_PRIORITY_LABELS[event.priority] || ''}</span>
+          <span class="gm-muted news-card__category">${NEWS_CATEGORY_LABELS[event.newsCategory] || ''}</span>
+          <span class="gm-muted news-card__date">${formatMatchDateTime(event.dateTime)}</span>
+        </div>
+        <h4 class="news-card__title">${event.title}</h4>
+        ${event.body ? `<p class="gm-muted news-card__body">${event.body}</p>` : ''}
+      </div>`;
+  }
+
+  function renderNewsScreen() {
+    const container = byId('gm-news');
+    const feed = [...state.newsLog].sort((a, b) => b.dateTime - a.dateTime);
+    const body = feed.length
+      ? feed.map(newsCardHtml).join('')
+      : '<p class="gm-muted">Todavía no hay noticias — juega alguna jornada desde Inicio.</p>';
+    container.innerHTML = `
+      <h2>Noticias</h2>
+      <div class="news-feed">${body}</div>
     `;
   }
 
@@ -969,19 +1338,19 @@
     // Mismo puente de revelado por cuartos que usa el botón principal de
     // Home (playBracketGameWithReveal) — un único camino para jugar un
     // partido de bracket, nunca uno con reveal y otro sin él.
-    const advanceBracket = (bracket) => {
+    const advanceBracket = (bracket, competitionKey) => {
       if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
-      playBracketGameWithReveal(bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions);
+      playBracketGameWithReveal(bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions, competitionKey);
     };
 
     const cupBtn = byId('gm-advance-cup-btn');
-    if (cupBtn) cupBtn.addEventListener('click', () => advanceBracket(brackets.cup));
+    if (cupBtn) cupBtn.addEventListener('click', () => advanceBracket(brackets.cup, 'cup'));
 
     const playoffBtn = byId('gm-advance-playoff-btn');
-    if (playoffBtn) playoffBtn.addEventListener('click', () => advanceBracket(brackets.titlePlayoff));
+    if (playoffBtn) playoffBtn.addEventListener('click', () => advanceBracket(brackets.titlePlayoff, 'playoff'));
 
     const promoBtn = byId('gm-advance-promotion-btn');
-    if (promoBtn) promoBtn.addEventListener('click', () => advanceBracket(brackets.promotionPlayoff));
+    if (promoBtn) promoBtn.addEventListener('click', () => advanceBracket(brackets.promotionPlayoff, 'promotion'));
   }
 
   // ---------------------------------------------------------------------
@@ -2643,7 +3012,7 @@
       // de liga del usuario (el flujo con más volumen de juego). Ampliar
       // esto a bracket es trabajo pendiente señalado explícitamente
       // (CHANGELOG de esta entrega), no un olvido.
-      playBracketGameWithReveal(activeBracket.bracket, resolvers.resolveBracketOptions);
+      playBracketGameWithReveal(activeBracket.bracket, resolvers.resolveBracketOptions, activeBracket.competitionKey);
       return;
     }
 
@@ -2679,12 +3048,19 @@
   // primero y el resto de la jornada se resolvía después). Aplica
   // recuperación de Energía y avanza el reloj de mundo por cada uno,
   // igual que el resto de puntos de resolución de partidos.
-  function resolvePreUserMatches(league, userMatch, resolveMatchOptions) {
+  // `standingsBefore` (opcional, CAL-2, DESIGN.md 3.5.2): clasificación
+  // capturada antes de tocar nada de esta jornada — se reenvía a
+  // `pushLeagueMatchNews` para que estos partidos (los primeros en
+  // resolverse de la jornada) también generen su noticia de resultado/
+  // actuación/sorpresa, exactamente igual que los que se resuelven
+  // después del partido del usuario (finishRoundBookkeeping).
+  function resolvePreUserMatches(league, userMatch, resolveMatchOptions, standingsBefore) {
     const resolved = league.resolveMatchesBefore(userMatch.date, undefined, resolveMatchOptions);
     resolved.forEach((match) => {
       applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
     });
     if (resolved.length) state.calendar.advanceTo(resolved[resolved.length - 1].date);
+    pushLeagueMatchNews(resolved, standingsBefore);
     return resolved;
   }
 
@@ -2713,14 +3089,40 @@
     }
 
     const stopEvent = buildUserMatchStopEvent(userMatch); // ver comentario en buildUserMatchStopEvent
-    resolvePreUserMatches(league, stopEvent.match, resolveMatchOptions);
+    // Instantánea ANTES de tocar nada de esta jornada (CAL-2, noticias de
+    // clasificación) — resolvePreUserMatches ya muta la clasificación.
+    const standingsBefore = captureStandingsSnapshot(league);
+    pushTacticalTrendNewsIfAny(userMatch, team);
+    resolvePreUserMatches(league, stopEvent.match, resolveMatchOptions, standingsBefore);
 
     const engineOptions = resolveMatchOptions(userMatch) || {};
     state.calendar.advanceTo(userMatch.date);
     startLiveMatch(userMatch.homeTeam, userMatch.awayTeam, engineOptions, (finalResult) => {
-      finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions);
+      finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions, standingsBefore);
     });
     goToScreen('match');
+  }
+
+  // CAL-2 (DESIGN.md 3.5, "con mucho cuidado"): noticia táctica ocasional
+  // sobre el próximo rival de liga del usuario — SOLO si TAC-7 ya tiene
+  // muestra suficiente (reutiliza literalmente `config.tactics.telemetry.
+  // minReliablePossessions`, el mismo umbral que `smallSampleBadgeHtml`, ver
+  // Events.buildTacticalTrendNewsEvent) y solo la cobertura de pick&roll
+  // con PEOR eficiencia defensiva concedida — nunca el grueso del feed.
+  function pushTacticalTrendNewsIfAny(userMatch, team) {
+    const opponent = userMatch.homeTeam.id === team.id ? userMatch.awayTeam : userMatch.homeTeam;
+    if (!opponent.tacticalProfile) return;
+    const summary = BM.summarizeTacticsTelemetry(opponent.tacticalProfile, BM.CONFIG_BASE);
+    if (!summary) return;
+    const coverages = Object.entries(summary.defense.byCoverage)
+      .filter(([, stats]) => stats.pppAllowed !== null)
+      .sort((a, b) => b[1].pppAllowed - a[1].pppAllowed);
+    if (!coverages.length) return;
+    const [coverageKey, stats] = coverages[0];
+    const label = PNR_COVERAGE_LABELS[coverageKey] || coverageKey;
+    pushNews(BM.buildTacticalTrendNewsEvent(opponent, label, stats.pppAllowed, stats.n, BM.CONFIG_BASE, {
+      relatedCompetition: 'league', dateTime: state.calendar.currentGameDateTime,
+    }));
   }
 
   // Encaje con League.js (sin tocarlo): el partido del usuario YA se ha
@@ -2734,7 +3136,7 @@
   // de partidos de la jornada (los posteriores al del usuario, los
   // anteriores ya los resolvió resolvePreUserMatches) se resuelven de
   // golpe, igual que siempre.
-  function finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions) {
+  function finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions, standingsBefore) {
     state.seasonCloseSummary = null;
     const roundNumber = userMatch.round;
     const newlyResolved = league.simulateNextRound(undefined, (match) => {
@@ -2742,7 +3144,7 @@
       return resolveMatchOptions(match);
     });
     const fullRoundMatches = league.schedule.filter((m) => m.round === roundNumber);
-    finishRoundBookkeeping(newlyResolved, fullRoundMatches, state.division, league);
+    finishRoundBookkeeping(newlyResolved, fullRoundMatches, state.division, league, standingsBefore);
   }
 
   // --- Motor de partido en vivo (TAC-5): envoltorio mínimo de
@@ -2795,7 +3197,7 @@
   // ---------------------------------------------------------------------
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
-  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'calendar', 'competitions', 'stats', 'match'];
+  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match'];
 
   function goToScreen(screen) {
     state.screen = screen;
@@ -2810,6 +3212,8 @@
     if (screen === 'home') renderHomeScreen();
     if (screen === 'lineup') renderLineupScreen();
     if (screen === 'tactics') renderTacticsScreen();
+    if (screen === 'agenda') renderAgendaScreen();
+    if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();
     if (screen === 'competitions') renderCompetitionsScreen();
     if (screen === 'stats') renderStatsScreen();

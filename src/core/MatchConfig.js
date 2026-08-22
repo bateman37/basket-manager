@@ -323,6 +323,27 @@
       knockoutKickoff: { hour: 21, minute: 0 },
     },
 
+    // --- CAL-2 (DESIGN.md 3.5): umbrales de las categorías de Noticias que
+    // sí tienen un dato real objetivo detrás (Events.js). Nunca se
+    // duplica aquí el umbral de muestra táctica: eso sigue viviendo en
+    // `tactics.telemetry.minReliablePossessions` (más abajo), reutilizado
+    // literalmente por `Events.buildTacticalTrendNewsEvent`.
+    news: {
+      // Valoración FIBA/ACB mínima para considerar una actuación individual
+      // "destacada" (DESIGN.md 3.5) — de partida, sin calibrar con
+      // playtesting real (una gran actuación real suele rondar 25-30+).
+      bigPerformanceMinValoracion: 25,
+      // Racha mínima de resultados consecutivos (mismo signo) para generar
+      // noticia de racha.
+      minStreakLength: 3,
+      // "Sorpresa" (DESIGN.md 3.5): diferencia mínima de reputación
+      // deportiva (`team.reputation.sporting`, escala 0-100, 6.2.1) Y de
+      // posición en la clasificación ANTES del partido entre ganador y
+      // perdedor para considerarlo sorpresa — deben cumplirse las dos.
+      upsetReputationGapMin: 15,
+      upsetStandingsGapMin: 6,
+    },
+
     // --- DESIGN.md 7.11.7 (Alineación automática de equipos CPU) ---
     // Banda de posiciones alrededor de la frontera del objetivo de
     // temporada propio (corte de Copa/Playoff = posición 8, corte de
