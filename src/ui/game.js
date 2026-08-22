@@ -229,7 +229,13 @@
         if (team.id === teamId) return;
         team.tacticalProfile = BM.buildCpuTacticalIdentity(team, CONFIG_BASE);
       });
-      state.leagues[div] = new League(teams, (round) => state.calendar.leagueRoundDate(round));
+      // CAL-1: dateResolver con la firma ampliada de League.generateSchedule
+      // (round, matchIndexInRound, matchesInRound, totalRounds) — reparte
+      // horario real por partido dentro de la jornada, no una única fecha
+      // compartida (ver Calendar.leagueMatchDateTime/DESIGN.md 3.3.1).
+      state.leagues[div] = new League(teams, (round, matchIndexInRound, matchesInRound, totalRounds) => (
+        state.calendar.leagueMatchDateTime(round, matchIndexInRound, matchesInRound, totalRounds, div)
+      ));
     });
 
     state.brackets = {
@@ -362,33 +368,52 @@
     // igual que "Última jornada" se sustituye jornada a jornada.
     state.seasonCloseSummary = null;
 
+    // Camino defensivo (jornada sin partido para el usuario — no debería
+    // ocurrir con 18 equipos/sin byes, ver League.js, pero se mantiene por
+    // robustez): aquí SÍ se resuelve la jornada entera de golpe, así que
+    // `matches` (recién resueltos) y "la jornada completa" son lo mismo.
+    const roundNumber = league.currentRound;
     const matches = league.simulateNextRound(undefined, resolveMatchOptions);
-    finishRoundBookkeeping(matches, state.division, league);
+    const fullRoundMatches = league.schedule.filter((m) => m.round === roundNumber);
+    finishRoundBookkeeping(matches, fullRoundMatches, state.division, league);
   }
 
-  // Cola de cierre común a AMBOS caminos de jugar una jornada de liga: el
-  // de siempre (simulateNextRound(), toda la jornada de golpe — sigue
-  // usándose cuando el equipo del usuario no juega esta jornada) y el
-  // nuevo de TAC-5 (finishUserLeagueMatch(), tras terminar el partido del
-  // usuario sobre el motor pausable) — evita duplicar recuperación de
-  // Energía/creación de brackets/jornada de fondo en dos sitios.
-  function finishRoundBookkeeping(matches, division, league) {
-    state.lastRoundMatches = matches;
+  // Cola de cierre común a los caminos de terminar una jornada de liga: el
+  // "bye" defensivo de arriba (jornada entera de golpe) y el de TAC-5/CAL-1
+  // (finishUserLeagueMatch(), tras terminar el partido del usuario sobre el
+  // motor pausable, con parte de la jornada ya resuelta de antemano) —
+  // evita duplicar recuperación de Energía/creación de brackets/jornada de
+  // fondo en dos sitios.
+  //
+  // `newlyResolvedMatches`: partidos que ACABAN de resolverse en esta
+  // llamada (recuperación de Energía y reloj de mundo se aplican solo a
+  // estos, nunca dos veces sobre un partido ya resuelto antes). `fullRound
+  // Matches`: TODOS los partidos de la jornada (incluidos los resueltos
+  // antes por CAL-1, ver resolvePreUserMatches) — lo que se muestra en
+  // Home como "Última jornada" y de donde se busca el partido del usuario.
+  function finishRoundBookkeeping(newlyResolvedMatches, fullRoundMatches, division, league) {
+    state.lastRoundMatches = fullRoundMatches;
 
     // DESIGN.md 7.11.5 (cierre de integración): recuperación de Energía
-    // para cada partido de la jornada recién jugada (no solo el del
-    // usuario) — ver limitación real explicada arriba.
-    matches.forEach((match) => {
+    // para cada partido recién resuelto (no solo el del usuario) — ver
+    // limitación real explicada arriba. Solo los NUEVOS: los anteriores de
+    // la jornada (resueltos por resolvePreUserMatches, CAL-1) ya la
+    // aplicaron en su momento.
+    newlyResolvedMatches.forEach((match) => {
       applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
     });
+    // Reloj de mundo (DESIGN.md 3.3.5): avanza hasta el más tardío de los
+    // partidos recién resueltos — nunca hacia atrás (Calendar.advanceTo).
+    if (newlyResolvedMatches.length) {
+      state.calendar.advanceTo(newlyResolvedMatches[newlyResolvedMatches.length - 1].date);
+    }
 
     createBracketsIfDue(division, league);
 
-    // Partido del equipo del usuario en esta jornada, si lo tenía — para
-    // partidos jugados sobre el motor pausable (TAC-5) esto ya está
-    // resuelto (ver finishUserLeagueMatch), pero se recalcula igual para
-    // no duplicar el criterio de búsqueda en dos sitios.
-    const userMatch = matches.find(
+    // Partido del equipo del usuario en esta jornada, si lo tenía — se
+    // busca en la jornada COMPLETA (fullRoundMatches), no solo en los
+    // recién resueltos, para no perderlo si ya se había resuelto antes.
+    const userMatch = fullRoundMatches.find(
       (m) => m.homeTeam.id === state.userTeamId || m.awayTeam.id === state.userTeamId,
     );
     state.pendingUserMatch = userMatch || null;
@@ -417,6 +442,7 @@
       matches.forEach((match) => {
         applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
       });
+      if (matches.length) state.calendar.advanceTo(matches[matches.length - 1].date);
       createBracketsIfDue(division, league);
     }
 
@@ -436,6 +462,7 @@
       while (!bracket.isComplete) {
         const game = bracket.playNextGame(undefined, resolver.resolveBracketOptions);
         applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date);
+        if (game.date) state.calendar.advanceTo(game.date);
       }
     });
   }
@@ -557,9 +584,14 @@
 
     // 5. Nuevas League para 1ª y 2ª (3.4.4 paso 4) — standings a cero,
     // currentRound = 1, reutilizando League.js tal cual.
+    function buildLeagueDateResolver(div) {
+      return (round, matchIndexInRound, matchesInRound, totalRounds) => (
+        state.calendar.leagueMatchDateTime(round, matchIndexInRound, matchesInRound, totalRounds, div)
+      );
+    }
     state.leagues = {
-      '1ª': new League(teamsByDivision['1ª'], (round) => state.calendar.leagueRoundDate(round)),
-      '2ª': new League(teamsByDivision['2ª'], (round) => state.calendar.leagueRoundDate(round)),
+      '1ª': new League(teamsByDivision['1ª'], buildLeagueDateResolver('1ª')),
+      '2ª': new League(teamsByDivision['2ª'], buildLeagueDateResolver('2ª')),
     };
 
     // 6. Reset de brackets de ambas divisiones (3.4.4 paso 5).
@@ -603,6 +635,7 @@
     // DESIGN.md 7.11.5 (cierre de integración): igual que en simulateNextRound(),
     // recuperación de Energía para los dos equipos de este partido de bracket.
     applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date);
+    if (game.date) state.calendar.advanceTo(game.date);
     state.pendingUserMatch = {
       homeTeam: game.homeEntry.team,
       awayTeam: game.awayEntry.team,
@@ -623,10 +656,11 @@
     const userStanding = standings[userRank - 1];
     const activeBracket = getActiveBracket();
 
-    const nextMatches = league.isSeasonComplete ? [] : league.getCurrentRoundMatches();
-    const userNextMatch = nextMatches.find(
-      (m) => m.homeTeam.id === team.id || m.awayTeam.id === team.id,
-    );
+    // CAL-1: el próximo partido del usuario ya no es "el de la jornada
+    // actual" a secas — se busca cronológicamente en todo el calendario
+    // (mismo criterio que usa startUserLeagueMatch/findNextPendingMatchForTeam)
+    // para poder mostrar su horario real.
+    const userNextMatch = league.isSeasonComplete ? null : findNextPendingMatchForTeam(league, team);
 
     const lastResultHtml = state.lastRoundMatches
       ? renderMatchList(state.lastRoundMatches, team.id)
@@ -635,7 +669,7 @@
     const nextMatchHtml = league.isSeasonComplete
       ? '<p class="gm-muted">Liga regular terminada.</p>'
       : userNextMatch
-        ? `<p>${matchLabel(userNextMatch, team.id)}</p>`
+        ? `<p>${matchLabel(userNextMatch, team.id)} <span class="gm-muted">— ${formatMatchDateTime(userNextMatch.date)}</span></p>`
         : '<p class="gm-muted">Tu equipo descansa esta jornada.</p>';
 
     // DESIGN.md 3.4.2/3.4: cuando las DOS divisiones han terminado su liga
@@ -661,7 +695,7 @@
         <div class="gm-card">
           <h3>${activeBracket.title} — ${activeBracket.roundLabel}</h3>
           <p class="gm-muted">Competición en marcha. La liga regular espera a que termine.</p>
-          <button id="gm-play-bracket-btn" class="gm-btn gm-btn--primary">Jugar siguiente partido</button>
+          <button id="gm-play-bracket-btn" class="gm-btn gm-btn--primary">Continuar</button>
           <button id="gm-goto-lineup-btn" class="gm-btn">Configurar alineación</button>
         </div>`
         : `
@@ -669,7 +703,7 @@
           <h3>Jornada ${Math.min(league.currentRound, league.totalRounds)} / ${league.totalRounds}</h3>
           ${nextMatchHtml}
           <button id="gm-play-round-btn" class="gm-btn gm-btn--primary" ${league.isSeasonComplete ? 'disabled' : ''}>
-            ${league.isSeasonComplete ? 'Temporada regular terminada' : 'Jugar siguiente jornada'}
+            ${league.isSeasonComplete ? 'Temporada regular terminada' : 'Continuar'}
           </button>
           ${league.isSeasonComplete ? '' : '<button id="gm-goto-lineup-btn" class="gm-btn">Configurar alineación</button>'}
         </div>`;
@@ -688,6 +722,10 @@
       : '';
 
     container.innerHTML = `
+      <div class="home-clock">
+        <span class="home-clock__label">Hoy</span>
+        <span class="home-clock__value">${formatMatchDateTime(state.calendar.currentGameDateTime)}</span>
+      </div>
       <div class="home-hero">
         <div class="home-hero__team">
           <span class="home-hero__label">Tu club</span>
@@ -769,6 +807,18 @@
     return date ? date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—';
   }
 
+  // CAL-1 (DESIGN.md 3.3.1): hora real de inicio del partido, además de la
+  // fecha — antes de esta entrega no existía ninguna hora que mostrar.
+  function formatMatchTime(date) {
+    return date ? date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '—';
+  }
+
+  function formatMatchDateTime(date) {
+    if (!date) return '—';
+    const weekday = date.toLocaleDateString('es-ES', { weekday: 'short' });
+    return `${weekday} ${formatMatchDate(date)}, ${formatMatchTime(date)}`;
+  }
+
   function renderCalendarScreen() {
     const container = byId('gm-calendar');
     const league = getUserLeague();
@@ -793,6 +843,7 @@
         <tr class="${outcomeClass}">
           <td>${m.round}</td>
           <td>${formatMatchDate(m.date)}</td>
+          <td>${formatMatchTime(m.date)}</td>
           <td>${venue}</td>
           <td>${opponent.fullName}</td>
           <td>${resultText}</td>
@@ -802,7 +853,7 @@
     container.innerHTML = `
       <h2>Calendario — ${team.fullName}</h2>
       <table class="gm-table">
-        <thead><tr><th>Jornada</th><th>Fecha</th><th>Sede</th><th>Rival</th><th>Resultado</th></tr></thead>
+        <thead><tr><th>Jornada</th><th>Fecha</th><th>Hora</th><th>Sede</th><th>Rival</th><th>Resultado</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     `;
@@ -2599,33 +2650,73 @@
     startUserLeagueMatch(team, resolvers.resolveMatchOptions);
   }
 
-  // --- DESIGN.md 7.12.24/7.12.33 (TAC-5): partido de liga del usuario
-  // jugado de verdad sobre el motor pausable (MatchEngine.createMatchState/
-  // advanceMatch), con ventanas de intervención reales entre cuartos y en
-  // cada tiempo muerto disparado — sustituye al "reveal" cosmético de
-  // antes de esta entrega (que solo reproducía un resultado ya calculado
-  // de antemano por League.simulateNextRound()). ---
-  //
-  // `league.getCurrentRoundMatches()` es una consulta pura (no avanza
-  // `currentRound` ni muta nada, ver League.js) — se usa aquí para saber
-  // SI el equipo del usuario juega esta jornada y contra quién ANTES de
-  // pedirle a League.js que resuelva la jornada, sin tocar League.js.
+  // Partido PENDIENTE más próximo cronológicamente de `team` en `league`
+  // (busca en TODO el calendario, no solo en `currentRound` — con 18
+  // equipos por división el round-robin no tiene jornadas de descanso, así
+  // que en la práctica siempre cae en la jornada actual, pero no se asume).
+  function findNextPendingMatchForTeam(league, team) {
+    const pending = league.schedule.filter(
+      (m) => m.status === 'pending' && (m.homeTeam.id === team.id || m.awayTeam.id === team.id),
+    );
+    if (!pending.length) return null;
+    return pending.reduce((earliest, m) => (m.date < earliest.date ? m : earliest));
+  }
+
+  // CAL-1 (DESIGN.md 3.3, sección 4.1 "eventos obligatorios de parada"):
+  // representación mínima de un punto de parada obligatoria — hoy solo
+  // existe este tipo real (el partido del usuario), pero se modela como un
+  // objeto con `requiresAttention` para que un futuro catálogo de eventos
+  // (Agenda/Noticias) pueda ampliar este mecanismo sin rehacerlo desde
+  // cero. No se persiste ni se consume desde ningún otro sitio todavía.
+  function buildUserMatchStopEvent(match) {
+    return { type: 'match', dateTime: match.date, requiresAttention: true, status: 'pending', match };
+  }
+
+  // CAL-1 (DESIGN.md sección 5, "cambio de orquestación más importante"):
+  // resuelve, ANTES de que el usuario juegue el suyo, todos los partidos de
+  // `league` con fecha anterior a la del partido del usuario — antes de
+  // esta entrega era EXACTAMENTE al revés (el partido del usuario se jugaba
+  // primero y el resto de la jornada se resolvía después). Aplica
+  // recuperación de Energía y avanza el reloj de mundo por cada uno,
+  // igual que el resto de puntos de resolución de partidos.
+  function resolvePreUserMatches(league, userMatch, resolveMatchOptions) {
+    const resolved = league.resolveMatchesBefore(userMatch.date, undefined, resolveMatchOptions);
+    resolved.forEach((match) => {
+      applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
+    });
+    if (resolved.length) state.calendar.advanceTo(resolved[resolved.length - 1].date);
+    return resolved;
+  }
+
+  // --- DESIGN.md 7.12.24/7.12.33 (TAC-5) + CAL-1 (DESIGN.md 3.3, sección
+  // 5): partido de liga del usuario jugado de verdad sobre el motor
+  // pausable (MatchEngine.createMatchState/advanceMatch), en su horario
+  // real dentro de la jornada — con todos los partidos anteriores de esa
+  // jornada (en ambas divisiones) ya resueltos como resultado real antes de
+  // empezar el suyo (antes de CAL-1, el partido del usuario se jugaba
+  // SIEMPRE primero; ver resolvePreUserMatches). ---
   function startUserLeagueMatch(team, resolveMatchOptions) {
     const league = getUserLeague();
     if (league.isSeasonComplete) return;
-    const roundMatches = league.getCurrentRoundMatches();
-    const userMatch = roundMatches.find((m) => m.homeTeam.id === team.id || m.awayTeam.id === team.id);
+    const userMatch = findNextPendingMatchForTeam(league, team);
 
     if (!userMatch) {
-      // Jornada con nº impar de equipos: el equipo del usuario descansa.
-      // Comportamiento idéntico al de antes de esta entrega — toda la
-      // jornada se resuelve de golpe, sin pantalla de partido.
+      // Defensivo: con 18 equipos por división el round-robin no tiene
+      // jornadas de descanso, así que esto no debería alcanzarse nunca en
+      // la práctica — se mantiene por robustez ante un futuro cambio de
+      // tamaño de división. Comportamiento idéntico al de antes de esta
+      // entrega: toda la jornada se resuelve de golpe, sin pantalla de
+      // partido.
       simulateNextRound(resolveMatchOptions);
       goToScreen(state.pendingUserMatch ? 'match' : 'home');
       return;
     }
 
+    const stopEvent = buildUserMatchStopEvent(userMatch); // ver comentario en buildUserMatchStopEvent
+    resolvePreUserMatches(league, stopEvent.match, resolveMatchOptions);
+
     const engineOptions = resolveMatchOptions(userMatch) || {};
+    state.calendar.advanceTo(userMatch.date);
     startLiveMatch(userMatch.homeTeam, userMatch.awayTeam, engineOptions, (finalResult) => {
       finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions);
     });
@@ -2640,14 +2731,18 @@
   // partido en vez de volver a simularlo (que generaría un partido
   // DISTINTO, con otra secuencia aleatoria, y rompería la coherencia entre
   // lo que el usuario vio y lo que cuenta para la clasificación). El resto
-  // de partidos de la jornada se resuelven de golpe, igual que siempre.
+  // de partidos de la jornada (los posteriores al del usuario, los
+  // anteriores ya los resolvió resolvePreUserMatches) se resuelven de
+  // golpe, igual que siempre.
   function finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions) {
     state.seasonCloseSummary = null;
-    const matches = league.simulateNextRound(undefined, (match) => {
+    const roundNumber = userMatch.round;
+    const newlyResolved = league.simulateNextRound(undefined, (match) => {
       if (match === userMatch) return { precomputedResult: finalResult };
       return resolveMatchOptions(match);
     });
-    finishRoundBookkeeping(matches, state.division, league);
+    const fullRoundMatches = league.schedule.filter((m) => m.round === roundNumber);
+    finishRoundBookkeeping(newlyResolved, fullRoundMatches, state.division, league);
   }
 
   // --- Motor de partido en vivo (TAC-5): envoltorio mínimo de
@@ -2843,7 +2938,7 @@
       container.innerHTML = `
         <div class="gm-card gm-match-empty">
           <p>No hay ningún partido en curso.</p>
-          <p class="gm-muted">Juega la siguiente jornada desde Inicio para ver aquí tu partido.</p>
+          <p class="gm-muted">Pulsa Continuar desde Inicio para llegar a tu próximo partido.</p>
         </div>`;
       return;
     }

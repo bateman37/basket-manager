@@ -248,6 +248,79 @@
       seriesGameGapDays: 2, // separación entre partidos de una misma Series (playoff/ascenso)
       seriesRoundGapDays: 5, // separación entre rondas de un Bracket (cuartos->semis, etc.)
       seasonEndToPlayoffGapDays: 10, // hueco entre fin de jornada 34 y playoff por el título
+
+      // --- CAL-1 (DESIGN.md 3.3.1 evolucionado): horario real por partido,
+      // no solo fecha. `dayOffset` es relativo al "sábado ancla" que ya
+      // calculaba `leagueRoundDate()` (0 = ese sábado, -1 = viernes,
+      // +1 = domingo, -3 = miércoles de esa misma semana). El algoritmo de
+      // Calendar.js NUNCA tiene una franja/hora hardcodeada: todo sale de
+      // aquí, para poder añadir otras competiciones (Europa, Supercopa) sin
+      // tocar la lógica de asignación — solo un `scheduleProfile` nuevo.
+      scheduleProfiles: {
+        '1ª': {
+          // Fin de semana predominante, con algún viernes ocasional (peso
+          // bajo) — DESIGN.md 3.3.1: "viernes ocasional/sábado/domingo
+          // predominante".
+          weekendSlots: [
+            { dayOffset: -1, hour: 21, minute: 0, weight: 1 }, // viernes noche (ocasional)
+            { dayOffset: 0, hour: 17, minute: 0, weight: 3 }, // sábado tarde
+            { dayOffset: 0, hour: 19, minute: 0, weight: 3 }, // sábado tarde-noche
+            { dayOffset: 0, hour: 21, minute: 0, weight: 2 }, // sábado noche
+            { dayOffset: 1, hour: 12, minute: 30, weight: 2 }, // domingo mediodía
+            { dayOffset: 1, hour: 17, minute: 0, weight: 3 }, // domingo tarde
+            { dayOffset: 1, hour: 19, minute: 0, weight: 2 }, // domingo tarde-noche
+          ],
+          // Jornada entre semana ocasional (DESIGN.md 3.3.1): 1 de cada
+          // `everyNRounds` jornadas de liga regular cae en miércoles en vez
+          // de fin de semana — decisión de partida, documentada en
+          // DESIGN.md, no una cifra real de calendario ACB.
+          midweek: {
+            dayOffset: -3, // miércoles de la semana de ese sábado ancla
+            slots: [
+              { hour: 20, minute: 30, weight: 1 },
+              { hour: 21, minute: 0, weight: 1 },
+            ],
+            everyNRounds: 8,
+          },
+          // Jornada 34 (última): horario ÚNICO para toda la división
+          // (DESIGN.md 3.3.1) — nadie puede conocer resultados con
+          // implicaciones clasificatorias antes de que acabe su propio
+          // partido.
+          lastRoundSlot: { dayOffset: 0, hour: 18, minute: 0 },
+        },
+        '2ª': {
+          // Perfil algo más abierto que 1ª (DESIGN.md 3.3.1): viernes
+          // noche con más peso, mediodías de sábado/domingo habituales.
+          weekendSlots: [
+            { dayOffset: -1, hour: 20, minute: 30, weight: 2 }, // viernes noche
+            { dayOffset: 0, hour: 12, minute: 0, weight: 1 }, // sábado mediodía
+            { dayOffset: 0, hour: 17, minute: 0, weight: 2 }, // sábado tarde
+            { dayOffset: 0, hour: 19, minute: 0, weight: 2 }, // sábado tarde-noche
+            { dayOffset: 1, hour: 12, minute: 0, weight: 2 }, // domingo mediodía
+            { dayOffset: 1, hour: 17, minute: 0, weight: 2 }, // domingo tarde
+          ],
+          midweek: {
+            dayOffset: -3,
+            slots: [
+              { hour: 20, minute: 0, weight: 1 },
+              { hour: 20, minute: 30, weight: 1 },
+            ],
+            everyNRounds: 8,
+          },
+          lastRoundSlot: { dayOffset: 1, hour: 12, minute: 0 },
+        },
+      },
+
+      // Copa/Playoffs/Ascenso (DESIGN.md 3.3.2/3.3.3): un único horario de
+      // "prime time" para todos los partidos de eliminatoria — Bracket.js
+      // no expone a su `dateResolver` qué Series concreta está pidiendo la
+      // fecha (todas las series de una misma ronda comparten resolvedor,
+      // ver comentario en Bracket.buildRound), así que no hay forma de dar
+      // variedad horaria ENTRE series simultáneas sin tocar Bracket.js —
+      // fuera de alcance de esta entrega (ver CHANGELOG). Sí hay variedad
+      // de FECHA entre partidos/rondas (seriesGameGapDays/seriesRoundGapDays
+      // ya existentes), solo la hora del día es fija.
+      knockoutKickoff: { hour: 21, minute: 0 },
     },
 
     // --- DESIGN.md 7.11.7 (Alineación automática de equipos CPU) ---

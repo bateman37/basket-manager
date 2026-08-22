@@ -112,6 +112,18 @@
 .team-card__stars { font-size: 12px; color: var(--brick-dark); font-weight: 600; margin-top: 2px; }
 
 /* --- Home --- */
+/* CAL-1 (DESIGN.md 3.3.5): reloj de mundo visible — fecha+hora actual de
+   la partida, siempre por encima del bloque de club/clasificación. */
+.home-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+}
+.home-clock__label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+.home-clock__value { font-family: var(--font-score); font-size: 15px; color: var(--ink); text-transform: uppercase; }
+
 .home-hero {
   display: flex;
   justify-content: space-between;

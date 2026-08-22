@@ -57,17 +57,23 @@
   }
 
   // `dateResolver` (opcional, DESIGN.md 3.3 — Entidad Calendario):
-  // `(round) => Date`, normalmente `Calendar.leagueRoundDate` ya ligado a
-  // una instancia. Sin él, `date` queda en `null` — comportamiento idéntico
-  // al de antes de existir Calendar.js.
-  function createMatch(round, homeTeam, awayTeam, dateResolver) {
+  // `(round, matchIndexInRound, matchesInRound, totalRounds) => Date`,
+  // normalmente `Calendar.leagueMatchDateTime` ya ligado a una instancia y
+  // a una división (CAL-1: firma ampliada respecto a la versión anterior,
+  // que solo recibía `round` — necesaria para poder dar horario real POR
+  // PARTIDO en vez de por jornada, ver DESIGN.md 3.3.1. `dateResolver` es
+  // un contrato interno entre League.js y quien construye la Liga
+  // —game.js—, no una API pública documentada en otro sitio, así que
+  // ampliar su firma aquí no rompe nada externo). Sin él, `date` queda en
+  // `null` — comportamiento idéntico al de antes de existir Calendar.js.
+  function createMatch(round, homeTeam, awayTeam, dateResolver, matchIndexInRound, matchesInRound, totalRounds) {
     return {
       round,
       homeTeam,
       awayTeam,
       status: 'pending', // 'pending' | 'played'
       result: null, // se rellena con el resultado completo de MatchEngine.simulateMatch()
-      date: dateResolver ? dateResolver(round) : null,
+      date: dateResolver ? dateResolver(round, matchIndexInRound, matchesInRound, totalRounds) : null,
     };
   }
 
@@ -79,18 +85,23 @@
       throw new Error(`El calendario de Fase 1 requiere exactamente ${TEAM_COUNT} equipos (recibidos: ${teams.length})`);
     }
     const firstLegRounds = generateSingleRoundRobin(teams.length);
+    const totalRounds = (teams.length - 1) * 2;
     const schedule = [];
     let roundNumber = 1;
 
     firstLegRounds.forEach((pairs) => {
-      pairs.forEach(({ homeIndex, awayIndex }) => {
-        schedule.push(createMatch(roundNumber, teams[homeIndex], teams[awayIndex], dateResolver));
+      pairs.forEach(({ homeIndex, awayIndex }, matchIndexInRound) => {
+        schedule.push(createMatch(
+          roundNumber, teams[homeIndex], teams[awayIndex], dateResolver, matchIndexInRound, pairs.length, totalRounds,
+        ));
       });
       roundNumber += 1;
     });
     firstLegRounds.forEach((pairs) => {
-      pairs.forEach(({ homeIndex, awayIndex }) => {
-        schedule.push(createMatch(roundNumber, teams[awayIndex], teams[homeIndex], dateResolver)); // vuelta: local/visitante invertido
+      pairs.forEach(({ homeIndex, awayIndex }, matchIndexInRound) => {
+        schedule.push(createMatch( // vuelta: local/visitante invertido
+          roundNumber, teams[awayIndex], teams[homeIndex], dateResolver, matchIndexInRound, pairs.length, totalRounds,
+        ));
       });
       roundNumber += 1;
     });
@@ -307,10 +318,79 @@
       this.recordHeadToHead(awayTeam.id, homeTeam.id, awayScore, homeScore);
     }
 
-    // Simula TODOS los partidos pendientes de la jornada actual de golpe
-    // (reutiliza MatchEngine.simulateMatch para cada uno), actualiza la
-    // clasificación y avanza el puntero a la siguiente jornada. Devuelve
-    // los partidos recién jugados (ya con `result` relleno).
+    // CAL-1 (DESIGN.md 3.3, resolución cronológica): resuelve UN partido
+    // PENDIENTE concreto del calendario — pieza base sobre la que se
+    // construye tanto la resolución de un partido suelto (partido del
+    // usuario en su horario real) como la de "todo lo vencido hasta una
+    // fecha" (resolveMatchesBefore) o la de una jornada entera de golpe
+    // (simulateNextRound, ahora un wrapper de conveniencia sobre esto).
+    // Mismo patrón que `Bracket/Series.playNextGame()`, pero aquí no hay un
+    // cursor interno de "siguiente partido de la serie": es quien llama
+    // quien decide qué `match` concreto tocar.
+    resolveMatch(match, config, resolveMatchOptions) {
+      if (match.status === 'played') {
+        throw new Error('League.resolveMatch: el partido ya está jugado');
+      }
+      const options = resolveMatchOptions ? resolveMatchOptions(match) : undefined;
+      const result = simulateMatch(match.homeTeam, match.awayTeam, config, options);
+      match.status = 'played';
+      match.result = result;
+      this.recordResult(match.homeTeam, match.awayTeam, result.finalScore.home, result.finalScore.away);
+      this.advanceCurrentRoundPointer();
+      return match;
+    }
+
+    // Avanza `currentRound` mientras la jornada que señala esté completa.
+    // Antes de CAL-1 esta invariante la garantizaba `simulateNextRound()`
+    // resolviendo toda la jornada de un golpe; con resolución parcial
+    // (partidos sueltos, DESIGN.md 3.3) tiene que reevaluarse cada vez que
+    // se resuelve un partido individual, venga de donde venga.
+    advanceCurrentRoundPointer() {
+      while (this.currentRound <= this.totalRounds) {
+        const roundMatches = this.getCurrentRoundMatches();
+        if (roundMatches.length === 0 || !roundMatches.every((m) => m.status === 'played')) break;
+        this.currentRound += 1;
+      }
+    }
+
+    // Partidos PENDIENTES de todo el calendario con fecha estrictamente
+    // anterior a `beforeDateTime`, en orden cronológico (DESIGN.md 3.3). En
+    // la práctica, como una jornada no avanza hasta estar completa
+    // (advanceCurrentRoundPointer), solo puede haber partidos pendientes en
+    // `currentRound` — pero se consulta sobre todo `schedule` para no
+    // depender de ese invariante interno.
+    getPendingMatchesBefore(beforeDateTime) {
+      return this.schedule
+        .filter((match) => match.status === 'pending' && match.date && match.date < beforeDateTime)
+        .sort((a, b) => a.date - b.date);
+    }
+
+    // Resuelve, en orden cronológico, todos los partidos pendientes con
+    // fecha anterior a `beforeDateTime` — la pieza que usa el reloj de
+    // mundo (game.js) para "saltar" los partidos CPU-CPU anteriores al del
+    // usuario sin necesidad de resolver la jornada entera de golpe
+    // (DESIGN.md 3.3/sección 5 de CAL-1: lo anterior a la hora del usuario
+    // debe existir como resultado antes de que juegue el suyo).
+    resolveMatchesBefore(beforeDateTime, config, resolveMatchOptions) {
+      return this.getPendingMatchesBefore(beforeDateTime)
+        .map((match) => this.resolveMatch(match, config, resolveMatchOptions));
+    }
+
+    // Simula TODOS los partidos PENDIENTES de la jornada actual de golpe
+    // (reutiliza resolveMatch para cada uno), actualiza la clasificación y
+    // avanza el puntero a la siguiente jornada en cuanto queda completa.
+    // Devuelve los partidos recién jugados por ESTA llamada (ya con
+    // `result` relleno) — si parte de la jornada ya se había resuelto antes
+    // por otra vía (resolveMatchesBefore), esos partidos ya estaban
+    // 'played' y no se incluyen aquí ni se vuelven a simular.
+    //
+    // CAL-1: wrapper de compatibilidad — antes de esta entrega era el
+    // ÚNICO camino para resolver partidos de Liga; se mantiene con el mismo
+    // contrato (mismo nombre, misma firma, misma jornada de una sola vez
+    // desde el punto de vista de quien la llama) para no romper a quien ya
+    // la usa así (`simulateBackgroundRound`, el "bye" defensivo de
+    // game.js) — por dentro ya no repite la lógica de simulación, delega en
+    // `resolveMatch`.
     //
     // `resolveMatchOptions` (opcional, DESIGN.md 7.11.6 — pantalla de
     // Alineación): callback `(match) => options|undefined` que permite
@@ -320,15 +400,8 @@
       if (this.isSeasonComplete) {
         throw new Error('La temporada ya ha terminado: no quedan jornadas por simular');
       }
-      const matches = this.getCurrentRoundMatches();
-      matches.forEach((match) => {
-        const options = resolveMatchOptions ? resolveMatchOptions(match) : undefined;
-        const result = simulateMatch(match.homeTeam, match.awayTeam, config, options);
-        match.status = 'played';
-        match.result = result;
-        this.recordResult(match.homeTeam, match.awayTeam, result.finalScore.home, result.finalScore.away);
-      });
-      this.currentRound += 1;
+      const matches = this.getCurrentRoundMatches().filter((match) => match.status === 'pending');
+      matches.forEach((match) => this.resolveMatch(match, config, resolveMatchOptions));
       return matches;
     }
 
