@@ -14,10 +14,10 @@
       "birthDate": "1999-08-09",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 4,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-ucam-murcia-02",
@@ -90,10 +91,10 @@
       "birthDate": "1997-06-17",
       "positions": {
         "Base": 20,
-        "Escolta": 14,
-        "Alero": 4,
-        "Ala-pívot": 3,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -159,7 +160,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-ucam-murcia-03",
@@ -168,10 +170,10 @@
       "birthDate": "2000-07-06",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 6,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -237,7 +239,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-ucam-murcia-04",
@@ -246,10 +249,10 @@
       "birthDate": "1999-12-02",
       "positions": {
         "Base": 20,
-        "Escolta": 10,
-        "Alero": 3,
-        "Ala-pívot": 4,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -315,7 +318,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-ucam-murcia-05",
@@ -323,11 +327,11 @@
       "lastName": "Ennis",
       "birthDate": "1991-12-26",
       "positions": {
-        "Base": 14,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 4,
-        "Pívot": 4
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -391,7 +395,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-ucam-murcia-06",
@@ -399,11 +404,11 @@
       "lastName": "Falk",
       "birthDate": "2003-06-25",
       "positions": {
-        "Base": 1,
         "Escolta": 20,
-        "Alero": 5,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -467,7 +472,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-ucam-murcia-07",
@@ -475,11 +481,11 @@
       "lastName": "Sant-Roos",
       "birthDate": "1991-02-13",
       "positions": {
-        "Base": 1,
-        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 4,
-        "Pívot": 6
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -543,7 +549,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-ucam-murcia-08",
@@ -551,11 +558,11 @@
       "lastName": "Raieste",
       "birthDate": "1999-03-31",
       "positions": {
-        "Base": 5,
-        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 5,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -619,7 +626,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-ucam-murcia-09",
@@ -627,11 +635,11 @@
       "lastName": "Boum",
       "birthDate": "1999-01-26",
       "positions": {
-        "Base": 2,
-        "Escolta": 14,
         "Alero": 20,
-        "Ala-pívot": 1,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -695,7 +703,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-ucam-murcia-10",
@@ -703,11 +712,11 @@
       "lastName": "Nakic",
       "birthDate": "1999-06-01",
       "positions": {
-        "Base": 1,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -771,7 +780,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-ucam-murcia-11",
@@ -779,11 +789,11 @@
       "lastName": "Gates",
       "birthDate": "1996-11-08",
       "positions": {
-        "Base": 2,
-        "Escolta": 3,
-        "Alero": 11,
         "Ala-pívot": 20,
-        "Pívot": 1
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -847,7 +857,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-ucam-murcia-12",
@@ -855,11 +866,11 @@
       "lastName": "Steinbergs",
       "birthDate": "2001-08-28",
       "positions": {
-        "Base": 4,
-        "Escolta": 4,
-        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 1
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -923,7 +934,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-ucam-murcia-13",
@@ -931,11 +943,11 @@
       "lastName": "López de la Torre",
       "birthDate": "2002-03-13",
       "positions": {
-        "Base": 4,
-        "Escolta": 6,
-        "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -999,7 +1011,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-ucam-murcia-14",
@@ -1007,11 +1020,11 @@
       "lastName": "Cate",
       "birthDate": "1997-07-30",
       "positions": {
-        "Base": 4,
-        "Escolta": 1,
-        "Alero": 3,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -1077,7 +1090,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-ucam-murcia-15",
@@ -1085,11 +1099,11 @@
       "lastName": "Pansa",
       "birthDate": "1997-08-20",
       "positions": {
-        "Base": 3,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 1,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -1155,7 +1169,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-ucam-murcia-16",
@@ -1163,11 +1178,11 @@
       "lastName": "Diagne",
       "birthDate": "1994-03-06",
       "positions": {
-        "Base": 5,
+        "Pívot": 20,
+        "Base": 1,
         "Escolta": 3,
-        "Alero": 1,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-ucam-murcia",
       "bodyMeasurements": {
@@ -1233,7 +1248,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

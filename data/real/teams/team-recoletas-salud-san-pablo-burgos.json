@@ -14,10 +14,10 @@
       "birthDate": "2001-10-02",
       "positions": {
         "Base": 20,
-        "Escolta": 8,
-        "Alero": 5,
-        "Ala-pívot": 4,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-02",
@@ -92,10 +93,10 @@
       "birthDate": "2001-01-26",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 5,
-        "Ala-pívot": 3,
-        "Pívot": 4
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-03",
@@ -169,11 +171,11 @@
       "lastName": "Audige",
       "birthDate": "1999-06-29",
       "positions": {
-        "Base": 12,
         "Escolta": 20,
-        "Alero": 5,
-        "Ala-pívot": 2,
-        "Pívot": 3
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -237,7 +239,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-04",
@@ -245,11 +248,11 @@
       "lastName": "Lobaco",
       "birthDate": "2000-11-29",
       "positions": {
-        "Base": 5,
         "Escolta": 20,
-        "Alero": 6,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -313,7 +316,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-05",
@@ -321,11 +325,11 @@
       "lastName": "Obasohan",
       "birthDate": "1993-07-06",
       "positions": {
-        "Base": 8,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -389,7 +393,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-06",
@@ -397,11 +402,11 @@
       "lastName": "Radosavljevic",
       "birthDate": "2001-11-03",
       "positions": {
-        "Base": 4,
-        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 5,
-        "Pívot": 3
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -465,7 +470,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-07",
@@ -473,11 +479,11 @@
       "lastName": "Almazán",
       "birthDate": "1989-01-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -541,7 +547,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-08",
@@ -549,11 +556,11 @@
       "lastName": "Cancar",
       "birthDate": "1997-04-10",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 15,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -617,7 +624,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-09",
@@ -625,11 +633,11 @@
       "lastName": "Sengfelder",
       "birthDate": "1995-02-28",
       "positions": {
-        "Base": 4,
-        "Escolta": 6,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -693,7 +701,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-10",
@@ -701,11 +710,11 @@
       "lastName": "Díez",
       "birthDate": "1993-04-07",
       "positions": {
-        "Base": 5,
-        "Escolta": 5,
-        "Alero": 14,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 8,
+        "Pívot": 17
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -769,7 +778,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-11",
@@ -777,11 +787,11 @@
       "lastName": "Koprivica",
       "birthDate": "2000-05-01",
       "positions": {
-        "Base": 4,
+        "Pívot": 20,
+        "Base": 1,
         "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 5,
-        "Pívot": 20
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -847,7 +857,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-recoletas-salud-san-pablo-burgos-12",
@@ -855,11 +866,11 @@
       "lastName": "Guerrero",
       "birthDate": "1995-10-22",
       "positions": {
-        "Base": 4,
-        "Escolta": 6,
-        "Alero": 1,
-        "Ala-pívot": 1,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-recoletas-salud-san-pablo-burgos",
       "bodyMeasurements": {
@@ -925,7 +936,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

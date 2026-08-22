@@ -14,10 +14,10 @@
       "birthDate": "2000-01-19",
       "positions": {
         "Base": 20,
-        "Escolta": 8,
-        "Alero": 4,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-la-laguna-tenerife-02",
@@ -92,10 +93,10 @@
       "birthDate": "1991-08-02",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 6,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
-        "Pívot": 4
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -159,7 +160,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-la-laguna-tenerife-03",
@@ -168,10 +170,10 @@
       "birthDate": "1983-05-25",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 3,
-        "Ala-pívot": 5,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -239,7 +241,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-la-laguna-tenerife-04",
@@ -247,11 +250,11 @@
       "lastName": "Fernández",
       "birthDate": "2000-07-15",
       "positions": {
-        "Base": 8,
         "Escolta": 20,
-        "Alero": 4,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -315,7 +318,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-la-laguna-tenerife-05",
@@ -323,11 +327,11 @@
       "lastName": "Guy",
       "birthDate": "1997-08-11",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 1,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -393,7 +397,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-la-laguna-tenerife-06",
@@ -401,11 +406,11 @@
       "lastName": "Bamba",
       "birthDate": "2001-01-06",
       "positions": {
-        "Base": 3,
         "Escolta": 20,
-        "Alero": 9,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -469,7 +474,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-la-laguna-tenerife-07",
@@ -477,11 +483,11 @@
       "lastName": "Van Beck",
       "birthDate": "1996-01-22",
       "positions": {
-        "Base": 3,
         "Escolta": 20,
-        "Alero": 8,
-        "Ala-pívot": 6,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -545,7 +551,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-la-laguna-tenerife-08",
@@ -553,10 +560,10 @@
       "lastName": "Alderete",
       "birthDate": "2002-03-06",
       "positions": {
-        "Base": 1,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 11,
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
         "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
@@ -621,7 +628,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-la-laguna-tenerife-09",
@@ -629,11 +637,11 @@
       "lastName": "Giedraitis",
       "birthDate": "1992-08-16",
       "positions": {
-        "Base": 6,
-        "Escolta": 2,
         "Alero": 20,
+        "Base": 17,
+        "Escolta": 14,
         "Ala-pívot": 6,
-        "Pívot": 3
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -697,7 +705,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-la-laguna-tenerife-10",
@@ -705,11 +714,11 @@
       "lastName": "López-Arostegui",
       "birthDate": "1997-05-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 6
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -773,7 +782,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-la-laguna-tenerife-11",
@@ -781,11 +791,11 @@
       "lastName": "Doornekamp",
       "birthDate": "1985-12-05",
       "positions": {
-        "Base": 2,
-        "Escolta": 1,
-        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 6
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -851,7 +861,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-la-laguna-tenerife-12",
@@ -859,11 +870,11 @@
       "lastName": "Abromaitis",
       "birthDate": "1989-09-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 5
+        "Base": 1,
+        "Escolta": 1,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -929,7 +940,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-la-laguna-tenerife-13",
@@ -937,11 +949,11 @@
       "lastName": "Happ",
       "birthDate": "1996-05-07",
       "positions": {
-        "Base": 2,
+        "Pívot": 20,
+        "Base": 1,
         "Escolta": 3,
-        "Alero": 4,
-        "Ala-pívot": 4,
-        "Pívot": 20
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -1007,7 +1019,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-la-laguna-tenerife-14",
@@ -1015,11 +1028,11 @@
       "lastName": "Shermadini",
       "birthDate": "1989-04-02",
       "positions": {
-        "Base": 3,
-        "Escolta": 5,
-        "Alero": 3,
-        "Ala-pívot": 5,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-la-laguna-tenerife",
       "bodyMeasurements": {
@@ -1085,7 +1098,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

@@ -14,10 +14,10 @@
       "birthDate": "2002-03-06",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-flexicar-fuenlabrada-02",
@@ -90,10 +91,10 @@
       "birthDate": "1999-05-06",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 2,
-        "Ala-pívot": 6,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -157,7 +158,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-flexicar-fuenlabrada-03",
@@ -165,9 +167,9 @@
       "lastName": "Benite",
       "birthDate": "1990-02-20",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 3,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
         "Pívot": 1
       },
@@ -236,7 +238,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-flexicar-fuenlabrada-04",
@@ -244,11 +247,11 @@
       "lastName": "Belemene",
       "birthDate": "1997-02-19",
       "positions": {
-        "Base": 4,
-        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 15,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -312,7 +315,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-flexicar-fuenlabrada-05",
@@ -320,11 +324,11 @@
       "lastName": "Cruz",
       "birthDate": "1991-10-24",
       "positions": {
-        "Base": 6,
-        "Escolta": 1,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 11
+        "Base": 2,
+        "Escolta": 1,
+        "Alero": 14,
+        "Pívot": 17
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -388,7 +392,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "f4fabacb-fe98-4254-a610-1ff7f611abb0",
@@ -397,8 +402,8 @@
       "birthDate": "2006-06-09",
       "positions": {
         "Base": 20,
-        "Escolta": 14,
-        "Alero": 6,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 6,
         "Pívot": 1
       },
@@ -467,7 +472,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "71925068-e7a1-45ee-9a42-ae97de0e2099",
@@ -475,11 +481,11 @@
       "lastName": "Tapia Aguilar",
       "birthDate": "2001-11-25",
       "positions": {
-        "Base": 3,
-        "Escolta": 1,
-        "Alero": 11,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -543,7 +549,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "ced84c40-c348-448c-ba20-a8e976ad8fdb",
@@ -551,11 +558,11 @@
       "lastName": "Rincón Molina",
       "birthDate": "1999-12-19",
       "positions": {
-        "Base": 3,
-        "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 8,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-flexicar-fuenlabrada",
       "bodyMeasurements": {
@@ -622,7 +629,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

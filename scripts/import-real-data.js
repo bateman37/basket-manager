@@ -132,6 +132,15 @@ function main() {
   const playersById = new Map();
   rawPlayers.forEach((rawPlayer) => {
     const { dataSource, ...playerData } = rawPlayer;
+    // nominalPosition (Player.js, revisión mini-EPIC POS) ahora es
+    // obligatorio y nunca se infiere dentro del constructor — el fichero
+    // de origen (anterior a esta revisión) no lo trae, así que se deriva
+    // aquí de la posición que YA tiene valor 20 (el único dato fiable de
+    // origen, ver DESIGN.md 6, nota de posiciones secundarias de datos
+    // reales), sin inventar ningún criterio nuevo.
+    if (!playerData.nominalPosition) {
+      playerData.nominalPosition = POSITIONS.find((pos) => playerData.positions[pos] === 20);
+    }
     const player = new Player(playerData);
     player.dataSource = dataSource || null;
     playersById.set(rawPlayer.id, player);

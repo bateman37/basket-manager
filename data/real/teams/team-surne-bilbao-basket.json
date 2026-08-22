@@ -14,10 +14,10 @@
       "birthDate": "2000-06-30",
       "positions": {
         "Base": 20,
-        "Escolta": 4,
-        "Alero": 2,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
-        "Pívot": 4
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-surne-bilbao-basket-02",
@@ -92,10 +93,10 @@
       "birthDate": "2002-07-02",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 3,
-        "Ala-pívot": 3,
-        "Pívot": 4
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-surne-bilbao-basket-03",
@@ -170,10 +172,10 @@
       "birthDate": "1997-05-27",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -239,7 +241,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-surne-bilbao-basket-04",
@@ -247,11 +250,11 @@
       "lastName": "Font",
       "birthDate": "1998-03-11",
       "positions": {
-        "Base": 4,
         "Escolta": 20,
-        "Alero": 9,
-        "Ala-pívot": 6,
-        "Pívot": 3
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -315,7 +318,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-surne-bilbao-basket-05",
@@ -323,11 +327,11 @@
       "lastName": "Hilliard",
       "birthDate": "1993-04-13",
       "positions": {
-        "Base": 5,
         "Escolta": 20,
-        "Alero": 8,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -393,7 +397,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-surne-bilbao-basket-06",
@@ -401,10 +406,10 @@
       "lastName": "Normantas",
       "birthDate": "1996-10-27",
       "positions": {
-        "Base": 4,
         "Escolta": 20,
-        "Alero": 16,
-        "Ala-pívot": 3,
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
@@ -469,7 +474,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-surne-bilbao-basket-07",
@@ -477,11 +483,11 @@
       "lastName": "Darling",
       "birthDate": "1998-08-30",
       "positions": {
-        "Base": 6,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 6,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -545,7 +551,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-surne-bilbao-basket-08",
@@ -553,11 +560,11 @@
       "lastName": "Ansorregi",
       "birthDate": "2002-04-11",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 1,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -621,7 +628,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-surne-bilbao-basket-09",
@@ -629,11 +637,11 @@
       "lastName": "Petrasek",
       "birthDate": "1995-08-17",
       "positions": {
-        "Base": 5,
-        "Escolta": 6,
-        "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -697,7 +705,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-surne-bilbao-basket-10",
@@ -705,11 +714,11 @@
       "lastName": "Krampelj",
       "birthDate": "1995-03-10",
       "positions": {
-        "Base": 5,
-        "Escolta": 1,
-        "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 15
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -773,7 +782,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-surne-bilbao-basket-11",
@@ -781,11 +791,11 @@
       "lastName": "Vautier",
       "birthDate": "1998-11-15",
       "positions": {
+        "Pívot": 20,
         "Base": 1,
-        "Escolta": 4,
-        "Alero": 5,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -851,7 +861,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-surne-bilbao-basket-12",
@@ -859,11 +870,11 @@
       "lastName": "Husták",
       "birthDate": "2003-11-04",
       "positions": {
+        "Pívot": 20,
         "Base": 1,
-        "Escolta": 5,
-        "Alero": 5,
-        "Ala-pívot": 4,
-        "Pívot": 20
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -929,7 +940,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-surne-bilbao-basket-13",
@@ -937,11 +949,11 @@
       "lastName": "Hlinason",
       "birthDate": "1997-10-28",
       "positions": {
+        "Pívot": 20,
         "Base": 1,
         "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-surne-bilbao-basket",
       "bodyMeasurements": {
@@ -1007,7 +1019,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

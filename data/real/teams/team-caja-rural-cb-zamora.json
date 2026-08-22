@@ -14,10 +14,10 @@
       "birthDate": "2001-11-13",
       "positions": {
         "Base": 20,
-        "Escolta": 13,
-        "Alero": 4,
-        "Ala-pívot": 2,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-caja-rural-cb-zamora-02",
@@ -91,11 +92,11 @@
       "lastName": "Round",
       "birthDate": "2000-04-03",
       "positions": {
-        "Base": 10,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -159,7 +160,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-caja-rural-cb-zamora-03",
@@ -167,11 +169,11 @@
       "lastName": "Kristensen",
       "birthDate": "1998-08-25",
       "positions": {
-        "Base": 1,
-        "Escolta": 6,
-        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 14
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -235,7 +237,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-caja-rural-cb-zamora-04",
@@ -243,11 +246,11 @@
       "lastName": "Palmquist",
       "birthDate": "2000-05-05",
       "positions": {
-        "Base": 1,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 14,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -311,7 +314,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-caja-rural-cb-zamora-05",
@@ -319,11 +323,11 @@
       "lastName": "Faye",
       "birthDate": "2000-03-10",
       "positions": {
-        "Base": 4,
-        "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -387,7 +391,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-caja-rural-cb-zamora-06",
@@ -395,11 +400,11 @@
       "lastName": "Carralero",
       "birthDate": "2000-07-24",
       "positions": {
-        "Base": 6,
-        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 13,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -463,7 +468,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "26aadb23-8885-4ee2-b154-4ec99aee510e",
@@ -471,11 +477,11 @@
       "lastName": "Bravo Tapia",
       "birthDate": "2002-09-17",
       "positions": {
-        "Base": 5,
-        "Escolta": 2,
-        "Alero": 4,
-        "Ala-pívot": 1,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -541,7 +547,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "94eea2b9-a431-405f-baca-f08e509c77fc",
@@ -549,11 +556,11 @@
       "lastName": "Molina Tapia",
       "birthDate": "2007-05-06",
       "positions": {
-        "Base": 4,
-        "Escolta": 4,
-        "Alero": 17,
         "Ala-pívot": 20,
-        "Pívot": 5
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-caja-rural-cb-zamora",
       "bodyMeasurements": {
@@ -620,7 +627,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     }
   ],
   "reputation": {

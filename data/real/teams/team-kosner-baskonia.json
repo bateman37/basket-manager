@@ -14,10 +14,10 @@
       "birthDate": "2000-08-03",
       "positions": {
         "Base": 20,
-        "Escolta": 11,
-        "Alero": 3,
-        "Ala-pívot": 5,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-kosner-baskonia-02",
@@ -92,10 +93,10 @@
       "birthDate": "1997-07-04",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 5,
-        "Ala-pívot": 3,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-kosner-baskonia-03",
@@ -169,11 +171,11 @@
       "lastName": "Howard",
       "birthDate": "1999-03-03",
       "positions": {
-        "Base": 12,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 2,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -240,7 +242,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-kosner-baskonia-04",
@@ -248,11 +251,11 @@
       "lastName": "Spagnolo",
       "birthDate": "2003-01-10",
       "positions": {
-        "Base": 14,
         "Escolta": 20,
-        "Alero": 4,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 3
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -316,7 +319,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-kosner-baskonia-05",
@@ -324,11 +328,11 @@
       "lastName": "Lawson",
       "birthDate": "2000-07-15",
       "positions": {
-        "Base": 5,
-        "Escolta": 12,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 13,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -392,7 +396,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-kosner-baskonia-06",
@@ -400,11 +405,11 @@
       "lastName": "Duarte",
       "birthDate": "1997-06-13",
       "positions": {
-        "Base": 4,
-        "Escolta": 16,
         "Alero": 20,
-        "Ala-pívot": 4,
-        "Pívot": 6
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -468,7 +473,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-kosner-baskonia-07",
@@ -476,11 +482,11 @@
       "lastName": "Stewart Jr",
       "birthDate": "1999-07-28",
       "positions": {
-        "Base": 3,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 3
+        "Base": 17,
+        "Escolta": 13,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -544,7 +550,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-kosner-baskonia-08",
@@ -552,11 +559,11 @@
       "lastName": "Kurucs",
       "birthDate": "1998-02-05",
       "positions": {
-        "Base": 5,
-        "Escolta": 1,
         "Alero": 20,
-        "Ala-pívot": 14,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -620,7 +627,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-kosner-baskonia-09",
@@ -628,11 +636,11 @@
       "lastName": "Sedekerskis",
       "birthDate": "1998-01-17",
       "positions": {
-        "Base": 6,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 17,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -696,7 +704,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-kosner-baskonia-10",
@@ -704,11 +713,11 @@
       "lastName": "Frisch",
       "birthDate": "2002-01-07",
       "positions": {
-        "Base": 5,
-        "Escolta": 3,
-        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 1
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -772,7 +781,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-kosner-baskonia-11",
@@ -780,11 +790,11 @@
       "lastName": "Diop",
       "birthDate": "2002-01-15",
       "positions": {
-        "Base": 5,
+        "Pívot": 20,
+        "Base": 1,
         "Escolta": 3,
-        "Alero": 3,
-        "Ala-pívot": 6,
-        "Pívot": 20
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-kosner-baskonia",
       "bodyMeasurements": {
@@ -850,7 +860,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

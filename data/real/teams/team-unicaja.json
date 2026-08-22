@@ -14,10 +14,10 @@
       "birthDate": "1994-04-23",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -85,7 +85,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-unicaja-02",
@@ -94,10 +95,10 @@
       "birthDate": "1992-12-23",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 2,
-        "Ala-pívot": 4,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -164,7 +165,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-unicaja-03",
@@ -173,10 +175,10 @@
       "birthDate": "2000-04-10",
       "positions": {
         "Base": 20,
-        "Escolta": 13,
-        "Alero": 4,
-        "Ala-pívot": 3,
-        "Pívot": 4
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -242,7 +244,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-unicaja-04",
@@ -250,11 +253,11 @@
       "lastName": "Hunt",
       "birthDate": "1997-08-25",
       "positions": {
-        "Base": 9,
         "Escolta": 20,
-        "Alero": 6,
-        "Ala-pívot": 6,
-        "Pívot": 4
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -318,7 +321,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-unicaja-05",
@@ -326,11 +330,11 @@
       "lastName": "Djedovic",
       "birthDate": "1990-01-12",
       "positions": {
-        "Base": 4,
         "Escolta": 20,
-        "Alero": 8,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -396,7 +400,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-unicaja-06",
@@ -404,10 +409,10 @@
       "lastName": "Kalinoski",
       "birthDate": "1992-12-19",
       "positions": {
-        "Base": 5,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 3,
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-unicaja",
@@ -474,7 +479,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-unicaja-07",
@@ -482,11 +488,11 @@
       "lastName": "Brazdeikis",
       "birthDate": "1999-01-08",
       "positions": {
-        "Base": 3,
-        "Escolta": 14,
         "Alero": 20,
-        "Ala-pívot": 5,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -550,7 +556,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-unicaja-08",
@@ -558,11 +565,11 @@
       "lastName": "Barreiro",
       "birthDate": "1997-01-16",
       "positions": {
-        "Base": 5,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 11,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 13,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -626,7 +633,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-unicaja-09",
@@ -634,11 +642,11 @@
       "lastName": "Noua",
       "birthDate": "1997-02-07",
       "positions": {
-        "Base": 1,
-        "Escolta": 2,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Base": 1,
+        "Escolta": 1,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -702,7 +710,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-unicaja-10",
@@ -710,11 +719,11 @@
       "lastName": "Pérez",
       "birthDate": "1996-01-29",
       "positions": {
-        "Base": 1,
-        "Escolta": 3,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 5
+        "Base": 2,
+        "Escolta": 1,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -778,7 +787,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-unicaja-11",
@@ -786,11 +796,11 @@
       "lastName": "Kravish",
       "birthDate": "1992-09-12",
       "positions": {
-        "Base": 2,
-        "Escolta": 6,
-        "Alero": 5,
-        "Ala-pívot": 5,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -856,7 +866,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-unicaja-12",
@@ -864,11 +875,11 @@
       "lastName": "Hernangómez",
       "birthDate": "1994-05-27",
       "positions": {
-        "Base": 2,
-        "Escolta": 3,
-        "Alero": 1,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -934,7 +945,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-unicaja-13",
@@ -942,11 +954,11 @@
       "lastName": "Nzosa",
       "birthDate": "2003-11-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
-        "Alero": 3,
-        "Ala-pívot": 6,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-unicaja",
       "bodyMeasurements": {
@@ -1010,7 +1022,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

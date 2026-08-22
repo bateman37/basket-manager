@@ -14,10 +14,10 @@
       "birthDate": "1998-03-21",
       "positions": {
         "Base": 20,
-        "Escolta": 1,
-        "Alero": 2,
-        "Ala-pívot": 4,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-basquet-menorca-02",
@@ -89,11 +90,11 @@
       "lastName": "Slaughter",
       "birthDate": "1987-08-03",
       "positions": {
-        "Base": 12,
         "Escolta": 20,
-        "Alero": 5,
-        "Ala-pívot": 2,
-        "Pívot": 3
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -159,7 +160,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-basquet-menorca-03",
@@ -167,11 +169,11 @@
       "lastName": "Sola",
       "birthDate": "2000-07-27",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 11,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -235,7 +237,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-basquet-menorca-04",
@@ -243,11 +246,11 @@
       "lastName": "Greeley",
       "birthDate": "2000-05-30",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 15,
-        "Ala-pívot": 3,
-        "Pívot": 3
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -311,7 +314,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-basquet-menorca-05",
@@ -319,11 +323,11 @@
       "lastName": "Martí",
       "birthDate": "1997-06-19",
       "positions": {
-        "Base": 4,
-        "Escolta": 2,
-        "Alero": 10,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -387,7 +391,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-basquet-menorca-06",
@@ -395,11 +400,11 @@
       "lastName": "Ordóñez",
       "birthDate": "2003-01-01",
       "positions": {
-        "Base": 5,
-        "Escolta": 6,
-        "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 10
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Pívot": 17
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -463,7 +468,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-basquet-menorca-07",
@@ -471,11 +477,11 @@
       "lastName": "Kejval",
       "birthDate": "2002-01-21",
       "positions": {
-        "Base": 5,
-        "Escolta": 2,
-        "Alero": 5,
-        "Ala-pívot": 5,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -539,7 +545,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-basquet-menorca-08",
@@ -547,11 +554,11 @@
       "lastName": "Leveque",
       "birthDate": "2000-06-11",
       "positions": {
-        "Base": 3,
+        "Pívot": 20,
+        "Base": 1,
         "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 6,
-        "Pívot": 20
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-basquet-menorca",
       "bodyMeasurements": {
@@ -615,7 +622,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {
