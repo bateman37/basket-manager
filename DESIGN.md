@@ -3715,6 +3715,144 @@ aproximación de diseño basada en la evidencia disponible sobre
 dificultad de cambio de dirección en cuerpos grandes, no un dato exacto
 verificado — revisar si aparece evidencia mejor en el futuro.
 
+### 7.12.36 Ayuda táctica contextual
+
+Entrega TOOLTIP-1: capa de ayuda contextual reutilizable para todo concepto
+táctico visible en la pantalla de Tácticas que no es autoexplicativo para
+alguien sin conocimiento previo de baloncesto profesional. Aplica
+literalmente la filosofía ya fijada en 7.12.35: *"la UI puede ofrecer
+presets, explicaciones y recomendaciones; el motor, sin embargo, conserva
+la estructura profunda"* — esta entrega es únicamente esa capa de
+explicaciones, no toca ninguna fórmula ni catálogo del motor.
+
+**Decisión de arquitectura**: opción (B) — archivo nuevo `src/ui/
+TacticsHelp.js`, capa de presentación PURA sobre los catálogos de
+`Tactics.js`/`MatchConfig.js` (mismo patrón que `game.js` ya es presentación
+pura sobre `Tactics.js`). Se descarta la opción (A) (meter la metadata de
+ayuda junto a cada catálogo dentro de `Tactics.js`) porque `Tactics.js` es
+el archivo más grande y crítico del proyecto (motor de posesión); mezclar
+texto de presentación ahí aumenta el riesgo de que una sesión futura que
+"solo edite el texto" toque algo del motor por accidente. `TacticsHelp.js`
+NO modifica `Tactics.js`/`MatchConfig.js` en absoluto.
+
+**Etiquetas cortas de UI (`SPACING_LABELS`, `PNR_COVERAGE_LABELS`, etc. en
+`game.js`) NO se fusionan con esta fuente**: se auditó su uso real antes de
+decidir — son etiquetas de una o dos palabras usadas en `<select>`/tablas
+compactas por todas las sub-pestañas, mientras que el contenido de ayuda es
+largo (varios campos de texto por concepto). Fusionarlas forzaría a
+`game.js` a cargar/leer mucho texto que no necesita solo para renderizar un
+desplegable, y `TacticsHelp.js` carga DESPUÉS de `Tactics.js` pero ANTES de
+`game.js` en `index.html`, así que tampoco podría leer las labels de
+`game.js` aunque quisiera (orden de carga inverso). Cada entrada de
+`TacticsHelp.js` lleva su propio campo `label`, duplicado deliberadamente
+(mismo valor de texto que la label corta correspondiente donde coincide),
+señalado aquí explícitamente como desviación consciente, no como
+inconsistencia.
+
+**Única fuente de verdad**: `src/ui/TacticsHelp.js` exporta
+`BasketManager.TacticsHelp` con `ENTRIES` (mapa por id), `CATEGORY_LABELS`,
+`CATEGORY_ORDER` y los helpers `getHelp(id)`/`listEntries()`/
+`listByCategory()`. Ni la pantalla de Tácticas ni el Glosario (ver abajo)
+tienen una segunda copia del contenido — ambos leen de `ENTRIES`.
+
+**Shape de cada entrada** (algunos campos opcionales, omitidos —nunca
+rellenos genéricos— cuando el motor real no sostiene esa afirmación):
+
+```js
+{
+  id,              // MISMO id interno que Tactics.js/MatchConfig.js — nunca traducido/renombrado
+  category,        // agrupación del Glosario
+  label,           // nombre corto en español
+  what,            // qué es, en lenguaje llano
+  goal,            // qué intenta conseguir
+  engineEffect,    // qué provoca REALMENTE en el motor — derivado del código real
+  whenUseful,      // opcional
+  risks,           // qué puede conceder/comprometer
+  suitablePlayers, // opcional
+}
+```
+
+**Cobertura** (97 entradas, `CATEGORY_ORDER`): ejes de identidad ofensiva
+(5: Ritmo/Early offense/Movimiento de balón/Uso de P&R/Rigidez — señalando
+explícitamente que Ritmo/Early offense/Movimiento de balón NO tienen
+todavía ningún consumidor real en el motor, solo se guardan en el perfil),
+spacing (4), play-types/familias (7, incluyendo Handoff/Off Screen/Motion
+Flow marcados como "sin motor propio todavía"), coberturas de P&R (5, con
+Hedge/Blitz señalados como valores idénticos en CONFIG), roles ofensivos
+(15) y defensivos (10), Playbook (15 `PlayDefinition`, incluidas las 6
+variantes situacionales de ATO/BLOB/SLOB/Late Clock/Last Possession),
+esquemas defensivos (4), press (2), reglas de doble equipo de poste (3),
+tipos de situación especial (5), reglas de situación (Auto Timeouts/Falta
+táctica, 2), valoraciones de quinteto (12, incluidas las 3 que faltaban en
+`LINEUP_RATING_LABELS` de `game.js` — ver más abajo) y conceptos del
+informe de rival/Data Hub (PPP, ORtg, DRtg, Net Rating, muestra pequeña —
+5). Se añaden además 3 conceptos generales sin id de catálogo propio pero
+con nombre de campo real en el motor: `familiarity` (Familiaridad Táctica),
+`roleFitStars` (conversión puntuación→estrellas) y `matchupOverride`
+(matchups individuales).
+
+**Explícitamente fuera de cobertura**: la pestaña Rival es, en su mayoría,
+un informe de solo lectura cuyos párrafos `gm-muted` ya explican el
+contexto inmediato (frecuencia/PPP, shot profile) — se decidió NO poner un
+icono en cada celda numérica de esas tablas, solo en los conceptos
+realmente no autoexplicativos (PPP, ORtg/DRtg/Net, muestra pequeña) para no
+saturar la pantalla de iconos redundantes con el texto que ya la acompaña.
+`GamePlan`/matchups de PARTIDO (ventana de intervención en vivo, TAC-5) no
+se tocan en esta entrega — sus controles no viven en la pantalla de
+Tácticas.
+
+**Corrección incidental descubierta en la auditoría** (no es una decisión
+de diseño, es una etiqueta de presentación que faltaba): `LINEUP_RATING_LABELS`
+en `game.js` solo tenía 9 de las 12 claves que devuelve
+`Tactics.computeLineupRatings` desde TAC-7 (`transitionOffense`/
+`poaDefense`/`tacticalExecution` quedaban sin label, mostrando el texto
+literal "undefined" en la tabla de Resumen) — corregido añadiendo las 3
+etiquetas que faltaban, imprescindible además para que esas 3 filas
+pudieran tener un icono de ayuda coherente con su contenido.
+
+**UX del tooltip**: icono "ⓘ" (`<button>` real, nunca un `<span>` solo con
+`:hover` — funciona con click de ratón y con tap táctil de forma nativa, un
+tap ya dispara un evento `click` en cualquier navegador moderno sin
+necesitar un listener `touchstart` aparte). Estado de "qué tooltip está
+abierto" en `container.dataset.openHelpId` (atributo del DOM del propio
+`#gm-tactics`, mismo patrón ya usado por `dataset.activeTab`) — vive fuera
+de `state` porque no es un dato de partida guardable. Como
+`renderTacticsScreen()` hace `container.innerHTML = ...` completo en cada
+cambio, este dataset es lo único que sobrevive intacto a ese re-render (vive
+en el nodo contenedor, nunca sustituido por `innerHTML`): abrir/cerrar un
+tooltip nunca pierde el valor de un slider/select que el usuario acabara de
+cambiar (ya vive en `team.tacticalProfile`, mutado en su propio evento
+`change`) y cambiar de sub-pestaña resetea `openHelpId` explícitamente, para
+no dejar un tooltip fantasma de una pestaña anterior.
+
+**Glosario**: 8ª sub-pestaña de `TACTICS_TABS` (`renderTacticsGlossaryTab`),
+no un botón/acceso aparte — reutiliza el mismo mecanismo de navegación por
+pestañas que ya usan las otras siete (7.12.32 ya las describe como
+"sub-pestañas dentro de esa única pantalla"). Lista TODAS las entradas de
+`BM.TacticsHelp.listByCategory()` ya expandidas (sin necesitar abrir cada
+icono una a una), agrupadas por categoría, reutilizando literalmente
+`tacticsHelpBodyHtml()` (la misma función que renderiza el contenido de un
+tooltip individual) — cero segunda copia del texto.
+
+**Localización**: todos los `id` de `ENTRIES` son exactamente los mismos
+que usan `Tactics.js`/`MatchConfig.js` — ninguno se renombró ni se tradujo.
+No se implementa un selector de idioma; la estructura (`id` en inglés →
+texto en español dentro de la entrada) deja preparado que un segundo idioma
+sea añadir un segundo bloque de textos por id, sin tocar el motor.
+
+**Partidas guardadas**: no se añadió ningún campo nuevo a
+`TacticalProfile`/`Team` — la ayuda es puramente de presentación
+(`BM.TacticsHelp` no depende de qué táctica tenga declarada el usuario) y
+`openHelpId` vive en el DOM, nunca en el objeto de partida. El formato de
+`saves/` no cambia.
+
+**Confirmación de alcance**: ningún id interno se renombró; `src/core/
+Tactics.js` y `src/core/MatchConfig.js` no se tocaron en absoluto en esta
+entrega (verificado con `git diff --stat` en el script de scratchpad de
+esta sesión) — la única excepción a "solo archivos de UI" es la corrección
+incidental de 3 etiquetas que faltaban en `LINEUP_RATING_LABELS`
+(`game.js`), señalada arriba.
+
 ## 8. Roles y control del club
 
 Un único rol de usuario que controla:

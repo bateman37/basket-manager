@@ -1597,6 +1597,15 @@
     insideFinishing: 'Finalización interior', offensiveRebound: 'Rebote ofensivo', defensiveRebound: 'Rebote defensivo',
     // TAC-4 (7.12.28): completadas esta entrega — ver Tactics.computeLineupRatings.
     switchability: 'Switchability', rimProtection: 'Rim Protection', transitionDefense: 'Transition Defense',
+    // TOOLTIP-1 (auditoría): TAC-7 (7.12.28) añadió estas 3 valoraciones a
+    // Tactics.computeLineupRatings (transitionOffense/poaDefense/
+    // tacticalExecution), pero nunca se añadieron aquí — la tabla de
+    // Resumen itera TODAS las claves devueltas (Object.entries), así que
+    // sin esta corrección esas 3 filas mostraban el label literal
+    // "undefined". No es una decisión de diseño, es una etiqueta de
+    // presentación que faltaba; se corrige aquí porque bloquea que estas
+    // 3 filas puedan tener icono de ayuda coherente con su contenido.
+    transitionOffense: 'Transition Offense', poaDefense: 'POA Defense', tacticalExecution: 'Tactical Execution',
   };
   // TAC-4 (7.12.13/7.12.14/7.12.15/7.12.19): etiquetas de la sub-pestaña Defensa.
   const BASE_SCHEME_LABELS = {
@@ -1606,6 +1615,70 @@
   const POST_DOUBLE_TEAM_RULE_LABELS = {
     never: 'Nunca', starOnly: 'Solo si supera claramente a su defensor', always: 'Siempre que reciba en el poste',
   };
+
+  // -----------------------------------------------------------------------
+  // TOOLTIP-1 (DESIGN.md 7.12.36): ayuda táctica contextual. Capa de
+  // presentación sobre BM.TacticsHelp (fuente ÚNICA del contenido, src/ui/
+  // TacticsHelp.js) — este bloque solo decide DÓNDE aparece un icono "ⓘ" y
+  // CÓMO se abre/cierra, nunca el texto en sí.
+  //
+  // Estado de "qué tooltip está abierto ahora mismo": vive en
+  // container.dataset.openHelpId (atributo del DOM del propio contenedor
+  // #gm-tactics), mismo patrón ya usado por container.dataset.activeTab —
+  // nunca dentro de `state` (no es un dato de partida guardable). Como
+  // renderTacticsScreen() hace un `container.innerHTML = ...` completo en
+  // cada cambio, este dataset es lo único que sobrevive intacto a ese
+  // re-render (vive en el nodo contenedor, nunca sustituido por
+  // innerHTML) — así abrir/cerrar un tooltip, o cualquier otro control que
+  // dispare un re-render, nunca pierde qué tooltip estaba abierto (o
+  // cerrado) en esa pestaña.
+  // Nota de implementación (bug real encontrado en pruebas Playwright de
+  // esta sesión): el panel y sus filas se construyen con <span> en vez de
+  // <div>/<p> a propósito. Muchos de los sitios donde se llama a
+  // helpIconHtml() están dentro de un <p> (ej. el párrafo "Spacing:" de
+  // Resumen) o de un <label>/<h3>. Un <div>/<p> anidado ahí dentro NO es
+  // solo "poco válido": el parser HTML5 CIERRA implícitamente el <p>
+  // ancestro en cuanto encuentra el token de apertura de un <div> en
+  // CUALQUIER profundidad de anidamiento (regla de "implied end tag" de
+  // <p>), sacando el panel entero de dentro de .tactics-help-wrap en el
+  // DOM real — rompe el posicionamiento (position:absolute pierde su
+  // ancestro `position:relative`) y dispersa el resto del contenido.
+  // <span> es "contenido de fraseo" y nunca dispara ese cierre implícito,
+  // así que es válido anidarlo dentro de <p>/<label>/<h3> sin romper la
+  // estructura — el bloque visual (una fila por campo) se consigue con
+  // `display:block` en CSS, no con la etiqueta.
+  function tacticsHelpBodyHtml(entry) {
+    const rows = [
+      ['Qué es', entry.what],
+      ['Objetivo', entry.goal],
+      ['Efecto real en el motor', entry.engineEffect],
+    ];
+    if (entry.whenUseful) rows.push(['Cuándo es útil', entry.whenUseful]);
+    rows.push(['Riesgos', entry.risks]);
+    if (entry.suitablePlayers) rows.push(['Jugadores adecuados', entry.suitablePlayers]);
+    return rows.map(([label, text]) => `<span class="tactics-help-row"><strong>${label}:</strong> ${text}</span>`).join('');
+  }
+
+  // Icono "ⓘ" + panel desplegable para el concepto `id` (debe coincidir
+  // EXACTAMENTE con un id de BM.TacticsHelp.ENTRIES). Si `id` no tiene
+  // entrada de ayuda (ej. TELEMETRY_PLAY_TYPES incluye 'none', que no la
+  // necesita por ser autoexplicativo), no se renderiza ningún icono —
+  // nunca un icono "roto" sin contenido.
+  function helpIconHtml(id) {
+    const entry = BM.TacticsHelp && BM.TacticsHelp.getHelp(id);
+    if (!entry) return '';
+    const container = byId('gm-tactics');
+    const isOpen = !!(container && container.dataset.openHelpId === id);
+    const panelHtml = isOpen ? `
+      <span class="tactics-help-panel" data-help-panel-id="${id}">
+        <span class="tactics-help-panel__header">
+          <strong>${entry.label}</strong>
+          <button type="button" class="tactics-help-panel__close" data-help-id="${id}" aria-label="Cerrar ayuda">×</button>
+        </span>
+        ${tacticsHelpBodyHtml(entry)}
+      </span>` : '';
+    return `<span class="tactics-help-wrap"><button type="button" class="tactics-help-icon ${isOpen ? 'is-open' : ''}" data-help-id="${id}" aria-label="Ayuda: ${entry.label}">ⓘ</button>${panelHtml}</span>`;
+  }
 
   // Quinteto titular actual (7.12.32, vista "Resumen"): mismo criterio que
   // Rotation.buildRotationState usa para el onCourt inicial de un
@@ -1629,21 +1702,21 @@
     const five = getStarterFive(team);
 
     const identityRowsHtml = Object.keys(TACTICS_IDENTITY_LABELS).map((key) => `
-      <div class="tactics-identity-row"><span>${TACTICS_IDENTITY_LABELS[key]}</span><strong>${Math.round(profile.identity[key] ?? 0)}</strong></div>`).join('');
+      <div class="tactics-identity-row"><span>${TACTICS_IDENTITY_LABELS[key]} ${helpIconHtml(key)}</span><strong>${Math.round(profile.identity[key] ?? 0)}</strong></div>`).join('');
 
     const ratingsHtml = five.length < 5
       ? '<p class="gm-muted">Completa el quinteto titular en la pantalla de Alineación para ver sus valoraciones.</p>'
       : `<table class="gm-table tactics-ratings-table"><tbody>${
         Object.entries(BM.computeLineupRatings(five, profile, CONFIG_BASE))
-          .map(([key, r]) => `<tr><td>${LINEUP_RATING_LABELS[key]}</td><td class="tactics-stars">${starsHtml(r.stars)}</td></tr>`)
+          .map(([key, r]) => `<tr><td>${LINEUP_RATING_LABELS[key]} ${helpIconHtml(key)}</td><td class="tactics-stars">${starsHtml(r.stars)}</td></tr>`)
           .join('')
       }</tbody></table>`;
 
     return `
       <div class="gm-card">
         <h3>Identidad</h3>
-        <p><strong>Spacing:</strong> ${SPACING_LABELS[profile.spacing] || profile.spacing}</p>
-        <p><strong>Cobertura de P&R por defecto:</strong> ${PNR_COVERAGE_LABELS[profile.pnrCoverage] || profile.pnrCoverage}</p>
+        <p><strong>Spacing:</strong> ${SPACING_LABELS[profile.spacing] || profile.spacing} ${helpIconHtml(profile.spacing)}</p>
+        <p><strong>Cobertura de P&R por defecto:</strong> ${PNR_COVERAGE_LABELS[profile.pnrCoverage] || profile.pnrCoverage} ${helpIconHtml(profile.pnrCoverage)}</p>
         <div class="tactics-identity-grid">${identityRowsHtml}</div>
       </div>
       <div class="gm-card">
@@ -1663,11 +1736,11 @@
   // ahora con el CONTADOR REAL de posesiones por familia/cobertura, no una
   // aproximación — la nota de TAC-6/7.12.34 sobre esto queda cerrada, ver
   // CHANGELOG de esta entrega.
-  function familiarityBarHtml(label, level) {
+  function familiarityBarHtml(label, level, helpId) {
     const rounded = Math.round(level);
     return `
       <div class="tactics-familiarity-row">
-        <span>${label}</span>
+        <span>${label} ${helpId ? helpIconHtml(helpId) : ''}</span>
         <div class="tactics-familiarity-bar"><div class="tactics-familiarity-bar-fill" style="width:${rounded}%"></div></div>
         <strong>${rounded}</strong>
       </div>`;
@@ -1683,7 +1756,9 @@
       .map((key) => ({ key, level: familiarityGroup[key], uses: (usageGroup[key] && usageGroup[key].possessions) || 0 }))
       .sort((a, b) => b.uses - a.uses)
       .slice(0, topN)
-      .map((entry) => ({ label: labels[entry.key] || entry.key, level: entry.level, used: entry.uses > 0 }));
+      .map((entry) => ({
+        id: entry.key, label: labels[entry.key] || entry.key, level: entry.level, used: entry.uses > 0,
+      }));
   }
 
   function renderFamiliaritySection(profile) {
@@ -1698,15 +1773,15 @@
     const topFamilies = topUsedFamiliarityEntries(fam.byPlayFamily, telemetry.offense.byPlayType, FAMILIARITY_FAMILY_LABELS, 3);
     const topCoverages = topUsedFamiliarityEntries(fam.byCoverage, telemetry.defense.byCoverage, PNR_COVERAGE_LABELS, 3);
     const familiesHtml = topFamilies.some((e) => e.used)
-      ? topFamilies.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level)).join('')
+      ? topFamilies.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level, e.id)).join('')
       : '<p class="gm-muted">Todavía sin partidos jugados con ninguna familia de jugada registrada.</p>';
     const coveragesHtml = topCoverages.some((e) => e.used)
-      ? topCoverages.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level)).join('')
+      ? topCoverages.filter((e) => e.used).map((e) => familiarityBarHtml(e.label, e.level, e.id)).join('')
       : '<p class="gm-muted">Todavía sin partidos jugados contra ninguna cobertura rival registrada.</p>';
 
     return `
       <div class="gm-card">
-        <h3>Familiaridad</h3>
+        <h3>Familiaridad ${helpIconHtml('familiarity')}</h3>
         <p class="gm-muted">Cuánto domina el equipo la táctica declarada arriba — sube jugando partidos reales, no se edita aquí.</p>
         ${familiarityBarHtml('Sistema ofensivo', fam.offensiveSystem)}
         ${familiarityBarHtml('Sistema defensivo', fam.defensiveSystem)}
@@ -1725,21 +1800,21 @@
 
     const identitySlidersHtml = Object.keys(TACTICS_IDENTITY_LABELS).map((key) => `
       <label class="tactics-slider-row">
-        <span>${TACTICS_IDENTITY_LABELS[key]}</span>
+        <span>${TACTICS_IDENTITY_LABELS[key]} ${helpIconHtml(key)}</span>
         <input type="range" min="0" max="100" step="5" class="tactics-identity-input" data-key="${key}" value="${profile.identity[key] ?? 50}">
         <span class="tactics-slider-value">${Math.round(profile.identity[key] ?? 50)}</span>
       </label>`).join('');
 
     const playTypeRowsHtml = Object.keys(PLAY_TYPE_LABELS).map((key) => `
       <label class="tactics-slider-row">
-        <span>${PLAY_TYPE_LABELS[key]}</span>
+        <span>${PLAY_TYPE_LABELS[key]} ${helpIconHtml(key)}</span>
         <input type="range" min="0" max="100" step="5" class="tactics-playtype-input" data-key="${key}" value="${profile.playTypeWeights[key] ?? 0}">
         <span class="tactics-slider-value">${Math.round(profile.playTypeWeights[key] ?? 0)}</span>
       </label>`).join('');
 
     return `
       <div class="gm-card">
-        <h3>Spacing</h3>
+        <h3>Spacing ${helpIconHtml(profile.spacing)}</h3>
         <select id="tactics-spacing-select">${spacingOptionsHtml}</select>
         <p class="gm-muted">5-Out separa al máximo la pintura; 3-Out 2-In prioriza rebote/poste sobre espacio de penetración. El spacing EFECTIVO depende de qué jugadores estén realmente en pista (ver Resumen) — elegir un spacing no lo garantiza por sí solo.</p>
       </div>
@@ -1769,8 +1844,10 @@
       const defensiveOptionsHtml = BM.DEFENSIVE_ROLES.map((r) => `
         <option value="${r.id}" ${assignment.defensiveRole === r.id ? 'selected' : ''}>${r.label}</option>`).join('');
 
-      const offFitHtml = assignment.offensiveRole ? starsHtml(BM.roleFit(player, assignment.offensiveRole, CONFIG_BASE).stars) : '—';
-      const defFitHtml = assignment.defensiveRole ? starsHtml(BM.roleFit(player, assignment.defensiveRole, CONFIG_BASE).stars) : '—';
+      const offFitHtml = assignment.offensiveRole
+        ? `${starsHtml(BM.roleFit(player, assignment.offensiveRole, CONFIG_BASE).stars)} ${helpIconHtml(assignment.offensiveRole)}` : '—';
+      const defFitHtml = assignment.defensiveRole
+        ? `${starsHtml(BM.roleFit(player, assignment.defensiveRole, CONFIG_BASE).stars)} ${helpIconHtml(assignment.defensiveRole)}` : '—';
 
       const bestOffenseHtml = BM.bestRolesForPlayer(player, 'offensive', CONFIG_BASE, 3)
         .map((r) => `${r.label} ${starsHtml(r.stars)}`).join(' · ');
@@ -1800,7 +1877,7 @@
 
     return `
       <div class="gm-card">
-        <h3>Roles ofensivos y defensivos</h3>
+        <h3>Roles ofensivos y defensivos ${helpIconHtml('roleFitStars')}</h3>
         <div class="gm-table-scroll">
           <table class="gm-table tactics-roles-table">
             <thead>
@@ -1832,11 +1909,11 @@
         .map((r) => `${r.label} <span class="gm-muted">(vs ${r.vs.map((c) => PNR_COVERAGE_LABELS[c] || c).join('/')})</span>`)
         .join('<br>');
       const situationalBadge = play.situationType
-        ? ` <span class="gm-muted">(situacional: ${SITUATION_TYPE_LABELS[play.situationType] || play.situationType})</span>` : '';
+        ? ` <span class="gm-muted">(situacional: ${SITUATION_TYPE_LABELS[play.situationType] || play.situationType} ${helpIconHtml(play.situationType)})</span>` : '';
       return `
         <tr>
-          <td>${play.name}${situationalBadge}${hasRealEngine ? '' : ' <span class="gm-muted">(catálogo, sin motor propio todavía)</span>'}</td>
-          <td>${familyLabel}</td>
+          <td>${play.name} ${helpIconHtml(play.id)}${situationalBadge}${hasRealEngine ? '' : ' <span class="gm-muted">(catálogo, sin motor propio todavía)</span>'}</td>
+          <td>${familyLabel} ${helpIconHtml(play.family)}</td>
           <td>${participantsHtml}</td>
           <td>${spacingHtml}</td>
           <td>${play.complexity}</td>
@@ -1911,23 +1988,23 @@
 
     return `
       <div class="gm-card">
-        <h3>Esquema defensivo base</h3>
+        <h3>Esquema defensivo base ${helpIconHtml(scheme.baseScheme)}</h3>
         <select id="tactics-base-scheme-select">${baseSchemeOptionsHtml}</select>
         <p class="gm-muted">Hombre a hombre es la referencia principal. Una zona nunca da un +X%/-X% de tiro directo: cambia la vulnerabilidad real según el spacing del rival (se estira y sufre contra un quinteto con tiradores de verdad, se contrae sin coste contra uno sin amenaza exterior real) y, en menor medida, según el play-type que intente el rival (Post Up castiga más una 2-3, Pick &amp; Roll/Isolation explotan más una 1-3-1). Match-up Zone y Box-and-One quedan fuera de esta entrega.</p>
       </div>
       <div class="gm-card">
-        <h3>Press</h3>
+        <h3>Press ${helpIconHtml(scheme.press.type)}</h3>
         <label class="tactics-press-toggle"><input type="checkbox" id="tactics-press-active-checkbox" ${scheme.press.active ? 'checked' : ''}> Presionar el tramo inicial de la posesión rival</label>
         <select id="tactics-press-type-select">${pressTypeOptionsHtml}</select>
         <p class="gm-muted">Sube la probabilidad de pérdida temprana del rival y el tiempo que tarda en cruzar medio campo — castiga más a manejadores de balón débiles. El desgaste físico extra de presionar no está modelado todavía.</p>
       </div>
       <div class="gm-card">
-        <h3>Doble equipo de poste</h3>
+        <h3>Doble equipo de poste ${helpIconHtml(scheme.postDoubleTeamRule)}</h3>
         <select id="tactics-post-double-team-select">${postRuleOptionsHtml}</select>
         <p class="gm-muted">Quién dobla lo decide el rol defensivo de cada jugador (pestaña Roles) — el ayudante más cercano (Low Man/Nail Helper/Roamer). El propio anotador posteado decide si encuentra el hueco según su Visión de Juego y Pase.</p>
       </div>
       <div class="gm-card">
-        <h3>Matchups individuales</h3>
+        <h3>Matchups individuales ${helpIconHtml('matchupOverride')}</h3>
         <p class="gm-muted">Asigna a un defensor propio la marca fija de un jugador rival concreto — tiene prioridad sobre la elección automática del motor para ese jugador, salvo que una cobertura o rotación (Switch, doble equipo...) obligue temporalmente a otra. Se declara por jugador real: solo tiene efecto los partidos en los que ese rival concreto aparezca en pista.</p>
         ${overridesHtml}
         <div class="tactics-matchup-form">
@@ -1964,7 +2041,7 @@
         <option value="${p.id}" ${current === p.id ? 'selected' : ''}>${p.name}</option>`).join('');
       return `
         <label class="tactics-situational-play">
-          ${SITUATION_TYPE_LABELS[situationType] || situationType}
+          ${SITUATION_TYPE_LABELS[situationType] || situationType} ${helpIconHtml(situationType)}
           <select class="tactics-situational-play-select" data-situation-type="${situationType}">
             <option value="">Elegir automáticamente</option>
             ${optionsHtml}
@@ -1974,7 +2051,7 @@
 
     return `
       <div class="gm-card">
-        <h3>Auto Timeouts</h3>
+        <h3>Auto Timeouts ${helpIconHtml('autoTimeouts')}</h3>
         <label class="tactics-press-toggle">
           <input type="checkbox" id="tactics-auto-timeouts-checkbox" ${situations.autoTimeouts.enabled ? 'checked' : ''}>
           Pedir tiempo muerto automáticamente si el rival mete un parcial (${BM.CONFIG_BASE.match.timeouts.autoTriggerRunPoints}-0 sin respuesta)
@@ -1982,7 +2059,7 @@
         <p class="gm-muted">Con esta opción activada, el asistente pide el tiempo muerto por ti en la primera parada de juego disponible — sin abrir la ventana de intervención. Un tiempo muerto NUNCA aplica un bonus mágico de acierto ni resetea la racha del rival; solo habilita los ajustes que verías igualmente si lo pidieras a mano.</p>
       </div>
       <div class="gm-card">
-        <h3>Falta táctica intencionada</h3>
+        <h3>Falta táctica intencionada ${helpIconHtml('tacticalFoul')}</h3>
         <label class="tactics-press-toggle">
           <input type="checkbox" id="tactics-tactical-foul-checkbox" ${situations.tacticalFoul.enabled ? 'checked' : ''}>
           Activar falta táctica intencionada en el último cuarto/prórroga
@@ -2075,7 +2152,7 @@
   function smallSampleBadgeHtml(n, config) {
     const cfg = config.tactics.telemetry;
     if (n >= cfg.minReliablePossessions) return '';
-    return ` <span class="tactics-small-sample-badge" title="Menos de ${cfg.minReliablePossessions} posesiones registradas — no lo tomes como una verdad táctica estable todavía">muestra pequeña (n=${n})</span>`;
+    return ` <span class="tactics-small-sample-badge">muestra pequeña (n=${n})${helpIconHtml('smallSample')}</span>`;
   }
 
   function pctHtml(value) {
@@ -2119,12 +2196,12 @@
 
     const playTypeRowsHtml = BM.TELEMETRY_PLAY_TYPES.map((key) => {
       const stats = summary.offense.byPlayType[key];
-      return `<tr><td>${TELEMETRY_PLAY_TYPE_LABELS[key] || key}</td><td>${pctHtml(stats.frequency)}</td><td>${pppHtml(stats.ppp)}${smallSampleBadgeHtml(stats.n, CONFIG_BASE)}</td></tr>`;
+      return `<tr><td>${TELEMETRY_PLAY_TYPE_LABELS[key] || key} ${helpIconHtml(key)}</td><td>${pctHtml(stats.frequency)}</td><td>${pppHtml(stats.ppp)}${smallSampleBadgeHtml(stats.n, CONFIG_BASE)}</td></tr>`;
     }).join('');
 
     const coverageRowsHtml = BM.PNR_COVERAGES.map((coverage) => {
       const stats = summary.defense.byCoverage[coverage];
-      return `<tr><td>${PNR_COVERAGE_LABELS[coverage] || coverage}</td><td>${pctHtml(stats.frequency)}</td><td>${pppHtml(stats.pppAllowed)}${smallSampleBadgeHtml(stats.n, CONFIG_BASE)}</td></tr>`;
+      return `<tr><td>${PNR_COVERAGE_LABELS[coverage] || coverage} ${helpIconHtml(coverage)}</td><td>${pctHtml(stats.frequency)}</td><td>${pppHtml(stats.pppAllowed)}${smallSampleBadgeHtml(stats.n, CONFIG_BASE)}</td></tr>`;
     }).join('');
 
     const shotZoneLabels = { rim: 'Cerca del aro', midRange: 'Media distancia', three: 'Triple' };
@@ -2141,7 +2218,7 @@
         computeMismatchRows(ownFive, rivalTeam, CONFIG_BASE).map((row) => `
           <tr class="${row.advantage ? 'tactics-mismatch-advantage' : ''}">
             <td>${row.player.fullName}</td>
-            <td>${row.offenseRole.label} ${starsHtml(row.offenseRole.stars)}</td>
+            <td>${row.offenseRole.label} ${helpIconHtml(row.offenseRole.roleId)} ${starsHtml(row.offenseRole.stars)}</td>
             <td>${row.defender.fullName} ${starsHtml(row.defenderFit.stars)}</td>
             <td>${row.advantage ? 'Posible ventaja' : ''}</td>
           </tr>`).join('')
@@ -2154,7 +2231,7 @@
       ${smallSampleBannerHtml}
       <div class="gm-card">
         <h3>Play-types dominantes (ataque)</h3>
-        <table class="gm-table"><thead><tr><th>Play-type</th><th>Frecuencia</th><th>PPP</th></tr></thead><tbody>${playTypeRowsHtml}</tbody></table>
+        <table class="gm-table"><thead><tr><th>Play-type</th><th>Frecuencia</th><th>PPP ${helpIconHtml('ppp')}</th></tr></thead><tbody>${playTypeRowsHtml}</tbody></table>
         <p class="gm-muted">Tiro exterior/interior asistido: ${pctHtml(summary.offense.assistedFgPercent)} · Pérdidas por posesión: ${pctHtml(summary.offense.turnoverRate)} · Calidad de tiro media (estimación a partir de las ventajas creadas durante el partido): ${summary.offense.averageShotQuality !== null ? summary.offense.averageShotQuality.toFixed(2) : '—'}${smallSampleBadgeHtml(summary.offense.shotQualityN, CONFIG_BASE)}</p>
       </div>
       <div class="gm-card">
@@ -2173,9 +2250,28 @@
       <div class="gm-card">
         <h3>Quinteto más usado (lineup)</h3>
         ${bestLineup
-          ? `<p>ORtg ${bestLineup.offensiveRating !== null ? bestLineup.offensiveRating.toFixed(1) : '—'} · DRtg ${bestLineup.defensiveRating !== null ? bestLineup.defensiveRating.toFixed(1) : '—'} · Net ${bestLineup.netRating !== null ? bestLineup.netRating.toFixed(1) : '—'}${smallSampleBadgeHtml(bestLineup.n, CONFIG_BASE)}</p>`
+          ? `<p>ORtg ${helpIconHtml('offensiveRating')} ${bestLineup.offensiveRating !== null ? bestLineup.offensiveRating.toFixed(1) : '—'} · DRtg ${helpIconHtml('defensiveRating')} ${bestLineup.defensiveRating !== null ? bestLineup.defensiveRating.toFixed(1) : '—'} · Net ${helpIconHtml('netRating')} ${bestLineup.netRating !== null ? bestLineup.netRating.toFixed(1) : '—'}${smallSampleBadgeHtml(bestLineup.n, CONFIG_BASE)}</p>`
           : '<p class="gm-muted">Sin quintetos registrados todavía.</p>'}
       </div>`;
+  }
+
+  // TOOLTIP-1 (DESIGN.md 7.12.36, sección 6): Glosario como 8ª sub-pestaña
+  // de TACTICS_TABS, reutilizando el mismo mecanismo de pestañas que el
+  // resto de la pantalla (en vez de un botón/acceso aparte) — es la opción
+  // más consistente con cómo ya funciona esta pantalla (7.12.32 ya la
+  // describe como "siete vistas... sub-pestañas dentro de esa única
+  // pantalla"), sin introducir un patrón de navegación nuevo.
+  function renderTacticsGlossaryTab() {
+    if (!BM.TacticsHelp) return '<div class="gm-card"><p class="gm-muted">Glosario no disponible.</p></div>';
+    return BM.TacticsHelp.listByCategory().map((group) => `
+      <div class="gm-card">
+        <h3>${group.label}</h3>
+        ${group.entries.map((entry) => `
+          <div class="tactics-glossary-entry">
+            <h4>${entry.label}</h4>
+            ${tacticsHelpBodyHtml(entry)}
+          </div>`).join('')}
+      </div>`).join('');
   }
 
   const TACTICS_TABS = [
@@ -2186,6 +2282,7 @@
     { id: 'defense', label: 'Defensa' },
     { id: 'situations', label: 'Situaciones' },
     { id: 'rival', label: 'Rival' },
+    { id: 'glossary', label: 'Glosario' },
   ];
 
   function renderTacticsScreen() {
@@ -2202,6 +2299,7 @@
     else if (activeTab === 'defense') body = renderTacticsDefenseTab(team);
     else if (activeTab === 'situations') body = renderTacticsSituationsTab(team);
     else if (activeTab === 'rival') body = renderTacticsRivalTab(team);
+    else if (activeTab === 'glossary') body = renderTacticsGlossaryTab();
 
     container.innerHTML = `
       <h2>Tácticas</h2>
@@ -2214,6 +2312,27 @@
     container.querySelectorAll('.tabs__btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         container.dataset.activeTab = btn.dataset.tab;
+        // TOOLTIP-1: un tooltip abierto en la pestaña anterior no debe
+        // sobrevivir a un cambio de pestaña (requisito UX explícito) —
+        // nunca queda un tooltip fantasma de una pestaña distinta.
+        container.dataset.openHelpId = '';
+        renderTacticsScreen();
+      });
+    });
+
+    // TOOLTIP-1: abrir/cerrar el tooltip de un concepto. Un solo click
+    // funciona tanto con ratón (desktop) como con toque (touch) — un tap
+    // en un botón real ya dispara un evento 'click' de forma nativa en
+    // cualquier navegador moderno, sin necesitar un listener 'touchstart'
+    // aparte. Vuelve a renderizar la pantalla ENTERA (mismo patrón que el
+    // resto de controles de esta pantalla), pero el valor de cualquier
+    // slider/select que el usuario acabara de tocar ya vive en
+    // `team.tacticalProfile` (se mutó en su propio 'change'), así que
+    // nunca se pierde por abrir/cerrar un tooltip.
+    container.querySelectorAll('.tactics-help-icon, .tactics-help-panel__close').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.helpId;
+        container.dataset.openHelpId = (container.dataset.openHelpId === id) ? '' : id;
         renderTacticsScreen();
       });
     });
