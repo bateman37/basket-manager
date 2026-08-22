@@ -13,11 +13,11 @@
       "lastName": "Torres",
       "birthDate": "2003-07-22",
       "positions": {
-        "Base": 8,
         "Escolta": 20,
-        "Alero": 4,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-palmer-basket-mallorca-palma-02",
@@ -91,9 +92,9 @@
       "positions": {
         "Base": 20,
         "Escolta": 17,
-        "Alero": 5,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -157,7 +158,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-palmer-basket-mallorca-palma-03",
@@ -165,10 +167,10 @@
       "lastName": "Feliu",
       "birthDate": "1999-10-12",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 8,
-        "Ala-pívot": 2,
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-palmer-basket-mallorca-palma",
@@ -233,7 +235,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-palmer-basket-mallorca-palma-04",
@@ -241,11 +244,11 @@
       "lastName": "Jolinder",
       "birthDate": "2001-11-05",
       "positions": {
-        "Base": 5,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 3
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -309,7 +312,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-palmer-basket-mallorca-palma-05",
@@ -317,11 +321,11 @@
       "lastName": "Brito",
       "birthDate": "2003-03-08",
       "positions": {
-        "Base": 3,
-        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 6
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -385,7 +389,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-palmer-basket-mallorca-palma-06",
@@ -393,11 +398,11 @@
       "lastName": "Comendador",
       "birthDate": "2001-07-22",
       "positions": {
-        "Base": 6,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 10,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -461,7 +466,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-palmer-basket-mallorca-palma-07",
@@ -469,11 +475,11 @@
       "lastName": "Stoilov",
       "birthDate": "2002-02-07",
       "positions": {
-        "Base": 3,
-        "Escolta": 3,
-        "Alero": 3,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -537,7 +543,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "9835e586-8857-43db-9136-91b4437bd97e",
@@ -545,11 +552,11 @@
       "lastName": "Vidal Lozano",
       "birthDate": "1997-04-20",
       "positions": {
-        "Base": 3,
-        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 14,
-        "Pívot": 2
+        "Base": 1,
+        "Escolta": 6,
+        "Ala-pívot": 17,
+        "Pívot": 17
       },
       "teamId": "team-palmer-basket-mallorca-palma",
       "bodyMeasurements": {
@@ -615,7 +622,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Alero"
     }
   ],
   "reputation": {

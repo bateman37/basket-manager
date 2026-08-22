@@ -14,10 +14,10 @@
       "birthDate": "1998-10-17",
       "positions": {
         "Base": 20,
-        "Escolta": 11,
-        "Alero": 6,
-        "Ala-pívot": 2,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-leyma-coruna-02",
@@ -92,10 +93,10 @@
       "birthDate": "1999-02-22",
       "positions": {
         "Base": 20,
-        "Escolta": 4,
-        "Alero": 1,
-        "Ala-pívot": 2,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-leyma-coruna-03",
@@ -170,10 +172,10 @@
       "birthDate": "2000-06-20",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 5,
+        "Escolta": 17,
+        "Alero": 11,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -239,7 +241,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-leyma-coruna-04",
@@ -247,11 +250,11 @@
       "lastName": "Jorgensen",
       "birthDate": "1996-07-21",
       "positions": {
-        "Base": 9,
         "Escolta": 20,
-        "Alero": 6,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -315,7 +318,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-leyma-coruna-05",
@@ -323,11 +327,11 @@
       "lastName": "Dimsa",
       "birthDate": "1994-01-02",
       "positions": {
-        "Base": 3,
         "Escolta": 20,
+        "Base": 17,
         "Alero": 10,
-        "Ala-pívot": 6,
-        "Pívot": 4
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -391,7 +395,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-leyma-coruna-06",
@@ -399,11 +404,11 @@
       "lastName": "Jou",
       "birthDate": "1997-07-15",
       "positions": {
-        "Base": 3,
-        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -467,7 +472,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-leyma-coruna-07",
@@ -475,11 +481,11 @@
       "lastName": "Díaz",
       "birthDate": "1996-07-23",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 11,
-        "Pívot": 3
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -543,7 +549,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-leyma-coruna-08",
@@ -551,11 +558,11 @@
       "lastName": "Uleckas",
       "birthDate": "1999-08-06",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 4,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -619,7 +626,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-leyma-coruna-09",
@@ -627,11 +635,11 @@
       "lastName": "Radoncic",
       "birthDate": "1999-01-08",
       "positions": {
-        "Base": 3,
-        "Escolta": 5,
-        "Alero": 15,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 6,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -695,7 +703,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-leyma-coruna-10",
@@ -703,11 +712,11 @@
       "lastName": "Skapintsev",
       "birthDate": "1998-05-12",
       "positions": {
-        "Base": 5,
-        "Escolta": 2,
-        "Alero": 6,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -773,7 +782,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-leyma-coruna-11",
@@ -781,11 +791,11 @@
       "lastName": "Conditt IV",
       "birthDate": "2000-08-22",
       "positions": {
-        "Base": 6,
-        "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 6,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -849,7 +859,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-leyma-coruna-12",
@@ -857,11 +868,11 @@
       "lastName": "Silins",
       "birthDate": "1997-07-22",
       "positions": {
-        "Base": 3,
-        "Escolta": 3,
-        "Alero": 5,
-        "Ala-pívot": 6,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-leyma-coruna",
       "bodyMeasurements": {
@@ -927,7 +938,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

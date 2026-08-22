@@ -208,9 +208,19 @@
   // valor de cada atributo) y Presión (reponderación de mentales relevantes
   // + bonus de Experiencia acotado). `overrides` permite sustituir en
   // tiempo de ejecución una clave "comodín" del mix (ej. 'shotAttribute').
-  // `penalty` (7.11.3, C.3): puntos de rating restados al final — jugador
-  // cubriendo una posición de emergencia (Rotation.js); 0 si no aplica.
+  // `penalty` (7.11.3, revisión mini-EPIC POS): objeto
+  // `{ responsibilityPenalty, pureSkillPenalty }` (o `undefined`/ceros si no
+  // aplica) — jugador cubriendo una posición de emergencia (Rotation.js).
+  // Cambio de arquitectura central de esta revisión: la penalización ya NO
+  // se resta una sola vez al `rating` compuesto final; se resta POR
+  // ATRIBUTO, dentro de este mismo bucle, según la categoría de cada
+  // atributo (`config.positions.attributeCategory`) — así el tiro/pase/
+  // manejo/físicos de un jugador fuera de posición apenas se resienten,
+  // mientras que su lectura/posicionamiento/defensa específica sí sufre la
+  // penalización completa (ver DESIGN.md 7.11.3).
   function computeMixRating(player, mix, config, pressure, overrides, penalty) {
+    const responsibilityPenalty = (penalty && penalty.responsibilityPenalty) || 0;
+    const pureSkillPenalty = (penalty && penalty.pureSkillPenalty) || 0;
     let weightedSum = 0;
     let weightTotal = 0;
     Object.entries(mix).forEach(([attrName, baseWeight]) => {
@@ -229,28 +239,46 @@
         weight = baseWeight * Math.max(0, 1 - config.pressure.technicalWeightPenalty * pressure);
       }
 
+      if (responsibilityPenalty || pureSkillPenalty) {
+        const category = config.positions.attributeCategory[resolvedName];
+        value -= category === 'responsibility' ? responsibilityPenalty : pureSkillPenalty;
+      }
+
       weightedSum += value * weight;
       weightTotal += weight;
     });
-    const rating = weightTotal > 0 ? weightedSum / weightTotal : NEUTRAL_ATTRIBUTE;
-    return rating - (penalty || 0);
+    return weightTotal > 0 ? weightedSum / weightTotal : NEUTRAL_ATTRIBUTE;
   }
 
-  // --- 7.4: Modificador de Altura/Envergadura/Peso ---
+  // Combina la penalización de polivalencia de emergencia (Rotation.js,
+  // 7.11.3) con una penalización TÁCTICA adicional en puntos de rating
+  // (`config.tactics.advantage.recoveringDefenderPenalty`, 7.12.4: defensor
+  // "recuperándose" tras una ventaja creada) — decisión de interpretación de
+  // esta revisión (mini-EPIC POS), no fijada explícitamente en DESIGN.md: un
+  // defensor recuperándose es un fallo de lectura/posicionamiento, misma
+  // naturaleza que la categoría 'responsibility' de 7.11.3, así que se suma
+  // ahí en vez de crear un tercer canal de penalización paralelo.
+  function addTacticalResponsibilityPenalty(penalty, extraPoints) {
+    if (!extraPoints) return penalty;
+    return {
+      responsibilityPenalty: ((penalty && penalty.responsibilityPenalty) || 0) + extraPoints,
+      pureSkillPenalty: (penalty && penalty.pureSkillPenalty) || 0,
+    };
+  }
+
+  // --- 7.4: Modificador de Envergadura (revisión mini-EPIC POS) ---
   // Eje 1 (envergadura relativa, wingspan-height): bono/malus acotado sobre
   // el RATING del lado marcado en la acción (no sobre un atributo suelto),
   // porque DESIGN.md lo describe como un efecto sobre el resultado de la
   // acción en su conjunto ("beneficia a Tiro interior", no a un atributo
   // concreto dentro de esa mezcla).
   //
-  // Eje 2 (altura/peso vs agilidad): DESIGN.md dice que "resta del propio
-  // atributo Agilidad/Velocidad", pero ninguna mezcla de 7.6 usa un atributo
-  // suelto de agilidad/velocidad — el efecto descrito (peor Defensa
-  // perimetral, peor Pérdida de balón en transición del atacante alto) se
-  // implementa aquí como una resta directa sobre el RATING del lado
-  // marcado, con la misma magnitud acotada, en vez de sobre un atributo
-  // aislado que no existe en esas mezclas. Es una interpretación de
-  // implementación, no una cifra o mecanismo validado con Dennis.
+  // El antiguo Eje 2 (altura/peso vs agilidad, "impuesto físico" por superar
+  // un umbral absoluto de altura) se RETIRA en esta revisión — ver
+  // DESIGN.md 7.4 para la justificación completa (evidencia real moderada/
+  // contradictoria; los atributos físicos explícitos del jugador ya
+  // describen su movilidad real, un segundo descuento genérico solo
+  // penalizaba dos veces la misma limitación).
   function applyHeightAxisModifiers(rating, player, action, side, config) {
     let adjusted = rating;
     const axis1Direction = action.heightAxis1 && action.heightAxis1[side];
@@ -263,12 +291,6 @@
       );
       if (action.heightAxis1Multiplier) bonus *= action.heightAxis1Multiplier;
       adjusted += axis1Direction === 'penalize' ? -bonus : bonus;
-    }
-    if (action.heightAxis2 && action.heightAxis2[side]) {
-      const excessCm = player.bodyMeasurements.height - config.heightModifiers.axis2ThresholdCm;
-      if (excessCm > 0) {
-        adjusted -= Math.min(excessCm * config.heightModifiers.axis2TaxPerCm, config.heightModifiers.axis2MaxTax);
-      }
     }
     return adjusted;
   }
@@ -1229,7 +1251,9 @@
       // temporalmente a otro matchup").
       const shotDefender = tacticalShotDefenderOverride
         || resolveMatchupOverride(defenseFive, defenseTacticalProfile, ballHandler.id, genericShotDefender);
-      const shotDefenderPenalty = getPenalty(defenseRotationState, shotDefender.id) + tacticalExtraShotDefenderPenalty;
+      const shotDefenderPenalty = addTacticalResponsibilityPenalty(
+        getPenalty(defenseRotationState, shotDefender.id), tacticalExtraShotDefenderPenalty,
+      );
 
       // 7.6.14: Contraataque — solo si el equipo REALMENTE lo intentó esta
       // posesión (fastBreakAttempt, 7.12.12 TAC-3) y dentro de la ventana

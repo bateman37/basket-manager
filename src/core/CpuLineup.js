@@ -82,14 +82,39 @@
   // mejores por calidad general.
   function pickMatchSquadIds(team) {
     const desiredSize = Math.max(MATCH_SQUAD_MIN, Math.min(MATCH_SQUAD_MAX, team.roster.length));
+    const bestByPosition = {};
     const guaranteed = new Set();
     POSITIONS.forEach((position) => {
       let best = team.roster[0];
       team.roster.forEach((player) => {
         if (player.positionLevel(position) > best.positionLevel(position)) best = player;
       });
+      bestByPosition[position] = best.id;
       guaranteed.add(best.id);
     });
+    // Cobertura real de las 5 posiciones (mini-EPIC POS: con el nuevo
+    // modelo de múltiples posiciones en 20, un mismo polivalente puede
+    // "ganar" el bucle de arriba en más de una posición a la vez, dejando
+    // guaranteed con menos de 5 jugadores DISTINTOS). Para cada posición
+    // cuyo mejor candidato ya quedó reservado por OTRA posición, se busca
+    // el siguiente mejor candidato de ESA posición que aún no esté
+    // garantizado, y se añade también. No cambia nada para jugadores con
+    // una sola posición en 20 (el caso de siempre, donde guaranteed.size ya
+    // sale en 5 directamente).
+    if (guaranteed.size < POSITIONS.length) {
+      const claimedBy = new Map(); // playerId -> primera posición que lo reservó
+      POSITIONS.forEach((position) => {
+        const playerId = bestByPosition[position];
+        if (!claimedBy.has(playerId)) {
+          claimedBy.set(playerId, position);
+          return;
+        }
+        const nextBest = team.roster
+          .filter((player) => !guaranteed.has(player.id))
+          .sort((a, b) => b.positionLevel(position) - a.positionLevel(position))[0];
+        if (nextBest) guaranteed.add(nextBest.id);
+      });
+    }
     const ranked = team.roster
       .filter((player) => !guaranteed.has(player.id))
       .sort((a, b) => playerQualityScore(b) - playerQualityScore(a));

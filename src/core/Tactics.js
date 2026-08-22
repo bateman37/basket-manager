@@ -1097,12 +1097,19 @@
 
   // --- 7.12.9 / 7.12.21: roleFit (1-5 estrellas) ---
   // Valoración DERIVADA (nunca un atributo nuevo de Player.js, pedido
-  // explícito del prompt): mezcla de atributos del rol (70%) + competencia
-  // posicional real del jugador (6.1, 30% — la mejor de las posiciones
-  // preferentes del rol) + un factor pequeño de estado físico (Energía
-  // actual, 7.12.9 "estado físico"). Puede calcularse para CUALQUIER rol
-  // del catálogo contra cualquier jugador, no solo el asignado — para que
-  // la UI compare candidatos (pedido explícito del prompt).
+  // explícito del prompt): mezcla de atributos del rol (mixScore) es la
+  // BASE del score (revisión mini-EPIC POS — la fórmula anterior sumaba
+  // competencia posicional ponderada, lo que permitía que un jugador con
+  // atributos neutros pero posición natural obtuviera un roleFit
+  // artificialmente alto). La competencia posicional real del jugador
+  // (6.1 — la mejor de las posiciones preferentes del rol) actúa ahora como
+  // TECHO con penalización acotada: sin penalización si alcanza "funcional
+  // o mejor" (config.positions.competenceThresholds.functionalMax), y con
+  // una penalización pequeña y acotada (curva no lineal de 6.1) por debajo
+  // de ese umbral. Más un factor pequeño de estado físico (Energía actual,
+  // 7.12.9 "estado físico"). Puede calcularse para CUALQUIER rol del
+  // catálogo contra cualquier jugador, no solo el asignado — para que la UI
+  // compare candidatos (pedido explícito del prompt).
   function roleFit(player, roleId, config) {
     const definition = findRoleDefinition(roleId);
     if (!definition) {
@@ -1115,7 +1122,13 @@
     const positionScore = Math.max(...definition.positions.map((pos) => player.positionLevel(pos)));
     const fitWeights = rolesCfg.fitWeights;
     const energyFactor = fitWeights.energyBaseline + fitWeights.energyRange * (player.dynamicState.energy / 100);
-    const combined = (mixScore * fitWeights.attributeMixWeight + positionScore * fitWeights.positionLevelWeight) * energyFactor;
+    const threshold = fitWeights.positionShortfallThreshold;
+    const shortfall = Math.max(0, threshold - positionScore);
+    const shortfallPenalty = shortfall > 0
+      ? fitWeights.positionShortfallMaxPenalty
+        * Math.pow(shortfall / threshold, fitWeights.positionShortfallExponent)
+      : 0;
+    const combined = (mixScore - shortfallPenalty) * energyFactor;
     return { score: combined, stars: starsFromScore20(combined, config) };
   }
 

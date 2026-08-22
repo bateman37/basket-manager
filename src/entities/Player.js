@@ -141,6 +141,18 @@
       this.birthDate = data.birthDate ? new Date(data.birthDate) : null;
       this.positions = Player.buildPositionMap(data.positions);
 
+      // Posición nominal (DESIGN.md 6.1, revisión mini-EPIC POS): identidad
+      // posicional habitual/de ficha, asignada por el generador o la
+      // migración de datos reales — NUNCA derivada ni inferida aquí. Puede
+      // diferir de cuáles posiciones tienen valor 20 en el mapa (un
+      // jugador puede tener 0, 1, 2 o más posiciones en 20).
+      if (!POSITIONS.includes(data.nominalPosition)) {
+        throw new Error(
+          `nominalPosition debe ser una de las 5 posiciones (DESIGN.md 6.1): ${POSITIONS.join(', ')}`,
+        );
+      }
+      this.nominalPosition = data.nominalPosition;
+
       // Relación con Team: id del equipo al que pertenece, o null si no
       // tiene equipo (ej. generación aislada, o futuros agentes libres).
       // Team.js es quien mantiene este campo sincronizado cuando el
@@ -199,12 +211,14 @@
       };
     }
 
-    // Construye/valida el mapa de 5 posiciones (DESIGN.md 6.1 actualizado):
-    // las 5 claves SIEMPRE presentes, nivel 1-20 cada una, y exactamente una
-    // con valor 20 (la principal). `positions` debe ser ya un mapa completo
-    // — el generador y cualquier código que cree jugadores es responsable de
-    // construirlo así (no se acepta la lista plana antigua ni se completa
-    // aquí con valores por defecto silenciosos).
+    // Construye/valida el mapa de 5 posiciones (DESIGN.md 6.1, revisión
+    // mini-EPIC POS): las 5 claves SIEMPRE presentes, nivel 1-20 cada una.
+    // Ya NO se exige exactamente una posición en 20 — puede haber 0, 1, 2 o
+    // más (especialista puro, positionless...), ver `nominalPosition` para
+    // la identidad posicional de ficha. `positions` debe ser ya un mapa
+    // completo — el generador y cualquier código que cree jugadores es
+    // responsable de construirlo así (no se acepta la lista plana antigua
+    // ni se completa aquí con valores por defecto silenciosos).
     static buildPositionMap(positions) {
       if (!positions || typeof positions !== 'object' || Array.isArray(positions)) {
         throw new Error(
@@ -213,22 +227,13 @@
         );
       }
       const map = {};
-      let primaryCount = 0;
       POSITIONS.forEach((pos) => {
         const raw = positions[pos];
         if (raw === undefined || raw === null) {
           throw new Error(`positions no incluye la posición "${pos}" — las 5 deben estar siempre presentes`);
         }
-        const level = clampAttribute(raw);
-        map[pos] = level;
-        if (level === PRIMARY_POSITION_LEVEL) primaryCount += 1;
+        map[pos] = clampAttribute(raw);
       });
-      if (primaryCount !== 1) {
-        throw new Error(
-          `positions debe tener EXACTAMENTE una posición con valor ${PRIMARY_POSITION_LEVEL} (principal); `
-          + `se encontraron ${primaryCount}`,
-        );
-      }
       return map;
     }
 
@@ -236,14 +241,25 @@
       return `${this.firstName} ${this.lastName}`.trim();
     }
 
-    // Posición principal (DESIGN.md 6.1): la única con valor 20 en el mapa.
+    // Posición principal (DESIGN.md 6.1, revisión mini-EPIC POS): mismo
+    // nombre/contrato de lectura de siempre, pero ahora devuelve
+    // directamente `nominalPosition` — ya no se deduce de cuál posición
+    // tiene valor 20 (puede haber 0, 1, 2 o más).
     get primaryPosition() {
-      return POSITIONS.find((pos) => this.positions[pos] === PRIMARY_POSITION_LEVEL);
+      return this.nominalPosition;
     }
 
     // Nivel de competencia (1-20) del jugador en una posición concreta.
     positionLevel(position) {
       return this.positions[position];
+    }
+
+    // Posiciones con dominio completo (nivel 20) — DESIGN.md 6.1, revisión
+    // mini-EPIC POS: propiedad derivada del mapa, no un campo declarado
+    // aparte. Puede estar vacío (ningún especialista total) o tener varias
+    // (positionless).
+    masteredPositions() {
+      return POSITIONS.filter((pos) => this.positions[pos] === PRIMARY_POSITION_LEVEL);
     }
 
     // Medias de grupo de atributos (1-20) — DESIGN.md 7.11.6, pantalla de
@@ -312,6 +328,7 @@
         lastName: this.lastName,
         birthDate: this.birthDate ? this.birthDate.toISOString().slice(0, 10) : null,
         positions: this.positions,
+        nominalPosition: this.nominalPosition,
         teamId: this.teamId,
         bodyMeasurements: this.bodyMeasurements,
         technical: this.technical,

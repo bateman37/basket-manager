@@ -14,10 +14,10 @@
       "birthDate": "2000-03-22",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 6,
-        "Ala-pívot": 4,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-inveready-askatuak-gipuzkoa-02",
@@ -90,10 +91,10 @@
       "birthDate": "1996-06-14",
       "positions": {
         "Base": 20,
-        "Escolta": 9,
-        "Alero": 3,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -159,7 +160,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-inveready-askatuak-gipuzkoa-03",
@@ -167,11 +169,11 @@
       "lastName": "Vázquez",
       "birthDate": "1994-09-08",
       "positions": {
-        "Base": 1,
         "Escolta": 20,
-        "Alero": 6,
-        "Ala-pívot": 1,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -235,7 +237,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-inveready-askatuak-gipuzkoa-04",
@@ -243,11 +246,11 @@
       "lastName": "Falcoz",
       "birthDate": "2002-11-05",
       "positions": {
-        "Base": 15,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 3
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -311,7 +314,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-inveready-askatuak-gipuzkoa-05",
@@ -319,11 +323,11 @@
       "lastName": "Domènech",
       "birthDate": "2002-07-18",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
-        "Alero": 13,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -387,7 +391,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-inveready-askatuak-gipuzkoa-06",
@@ -395,11 +400,11 @@
       "lastName": "Lo",
       "birthDate": "1997-07-01",
       "positions": {
-        "Base": 2,
-        "Escolta": 4,
-        "Alero": 9,
         "Ala-pívot": 20,
-        "Pívot": 1
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Pívot": 17
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -463,7 +468,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-inveready-askatuak-gipuzkoa-07",
@@ -471,11 +477,11 @@
       "lastName": "Paukštė",
       "birthDate": "2000-09-10",
       "positions": {
-        "Base": 3,
-        "Escolta": 2,
-        "Alero": 3,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -539,7 +545,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-inveready-askatuak-gipuzkoa-08",
@@ -547,11 +554,11 @@
       "lastName": "Van Komen",
       "birthDate": "1999-09-27",
       "positions": {
-        "Base": 5,
-        "Escolta": 6,
-        "Alero": 2,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-inveready-askatuak-gipuzkoa",
       "bodyMeasurements": {
@@ -615,7 +622,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

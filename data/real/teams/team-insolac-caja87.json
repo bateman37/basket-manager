@@ -14,10 +14,10 @@
       "birthDate": "2000-01-24",
       "positions": {
         "Base": 20,
-        "Escolta": 4,
-        "Alero": 6,
-        "Ala-pívot": 4,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-insolac-caja87-02",
@@ -89,11 +90,11 @@
       "lastName": "Moody",
       "birthDate": "1998-01-15",
       "positions": {
-        "Base": 10,
         "Escolta": 20,
-        "Alero": 5,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -157,7 +158,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-insolac-caja87-03",
@@ -165,11 +167,11 @@
       "lastName": "Soumbey-Alley",
       "birthDate": "1999-02-14",
       "positions": {
-        "Base": 13,
         "Escolta": 20,
-        "Alero": 5,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 4,
-        "Pívot": 3
+        "Pívot": 1
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -233,7 +235,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-insolac-caja87-04",
@@ -241,11 +244,11 @@
       "lastName": "Cecilia",
       "birthDate": "2000-04-12",
       "positions": {
-        "Base": 5,
-        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 6,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 16,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -309,7 +312,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-insolac-caja87-05",
@@ -317,11 +321,11 @@
       "lastName": "Mendikote",
       "birthDate": "1999-03-30",
       "positions": {
-        "Base": 6,
-        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 16,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 16,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -385,7 +389,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-insolac-caja87-06",
@@ -393,11 +398,11 @@
       "lastName": "Dedovic",
       "birthDate": "1997-02-16",
       "positions": {
-        "Base": 4,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -461,7 +466,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-insolac-caja87-07",
@@ -469,11 +475,11 @@
       "lastName": "Vilà",
       "birthDate": "1997-09-11",
       "positions": {
-        "Base": 5,
-        "Escolta": 5,
-        "Alero": 5,
-        "Ala-pívot": 11,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -537,7 +543,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-insolac-caja87-08",
@@ -545,11 +552,11 @@
       "lastName": "Izaw-Bolavie",
       "birthDate": "2001-06-27",
       "positions": {
-        "Base": 2,
-        "Escolta": 3,
-        "Alero": 3,
-        "Ala-pívot": 5,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -613,7 +620,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-insolac-caja87-09",
@@ -621,11 +629,11 @@
       "lastName": "Latorre",
       "birthDate": "2001-08-20",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
-        "Alero": 4,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-insolac-caja87",
       "bodyMeasurements": {
@@ -689,7 +697,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

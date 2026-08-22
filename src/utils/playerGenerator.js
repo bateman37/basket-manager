@@ -8,6 +8,15 @@
   const Core = (typeof module !== 'undefined' && module.exports)
     ? require('../entities/Player.js')
     : global.BasketManager;
+  // MatchConfig.js (config.positions.wingspanBiasThresholdCm, Modelo B de
+  // 7.4/mini-EPIC POS) — en Node se puede requerir aquí sin más; en
+  // navegador MatchConfig.js carga DESPUÉS que este archivo (ver
+  // index.html), así que se lee de global.BasketManager en tiempo de
+  // llamada (getPositionsConfig()), nunca desestructurado en la carga del
+  // propio IIFE.
+  const MatchConfigCore = (typeof module !== 'undefined' && module.exports)
+    ? require('../core/MatchConfig.js')
+    : null;
 
   const {
     Player,
@@ -19,6 +28,11 @@
     ATTRIBUTE_MIN,
     ATTRIBUTE_MAX,
   } = Core;
+
+  function getPositionsConfig() {
+    const base = MatchConfigCore ? MatchConfigCore.CONFIG_BASE : global.BasketManager.CONFIG_BASE;
+    return base.positions;
+  }
 
   const ATTRIBUTE_BASE = 10; // valor medio de partida antes de aplicar el perfil de posición
   const NOISE_SPREAD = 2.5; // variación aleatoria +/- sobre el valor del perfil
@@ -146,33 +160,104 @@
     return new Date(year, month, day);
   }
 
-  // Genera el mapa de 5 posiciones (DESIGN.md 6.1 actualizado): una
-  // principal (nivel 20, `forcedPrimary` si se indica, si no al azar) y las
-  // 4 restantes con un nivel que depende de la DISTANCIA a la principal
-  // (Base=0, Escolta=1, Alero=2, Ala-pívot=3, Pívot=4 — índice del array
-  // POSITIONS): adyacente (distancia 1) = competencia media con variación,
-  // el resto = competencia baja. Heurística propia de este generador de
-  // prueba, NO una regla de diseño acordada (DESIGN.md 6.1 solo exige que
-  // las 5 claves existan siempre con nivel 1-20 y una única principal).
+  // Genera el mapa de 5 posiciones (DESIGN.md 6.1, revisión mini-EPIC POS):
+  // decide una posición NOMINAL explícita (ancla, `forcedPrimary` si se
+  // indica, si no al azar) y un arquetipo de polivalencia; las posiciones
+  // no elevadas a nivel alto se rellenan según la DISTANCIA a la ancla más
+  // cercana (Base=0, Escolta=1, Alero=2, Ala-pívot=3, Pívot=4 — índice del
+  // array POSITIONS): adyacente (distancia 1) = competencia media con
+  // variación, el resto = competencia baja. Heurística propia de este
+  // generador de prueba, NO una regla de diseño acordada (DESIGN.md 6.1
+  // solo exige que las 5 claves existan siempre con nivel 1-20; el shape ya
+  // no exige una única posición en 20).
   const ADJACENT_LEVEL_BASE = 10;
   const ADJACENT_LEVEL_SPREAD = 6;
   const DISTANT_LEVEL_BASE = 3;
   const DISTANT_LEVEL_SPREAD = 2;
 
-  function generatePositionMap(forcedPrimary) {
-    const primaryIndex = forcedPrimary ? POSITIONS.indexOf(forcedPrimary) : Math.floor(Math.random() * POSITIONS.length);
-    const map = {};
+  // Pesos de arquetipo de polivalencia (mini-EPIC POS) — heurística de
+  // generación, no regla de diseño cerrada (mismo criterio que el
+  // comentario de POSITION_PROFILES): especialista puro (mayoritario),
+  // combo/polivalente moderado, y positionless (raro).
+  const POSITION_ARCHETYPE_WEIGHTS = {
+    specialist: 0.6,
+    combo: 0.3,
+    positionless: 0.1,
+  };
+
+  function pickPositionArchetype() {
+    const entries = Object.entries(POSITION_ARCHETYPE_WEIGHTS);
+    const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
+    let roll = Math.random() * total;
+    for (const [key, weight] of entries) {
+      if (roll < weight) return key;
+      roll -= weight;
+    }
+    return entries[entries.length - 1][0];
+  }
+
+  function fillRemainingByDistance(map, anchorIndices) {
     POSITIONS.forEach((pos, index) => {
-      if (index === primaryIndex) {
-        map[pos] = ATTRIBUTE_MAX;
-        return;
-      }
-      const distance = Math.abs(index - primaryIndex);
+      if (map[pos] !== undefined) return;
+      const distance = Math.min(...anchorIndices.map((anchorIndex) => Math.abs(index - anchorIndex)));
       const base = distance === 1 ? ADJACENT_LEVEL_BASE : DISTANT_LEVEL_BASE;
       const spread = distance === 1 ? ADJACENT_LEVEL_SPREAD : DISTANT_LEVEL_SPREAD;
       map[pos] = clamp(Math.round(base + randomNoise(spread)), ATTRIBUTE_MIN, ATTRIBUTE_MAX - 1);
     });
-    return map;
+  }
+
+  // Fisher-Yates simple, usado solo para barajar índices de posición al
+  // elegir el arquetipo positionless (no necesita ser criptográfico).
+  function shuffleIndices(list) {
+    const copy = [...list];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  // Devuelve `{ map, nominalPosition }` (DESIGN.md 6.1, mini-EPIC POS): el
+  // mapa de 5 posiciones y la posición nominal decidida (ancla), que
+  // `generateFictionalPlayer` pasa tal cual al `Player` que construye.
+  function generatePositionMap(forcedPrimary) {
+    const nominalPosition = forcedPrimary || randomFrom(POSITIONS);
+    const primaryIndex = POSITIONS.indexOf(nominalPosition);
+    const archetype = pickPositionArchetype();
+    const map = {};
+
+    if (archetype === 'combo') {
+      // Combo/polivalente moderado: la ancla + una vecina ADYACENTE en el
+      // array POSITIONS, ambas en 20 — el resto por distancia a la más
+      // cercana de las dos.
+      const neighborIndices = [primaryIndex - 1, primaryIndex + 1]
+        .filter((index) => index >= 0 && index < POSITIONS.length);
+      const comboIndex = randomFrom(neighborIndices);
+      map[nominalPosition] = ATTRIBUTE_MAX;
+      map[POSITIONS[comboIndex]] = ATTRIBUTE_MAX;
+      fillRemainingByDistance(map, [primaryIndex, comboIndex]);
+    } else if (archetype === 'positionless') {
+      // Polivalente amplio/positionless (raro): 3 o 4 posiciones en total
+      // (incluida la ancla) en niveles altos 17-20, no necesariamente todas
+      // exactamente 20 — el resto por distancia a la más cercana de ellas.
+      const otherIndices = shuffleIndices(
+        POSITIONS.map((_, index) => index).filter((index) => index !== primaryIndex),
+      );
+      const extraCount = 2 + Math.floor(Math.random() * 2); // 2 o 3 extra -> 3 o 4 posiciones altas en total
+      const highIndices = [primaryIndex, ...otherIndices.slice(0, extraCount)];
+      map[nominalPosition] = ATTRIBUTE_MAX;
+      highIndices.slice(1).forEach((index) => {
+        map[POSITIONS[index]] = clamp(Math.round(17 + Math.random() * 3), 17, ATTRIBUTE_MAX);
+      });
+      fillRemainingByDistance(map, highIndices);
+    } else {
+      // Especialista (mayoritario): comportamiento ya existente, una sola
+      // posición en 20.
+      map[nominalPosition] = ATTRIBUTE_MAX;
+      fillRemainingByDistance(map, [primaryIndex]);
+    }
+
+    return { map, nominalPosition };
   }
 
   // Promedia los deltas de perfil de las 5 posiciones, PONDERADO por el
@@ -227,11 +312,35 @@
     return { height, weight, wingspan };
   }
 
-  function generateAttributeGroup(keys, blendedDeltas) {
+  // Modelo B de envergadura relativa (DESIGN.md 7.4, mini-EPIC POS): SOLO
+  // en generación, nunca en tiempo de partido. Envergadura relativa alta
+  // (wingspan-height por encima de config.positions.wingspanBiasThresholdCm)
+  // sesga levemente y de forma NO determinista la distribución de partida:
+  // a la baja en outsideShot, al alza en interiorDefense/blocking/rebote —
+  // nunca una resta/suma fija, y nunca impide que un jugador de brazos
+  // largos siga generándose con outsideShot=20 (el sesgo es aleatorio 0-2,
+  // puede salir ~0). `bodyMeasurements` ausente (grupos Físico/Mental, que
+  // no tienen estas claves) desactiva el sesgo sin más.
+  const WINGSPAN_BIAS_MAX = 2;
+  const WINGSPAN_BENEFIT_ATTRIBUTES = ['interiorDefense', 'blocking', 'offensiveRebound', 'defensiveRebound'];
+
+  function wingspanBias(bodyMeasurements) {
+    if (!bodyMeasurements) return null;
+    const threshold = getPositionsConfig().wingspanBiasThresholdCm;
+    const relativeWingspan = bodyMeasurements.wingspan - bodyMeasurements.height;
+    if (relativeWingspan <= threshold) return null;
+    return { penalty: Math.random() * WINGSPAN_BIAS_MAX, bonus: Math.random() * WINGSPAN_BIAS_MAX };
+  }
+
+  function generateAttributeGroup(keys, blendedDeltas, bodyMeasurements) {
+    const bias = wingspanBias(bodyMeasurements);
     const group = {};
     keys.forEach((key) => {
       const delta = blendedDeltas[key] || 0;
-      group[key] = ATTRIBUTE_BASE + delta + randomNoise(NOISE_SPREAD);
+      let value = ATTRIBUTE_BASE + delta + randomNoise(NOISE_SPREAD);
+      if (bias && key === 'outsideShot') value -= bias.penalty;
+      else if (bias && WINGSPAN_BENEFIT_ATTRIBUTES.includes(key)) value += bias.bonus;
+      group[key] = value;
     });
     return group;
   }
@@ -249,16 +358,22 @@
   // estrecho no empuje los valores fuera de él (un Pívot "súper" sigue
   // reboteando relativamente mejor que un Base "súper", solo que ambos
   // quedan comprimidos dentro del mismo rango estrecho).
-  function generateSkewedAttributeGroup(keys, blendedDeltas, range) {
+  function generateSkewedAttributeGroup(keys, blendedDeltas, range, bodyMeasurements) {
     const base = (range.min + range.max) / 2;
     const width = range.max - range.min;
     const fullScaleWidth = ATTRIBUTE_MAX - ATTRIBUTE_MIN;
     const deltaScale = width / fullScaleWidth;
     const noiseSpread = Math.max(0.5, width * 0.18);
+    // Sesgo de envergadura (ver wingspanBias arriba) escalado igual que el
+    // resto de deltas de posición, para que un rango estrecho no lo empuje
+    // fuera de proporción.
+    const bias = wingspanBias(bodyMeasurements);
     const group = {};
     keys.forEach((key) => {
       const delta = (blendedDeltas[key] || 0) * deltaScale;
-      const raw = base + delta + randomNoise(noiseSpread);
+      let raw = base + delta + randomNoise(noiseSpread);
+      if (bias && key === 'outsideShot') raw -= bias.penalty * deltaScale;
+      else if (bias && WINGSPAN_BENEFIT_ATTRIBUTES.includes(key)) raw += bias.bonus * deltaScale;
       group[key] = clamp(Math.round(raw), range.min, range.max);
     });
     return group;
@@ -312,15 +427,19 @@
     const minAge = options.minAge !== undefined ? options.minAge : 18;
     const maxAge = options.maxAge !== undefined ? options.maxAge : 36;
     const { attributeRange } = options;
-    const positions = generatePositionMap(options.primaryPosition);
+    const { map: positions, nominalPosition } = generatePositionMap(options.primaryPosition);
     const { firstName, lastName } = generateFictionalName();
     const birthDate = randomBirthDate(minAge, maxAge);
     const age = Core.calculateAge(birthDate);
     const blended = blendProfiles(positions);
+    // Envergadura relativa (Modelo B, 7.4) calculada ANTES que los atributos
+    // Técnicos para poder sesgar outsideShot/interiorDefense/blocking/
+    // rebote en su generación — ver wingspanBias().
+    const bodyMeasurements = randomBodyMeasurements(positions);
 
     const technical = attributeRange
-      ? generateSkewedAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical, attributeRange)
-      : generateAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical);
+      ? generateSkewedAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical, attributeRange, bodyMeasurements)
+      : generateAttributeGroup(TECHNICAL_ATTRIBUTES, blended.technical, bodyMeasurements);
     const physical = attributeRange
       ? generateSkewedAttributeGroup(PHYSICAL_ATTRIBUTES, blended.physical, attributeRange)
       : generateAttributeGroup(PHYSICAL_ATTRIBUTES, blended.physical);
@@ -333,7 +452,8 @@
       lastName,
       birthDate,
       positions,
-      bodyMeasurements: randomBodyMeasurements(positions),
+      nominalPosition,
+      bodyMeasurements,
       technical,
       physical,
       mental,
@@ -351,7 +471,7 @@
     return players;
   }
 
-  const exportsObj = { generateFictionalPlayer, generateFictionalPlayers };
+  const exportsObj = { generateFictionalPlayer, generateFictionalPlayers, POSITION_PROFILES };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

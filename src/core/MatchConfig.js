@@ -7,7 +7,7 @@
 //
 // FASE 1: Bloque A (10 acciones base) y Bloque B (3 caminos de reglamento).
 // FASE 2 (esta entrega): añade el modificador de Altura/Envergadura/Peso
-// (7.4, flags `heightAxis1`/`heightAxis2` en cada acción), Presión de
+// (7.4, flag `heightAxis1` en cada acción), Presión de
 // Momento (7.5, sección `pressure`), Consistencia/Fatiga (7.5-bis,
 // secciones `consistency`/`fatigue`), y los parámetros del Bloque C (7.6):
 // contraataque, ritmo de posesión (ligado a ADN de Club), últimos segundos,
@@ -30,23 +30,62 @@
 // cifras validadas con Dennis, solo la ESTRUCTURA (qué atributos, en qué
 // lado, con qué método) sí sigue 7.6 al pie de la letra.
 //
-// `heightAxis1`/`heightAxis2` (7.4) por acción: objeto `{ primary: modo,
-// secondary: modo }` (solo se listan los lados a los que aplica). Eje 1
-// ('benefit'|'penalize'): modificador por envergadura relativa propia
-// (wingspan-height), acotado, sumado o restado al rating de ESE lado — ver
-// MatchEngine.applyHeightAxisModifiers(). Eje 2 (siempre resta, sin
-// variante): "impuesto físico" para jugadores muy altos. DESIGN.md 7.4 dice
-// que el Eje 2 afecta a Defensa perimetral y a la Pérdida de balón vista
-// desde el atacante alto — como ninguna mezcla usa un atributo suelto de
-// Agilidad/Velocidad (no existe ese atributo en las mezclas de 7.6, solo
-// existe como concepto), aquí se implementa como una resta directa sobre el
-// RATING del lado marcado (no sobre un atributo concreto dentro de la
-// mezcla) — ver nota extendida en MatchEngine.js.
+// `heightAxis1` (7.4) por acción: objeto `{ primary: modo, secondary: modo }`
+// (solo se listan los lados a los que aplica). ('benefit'|'penalize'):
+// modificador por envergadura relativa propia (wingspan-height), acotado,
+// sumado o restado al rating de ESE lado — ver
+// MatchEngine.applyHeightAxisModifiers(). El antiguo "Eje 2" (altura/peso vs
+// Agilidad, "impuesto físico" por superar un umbral absoluto) se RETIRÓ en
+// la revisión mini-EPIC POS — ver DESIGN.md 7.4 para la justificación
+// completa (evidencia real moderada/contradictoria; los atributos físicos
+// explícitos del jugador ya describen su movilidad real).
 
 (function (global) {
+  // Player.js (config.positions.attributeCategory, mini-EPIC POS): se
+  // construye a partir del catálogo YA existente de atributos Técnicos/
+  // Físicos/Mentales, para no duplicar esa lista aquí. Player.js carga
+  // antes que este archivo (ver index.html/Node require, sin dependencia
+  // circular), así que está disponible en tiempo de carga del propio
+  // CONFIG_BASE.
+  const PlayerCore = (typeof module !== 'undefined' && module.exports)
+    ? require('../entities/Player.js')
+    : global.BasketManager;
+  const { TECHNICAL_ATTRIBUTES, PHYSICAL_ATTRIBUTES, MENTAL_ATTRIBUTES } = PlayerCore;
+
+  // DESIGN.md 7.11.3 (revisión mini-EPIC POS): atributos de "responsabilidad
+  // posicional" — reciben la penalización COMPLETA de la curva no lineal al
+  // cubrir una posición de emergencia. Todo lo demás (tiro, pase, manejo,
+  // físicos...) es "pureSkill" y recibe solo una fracción — el cuerpo/
+  // técnica del jugador no desaparece por jugar fuera de su posición
+  // habitual, lo que falla es la lectura/posicionamiento.
+  const RESPONSIBILITY_ATTRIBUTES = new Set([
+    'positioning', 'gameVision', 'pressureDecisionMaking', 'anticipation',
+    'interiorDefense', 'perimeterDefense', 'teamwork',
+  ]);
+
+  function buildAttributeCategoryMap() {
+    const map = {};
+    [...TECHNICAL_ATTRIBUTES, ...PHYSICAL_ATTRIBUTES, ...MENTAL_ATTRIBUTES].forEach((attrName) => {
+      map[attrName] = RESPONSIBILITY_ATTRIBUTES.has(attrName) ? 'responsibility' : 'pureSkill';
+    });
+    return map;
+  }
+
   // Escala de atributos 1-20 (ver Player.js) — valor "neutro"/liga-media
   // usado como referencia en las fórmulas de intercepto directo (tiro libre).
   const NEUTRAL_ATTRIBUTE = 10.5;
+
+  // Exponente de la curva no lineal de penalización por competencia
+  // posicional (DESIGN.md 6.1, mini-EPIC POS) — constante compartida para
+  // que positions.competencePenaltyExponent y
+  // tactics.roles.fitWeights.positionShortfallExponent nunca diverjan sin
+  // querer al calibrar.
+  const COMPETENCE_PENALTY_EXPONENT = 1.6;
+  // Límite superior del tramo "Funcional" (DESIGN.md 6.1: 11-14) —
+  // constante compartida para que positions.competenceThresholds.
+  // functionalMax y tactics.roles.fitWeights.positionShortfallThreshold
+  // nunca diverjan sin querer al calibrar.
+  const FUNCTIONAL_COMPETENCE_MAX = 14;
 
   const CONFIG_BASE = {
     // --- 7.1: arquitectura del bucle ---
@@ -101,14 +140,55 @@
 
     neutralAttribute: NEUTRAL_ATTRIBUTE,
 
-    // --- 7.4: Modificador de Altura/Envergadura/Peso ---
-    // Umbral y magnitudes: DESIGN.md solo ancla el umbral del Eje 2
-    // (~2.05-2.10m); el resto de números (magnitud del bono/impuesto) son
-    // una propuesta propia de calibración, no validada.
+    // --- DESIGN.md 6.1/7.11.3/7.12.9 (mini-EPIC POS): Competencia
+    // posicional — parámetros compartidos por Player.js (semántica de
+    // tramos), Rotation.chooseEmergencyCandidate (7.11.3) y Tactics.roleFit
+    // (7.12.9). Vive como sección propia (no dentro de emergencyVersatility
+    // ni de tactics.roles) porque los tres consumidores la comparten.
+    positions: {
+      // Descriptores de los 5 tramos de DESIGN.md 6.1 — mismo patrón de
+      // shape que tactics.roles... starRating.thresholds (más abajo):
+      // límites SUPERIORES (inclusive) de cada escalón salvo el máximo
+      // (20 = Dominio natural completo, implícito por encima del último).
+      competenceThresholds: {
+        outOfPositionMax: 6, // 1-6: Claramente fuera de posición
+        emergencyMax: 10, // 7-10: Emergencia
+        functionalMax: FUNCTIONAL_COMPETENCE_MAX, // 11-14: Funcional
+        veryCompetentMax: 17, // 15-17: Muy competente
+        almostNaturalMax: 19, // 18-19: Prácticamente natural
+        // 20: Dominio natural completo (naturalMastery)
+      },
+      // Exponente de la curva no lineal de penalización por competencia
+      // posicional (DESIGN.md 6.1: penalización_base × (1-nivel/20)^exponente)
+      // — reutilizado tanto por emergencyVersatility (7.11.3) como por
+      // tactics.roles.fitWeights.positionShortfallExponent (7.12.9) para no
+      // duplicar el número en dos sitios. Punto de partida orientativo, sin
+      // validar por simulación masiva.
+      competencePenaltyExponent: COMPETENCE_PENALTY_EXPONENT,
+      // Umbral (cm) de envergadura relativa (wingspan-height) a partir del
+      // que el Modelo B de 7.4 sesga la generación de outsideShot/
+      // interiorDefense/blocking/rebote (playerGenerator.js) — SOLO en
+      // generación, nunca en tiempo de partido.
+      wingspanBiasThresholdCm: 8,
+      // Categoría de cada atributo Técnico/Físico/Mental (DESIGN.md 7.11.3):
+      // 'responsibility' (penalización completa) | 'pureSkill' (penalización
+      // reducida, ver pureSkillPenaltyFraction) — construido arriba a partir
+      // del catálogo ya existente de Player.js, no duplicado a mano.
+      attributeCategory: buildAttributeCategoryMap(),
+      // Fracción de la penalización completa que reciben los atributos
+      // 'pureSkill'. Única cifra de calibración explícitamente sin cerrar
+      // por Dennis más allá de "0.2 si no se indica otro número" (prompt
+      // mini-EPIC POS).
+      pureSkillPenaltyFraction: 0.2,
+    },
+
+    // --- 7.4: Modificador de Envergadura (revisión mini-EPIC POS) ---
+    // El antiguo Eje 2 (altura/peso vs Agilidad, "impuesto físico" por
+    // superar un umbral absoluto de altura) se RETIRA — ver DESIGN.md 7.4
+    // para la justificación completa (evidencia real moderada/contradictoria,
+    // atributos físicos explícitos ya cubren la movilidad real del
+    // jugador). Solo queda el Eje 1 (envergadura relativa).
     heightModifiers: {
-      axis2ThresholdCm: 207, // punto medio del rango 2.05-2.10m dado por DESIGN.md
-      axis2TaxPerCm: 0.2, // puntos de rating restados por cada cm por encima del umbral
-      axis2MaxTax: 3, // tope del "impuesto físico" — nunca anula al jugador
       axis1BonusPerCm: 0.25, // puntos de rating por cada cm de envergadura relativa (wingspan-height)
       axis1MaxBonus: 4, // tope del bono/malus de envergadura relativa
     },
@@ -180,22 +260,19 @@
       interventionWearMultiplier: 0.6,
     },
 
-    // --- DESIGN.md 7.11.3 (Bloque C.3): Polivalencia de emergencia ---
+    // --- DESIGN.md 7.11.3 (Bloque C.3, revisión mini-EPIC POS):
+    // Polivalencia de emergencia ---
     emergencyVersatility: {
-      // Penalización BASE de rendimiento según la distancia posicional
-      // (índice 0-4: Base=0 ... Pívot=4, ver Player.POSITIONS) entre la
-      // posición que hay que cubrir y la posición asignada del jugador que
-      // la cubre de emergencia. Expresada en puntos de rating (escala 1-20,
-      // mismo orden de magnitud que los modificadores de heightAxis) — se
-      // multiplica por (1 - nivel/20) en MatchEngine. Valores de partida,
-      // pendientes de calibración; distancia 0 no debería darse nunca (si la
-      // posición coincide, no hace falta polivalencia de emergencia).
-      basePenaltyByDistance: [0, 1.5, 3, 4.5, 6],
-      // Peso de la distancia en la selección de candidato (ver
-      // Rotation.chooseEmergencyCandidate): score = nivel - distancia * este
-      // valor. Pendiente de calibración — solo fija que la distancia importe
-      // de forma comparable al nivel (escala 1-20).
-      selectionDistanceWeight: 3,
+      // Penalización BASE de rendimiento (escala 1-20, mismo orden de
+      // magnitud que heightModifiers) — ya NO depende de la distancia
+      // posicional geométrica (esa heurística solo sobrevive en
+      // GENERACIÓN, ver DESIGN.md 7.11.3): se multiplica por
+      // (1 - nivel/20)^config.positions.competencePenaltyExponent en
+      // Rotation.chooseEmergencyCandidate, y el resultado se reparte entre
+      // responsibilityPenalty (completa)/pureSkillPenalty (fracción) en
+      // MatchEngine.computeMixRating. Valor de partida, pendiente de
+      // calibración.
+      basePenalty: 6,
     },
 
     // --- DESIGN.md 7.11.2 (Bloque C.2): rotación automática ---
@@ -479,9 +556,8 @@
         // secondary: defensor que le presiona (equipo en defensa)
         secondary: { perimeterDefense: 0.7, anticipation: 0.3 },
         // 7.4: Eje 1 perjudica al tirador (única acción con esta dirección
-        // en Bloque A); Eje 2 sobre el defensor (Defensa perimetral).
+        // en Bloque A).
         heightAxis1: { primary: 'penalize' },
-        heightAxis2: { secondary: true },
       },
 
       // 2. Tiro de media distancia — DESIGN.md 7.6.2
@@ -492,10 +568,8 @@
         primary: { midRangeShot: 0.5, pressureDecisionMaking: 0.25, gameVision: 0.25 },
         secondary: { perimeterDefense: 0.7, anticipation: 0.3 },
         // 7.6.2 dice explícitamente "sin modificador de Eje 1" (a diferencia
-        // del Triple) — pero el Eje 2 sí aplica al defensor, igual que en
-        // Triple, porque 7.4 lo describe como un efecto general sobre
-        // Defensa perimetral, no restringido a una acción concreta.
-        heightAxis2: { secondary: true },
+        // del Triple) — sin heightAxis en esta acción tras retirarse el Eje 2
+        // (mini-EPIC POS, ver DESIGN.md 7.4).
       },
 
       // 3. Tiro interior — DESIGN.md 7.6.3
@@ -547,18 +621,14 @@
       // MatchEngine.computeEventProbability): con ratings parejos, la
       // probabilidad final es baseProbability; por encima/debajo de eso
       // escala proporcionalmente con la ventaja de atributos de cada lado.
-      // 7.4: "Eje 2 sobre el atacante" (7.6.6) — el manejador alto/pesado
-      // pierde agilidad en transición. Como su propia mezcla (ballHandling,
-      // gameVision, passing, balance) no tiene un atributo de agilidad que
-      // descontar, el impuesto se aplica directamente sobre el RATING de
-      // `primary` (ver nota general de heightAxis2 al principio del archivo).
+      // El antiguo "Eje 2 sobre el atacante" (7.6.6) se retiró (mini-EPIC
+      // POS, ver DESIGN.md 7.4) — sin heightAxis en esta acción.
       turnover: {
         method: 'ratio',
         favors: 'secondary', // ver MatchEngine: la probabilidad calculada es la de PÉRDIDA
         baseProbability: 0.13,
         primary: { ballHandling: 0.35, gameVision: 0.25, passing: 0.2, balance: 0.2 },
         secondary: { stealing: 0.45, perimeterDefense: 0.35, aggressiveness: 0.2 },
-        heightAxis2: { primary: true },
       },
 
       // 7. Robo de balón — DESIGN.md 7.6.7
@@ -568,16 +638,15 @@
       // manejador que resiste. Sin `baseProbability`: dado que YA hay
       // pérdida, repartir si fue "robo" o "genérica" sí es razonablemente
       // 50/50 antes de mirar atributos, así que se usa el cociente crudo.
-      // 7.4: DESIGN.md 7.6.7 es explícito en que AMBOS ejes se aplican sobre
-      // quien intenta robar (`primary`) — Eje 1 (envergadura, alcance) y
-      // Eje 2 (altura/peso penaliza reacción), ambos sobre el mismo lado.
+      // 7.4: Eje 1 (envergadura, alcance) sobre quien intenta robar
+      // (`primary`) — el antiguo Eje 2 (altura/peso penaliza reacción) se
+      // retiró (mini-EPIC POS, ver DESIGN.md 7.4).
       steal: {
         method: 'ratio',
         favors: 'primary', // probabilidad de que se acredite como ROBO
         primary: { stealing: 0.4, anticipation: 0.25, perimeterDefense: 0.2, workRate: 0.15 },
         secondary: { ballHandling: 0.6, gameVision: 0.4 },
         heightAxis1: { primary: 'benefit' },
-        heightAxis2: { primary: true },
       },
 
       // 8. Rebote — DESIGN.md 7.6.8. primary: reboteador ofensivo (ataque);
@@ -589,7 +658,13 @@
         favors: 'primary',
         baseProbability: 0.28,
         primary: { offensiveRebound: 0.4, jumping: 0.3, strength: 0.2, workRate: 0.1 },
-        secondary: { defensiveRebound: 0.5, jumping: 0.3, positioning: 0.2 },
+        // secondary: añade `anticipation` (mini-EPIC POS, "leer de dónde
+        // viene el rebote" es tan parte de rebotear bien como el salto puro)
+        // redistribuyendo pesos con defensiveRebound/jumping/positioning
+        // para seguir sumando 1 — cifras de partida, no calibradas.
+        secondary: {
+          defensiveRebound: 0.45, jumping: 0.25, positioning: 0.15, anticipation: 0.15,
+        },
         heightAxis1: { primary: 'benefit', secondary: 'benefit' },
       },
 
@@ -796,11 +871,17 @@
           clearAdvantage: 0.5,
         },
         // Penalización de rating (puntos, escala 1-20 — mismo orden de
-        // magnitud que emergencyVersatility.basePenaltyByDistance más
-        // abajo) aplicada al defensor cuando la lectura es "pequeña
-        // ventaja": "defensor llega tarde" (7.12.4) se traduce como un
-        // contexto de penalización adicional sobre el MISMO mecanismo ya
-        // existente (computeMixRating/penalty), no un canal paralelo.
+        // magnitud que emergencyVersatility.basePenalty más abajo) aplicada
+        // al defensor cuando la lectura es "pequeña ventaja": "defensor
+        // llega tarde" (7.12.4) se traduce como un contexto de penalización
+        // adicional sobre el MISMO mecanismo ya existente
+        // (computeMixRating/penalty), no un canal paralelo. Revisión
+        // mini-EPIC POS: se combina con la penalización de polivalencia de
+        // emergencia (si la hay) sumándose a su `responsibilityPenalty` —
+        // es una penalización de lectura/posicionamiento del defensor
+        // "recuperándose", misma naturaleza que esa categoría (ver
+        // MatchEngine, combinación en el punto donde se calcula
+        // shotDefenderPenalty).
         recoveringDefenderPenalty: 1.5,
         // TAC-3 (7.12.6/7.12.34): conexión de effectiveSpacing con
         // AdvantageState, pendiente heredado de TAC-2 — término ACOTADO y
@@ -973,12 +1054,25 @@
       // los pesos de combinación de roleFit.
       roles: {
         fitWeights: {
-          // roleFit combina mezcla de atributos (aptitud pura) y competencia
-          // posicional (6.1) — mismo peso relativo que handler/screener de
-          // `advantage` arriba (0.7/0.3), reutilizado por analogía, no
-          // recalculado aparte.
-          attributeMixWeight: 0.7,
-          positionLevelWeight: 0.3,
+          // roleFit (revisión mini-EPIC POS, DESIGN.md 7.12.9): la mezcla de
+          // atributos del rol (mixScore) YA ES la base del score — la
+          // competencia posicional deja de sumarse ponderada (permitía que
+          // un jugador con atributos neutros pero posición natural obtuviera
+          // un roleFit artificialmente alto) y pasa a actuar solo como techo
+          // con penalización acotada por debajo del umbral. Umbral de
+          // competencia "funcional o mejor" — referencia directa al mismo
+          // número de config.positions.competenceThresholds.functionalMax,
+          // nunca duplicado.
+          positionShortfallThreshold: FUNCTIONAL_COMPETENCE_MAX,
+          // Tope pequeño (sobre 20) de la penalización cuando la mejor
+          // posición preferente del rol queda por debajo del umbral — nunca
+          // puede hundir el score entero, solo matizarlo.
+          positionShortfallMaxPenalty: 4,
+          // Exponente de la curva no lineal — mismo valor que
+          // config.positions.competencePenaltyExponent (constante
+          // COMPETENCE_PENALTY_EXPONENT compartida arriba, nunca duplicado
+          // como número suelto).
+          positionShortfallExponent: COMPETENCE_PENALTY_EXPONENT,
           // Estado físico (DESIGN.md 7.12.9/7.12.21, "estado físico"): un
           // jugador agotado rinde peor en su rol AHORA MISMO, pero el efecto
           // es pequeño a propósito — roleFit es sobre todo una valoración de

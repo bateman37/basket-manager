@@ -14,10 +14,10 @@
       "birthDate": "1997-07-15",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 4,
-        "Ala-pívot": 2,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-real-madrid-02",
@@ -90,9 +91,9 @@
       "birthDate": "1991-03-23",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 2,
-        "Ala-pívot": 4,
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
         "Pívot": 1
       },
       "teamId": "team-real-madrid",
@@ -160,7 +161,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-real-madrid-03",
@@ -169,10 +171,10 @@
       "birthDate": "2001-06-12",
       "positions": {
         "Base": 20,
-        "Escolta": 8,
-        "Alero": 2,
-        "Ala-pívot": 5,
-        "Pívot": 4
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -238,7 +240,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-real-madrid-04",
@@ -246,11 +249,11 @@
       "lastName": "Shulga",
       "birthDate": "2002-06-25",
       "positions": {
-        "Base": 4,
         "Escolta": 20,
-        "Alero": 17,
-        "Ala-pívot": 2,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -316,7 +319,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-real-madrid-05",
@@ -324,11 +328,11 @@
       "lastName": "Llull",
       "birthDate": "1987-11-15",
       "positions": {
-        "Base": 15,
         "Escolta": 20,
-        "Alero": 6,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -396,7 +400,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-real-madrid-06",
@@ -404,11 +409,11 @@
       "lastName": "Abalde",
       "birthDate": "1995-12-15",
       "positions": {
-        "Base": 5,
-        "Escolta": 16,
         "Alero": 20,
-        "Ala-pívot": 4,
-        "Pívot": 6
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -472,7 +477,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-real-madrid-07",
@@ -480,11 +486,11 @@
       "lastName": "Procida",
       "birthDate": "2002-06-01",
       "positions": {
-        "Base": 1,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 5,
-        "Pívot": 3
+        "Base": 17,
+        "Escolta": 13,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -548,7 +554,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-real-madrid-08",
@@ -556,10 +563,10 @@
       "lastName": "Deck",
       "birthDate": "1995-02-08",
       "positions": {
-        "Base": 6,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 12,
+        "Base": 17,
+        "Escolta": 13,
+        "Ala-pívot": 6,
         "Pívot": 1
       },
       "teamId": "team-real-madrid",
@@ -624,7 +631,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-real-madrid-09",
@@ -632,10 +640,10 @@
       "lastName": "Luwawu-Cabarrot",
       "birthDate": "1995-05-09",
       "positions": {
-        "Base": 1,
-        "Escolta": 16,
         "Alero": 20,
-        "Ala-pívot": 2,
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
         "Pívot": 1
       },
       "teamId": "team-real-madrid",
@@ -700,7 +708,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-real-madrid-10",
@@ -708,11 +717,11 @@
       "lastName": "Okeke",
       "birthDate": "1998-08-18",
       "positions": {
-        "Base": 2,
-        "Escolta": 3,
-        "Alero": 11,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -776,7 +785,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-real-madrid-11",
@@ -784,10 +794,10 @@
       "lastName": "Almansa",
       "birthDate": "2005-06-07",
       "positions": {
-        "Base": 5,
-        "Escolta": 5,
-        "Alero": 4,
         "Ala-pívot": 20,
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 12,
         "Pívot": 17
       },
       "teamId": "team-real-madrid",
@@ -852,7 +862,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-real-madrid-12",
@@ -860,10 +871,10 @@
       "lastName": "Pradilla",
       "birthDate": "2001-01-03",
       "positions": {
-        "Base": 4,
-        "Escolta": 1,
-        "Alero": 4,
         "Ala-pívot": 20,
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 11,
         "Pívot": 17
       },
       "teamId": "team-real-madrid",
@@ -928,7 +939,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-real-madrid-13",
@@ -936,11 +948,11 @@
       "lastName": "Jantunen",
       "birthDate": "2000-04-20",
       "positions": {
-        "Base": 4,
-        "Escolta": 3,
-        "Alero": 6,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 1,
+        "Alero": 12,
+        "Pívot": 17
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -1004,7 +1016,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-real-madrid-14",
@@ -1012,11 +1025,11 @@
       "lastName": "Garuba",
       "birthDate": "2002-03-09",
       "positions": {
-        "Base": 6,
-        "Escolta": 6,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -1080,7 +1093,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-real-madrid-15",
@@ -1088,11 +1102,11 @@
       "lastName": "Tavares",
       "birthDate": "1992-03-22",
       "positions": {
-        "Base": 5,
-        "Escolta": 4,
-        "Alero": 1,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -1158,7 +1172,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-real-madrid-16",
@@ -1166,11 +1181,11 @@
       "lastName": "Sarr",
       "birthDate": "1999-02-20",
       "positions": {
-        "Base": 5,
-        "Escolta": 1,
-        "Alero": 4,
-        "Ala-pívot": 5,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-real-madrid",
       "bodyMeasurements": {
@@ -1236,7 +1251,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

@@ -14,10 +14,10 @@
       "birthDate": "1994-06-15",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 5,
-        "Ala-pívot": 4,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-rio-breogan-02",
@@ -90,10 +91,10 @@
       "birthDate": "1991-08-17",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 3,
-        "Ala-pívot": 1,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -159,7 +160,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-rio-breogan-03",
@@ -168,10 +170,10 @@
       "birthDate": "1999-09-27",
       "positions": {
         "Base": 20,
-        "Escolta": 13,
-        "Alero": 2,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
-        "Pívot": 3
+        "Pívot": 1
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -237,7 +239,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-rio-breogan-04",
@@ -245,11 +248,11 @@
       "lastName": "Alonso",
       "birthDate": "1996-05-25",
       "positions": {
-        "Base": 6,
         "Escolta": 20,
-        "Alero": 4,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -313,7 +316,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-rio-breogan-05",
@@ -321,11 +325,11 @@
       "lastName": "Peris",
       "birthDate": "2000-08-06",
       "positions": {
-        "Base": 8,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 2,
-        "Pívot": 3
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -389,7 +393,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-rio-breogan-06",
@@ -397,11 +402,11 @@
       "lastName": "Aranitovic",
       "birthDate": "1998-01-24",
       "positions": {
-        "Base": 4,
-        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 5,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -465,7 +470,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-rio-breogan-07",
@@ -473,11 +479,11 @@
       "lastName": "Brown",
       "birthDate": "1998-09-23",
       "positions": {
-        "Base": 3,
-        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -541,7 +547,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-rio-breogan-08",
@@ -549,11 +556,11 @@
       "lastName": "García",
       "birthDate": "2000-08-23",
       "positions": {
-        "Base": 4,
-        "Escolta": 2,
-        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -617,7 +624,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-rio-breogan-09",
@@ -625,11 +633,11 @@
       "lastName": "Vicedo",
       "birthDate": "1994-08-24",
       "positions": {
-        "Base": 1,
-        "Escolta": 3,
-        "Alero": 8,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -693,7 +701,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-rio-breogan-10",
@@ -701,11 +710,11 @@
       "lastName": "Andric",
       "birthDate": "1994-01-04",
       "positions": {
-        "Base": 4,
-        "Escolta": 3,
-        "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 5
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -769,7 +778,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-rio-breogan-11",
@@ -777,11 +787,11 @@
       "lastName": "Ilic",
       "birthDate": "1996-09-17",
       "positions": {
-        "Base": 2,
-        "Escolta": 1,
-        "Alero": 1,
-        "Ala-pívot": 11,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -847,7 +857,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-rio-breogan-12",
@@ -855,11 +866,11 @@
       "lastName": "Brankovic",
       "birthDate": "2000-11-05",
       "positions": {
-        "Base": 4,
-        "Escolta": 2,
-        "Alero": 3,
-        "Ala-pívot": 4,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -923,7 +934,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-rio-breogan-13",
@@ -931,11 +943,11 @@
       "lastName": "Kasibabu",
       "birthDate": "1996-04-24",
       "positions": {
-        "Base": 6,
-        "Escolta": 4,
-        "Alero": 6,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-rio-breogan",
       "bodyMeasurements": {
@@ -999,7 +1011,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

@@ -14,8 +14,8 @@
       "birthDate": "2003-02-13",
       "positions": {
         "Base": 20,
-        "Escolta": 8,
-        "Alero": 3,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
         "Pívot": 1
       },
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-alimerka-oviedo-02",
@@ -90,10 +91,10 @@
       "birthDate": "1998-04-24",
       "positions": {
         "Base": 20,
-        "Escolta": 8,
-        "Alero": 5,
-        "Ala-pívot": 2,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -157,7 +158,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-alimerka-oviedo-03",
@@ -165,11 +167,11 @@
       "lastName": "Williams",
       "birthDate": "2004-01-01",
       "positions": {
-        "Base": 15,
         "Escolta": 20,
-        "Alero": 2,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 6
+        "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -233,7 +235,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-alimerka-oviedo-04",
@@ -241,11 +244,11 @@
       "lastName": "Goodine",
       "birthDate": "1999-09-29",
       "positions": {
-        "Base": 13,
         "Escolta": 20,
-        "Alero": 4,
-        "Ala-pívot": 2,
-        "Pívot": 4
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -309,7 +312,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-alimerka-oviedo-05",
@@ -317,11 +321,11 @@
       "lastName": "Hollanders",
       "birthDate": "2001-09-13",
       "positions": {
-        "Base": 5,
         "Escolta": 20,
-        "Alero": 15,
-        "Ala-pívot": 2,
-        "Pívot": 4
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -385,7 +389,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-alimerka-oviedo-06",
@@ -393,11 +398,11 @@
       "lastName": "Brnovic",
       "birthDate": "2000-08-10",
       "positions": {
-        "Base": 3,
-        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 11,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -461,7 +466,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-alimerka-oviedo-07",
@@ -469,10 +475,10 @@
       "lastName": "Arias",
       "birthDate": "2006-01-25",
       "positions": {
-        "Base": 3,
-        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 4,
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-alimerka-oviedo",
@@ -537,7 +543,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-alimerka-oviedo-08",
@@ -545,11 +552,11 @@
       "lastName": "Nwaokorie",
       "birthDate": "2002-09-24",
       "positions": {
-        "Base": 1,
-        "Escolta": 1,
-        "Alero": 17,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Pívot": 17
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -613,7 +620,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-alimerka-oviedo-09",
@@ -621,11 +629,11 @@
       "lastName": "Shelist",
       "birthDate": "2003-08-30",
       "positions": {
-        "Base": 2,
-        "Escolta": 4,
-        "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 8
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -689,7 +697,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-alimerka-oviedo-10",
@@ -697,11 +706,11 @@
       "lastName": "Wisne",
       "birthDate": "2003-09-18",
       "positions": {
-        "Base": 5,
-        "Escolta": 5,
-        "Alero": 3,
-        "Ala-pívot": 15,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -765,7 +774,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-alimerka-oviedo-11",
@@ -773,11 +783,11 @@
       "lastName": "Barro",
       "birthDate": "1995-05-10",
       "positions": {
-        "Base": 5,
-        "Escolta": 5,
-        "Alero": 2,
-        "Ala-pívot": 13,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -841,7 +851,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-alimerka-oviedo-12",
@@ -849,11 +860,11 @@
       "lastName": "Diarra",
       "birthDate": "2004-07-09",
       "positions": {
-        "Base": 3,
-        "Escolta": 3,
-        "Alero": 4,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-alimerka-oviedo",
       "bodyMeasurements": {
@@ -917,7 +928,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {
