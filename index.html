@@ -232,6 +232,12 @@
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>
   <script src="src/core/Promotion.js"></script>
+  <!-- TOOLTIP-1 (DESIGN.md 7.12.36): capa de presentación pura sobre los
+       catálogos de Tactics.js/MatchConfig.js (fuente única de contenido de
+       ayuda contextual de la pantalla de Tácticas) — carga después de
+       Tactics.js (aunque no depende de él en tiempo de carga, solo comparte
+       ids) y antes de game.js, que es quien la consume. -->
+  <script src="src/ui/TacticsHelp.js"></script>
   <script src="src/ui/game.js"></script>
   <script>
     // --- Landing: alternar entre modo juego y modo prueba ---

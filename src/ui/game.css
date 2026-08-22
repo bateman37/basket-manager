@@ -617,6 +617,89 @@
 .tactics-mismatch-table td:last-child { font-size: 12px; color: var(--win); font-weight: 700; text-align: left; }
 .tactics-mismatch-advantage { background: rgba(43, 122, 63, 0.08); }
 
+/* --- Ayuda táctica contextual (DESIGN.md 7.12.36, TOOLTIP-1) ---
+   El icono "ⓘ" es un <button> real (nunca un <span> con solo :hover) para
+   que un tap en móvil lo abra igual que un click de ratón — ver game.js,
+   renderTacticsScreen(). El panel se posiciona relativo al icono en
+   escritorio (ancho de pantalla suficiente) y se convierte en un bloque a
+   ancho completo en pantallas estrechas, para no salirse de la pantalla en
+   móvil. */
+.tactics-help-wrap { position: relative; display: inline-block; }
+.tactics-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--brick);
+  border-radius: 50%;
+  background: var(--white-line);
+  color: var(--brick-dark);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.tactics-help-icon.is-open { background: var(--brick); color: var(--white-line); }
+/* .tactics-help-panel/.tactics-help-panel__header/.tactics-help-row son
+   <span> en el HTML (game.js), no <div>/<p> — ver comentario de
+   tacticsHelpBodyHtml() en game.js: un <div> anidado dentro de un <p>/
+   <label>/<h3> ancestro (varios sitios donde se usa este icono) hace que
+   el parser HTML5 cierre implícitamente ese ancestro y saque el panel
+   fuera de .tactics-help-wrap, rompiendo position:absolute. `display:
+   block`/`display:flex` aquí consiguen el mismo layout de bloque sin
+   ese riesgo. */
+.tactics-help-panel {
+  position: absolute;
+  z-index: 20;
+  top: 24px;
+  left: 0;
+  display: block;
+  width: 280px;
+  max-width: calc(100vw - 48px);
+  background: var(--white-line);
+  border: 1px solid var(--brick);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(30, 27, 22, 0.22);
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+}
+.tactics-help-row { display: block; margin: 0 0 8px; }
+.tactics-help-row:last-child { margin-bottom: 0; }
+.tactics-help-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.tactics-help-panel__header strong { font-family: var(--font-score); text-transform: uppercase; letter-spacing: 0.02em; color: var(--brick-dark); }
+.tactics-help-panel__close {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+@media (max-width: 520px) {
+  .tactics-help-panel { position: fixed; left: 16px; right: 16px; top: auto; width: auto; max-width: none; }
+}
+
+/* --- Glosario (DESIGN.md 7.12.36, TOOLTIP-1) --- */
+.tactics-glossary-entry { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.tactics-glossary-entry:last-child { border-bottom: none; }
+.tactics-glossary-entry h4 { margin: 0 0 6px; font-family: var(--font-score); text-transform: uppercase; letter-spacing: 0.02em; color: var(--brick-dark); font-size: 14px; }
+.tactics-glossary-entry .tactics-help-row { margin: 0 0 6px; font-size: 13px; line-height: 1.4; }
+.tactics-glossary-entry .tactics-help-row:last-child { margin-bottom: 0; }
+
 /* --- Ventana de intervención en partido (DESIGN.md 7.12.24, TAC-5) --- */
 .intervention-panel { border: 1px solid var(--brick); }
 .intervention-panel h3 { font-family: var(--font-score); text-transform: uppercase; letter-spacing: 0.02em; }
