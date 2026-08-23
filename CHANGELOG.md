@@ -2,6 +2,244 @@
 
 ## 2026-08-23
 
+### LIFE-2 — Entrenamiento, desarrollo dirigido y aprendizaje táctico/posicional
+
+Segunda entrega de STEP 3 — PLAYER LIFE (DESIGN.md 9.13, montada encima de
+LIFE-1/POS/TAC-6 ya mergeadas). Arquitectura: `src/core/Training.js`
+(nuevo) construye el estímulo de entrenamiento y los sistemas de posición/
+rol/Energy; `src/core/TrainingAI.js` (nuevo) es la única fuente de
+heurísticas CPU; `CONFIG_BASE.training` (`MatchConfig.js`) todos los
+coeficientes; `PlayerDevelopment.js` sigue siendo la única fuente de
+reglas de crecimiento de atributos/TMB/PA.
+
+#### Corrección de partida (sección 0 del prompt de esta sesión)
+
+`staffContext`/`stimulusByAttribute` NO existían en LIFE-1 pese a que el
+prompt original los daba por hechos — verificado contra HEAD real. Se
+construyen aquí, dentro de `PlayerDevelopment.js` (no en `Training.js`,
+que sigue sin tocar atributos 1-20 directamente):
+
+- `processOneTick()` acepta un `context.stimulusByAttribute` opcional
+  (mapa atributo → multiplicador, 1.00 = neutro/ausente) que se multiplica
+  ENCIMA del `growthDelta` ya existente — nunca sustituye edad/PA/
+  headroom/ruido, y nunca toca `declineDelta`.
+- `processPlayerToDate()` admite `context` como función `(tickDate) =>
+  context` además del objeto plano de siempre (compatibilidad total con
+  llamadores existentes) — necesario porque Training recalcula densidad
+  competitiva/estímulo POR SEMANA, no una vez por llamada.
+- `staffRatingToFactor()` (nuevo, exportado): reutiliza el MISMO mapping
+  1-20→factor de `computeFacilityFactor` (extraído a `mapLevelToFactor`
+  compartida) — `config.training.staffContext` (rating 10 = neutro
+  mientras no exista Staff real) es un mecanismo NUEVO y separado de
+  `playerDevelopment.staffFactor` (LIFE-1, intacto), usado solo por
+  posición/rol, nunca por el crecimiento general de atributos.
+
+#### Plan de entrenamiento (`Team.trainingPlan`/`trainingState`)
+
+- `trainingPlan`: `teamFocus` (Balanced/Offense/Defense/Physical/
+  Tactical), `intensity` (Recovery/Light/Normal/High), `individualFocuses`
+  (como mucho un foco por jugador). Fallback legacy a Balanced/Normal/sin
+  focos en el constructor de `Team.js`, sin reescribir JSON reales.
+- `trainingState`: `lastProcessedDate`, `planSegments` (podados al
+  consumirse), `recentTeamMatchDates`, `nextCpuCollectiveReviewDate`/
+  `nextCpuIndividualReviewDate`. Serializado completo en `Team.toJSON()`.
+  `removePlayer()` limpia el foco huérfano del jugador que sale.
+- `Training.setPlan`/`setTeamFocus`/`setIntensity`/`setIndividualFocus`:
+  SIEMPRE procesan el desarrollo pendiente con el plan ANTERIOR
+  (`processTeamDevelopmentToDate`) antes de aplicar el cambio y registrar
+  el nuevo segmento — cambiar de plan nunca reescribe semanas pasadas.
+
+#### Densidad competitiva, intensidad y Energy
+
+- `matchDensity` (0-4+ partidos/semana → `opportunityFactor`/`loadUnits`)
+  y `intensity` (developmentMultiplier/recoveryMultiplier/
+  energyCostPerLoadUnit/tacticalMultiplier) tal cual las cifras del
+  prompt, en `CONFIG_BASE.training`.
+- Coste de Energy semanal (`loadUnits × energyCostPerLoadUnit` + extra por
+  foco individual) aplicado por `Training.buildPlayerTickContext()` como
+  efecto lateral de cada tick de atributos — mismo tick que produce el
+  estímulo, así el readiness de la semana siguiente ya refleja el coste.
+- `readinessFactorByEnergy` modula el estímulo POSITIVO según Energy
+  actual (nunca el declive).
+
+#### Corrección de orden temporal real (sección 9 del prompt)
+
+Bug detectado en el código YA existente (no introducido por esta sesión):
+`Recovery.applyRestRecovery` se invocaba DESPUÉS de simular cada partido,
+así que el partido consumía la Energía sin recuperar del hueco de
+descanso anterior. `Training.prepareTeamForMatch()` (nuevo, llamado desde
+`buildMatchOptionsResolver()` en `game.js`, para AMBOS lados de CUALQUIER
+partido — liga visible, liga de fondo, brackets, usuario y CPU) resuelve
+recuperación → estímulo → PlayerDevelopment → progreso POS/táctico ANTES
+de construir squad/lineup y simular. Se avanza `lastMatchDate` (y se
+aplica recuperación) para la plantilla COMPLETA en cada partido del
+equipo, no solo quien acabe jugando minutos — evita el doble cómputo que
+existiría si el "reloj de descanso" de un jugador se quedara parado hasta
+su siguiente aparición real (test dirigido en `scripts/smoke-life2.js`).
+`applyRecoveryForResolvedMatch()` (game.js) queda solo con lo que depende
+del resultado ya simulado: exposición competitiva y Experience.
+
+Para partidos de bracket (`Bracket.Series.playNextGame`, sin tocar) no
+hay fecha exacta disponible antes de simular — se usa el reloj de mundo
+actual como referencia (aproximación razonable, partidos de una Series
+separados solo unos días), documentado explícitamente en `game.js`.
+
+#### Presupuesto neutral de Team Focus (sección 11)
+
+`Training.computeTeamFocusStimulusVector()`: Balanced deja el vector en
+1.00 uniforme; Offense/Defense/Physical usan un vector bruto
+(`CONFIG_BASE.training.teamFocusVectors`) normalizado contra el
+presupuesto TMB del jugador (`PlayerDevelopment.getPositionWeights`) para
+que la media ponderada vuelva a 1.00 — cambian QUÉ mejora, no cuánto se
+crea en total. Tactical es la excepción deliberada (sección 12): usa
+`attributeBase` por categoría de curva, sin normalizar (queda por debajo
+de 1.00 a propósito).
+
+#### Foco individual único
+
+- **Atributo**: `applyAttributeFocusRedistribution()` — concentra ×1.35 en
+  el target, reduce el resto proporcionalmente para conservar el mismo
+  presupuesto ponderado total (sección 15).
+- **Posición**: `player.developmentState.positionProgress` (residual
+  nuevo, independiente de `attributeProgress`, mismo patrón de cruce de
+  entero que `applyResidualDelta`). Headroom `sqrt((20-nivel)/19)`, edad/
+  mindset reutilizados de `PlayerDevelopment.computeLearningFactor` +
+  curva `cognitive` (nunca reimplementados), entorno de coaching
+  (Training Center + `staffContext`, pesos 40/40/20 adultos ó
+  35/30/15/20 <21 años), `matchRepFactor` que acelera con minutos REALES
+  en la posición entrenada. `nominalPosition` nunca cambia automáticamente;
+  posición nunca consume PA/TMB; desvía ×0.92 del desarrollo general.
+- **Rol**: entrena `profile.familiarity.byPlayerRole` (TAC-6 real, mismo
+  init 35/reset 15 que el camino de partido — `growPlayerRoleFamiliarityFromTraining()`
+  replica ese bookkeeping exacto), ×1.75 sobre la ganancia de ESE rol,
+  nunca toca `roleFit`. Desvía ×0.94 del desarrollo general.
+
+#### Minutos reales por posición (`Rotation.js`/`MatchEngine.js`)
+
+`Rotation.accumulatePlayedTime()` ahora también acumula
+`positionSeconds` (playerId → {posición: segundos}), expuesto en
+`MatchEngine.rotationSummary()` como `positionSecondsByPlayer`. Solo
+tracking factual — ninguna regla de sustitución/penalización POS se tocó.
+`PlayerDevelopment.recordMatchExposure()` acepta un `positionMinutes`
+opcional en el mismo registro de `matchExposures` (nunca una estructura
+paralela).
+
+#### Entrenamiento táctico colectivo/individual
+
+`Training.applyWeeklyTacticalTraining()` (tick semanal a nivel de
+equipo, separado de los ticks de atributo por jugador): alimenta
+`offensiveSystem`/`byPlayFamily` según las familias con peso real en
+`playTypeWeights`, `defensiveSystem`/`byCoverage` según la cobertura de
+P&R activa, y `byPlayerRole` de los roles actualmente asignados —
+siempre vía `Tactics.growFamiliarityValue` (reutilizado tal cual, nunca
+una familiaridad paralela). Ritmo semanal propio
+(`CONFIG_BASE.training.tactical`, separado de
+`CONFIG_BASE.tactics.familiarity`, que sigue rigiendo el aprendizaje por
+posesión jugando partidos — ambas fuentes conviven). Complejidad de
+jugada/cobertura ralentiza el aprendizaje (factor 1.00-0.65); no se tocó
+`computeTacticalExecution` ni ninguna fórmula de partido.
+
+#### Offseason
+
+Intensidad efectiva forzada a Normal y sin coste de Energy de
+entrenamiento cuando el tick cae antes de `Calendar.seasonStartDate` de
+la temporada vigente (detectado comparando fechas, sin ningún campo nuevo
+de "pretemporada"); familiaridad táctica y progreso posicional/de rol
+siguen avanzando con multiplicador reducido (0.60). **Desviación real
+frente al prompt**: LIFE-1 no dejó ningún `offseasonLearningMultiplier`
+que "conservar" (verificado contra HEAD, mismo tipo de hallazgo que
+`staffContext`/`stimulusByAttribute`) — no se inventó ese multiplicador
+para el crecimiento general de atributos, que sigue sin ningún ajuste de
+temporada baja (nunca lo tuvo en LIFE-1).
+
+#### IA de entrenamiento CPU (`TrainingAI.js`)
+
+Revisión colectiva cada 28 días (Energy baja de los 10 con más minutos →
+Recovery; 2+ partidos en 7 días → Light + Tactical/Balanced; familiaridad
+táctica media baja → Tactical/Normal; plantilla joven con headroom amplio
+→ Balanced/High si el calendario y la Energy lo permiten; si no, el
+enfoque que cubre la debilidad relativa del roster) y focos individuales
+cada 56 (atributo relevante bajo el propio perfil por defecto; posición
+solo con cobertura pobre + competencia real ≥8; rol solo con familiarity
+claramente por debajo de la media del equipo), más revisión defensiva si
+un foco deja de ser válido. Nunca se llama para el equipo del usuario
+(game.js filtra explícitamente en `reviewCpuTrainingForAllTeams()`).
+
+#### UI — pantalla "Entrenamiento" (`game.js`/`game.css`/`index.html`)
+
+Nueva pantalla (capa de presentación pura sobre `Training.js`, sin
+ninguna regla propia): plan colectivo con guardado explícito
+("Guardar plan"), próximo microciclo (margen/carga vía
+`Training.describeMicrocycle`, alertas de Energy <70 al próximo partido
+vía `Training.projectEnergyToDate`, puro) y focos individuales por
+jugador (tipo + objetivo agrupado Técnico/Físico/Mental o Ataque/
+Defensa, aplicados de inmediato al cambiar cada select). TMB no se
+muestra (LIFE-1 ya lo mantiene interno). Tabla de focos envuelta en
+`.gm-table-scroll` (mismo patrón que Estadísticas) tras detectar
+desbordamiento horizontal real en móvil con Playwright.
+
+#### Modo prueba (`index.html`)
+
+Nueva sección "LIFE-2": comparativa de los 12 escenarios pedidos (enfoque
+×5, Balanced/High, Balanced/Recovery, foco de atributo, posición sin/con
+minutos reales, foco de rol, densidad 0/1/2/3 partidos/semana), con un
+único jugador base compartido entre las 12 ramas (seed controlada real —
+bug corregido durante esta sesión: la primera versión regeneraba un
+jugador random dentro de cada rama, produciendo comparaciones sucias y,
+en el caso de foco posicional, una mezcla de posición objetivo/jugador
+base que en un caso llegó a mostrar un salto de nivel irreal).
+
+#### Calibración observada
+
+- Balanced/Normal vs baseline LIFE-1 (sin Training): delta TMB medio de
+  temporada +10.3% sobre 36 equipos reales/414 jugadores — al límite del
+  objetivo de la sección 41 ("no debe aumentar >10%"), no perfectamente
+  dentro. Causa identificada: el calendario real (CAL-1) intercala
+  jornadas "midweek" con separación irregular (3-11 días), así que la
+  ventana de densidad de 7 días no siempre coincide 1:1 con "un partido
+  por semana" — algunas semanas cuentan 0 partidos (`opportunityFactor`
+  1.10) sin que la semana siguiente lo compense exactamente. Los números
+  de `matchDensity` son los del prompt tal cual; no se ha tocado esta
+  tabla para forzar el objetivo exacto.
+- Offense/Defense/Physical: atributos del foco crecen claramente más que
+  Balanced, TMB agregado similar (comparativa LIFE-2 del modo prueba).
+- Posición con minutos reales: ~+1 punto de competencia en 8 semanas de
+  foco continuo con minutos reales en el target (perfil medio, intensidad
+  Normal) — dentro del orden de magnitud de la sección 41 (+1 a +2.5 por
+  temporada completa de 34 semanas).
+- Rol con foco individual: 35→~97/100 de familiaridad en una temporada
+  completa (34 semanas) con ×1.75 sostenido — acelera claramente frente a
+  sin foco, sin alcanzar el techo en pocas semanas.
+
+#### Tests
+
+- `scripts/smoke-life2.js` (nuevo): construye los 36 equipos/414
+  jugadores reales, ejercita `Training.prepareTeamForMatch`/
+  `TrainingAI.reviewTeamIfDue` en el mismo camino que `game.js`
+  (`buildMatchOptionsResolver`) durante 34 jornadas en ambas divisiones,
+  con planes/focos no-default en varios equipos (offense+atributo,
+  tactical+rol, physical+posición) — verifica rangos de Energy/TMB/
+  atributos/posiciones/familiaridad y que los focos activos realmente
+  progresan. Sin excepciones.
+- Verificación manual con Playwright `file://` (headless Chromium,
+  desktop + viewport móvil): flujo completo Selección de equipo →
+  Entrenamiento (cambiar plan/guardar, cambiar foco individual por
+  jugador, los 3 tipos con sus catálogos de objetivo) → 8 jornadas reales
+  jugadas de principio a fin (motor pausable incluido) → pantalla de
+  Entrenamiento sigue coherente después. Consola limpia salvo el bloqueo
+  de red preexistente de Google Fonts (no relacionado). Overflow
+  horizontal detectado y corregido en móvil (tabla de focos).
+
+#### Fuera de alcance de esta entrega (queda para LIFE-3/4)
+
+Lesiones, `injuryProneness`, historial médico, riesgo de lesión por
+carga, Staff como entidades reales/contratables, decaimiento de
+posiciones o de familiaridad táctica por no uso, familiaridad de
+quinteto, entrenamiento diario editable, cambio automático de
+`nominalPosition`. No se ha tocado ninguna fórmula de partido de
+MatchEngine/Tactics (`tacticalExecution`)/POS/Rotation (sustitución)/
+League/Bracket/Cup/Playoffs/Promotion/Calendar/CpuLineup.
+
 ### LIFE-1 — Carrera, TMB, Potencial, desarrollo y declive
 
 Primera entrega de STEP 3 — PLAYER LIFE (DESIGN.md sección 9, sustituye el

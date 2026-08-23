@@ -784,3 +784,33 @@
 .news-card__priority { text-transform: uppercase; }
 .news-card__title { margin: 4px 0; font-family: var(--font-score); font-size: 15px; letter-spacing: 0.01em; }
 .news-card__body { margin: 0; }
+
+/* --- LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2): pantalla
+   Entrenamiento — mismos componentes que el resto (gm-card/gm-table/
+   gm-btn), sin estilos propios de más. --- */
+.training-plan-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.training-plan-field select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.training-save-confirmation { margin-left: 10px; color: var(--win); font-weight: 600; }
+.training-energy-alerts { margin: 6px 0 0; padding-left: 18px; }
+.training-energy-alerts li { color: var(--brick); font-size: 13px; }
+.training-focus-table select {
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 4px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  max-width: 180px;
+}

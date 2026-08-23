@@ -296,10 +296,35 @@
   }
 
   // --- Sección 20: instalaciones del club ---
+  // Mapping 1-20 -> factor compartido (extraído para que LIFE-2 pueda
+  // reutilizar EXACTAMENTE el mismo mapping para `staffContext`, sección
+  // 3-bis del prompt LIFE-2, sin copiar los números ni inventar otro
+  // mapping — "replique el mismo mapping 1–20 → factor que ya usa
+  // computeFacilityFactor").
+  function mapLevelToFactor(level, minLevel, maxLevel, minFactor, maxFactor, neutralLevel) {
+    const resolved = level === undefined || level === null ? neutralLevel : level;
+    return linearMap(resolved, minLevel, maxLevel, minFactor, maxFactor);
+  }
+
   function computeFacilityFactor(facilityLevel, config) {
     const { minLevel, maxLevel, minFactor, maxFactor, neutralLevelWhenNoTeam } = config.playerDevelopment.facility;
-    const level = facilityLevel === undefined || facilityLevel === null ? neutralLevelWhenNoTeam : facilityLevel;
-    return linearMap(level, minLevel, maxLevel, minFactor, maxFactor);
+    return mapLevelToFactor(facilityLevel, minLevel, maxLevel, minFactor, maxFactor, neutralLevelWhenNoTeam);
+  }
+
+  // --- LIFE-2 (prompt de esta sesión, sección 3-bis): `staffContext` —
+  // construcción NUEVA de LIFE-2, no heredada de LIFE-1 (ver corrección de
+  // la sección 0 de ese prompt: LIFE-1 no dejó ningún objeto `staffContext`
+  // preparado). Reutiliza el MISMO mapping 1-20 -> factor de
+  // `computeFacilityFactor` de arriba (mismo rango 0.9-1.1,
+  // `playerDevelopment.facility.minLevel/maxLevel/minFactor/maxFactor`) —
+  // rating=10 (neutro mientras no exista Staff real) da un factor cercano
+  // a 1.0, igual que facilityLevel=10. Usado SOLO por los sistemas nuevos
+  // de LIFE-2 que lo piden explícitamente (posición/rol táctico) — nunca
+  // por el crecimiento general de atributos, que sigue usando
+  // `playerDevelopment.staffFactor` (LIFE-1, escalar plano) tal cual.
+  function staffRatingToFactor(rating, config) {
+    const { minLevel, maxLevel, minFactor, maxFactor, neutralLevelWhenNoTeam } = config.playerDevelopment.facility;
+    return mapLevelToFactor(rating, minLevel, maxLevel, minFactor, maxFactor, neutralLevelWhenNoTeam);
   }
 
   // --- Sección 15: longevidad individual (agingOffsetYears) ---
@@ -386,10 +411,19 @@
   // --- Sección 10: registrar exposición de partido ---
   // `minutes` ya viene calculado por el llamador (game.js,
   // applyRecoveryForResolvedMatch) como playedSeconds/60 redondeado.
-  function recordMatchExposure(player, { date, minutes, competition, division }) {
+  // `positionMinutes` (LIFE-2, DESIGN.md 9, sección 17 del prompt de esa
+  // sesión): opcional, `{ [position]: minutes }` — minutos REALES por
+  // posición ocupada en pista (Rotation.js/MatchEngine.rotationSummary),
+  // nunca inferidos de `nominalPosition`. Campo canónico nuevo del mismo
+  // registro de exposición, no una estructura paralela.
+  function recordMatchExposure(player, {
+    date, minutes, competition, division, positionMinutes,
+  }) {
     if (!minutes || minutes <= 0) return;
     if (!player.developmentState) return; // defensivo: se inicializa en ensureDevelopmentState antes de esto
-    player.developmentState.matchExposures.push({ date, minutes, competition, division });
+    player.developmentState.matchExposures.push({
+      date, minutes, competition, division, positionMinutes: positionMinutes || undefined,
+    });
   }
 
   // --- Sección 23: orden de aplicación de un tick completo ---
@@ -429,6 +463,17 @@
     const { eliteWeightedAverage } = config.playerDevelopment.tmb;
     const tmbPerWeightedAvgPoint = 199 / (eliteWeightedAverage - 1);
 
+    // LIFE-2 (prompt de esta sesión, sección 3-bis): `context.stimulusByAttribute`
+    // — hook NUEVO, no existía en LIFE-1 (ver corrección de la sección 0 de
+    // ese prompt). Mapa opcional atributo -> multiplicador (ausente o sin
+    // `context.stimulusByAttribute` = 1.00 para todos, comportamiento
+    // idéntico a antes de LIFE-2). Se multiplica ENCIMA de los factores ya
+    // existentes, nunca los sustituye — es la única vía por la que
+    // Training influye en QUÉ atributo crece más, dejando edad/PA/
+    // headroom/ruido exactamente como en LIFE-1. No se aplica a
+    // `declineDelta` (sección 1-3 de arriba): el trade-off de intensidad
+    // de Training vive en Energy, no en frenar el declive.
+    const stimulusByAttribute = context && context.stimulusByAttribute;
     const rawGrowthDeltas = {};
     let rawDeltaUncappedTmb = 0;
     ALL_MUTABLE_ATTRIBUTES.forEach((attr) => {
@@ -438,8 +483,10 @@
       const trainability = config.playerDevelopment.trainability[attr];
       const noiseSpread = config.playerDevelopment.noise.growthNoiseSpread;
       const noiseFactor = 1 + (deterministicUnit(ds.developmentSeed, 'growth', attr, ds.lastProcessedDate.toISOString()) * 2 - 1) * noiseSpread;
+      const stimulusFactor = (stimulusByAttribute && stimulusByAttribute[attr] !== undefined) ? stimulusByAttribute[attr] : 1.00;
       const growthDelta = config.playerDevelopment.baseGrowthRate
-        * categoryFactor * trainability * learningFactor * exposureFactor * facilityFactor * staffFactor * noiseFactor;
+        * categoryFactor * trainability * learningFactor * exposureFactor * facilityFactor * staffFactor * noiseFactor
+        * stimulusFactor;
       rawGrowthDeltas[attr] = growthDelta;
       rawDeltaUncappedTmb += (growthDelta * weights[attr]) / sumWeight * tmbPerWeightedAvgPoint;
     });
@@ -480,6 +527,18 @@
   }
 
   // --- Sección 12: procesamiento hasta una fecha, con remanente ---
+  // `context` (LIFE-2, prompt de esta sesión): además del objeto plano de
+  // siempre, admite una FUNCIÓN `(tickDate) => context` — necesario porque
+  // Training.js calcula `stimulusByAttribute`/densidad competitiva por
+  // SEMANA (pueden cambiar tick a tick dentro de una misma llamada que
+  // recupera varias semanas de golpe), mientras que un objeto plano se
+  // aplicaría igual a todos los ticks de esta llamada. Un objeto plano
+  // sigue funcionando exactamente igual que antes (compatibilidad total
+  // con los llamadores existentes, ej. scripts/test-life1.js).
+  function resolveTickContext(context, tickDate) {
+    return typeof context === 'function' ? context(tickDate) : context;
+  }
+
   function processPlayerToDate(player, targetDate, config, context) {
     ensureDevelopmentState(player, config, targetDate);
     if (!player.birthDate) {
@@ -492,7 +551,8 @@
     const changes = [];
     while (targetMs - cursor >= tickMs) {
       cursor += tickMs;
-      changes.push(processOneTick(player, new Date(cursor), config, context));
+      const tickDate = new Date(cursor);
+      changes.push(processOneTick(player, tickDate, config, resolveTickContext(context, tickDate)));
     }
     return { skipped: false, ticks: changes.length, changes };
   }
@@ -523,6 +583,7 @@
     computeLearningFactor,
     computeExposureFactor,
     computeFacilityFactor,
+    staffRatingToFactor,
     ensureDevelopmentState,
     recordMatchExposure,
     processPlayerToDate,

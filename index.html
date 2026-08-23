@@ -39,6 +39,7 @@
       <button class="gm-nav__btn" data-screen="home" type="button">Inicio</button>
       <button class="gm-nav__btn" data-screen="lineup" type="button">Alineación</button>
       <button class="gm-nav__btn" data-screen="tactics" type="button">Tácticas</button>
+      <button class="gm-nav__btn" data-screen="training" type="button">Entrenamiento</button>
       <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
       <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
@@ -62,6 +63,10 @@
 
     <section id="gm-screen-tactics" class="gm-screen">
       <div id="gm-tactics"></div>
+    </section>
+
+    <section id="gm-screen-training" class="gm-screen">
+      <div id="gm-training"></div>
     </section>
 
     <section id="gm-screen-agenda" class="gm-screen">
@@ -221,6 +226,17 @@
     <button id="life1-directed-test-btn" type="button">Test dirigido: 16 años, 0/12/40 min, 1ª/2ª (invariantes 30-32)</button>
     <pre id="life1-output">(todavía no se ha ejecutado ninguna prueba de LIFE-1)</pre>
   </section>
+
+  <!-- LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, sección 40 del
+       prompt de esa sesión): comparativa de los 12 escenarios de
+       entrenamiento pedidos, con seed controlada (un único jugador base
+       reconstruido igual en cada rama, mismo criterio que el test dirigido
+       de LIFE-1) — herramienta de depuración, no pantalla de producto. -->
+  <section id="life2-test">
+    <h2>Prueba: LIFE-2 — Entrenamiento, desarrollo dirigido y aprendizaje táctico/posicional</h2>
+    <button id="life2-run-comparison-btn" type="button">Ejecutar comparativa de los 12 escenarios (8 semanas, seed controlada)</button>
+    <pre id="life2-output">(todavía no se ha ejecutado ninguna comparativa de LIFE-2)</pre>
+  </section>
   </div>
   <!-- fin de #gm-test-mode-section -->
 
@@ -254,6 +270,15 @@
        antes que MatchEngine.js — en el navegador, MatchEngine.js lee
        planPnrPossession() de global.BasketManager, que este script rellena. -->
   <script src="src/core/Tactics.js"></script>
+  <!-- LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2): Training.js
+       reutiliza Tactics.growFamiliarityValue/PLAY_DEFINITIONS y
+       Recovery.applyRestRecovery de forma perezosa (mismo patrón que
+       PlayerDevelopment.js con playerGenerator.js), así que su posición
+       exacta tampoco es crítica — se deja aquí por orden temático,
+       después de sus dependencias reales. TrainingAI.js depende de
+       Training.js con el mismo criterio. -->
+  <script src="src/core/Training.js"></script>
+  <script src="src/core/TrainingAI.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script src="src/core/League.js"></script>
   <script src="src/core/Bracket.js"></script>
@@ -1016,6 +1041,230 @@
     document.getElementById('life1-inspect-btn').addEventListener('click', renderLife1Inspect);
     document.getElementById('life1-advance-ticks-btn').addEventListener('click', renderLife1AdvanceTicks);
     document.getElementById('life1-directed-test-btn').addEventListener('click', renderLife1DirectedTest);
+
+    // -----------------------------------------------------------------
+    // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, sección 40 del
+    // prompt de esa sesión): comparativa de los 12 escenarios pedidos.
+    // -----------------------------------------------------------------
+
+    // Jugador base ÚNICO (mismos atributos/id/developmentSeed en las 12
+    // ramas, solo cambia el plan/foco) — mismo criterio que
+    // renderLife1DirectedTest: reconstruir desde toJSON() en vez de
+    // generar uno nuevo por escenario, para que la comparación sea limpia.
+    function buildLife2BaseData() {
+      const { generateFictionalPlayer } = window.BasketManager;
+      const base = generateFictionalPlayer({ minAge: 22, maxAge: 22 });
+      const baseData = base.toJSON();
+      baseData.hidden.potential = 190; // margen amplio de PA, igual que el test dirigido LIFE-1
+      // Da algo de competencia real en una posición secundaria para poder
+      // medir progreso posicional con headroom real (escenarios 9-10).
+      const secondaryPos = baseData.nominalPosition === 'Base' ? 'Escolta' : 'Base';
+      baseData.positions[secondaryPos] = 9;
+      return { baseData, secondaryPos };
+    }
+
+    function instantiateLife2Player(baseData) {
+      const { Player } = window.BasketManager;
+      const player = new Player(baseData);
+      player.developmentState = JSON.parse(JSON.stringify(baseData.developmentState));
+      player.developmentState.lastProcessedDate = new Date(baseData.developmentState.lastProcessedDate);
+      return player;
+    }
+
+    // Equipo de prueba: el jugador base + 11 compañeros ficticios random
+    // (relleno de plantilla, nunca el foco de medición) — instalaciones
+    // por defecto (nivel 10, neutro).
+    function buildLife2Team(baseData) {
+      const { Team, generateFictionalPlayer } = window.BasketManager;
+      const focusPlayer = instantiateLife2Player(baseData);
+      const roster = [focusPlayer];
+      for (let i = 1; i < 12; i++) roster.push(generateFictionalPlayer({ minAge: 20, maxAge: 30 }));
+      const team = new Team({ name: 'LIFE-2 Test', roster });
+      return { team, focusPlayer };
+    }
+
+    function life2AttrSnapshot(player) {
+      const { ALL_MUTABLE_ATTRIBUTES, getEffectiveAttribute } = window.BasketManager;
+      const snap = {};
+      ALL_MUTABLE_ATTRIBUTES.forEach((attr) => { snap[attr] = getEffectiveAttribute(player, attr); });
+      return snap;
+    }
+
+    function life2DescribeChangedAttrs(before, after) {
+      const changed = Object.keys(after)
+        .map((attr) => ({ attr, delta: after[attr] - before[attr] }))
+        .filter((e) => Math.abs(e.delta) > 1e-6)
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .slice(0, 6);
+      if (!changed.length) return '(sin cambios visibles en 6 decimales)';
+      return changed.map((e) => `${e.attr} ${e.delta > 0 ? '+' : ''}${e.delta.toFixed(4)}`).join(', ');
+    }
+
+    // `individualFocus`: null | {type:'attribute',target} | {type:'position',target} | {type:'role',side,target}
+    // `matchesPerWeek`: 0-3, densidad competitiva CONSTANTE del escenario
+    // (sección 12 del prompt LIFE-2: "semana 0/1/2/3 partidos"). `baseData`
+    // (seed controlada, sección 40): SIEMPRE el mismo objeto compartido
+    // entre las 12 ramas — nunca se regenera un jugador random aquí dentro
+    // (si cada rama tuviera su propio jugador aleatorio, la comparación
+    // dejaría de ser limpia: mindset/edad/atributos de partida variarían
+    // rama a rama en vez de ser la única variable controlada el plan/foco).
+    function runLife2Scenario({
+      label, teamFocus, intensity, individualFocus, matchesPerWeek = 1, weeks = 8, baseData,
+    }) {
+      const {
+        CONFIG_BASE, setPlan, setIndividualFocus, prepareTeamForMatch, computeTmbRating,
+        recordMatchExposure, computeWeeklyTrainingContext, computeTeamFocusStimulusVector,
+        applyAttributeFocusRedistribution, ensurePositionProgress,
+      } = window.BasketManager;
+      const { team, focusPlayer } = buildLife2Team(baseData);
+      const seasonStartDate = new Date('2026-10-03T00:00:00Z');
+      const calendarCtx = { seasonStartDate };
+      let date = new Date(seasonStartDate);
+
+      setPlan(team, { teamFocus, intensity }, date, CONFIG_BASE, calendarCtx);
+      if (individualFocus) {
+        if (individualFocus.type === 'role') {
+          team.tacticalProfile.roleAssignments[focusPlayer.id] = individualFocus.side === 'offense'
+            ? { offensiveRole: individualFocus.target } : { defensiveRole: individualFocus.target };
+        }
+        setIndividualFocus(team, focusPlayer.id, individualFocus, date, CONFIG_BASE, calendarCtx);
+      }
+
+      const tmbBefore = computeTmbRating(focusPlayer, CONFIG_BASE);
+      const attrsBefore = life2AttrSnapshot(focusPlayer);
+      const energyBefore = focusPlayer.dynamicState.energy;
+      const posTarget = individualFocus && individualFocus.type === 'position' ? individualFocus.target : null;
+      const posBefore = posTarget ? focusPlayer.positions[posTarget] : null;
+      const roleTarget = individualFocus && individualFocus.type === 'role' ? individualFocus.target : null;
+      const roleSideKey = individualFocus && individualFocus.type === 'role' && individualFocus.side === 'offense' ? 'offensiveLevel' : 'defensiveLevel';
+      const roleBefore = roleTarget ? CONFIG_BASE.tactics.familiarity.roleDefaultInitial : null;
+
+      // Vector de estímulo (sección 11/13) ANTES/DESPUÉS de la
+      // redistribución de foco individual de atributo (escenario 8) — para
+      // el resto de escenarios (sin foco de atributo), antes == después.
+      const rawVector = computeTeamFocusStimulusVector(focusPlayer, teamFocus, CONFIG_BASE);
+      const finalVector = (individualFocus && individualFocus.type === 'attribute')
+        ? applyAttributeFocusRedistribution(focusPlayer, rawVector, individualFocus.target, CONFIG_BASE)
+        : rawVector;
+      const avg = (v) => Object.values(v).reduce((s, x) => s + x, 0) / Object.values(v).length;
+
+      for (let w = 0; w < weeks; w++) {
+        date = new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000);
+        // Densidad competitiva constante del escenario: registra
+        // `matchesPerWeek` partidos repartidos dentro de la semana.
+        for (let m = 0; m < matchesPerWeek; m++) {
+          const offsetDays = Math.floor((m * 7) / Math.max(1, matchesPerWeek));
+          const matchDate = new Date(date.getTime() - (7 - offsetDays) * 24 * 60 * 60 * 1000);
+          window.BasketManager.registerTeamMatchDate(team, matchDate);
+        }
+        // Minutos reales en el target (escenario 10, "con minutos" — el 9
+        // es el mismo escenario sin esta línea) — 28 min/semana en la
+        // posición entrenada, solo si el escenario lo pide explícitamente.
+        if (posTarget && matchesPerWeek > 0 && individualFocus.withMinutes) {
+          recordMatchExposure(focusPlayer, {
+            date, minutes: 28, competition: 'league', division: '1ª', positionMinutes: { [posTarget]: 28 },
+          });
+        }
+        prepareTeamForMatch(team, date, CONFIG_BASE, calendarCtx);
+      }
+
+      const weeklyCtxSample = computeWeeklyTrainingContext(team, date, CONFIG_BASE, calendarCtx);
+      const tmbAfter = computeTmbRating(focusPlayer, CONFIG_BASE);
+      const attrsAfter = life2AttrSnapshot(focusPlayer);
+      const energyAfter = focusPlayer.dynamicState.energy;
+      const posProgress = posTarget ? ensurePositionProgress(focusPlayer) : null;
+      const posAfter = posTarget ? focusPlayer.positions[posTarget] : null;
+      const roleEntry = roleTarget ? team.tacticalProfile.familiarity.byPlayerRole[focusPlayer.id] : null;
+      const roleAfter = roleEntry ? roleEntry[roleSideKey] : null;
+
+      const lines = [
+        `${label}`,
+        `  TMB: ${tmbBefore} -> ${tmbAfter}`,
+        `  Atributos que más cambiaron: ${life2DescribeChangedAttrs(attrsBefore, attrsAfter)}`,
+        `  Energy: ${energyBefore.toFixed(1)} -> ${energyAfter.toFixed(1)}`,
+        `  Estímulo medio por atributo (vector bruto): ${avg(rawVector).toFixed(3)} · tras foco individual: ${avg(finalVector).toFixed(3)}`,
+        `  Match density (última semana): ${weeklyCtxSample.matchCount} partido(s) -> opportunityFactor ${weeklyCtxSample.opportunityFactor.toFixed(2)}`,
+      ];
+      if (posTarget) lines.push(`  Posición ${posTarget}: ${posBefore} -> ${posAfter} (residual ${(posProgress[posTarget] || 0).toFixed(3)})`);
+      if (roleTarget) lines.push(`  Familiaridad de rol ${roleTarget}: ${roleBefore.toFixed(1)} -> ${(roleAfter || 0).toFixed(1)}`);
+      return lines.join('\n');
+    }
+
+    function runLife2Comparison() {
+      const output = document.getElementById('life2-output');
+      output.textContent = 'Ejecutando 12 escenarios (8 semanas cada uno)...';
+      // Seed controlada real (sección 40): UN solo jugador base, reutilizado
+      // en las 12 ramas — cada `runLife2Scenario` reconstruye una instancia
+      // fresca a partir de este MISMO `baseData` (nunca genera uno nuevo),
+      // así la única variable que cambia entre escenarios es el plan/foco.
+      const { baseData, secondaryPos } = buildLife2BaseData();
+      const reports = [
+        runLife2Scenario({
+          label: '1. Balanced / Normal', teamFocus: 'balanced', intensity: 'normal', baseData,
+        }),
+        runLife2Scenario({
+          label: '2. Offense / Normal', teamFocus: 'offense', intensity: 'normal', baseData,
+        }),
+        runLife2Scenario({
+          label: '3. Defense / Normal', teamFocus: 'defense', intensity: 'normal', baseData,
+        }),
+        runLife2Scenario({
+          label: '4. Physical / Normal', teamFocus: 'physical', intensity: 'normal', baseData,
+        }),
+        runLife2Scenario({
+          label: '5. Tactical / Normal', teamFocus: 'tactical', intensity: 'normal', baseData,
+        }),
+        runLife2Scenario({
+          label: '6. Balanced / High', teamFocus: 'balanced', intensity: 'high', baseData,
+        }),
+        runLife2Scenario({
+          label: '7. Balanced / Recovery', teamFocus: 'balanced', intensity: 'recovery', baseData,
+        }),
+        runLife2Scenario({
+          label: '8. Balanced / Normal + foco de atributo (outsideShot)',
+          teamFocus: 'balanced',
+          intensity: 'normal',
+          individualFocus: { type: 'attribute', target: 'outsideShot' },
+          baseData,
+        }),
+        runLife2Scenario({
+          label: `9. Balanced / Normal + foco posicional (${secondaryPos}) SIN minutos reales`,
+          teamFocus: 'balanced',
+          intensity: 'normal',
+          individualFocus: { type: 'position', target: secondaryPos, withMinutes: false },
+          baseData,
+        }),
+        runLife2Scenario({
+          label: `10. Balanced / Normal + foco posicional (${secondaryPos}) CON minutos reales`,
+          teamFocus: 'balanced',
+          intensity: 'normal',
+          individualFocus: { type: 'position', target: secondaryPos, withMinutes: true },
+          baseData,
+        }),
+        runLife2Scenario({
+          label: '11. Balanced / Normal + foco de rol (spotUpShooter, ataque)',
+          teamFocus: 'balanced',
+          intensity: 'normal',
+          individualFocus: { type: 'role', side: 'offense', target: 'spotUpShooter' },
+          baseData,
+        }),
+        runLife2Scenario({
+          label: '12a. Balanced / Normal — 0 partidos/semana', teamFocus: 'balanced', intensity: 'normal', matchesPerWeek: 0, baseData,
+        }),
+        runLife2Scenario({
+          label: '12b. Balanced / Normal — 1 partido/semana', teamFocus: 'balanced', intensity: 'normal', matchesPerWeek: 1, baseData,
+        }),
+        runLife2Scenario({
+          label: '12c. Balanced / Normal — 2 partidos/semana', teamFocus: 'balanced', intensity: 'normal', matchesPerWeek: 2, baseData,
+        }),
+        runLife2Scenario({
+          label: '12d. Balanced / Normal — 3 partidos/semana', teamFocus: 'balanced', intensity: 'normal', matchesPerWeek: 3, baseData,
+        }),
+      ];
+      output.textContent = reports.join('\n\n');
+    }
+
+    document.getElementById('life2-run-comparison-btn').addEventListener('click', runLife2Comparison);
 
     document.getElementById('generate-phase2-league-btn').addEventListener('click', generatePhase2League);
     document.getElementById('title-playoff-next-btn').addEventListener('click', playNextTitlePlayoffGame);
