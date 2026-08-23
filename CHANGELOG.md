@@ -1,5 +1,178 @@
 # CHANGELOG.md
 
+## 2026-08-23
+
+### LIFE-1 — Carrera, TMB, Potencial, desarrollo y declive
+
+Primera entrega de STEP 3 — PLAYER LIFE (DESIGN.md sección 9, sustituye el
+placeholder anterior). Arquitectura: `Player.js` guarda datos/estado,
+`src/core/PlayerDevelopment.js` (nuevo) concentra TODAS las reglas,
+`CONFIG_BASE.playerDevelopment` (`MatchConfig.js`) los coeficientes/curvas,
+`game.js` solo orquesta desde los dos puntos de integración ya existentes.
+
+#### TMB Rating y Potencial (escala 1-200)
+
+- `TMB Rating` nuevo: capacidad actual, media ponderada de los 29
+  atributos mutables según relevancia posicional (deltas normalizados de
+  `POSITION_PROFILES`, rango global de deltas — mismo peso para el mismo
+  delta en cualquier posición). No sustituye a los atributos 1-20 ni entra
+  en MatchEngine/Tactics/Rotation; se calcula bajo demanda
+  (`computeTmbRating`), nunca se persiste.
+- `hidden.potential` migra de 1-20 a 1-200 (`×10` si `<=20`, idempotente).
+  **Punto de intercepción resuelto** (bloqueante señalado en el prompt):
+  se sacó `potential` de la lista genérica `HIDDEN_ATTRIBUTES` de
+  `Player.js`, que aplica `clampAttribute()` (1-20) dentro del propio
+  constructor — de haberse dejado ahí, cualquier valor migrado a escala
+  nueva se habría recortado a 20 antes de que la migración pudiera actuar.
+  `potential` ahora se construye aparte con su propio clamp 1-200
+  (`migratePotentialRaw`, sin dependencia de PlayerDevelopment.js para
+  evitar un ciclo de `require`); el suelo "PA nunca por debajo del TMB
+  actual" (invariante 13) lo refuerza `PlayerDevelopment.ensureDevelopmentState()`
+  en cada punto de integración, no el constructor de `Player`.
+- PA 200 no obliga a ningún atributo a 20 — puede convivir con atributos
+  claramente inferiores en zonas poco relevantes para la posición.
+
+#### Nuevos ocultos y precisión interna
+
+- `hidden.learningRate`/`hidden.learningPersistence` (1-20, nuevos):
+  velocidad y persistencia de aprendizaje, independientes de PA/
+  Profesionalidad/Ambición. Viven fuera de `HIDDEN_ATTRIBUTES` genérico
+  por un motivo distinto a `potential`: necesitan generarse con el
+  `developmentSeed` del jugador (no un valor fijo por defecto), así que
+  `Player.js` los deja en `null` y `PlayerDevelopment.ensureDevelopmentState()`
+  los genera una sola vez y los persiste.
+- `player.developmentState.attributeProgress`: residual decimal por
+  atributo mutable (`efectivo = visible + residual`); legacy se
+  inicializa determinista en `±0.45` a partir del seed, nunca en 0 plano.
+- `player.developmentState` (nuevo, separado de `dynamicState` de
+  partido): `developmentSeed`, `lastProcessedDate`, `attributeProgress`,
+  `matchExposures`, `agingOffsetYears`. Serializado completo en
+  `toJSON()`.
+
+#### Curvas, mindset y longevidad
+
+- 6 categorías de atributo (explosive/strength/endurance/technical/
+  cognitive/social), cada una con curva de aprendizaje positivo y curva de
+  declive independientes (puntos `[edad, factor]`, CONFIG, sin cliff).
+  Declive y crecimiento del MISMO tick se resuelven en ese orden (declive
+  → recalcular headroom → crecimiento limitado por PA).
+- `agingOffsetYears` (nuevo, -3 a +6 años): longevidad individual
+  determinista, independiente de PA/learningRate/learningPersistence/
+  Profesionalidad/Ambición — desplaza `effectiveDeclineAge`, nunca cambia
+  la forma de la curva.
+- `mindsetFactor` = media 50/50 de Profesionalidad/Ambición (mapeo lineal
+  1-20 → [0.75, 1.25] cada una, cifras dadas por el prompt);
+  `learningRateFactor` usa el MISMO mapeo lineal por consistencia (el
+  prompt no daba cifras propias para él — decisión de calibración de esta
+  sesión, en `CONFIG_BASE.playerDevelopment.mindset`).
+  `learningPersistence` amortigua (hasta un 40%) el declive de
+  technical/cognitive/social exclusivamente, nunca explosive/strength/
+  endurance ni el crecimiento.
+
+#### Minutos, instalaciones y hook de Staff
+
+- `matchExposures` (`{date, minutes, competition, division}`) se alimenta
+  desde `applyRecoveryForResolvedMatch()` (game.js) — el punto de
+  post-procesado ya compartido por las 4 competiciones y las 36
+  plantillas, sin crear un segundo hook. `minutes = round(playedSeconds/60)`.
+  `competition` usa los valores reales del código (`'league'` por defecto,
+  `'cup'`, `'playoff'`, `'promotion'`); `drainBackgroundBrackets()` se
+  actualizó para saber cuál de los 3 brackets está resolviendo (antes los
+  recorría sin distinguirlos).
+- `exposureFactor`: raíz cuadrada de los minutos semanales recientes
+  (ventana de 30 días) ponderados por división (1ª ×1.0, 2ª ×0.7) —
+  salto claro 0→12-15min, se aplana después sin tope duro. Exposiciones
+  fuera de ventana se descartan.
+- `facilityFactor` reutiliza `team.facilities.trainingCenter` (ya
+  existente, sin campo nuevo en `Team.js`); efecto moderado (0.9-1.1).
+  `staffFactor` fijo en 1.0, hook explícito para un futuro Staff.
+
+#### Integración temporal (`game.js`)
+
+- Nuevo `advanceGameClockTo(date)`: único punto que llama a
+  `Calendar.advanceTo()` en todo el archivo (sustituye 6 llamadas
+  directas) — dispara `PlayerDevelopment.processTeamToDate()` sobre las 36
+  plantillas cada vez que el reloj de mundo avanza, sin crear un segundo
+  reloj. Barato en el caso común (no-op hasta que se acumula un tick de 7
+  días completo por jugador).
+- `closeSeasonAndPrepareNext()`: procesa el desarrollo de los 36 equipos
+  hasta `seasonEndDateTime` justo ANTES de `generateAcademyIntake()` (que
+  ahora recibe esa misma fecha) — un canterano nuevo no recibe progreso
+  retroactivo.
+- `buildRealTeamFromData()`: migra/inicializa `developmentState` de cada
+  jugador real reconstruido desde el bundle (mismo punto donde ya se
+  asigna `dataSource`).
+- `Experience` (sección 28 del prompt): `addExperience()` no tenía ningún
+  llamador real en el código — se conecta desde el mismo punto que
+  `matchExposures` (+1 por partido con minutos jugados). Conexión menor,
+  no una fórmula nueva de progresión de experiencia.
+
+#### Generador ficticio (`playerGenerator.js`)
+
+- Jugadores nuevos reciben `hidden.potential` ya en 1-200 (ruido más
+  amplio que Profesionalidad/Ambición para cubrir bien el rango) y
+  `developmentState` completo, inicializado llamando a
+  `PlayerDevelopment.ensureDevelopmentState()` justo tras construir el
+  `Player` — reutiliza la misma función que migra jugadores reales
+  legacy, sin duplicar lógica de generación de learningRate/
+  learningPersistence/agingOffsetYears/residuales. El suelo "potential >=
+  TMB inicial" (sección 25) sale gratis de esa misma llamada.
+- `Team.generateAcademyIntake(count, referenceDate)`: nuevo segundo
+  parámetro opcional, reenviado a `generateFictionalPlayer()` — permite a
+  `closeSeasonAndPrepareNext()` pasar la fecha real de cierre en vez del
+  reloj de la máquina.
+
+#### Modo prueba (`index.html`)
+
+Nueva sección "LIFE-1 — Carrera, TMB y Potencial" (herramienta de
+depuración, no pantalla de producto): inspeccionar TMB/Potencial/ocultos
+de un jugador ficticio nuevo, avanzar 10 ticks sobre él con resumen de
+cambios tick a tick, y un test dirigido visual (mismo jugador base
+clonado en 4 escenarios de 16 años/0-12-40 min/1ª-2ª, invariantes 30-32).
+
+#### Calibración observada
+
+- `baseGrowthRate=0.075`, `baseDeclineRate=0.09` (subido desde 0.055 tras
+  detectar por script que, sin la subida, un veterano de 38 años con
+  potencial casi agotado podía seguir mostrando TMB agregado ligerísimamente
+  al alza — el crecimiento residual de technical/cognitive/social a esa
+  edad superaba al declive físico; contradecía la sección 30
+  ("38+: declive agregado claro en la mayoría")).
+- Cohorte sintética de 40 jugadores (17-26 años, minutos aleatorios
+  10-35/semana, 12 temporadas): TMB final min~100/media~150-160/max=200,
+  con solo un 15-30% en zona élite (>=180) — no deriva sistemáticamente
+  hacia 180-200 (invariante 39).
+- Test dirigido (16 años, 8 semanas sostenidas): 0min < 12min-2ª <
+  12min-1ª < 40min-1ª, con 40min por debajo del doble de 12-15min
+  (invariantes 30-32).
+
+#### Tests
+
+- `scripts/test-life1.js` (nuevo, sin framework — mismo criterio ad-hoc
+  que el resto del proyecto): 22 comprobaciones cubriendo escala/clamps,
+  migración+idempotencia, headroom, declive-en-PA, continuidad de edad,
+  campos no tocados, determinismo por seed, remanente temporal,
+  independencia de `agingOffsetYears`, mindset/learningRate, test dirigido
+  de minutos (30-32), academy intake sin progreso retroactivo, y
+  generador ficticio. Todas pasan.
+- `scripts/smoke-life1.js` (nuevo): construye los 36 equipos/414
+  jugadores reales, simula 12 jornadas en ambas divisiones con
+  `CpuLineup` real en los dos lados (verifica invariantes 34/35), cierra
+  temporada + academy intake (invariante 36) — sin excepciones.
+- Verificación manual con Playwright `file://` (headless Chromium):
+  landing → modo prueba/temporada real, los 3 botones nuevos de LIFE-1, y
+  ~15 botones preexistentes de modo prueba — consola limpia salvo el
+  bloqueo de red esperado de Google Fonts en este entorno (preexistente,
+  no relacionado con LIFE-1).
+
+#### Fuera de alcance de LIFE-1 (queda para LIFE-2/3/4)
+
+Entrenamiento configurable, lesiones/medicina, Staff contratable/mercado,
+scouting, aprendizaje de posiciones, retiros, histórico completo de
+carrera. No se ha tocado ninguna fórmula de MatchEngine/Tactics/POS/
+Rotation/Recovery/Calendar/League/Bracket/Cup/Playoffs/Promotion/
+CpuLineup.
+
 ## 2026-08-22
 
 ### Mini-EPIC POS — Posiciones, polivalencia y antropometría

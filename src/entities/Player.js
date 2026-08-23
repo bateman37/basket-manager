@@ -85,11 +85,46 @@
 
   // Atributos ocultos para el usuario — DESIGN.md 6.1: existen siempre en los
   // datos, el ocultamiento es cuestión de interfaz/scouting, no de que falten.
+  //
+  // LIFE-1 (DESIGN.md 9): `potential` YA NO vive en esta lista genérica.
+  // Motivo (ver CHANGELOG de la sesión LIFE-1): `buildAttributeGroup()`
+  // aplica `clampAttribute()` (clamp 1-20) a cualquier campo de esta lista
+  // DENTRO del propio constructor — si `potential` siguiera aquí, cualquier
+  // valor legacy migrado a la escala nueva (1-200) se recortaría a 20 antes
+  // de que la migración pudiera actuar. `potential` se construye aparte más
+  // abajo (`migratePotentialRaw`), con su propio clamp 1-200.
   const HIDDEN_ATTRIBUTES = [
-    'potential', // potencial (techo de mejora)
     'professionalism', // profesionalidad
     'ambition', // ambición
   ];
+
+  // LIFE-1 (DESIGN.md 9, sección 6 del prompt de esta sesión): learningRate/
+  // learningPersistence también quedan FUERA de buildAttributeGroup, pero
+  // por un motivo distinto a `potential` (su escala sigue siendo 1-20, no
+  // cambia) — necesitan generarse de forma determinista a partir de
+  // `developmentState.developmentSeed` la primera vez que faltan, y
+  // buildAttributeGroup solo sabe rellenar con un valor FIJO por defecto
+  // (10), no generar con seed. Aquí se dejan en `null` si no vienen
+  // informados; `PlayerDevelopment.ensureDevelopmentState()` es quien los
+  // genera una sola vez y los persiste (nunca se generan aquí, el
+  // constructor de Player no conoce CONFIG ni el seed todavía en ese punto).
+  const LEARNING_HIDDEN_ATTRIBUTES = ['learningRate', 'learningPersistence'];
+
+  // Escala interna de Potencial tras LIFE-1: 1-200 (antes 1-20). Migración
+  // (DESIGN.md 9, sección 5 del prompt de esta sesión): un valor <= 20 se
+  // interpreta como legacy y se multiplica ×10; > 20 ya está en escala
+  // nueva y se conserva tal cual. Idempotente (15 -> 150 una vez; 150 -> 150
+  // al recargar). El suelo "PA nunca por debajo del TMB actual" (invariante
+  // 13) NO se aplica aquí — Player.js no conoce PlayerDevelopment.js a
+  // propósito (evita una dependencia circular: PlayerDevelopment.js sí
+  // necesita requerir Player.js para sus catálogos de atributos) — lo
+  // aplica `PlayerDevelopment.ensureDevelopmentState()` en cada punto de
+  // integración, con acceso a CONFIG y a la fórmula completa de TMB.
+  function migratePotentialRaw(raw) {
+    if (raw === undefined || raw === null) return null; // sin dato -> se generará en PlayerDevelopment
+    const canonical = raw <= 20 ? raw * 10 : raw;
+    return clamp(Math.round(canonical), 1, 200);
+  }
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -189,6 +224,27 @@
       // --- Atributos ocultos para el usuario (existen siempre; el
       // ocultamiento es cuestión de interfaz/scouting, no de datos ausentes) ---
       this.hidden = buildAttributeGroup(HIDDEN_ATTRIBUTES, data.hidden, 10);
+      // LIFE-1: potential (1-200, ver migratePotentialRaw arriba) y
+      // learningRate/learningPersistence (1-20, `null` si faltan — los
+      // genera PlayerDevelopment.ensureDevelopmentState) viven fuera de
+      // buildAttributeGroup, cada uno por su propio motivo (ver comentarios
+      // en las constantes de arriba).
+      this.hidden.potential = migratePotentialRaw(data.hidden && data.hidden.potential);
+      LEARNING_HIDDEN_ATTRIBUTES.forEach((key) => {
+        const raw = data.hidden && data.hidden[key];
+        this.hidden[key] = (raw === undefined || raw === null) ? null : clampAttribute(raw);
+      });
+
+      // --- Estado de desarrollo de carrera (LIFE-1, DESIGN.md 9) ---
+      // Separado a propósito de `dynamicState` (más abajo): dynamicState es
+      // estado de PARTIDO/temporada corta (energía, ritmo, momentum);
+      // developmentState es estado de CARRERA a largo plazo. `null` hasta
+      // que `PlayerDevelopment.ensureDevelopmentState()` lo inicializa (no
+      // se inicializa aquí: Player.js no conoce CONFIG ni las reglas de
+      // desarrollo, ver cabecera de PlayerDevelopment.js) — si los datos ya
+      // traían un developmentState serializado (partida guardada), se
+      // conserva tal cual.
+      this.developmentState = data.developmentState || null;
 
       // --- Estados dinámicos ---
       // Los tres existen siempre y la simulación de temporada los actualiza
@@ -337,6 +393,20 @@
         traits: this.traits,
         experience: this._experience,
         hidden: this.hidden,
+        // LIFE-1: developmentState completo (seed/residuales/matchExposures/
+        // agingOffsetYears/lastProcessedDate) — invariante 14, "guardar/
+        // cargar conserva residuals/seed/nuevos hidden". `null` si todavía
+        // no se ha inicializado (jugador nunca tocado por PlayerDevelopment,
+        // ver comentario en el constructor).
+        developmentState: this.developmentState ? {
+          ...this.developmentState,
+          lastProcessedDate: this.developmentState.lastProcessedDate
+            ? new Date(this.developmentState.lastProcessedDate).toISOString() : null,
+          matchExposures: this.developmentState.matchExposures.map((exp) => ({
+            ...exp,
+            date: exp.date ? new Date(exp.date).toISOString() : null,
+          })),
+        } : null,
         dynamicState: {
           ...this.dynamicState,
           // CAL-1 (DESIGN.md 3.3.1/6, decisión de Recovery): `lastMatchDate`

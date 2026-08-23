@@ -144,11 +144,18 @@
   // al leer de disco, ver DESIGN.md/CLAUDE.md "Datos reales".
   // -----------------------------------------------------------------
   function buildRealTeamFromData(teamData) {
-    const { Player, Team } = BM;
+    const { Player, Team, ensureDevelopmentState, CONFIG_BASE } = BM;
     const roster = teamData.roster.map((playerData) => {
       const { dataSource, ...playerFields } = playerData;
       const player = new Player(playerFields);
       player.dataSource = dataSource || null;
+      // LIFE-1 (DESIGN.md 9, sección 26): migra/inicializa developmentState
+      // de cada jugador real EN MEMORIA, cada vez que se reconstruye desde
+      // el bundle — nunca se reescriben los 414 JSON de data/real/. Idéntico
+      // punto de integración que ya usa esta función para dataSource.
+      ensureDevelopmentState(
+        player, CONFIG_BASE, state.calendar ? state.calendar.currentGameDateTime : new Date(),
+      );
       return player;
     });
     return new Team({ ...teamData, roster });
@@ -356,9 +363,48 @@
   // función se aplica igual a los 36 equipos. El único `if (!rotation)`
   // que queda abajo es defensivo, para los puntos del "modo prueba" que
   // sigan llamando a simulateMatch sin ninguna alineación (ver CLAUDE.md).
-  function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date) {
+  // LIFE-1 (DESIGN.md 9, sección 27): único punto que avanza
+  // `state.calendar` — sustituye las llamadas directas a
+  // `state.calendar.advanceTo(date)` repartidas por este archivo, para que
+  // el procesado de desarrollo (ticks de 7 días, PlayerDevelopment.js) se
+  // dispare exactamente donde dice el prompt ("cualquier punto donde
+  // currentGameDateTime avance"), sin crear un segundo reloj ni tocar
+  // Calendar.js. Procesa las 36 plantillas de ambas divisiones cada vez —
+  // barato: solo hace trabajo real cuando ya se acumuló un tick completo
+  // por jugador (ver PlayerDevelopment.processPlayerToDate, idempotente).
+  function advanceGameClockTo(date) {
+    if (!date) return;
+    state.calendar.advanceTo(date);
+    processDevelopmentToDateForTeams(getAllTeams(), date);
+  }
+
+  function getAllTeams() {
+    const teams = [];
+    ['1ª', '2ª'].forEach((div) => {
+      const league = getLeague(div);
+      if (league) teams.push(...league.teams);
+    });
+    return teams;
+  }
+
+  function processDevelopmentToDateForTeams(teams, date) {
+    const { processTeamToDate, CONFIG_BASE } = BM;
+    teams.forEach((team) => {
+      processTeamToDate(team, date, CONFIG_BASE);
+    });
+  }
+
+  // `competitionKey` (LIFE-1, DESIGN.md 9, sección 10 del prompt de esta
+  // sesión): identifica la competición para `matchExposures` — valores
+  // reales usados en el resto del código: 'league' (por defecto, liga
+  // regular no lleva key explícita en ningún otro punto), 'cup', 'playoff',
+  // 'promotion'. Opcional con default 'league' para no tener que tocar
+  // ningún llamador que solo resuelva partidos de liga.
+  function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date, competitionKey = 'league') {
     if (!date || !result.rotation) return;
-    const { applyRestRecovery, CONFIG_BASE } = BM;
+    const {
+      applyRestRecovery, ensureDevelopmentState, recordMatchExposure, CONFIG_BASE,
+    } = BM;
     [{ team: homeTeam, rotation: result.rotation.home }, { team: awayTeam, rotation: result.rotation.away }]
       .forEach(({ team, rotation }) => {
         if (!rotation) return; // este lado no tenía alineación real — sin datos de minutos, no se toca
@@ -370,6 +416,20 @@
             if (days > 0) applyRestRecovery([player], days, CONFIG_BASE);
           }
           player.recordMatchDate(date);
+
+          // LIFE-1 (DESIGN.md 9, sección 10): registra la exposición
+          // competitiva real de este partido. `minutes` redondeado al
+          // minuto entero más cercano (Math.round) — decisión de
+          // redondeo simple, documentada en el CHANGELOG.
+          ensureDevelopmentState(player, CONFIG_BASE, date);
+          recordMatchExposure(player, {
+            date, minutes: Math.round(playedSeconds / 60), competition: competitionKey, division: team.division,
+          });
+
+          // Sección 28 (Experience): conexión menor, no una fórmula nueva —
+          // `addExperience()` existía sin ningún llamador real hasta ahora.
+          // Un partido con minutos jugados suma 1 punto de experiencia.
+          player.addExperience(1);
         });
       });
   }
@@ -489,7 +549,7 @@
     // Reloj de mundo (DESIGN.md 3.3.5): avanza hasta el más tardío de los
     // partidos recién resueltos — nunca hacia atrás (Calendar.advanceTo).
     if (newlyResolvedMatches.length) {
-      state.calendar.advanceTo(newlyResolvedMatches[newlyResolvedMatches.length - 1].date);
+      advanceGameClockTo(newlyResolvedMatches[newlyResolvedMatches.length - 1].date);
     }
 
     // CAL-2 (DESIGN.md 3.5): Noticias de liga — SOLO para la división
@@ -542,7 +602,7 @@
       matches.forEach((match) => {
         applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
       });
-      if (matches.length) state.calendar.advanceTo(matches[matches.length - 1].date);
+      if (matches.length) advanceGameClockTo(matches[matches.length - 1].date);
       createBracketsIfDue(division, league);
     }
 
@@ -557,12 +617,19 @@
   // crea (o se retoma, si por lo que fuera quedó incompleto).
   function drainBackgroundBrackets(division, resolver) {
     const brackets = getBrackets(division);
-    [brackets.cup, brackets.titlePlayoff, brackets.promotionPlayoff].forEach((bracket) => {
+    // LIFE-1: cada bracket necesita su propio competitionKey real para
+    // matchExposures (ver applyRecoveryForResolvedMatch) — antes bastaba
+    // recorrer los 3 sin distinguirlos porque nada dependía de cuál era.
+    [
+      { bracket: brackets.cup, competitionKey: 'cup' },
+      { bracket: brackets.titlePlayoff, competitionKey: 'playoff' },
+      { bracket: brackets.promotionPlayoff, competitionKey: 'promotion' },
+    ].forEach(({ bracket, competitionKey }) => {
       if (!bracket) return;
       while (!bracket.isComplete) {
         const game = bracket.playNextGame(undefined, resolver.resolveBracketOptions);
-        applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date);
-        if (game.date) state.calendar.advanceTo(game.date);
+        applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date, competitionKey);
+        if (game.date) advanceGameClockTo(game.date);
       }
     });
   }
@@ -679,9 +746,23 @@
     recalculateSportingGoalsForDivision(teamsByDivision['1ª'], CONFIG_BASE);
     recalculateSportingGoalsForDivision(teamsByDivision['2ª'], CONFIG_BASE);
 
+    // 2.5 (LIFE-1, DESIGN.md 9, sección 0.d/27 del prompt de esta sesión):
+    // procesa el desarrollo de carrera de los 36 jugadores YA existentes
+    // hasta el instante exacto de cierre de temporada, ANTES del intake de
+    // cantera de abajo — un canterano recién generado arranca su
+    // developmentState.lastProcessedDate en esa misma fecha (ver
+    // generateAcademyIntake más abajo), así que procesar en este orden es
+    // lo único que garantiza que no reciba progreso retroactivo
+    // (invariante 36): si se hiciera después, `processDevelopmentToDateForTeams`
+    // no le aplicaría ticks extra de todos modos (su lastProcessedDate ya
+    // sería igual a `seasonEndDateTime`), pero el orden documentado aquí es
+    // el que el prompt pide explícitamente, sin dejarlo a la casualidad.
+    processDevelopmentToDateForTeams(allTeams, seasonEndDateTime);
+
     // 3. Cantera/Academia de la nueva temporada (3.4.4 paso 2) — conecta
-    // Team.generateAcademyIntake() tal cual, sin ninguna regla nueva.
-    allTeams.forEach((team) => team.generateAcademyIntake());
+    // Team.generateAcademyIntake() tal cual (con la fecha real de cierre,
+    // LIFE-1), sin ninguna otra regla nueva.
+    allTeams.forEach((team) => team.generateAcademyIntake(3, seasonEndDateTime));
 
     // 4. Nuevo Calendar (3.4.4 paso 3).
     state.seasonStartYear += 1;
@@ -760,8 +841,8 @@
     const game = bracket.playNextGame(undefined, resolveOptions);
     // DESIGN.md 7.11.5 (cierre de integración): igual que en simulateNextRound(),
     // recuperación de Energía para los dos equipos de este partido de bracket.
-    applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date);
-    if (game.date) state.calendar.advanceTo(game.date);
+    applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date, competitionKey);
+    if (game.date) advanceGameClockTo(game.date);
 
     // CAL-2 (DESIGN.md 3.5): noticias de este partido de bracket — solo
     // división visible (`playBracketGameWithReveal` nunca se llama para la
@@ -3059,7 +3140,7 @@
     resolved.forEach((match) => {
       applyRecoveryForResolvedMatch(match.homeTeam, match.awayTeam, match.result, match.date);
     });
-    if (resolved.length) state.calendar.advanceTo(resolved[resolved.length - 1].date);
+    if (resolved.length) advanceGameClockTo(resolved[resolved.length - 1].date);
     pushLeagueMatchNews(resolved, standingsBefore);
     return resolved;
   }
@@ -3096,7 +3177,7 @@
     resolvePreUserMatches(league, stopEvent.match, resolveMatchOptions, standingsBefore);
 
     const engineOptions = resolveMatchOptions(userMatch) || {};
-    state.calendar.advanceTo(userMatch.date);
+    advanceGameClockTo(userMatch.date);
     startLiveMatch(userMatch.homeTeam, userMatch.awayTeam, engineOptions, (finalResult) => {
       finishUserLeagueMatch(league, userMatch, finalResult, resolveMatchOptions, standingsBefore);
     });

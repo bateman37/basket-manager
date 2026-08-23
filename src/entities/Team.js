@@ -314,10 +314,18 @@
     // generación (usa el mismo generador genérico que cualquier jugador
     // joven). Pendiente de definir cómo se traduce cada ADN en un sesgo de
     // atributos/posiciones.
-    generateAcademyIntake(count = 3) {
+    // `referenceDate` (LIFE-1, DESIGN.md 9): fecha real de la partida en
+    // curso en el instante del intake — se reenvía tal cual a
+    // generateFictionalPlayer() para que developmentState.lastProcessedDate
+    // del canterano nuevo arranque en esa fecha (no en el reloj real de la
+    // máquina) y para que closeSeasonAndPrepareNext() no le aplique ningún
+    // progreso retroactivo (invariante 36). Opcional por compatibilidad
+    // (llamadas de modo prueba sin fecha de partida real siguen
+    // funcionando igual que antes).
+    generateAcademyIntake(count = 3, referenceDate) {
       const newPlayers = [];
       for (let i = 0; i < count; i++) {
-        const player = PlayerGenerator.generateFictionalPlayer({ minAge: 16, maxAge: 19 });
+        const player = PlayerGenerator.generateFictionalPlayer({ minAge: 16, maxAge: 19, referenceDate });
         player.teamId = this.id;
         this.roster.push(player);
         newPlayers.push(player);

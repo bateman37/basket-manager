@@ -18,6 +18,15 @@
     ? require('../core/MatchConfig.js')
     : null;
 
+  // LIFE-1 (DESIGN.md 9): acceso perezoso a PlayerDevelopment.js, mismo
+  // patrón que MatchConfigCore de arriba — evita depender del orden de
+  // carga de <script> en el navegador.
+  function getPlayerDevelopment() {
+    return (typeof module !== 'undefined' && module.exports)
+      ? require('../core/PlayerDevelopment.js')
+      : global.BasketManager;
+  }
+
   const {
     Player,
     POSITIONS,
@@ -36,7 +45,15 @@
 
   const ATTRIBUTE_BASE = 10; // valor medio de partida antes de aplicar el perfil de posición
   const NOISE_SPREAD = 2.5; // variación aleatoria +/- sobre el valor del perfil
-  const HIDDEN_NOISE_SPREAD = 6; // potencial/profesionalidad/ambición varían más (no dependen de posición)
+  const HIDDEN_NOISE_SPREAD = 6; // profesionalidad/ambición varían más (no dependen de posición)
+  // LIFE-1 (DESIGN.md 9): Potencial ya no vive en escala 1-20 — se genera
+  // con más dispersión que profesionalidad/ambición para cubrir bien el
+  // rango 1-200 en la población ficticia (decisión de calibración propia de
+  // esta sesión, sin validar por playtesting). El resultado es solo un
+  // PUNTO DE PARTIDA: PlayerDevelopment.ensureDevelopmentState() lo eleva
+  // si hiciera falta para que nunca quede por debajo del TMB inicial ya
+  // calculado a partir de los atributos recién generados (invariante 13).
+  const POTENTIAL_NOISE_SPREAD = 9;
 
   // Nombres claramente ficticios (no corresponden a jugadores reales) para
   // no mezclar datos inventados con la base de datos real de data/real/.
@@ -380,13 +397,22 @@
   }
 
   // Potencial/Profesionalidad/Ambición no dependen de la posición ni (por
-  // ahora) de la edad — correlacionarlos con la edad es una decisión del
-  // módulo de progresión, todavía pendiente (DESIGN.md sección 9).
+  // ahora) de la edad — correlacionarlos con la edad excedería el alcance
+  // de LIFE-1 (DESIGN.md 9: "no correlacionarlos automáticamente con PA").
+  // learningRate/learningPersistence NO se generan aquí (a diferencia de
+  // potential/professionalism/ambition): quedan en `null` hasta que
+  // PlayerDevelopment.ensureDevelopmentState() los genera de forma
+  // determinista a partir del `developmentSeed` del jugador (sección 6) —
+  // ver generateFictionalPlayer() más abajo, que llama a esa función justo
+  // después de construir el Player.
   function randomHiddenAttributes() {
     return {
-      potential: ATTRIBUTE_BASE + randomNoise(HIDDEN_NOISE_SPREAD),
+      // Ya en escala 1-200 (LIFE-1) — ver POTENTIAL_NOISE_SPREAD arriba.
+      potential: clamp(Math.round((ATTRIBUTE_BASE + randomNoise(POTENTIAL_NOISE_SPREAD)) * 10), 10, 200),
       professionalism: ATTRIBUTE_BASE + randomNoise(HIDDEN_NOISE_SPREAD),
       ambition: ATTRIBUTE_BASE + randomNoise(HIDDEN_NOISE_SPREAD),
+      learningRate: null,
+      learningPersistence: null,
     };
   }
 
@@ -447,7 +473,7 @@
       ? generateSkewedAttributeGroup(MENTAL_ATTRIBUTES, blended.mental, attributeRange)
       : generateAttributeGroup(MENTAL_ATTRIBUTES, blended.mental);
 
-    return new Player({
+    const player = new Player({
       firstName,
       lastName,
       birthDate,
@@ -461,6 +487,19 @@
       hidden: randomHiddenAttributes(),
       experience: estimateStartingExperience(age),
     });
+
+    // LIFE-1 (DESIGN.md 9, sección 25): inicializa developmentState
+    // completo del jugador nuevo (seed, agingOffsetYears, residuales,
+    // matchExposures vacío, lastProcessedDate = fecha de creación) y
+    // genera learningRate/learningPersistence — reutiliza EXACTAMENTE la
+    // misma función que migra/inicializa jugadores reales legacy (sección
+    // 26), no se duplica la lógica aquí. `options.referenceDate` permite a
+    // Team.generateAcademyIntake() pasar la fecha real de la partida en
+    // curso en vez de "ahora" (reloj real de la máquina).
+    const config = MatchConfigCore ? MatchConfigCore.CONFIG_BASE : global.BasketManager.CONFIG_BASE;
+    getPlayerDevelopment().ensureDevelopmentState(player, config, options.referenceDate || new Date());
+
+    return player;
   }
 
   function generateFictionalPlayers(count, options) {
