@@ -14,10 +14,10 @@
       "birthDate": "2000-06-03",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 3,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-fiatc-girona-02",
@@ -92,10 +93,10 @@
       "birthDate": "2004-10-10",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 3,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-fiatc-girona-03",
@@ -170,9 +172,9 @@
       "birthDate": "1999-01-06",
       "positions": {
         "Base": 20,
-        "Escolta": 16,
-        "Alero": 4,
-        "Ala-pívot": 2,
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
@@ -239,7 +241,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-fiatc-girona-04",
@@ -248,10 +251,10 @@
       "birthDate": "1994-10-21",
       "positions": {
         "Base": 20,
-        "Escolta": 8,
-        "Alero": 3,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -317,7 +320,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-fiatc-girona-05",
@@ -325,11 +329,11 @@
       "lastName": "Fjellerup",
       "birthDate": "1997-11-25",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 13,
-        "Ala-pívot": 4,
-        "Pívot": 6
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -395,7 +399,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-fiatc-girona-06",
@@ -403,11 +408,11 @@
       "lastName": "Busquets",
       "birthDate": "1999-03-02",
       "positions": {
-        "Base": 5,
         "Escolta": 20,
-        "Alero": 11,
-        "Ala-pívot": 4,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -471,7 +476,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-fiatc-girona-07",
@@ -479,11 +485,11 @@
       "lastName": "Martínez",
       "birthDate": "1999-05-10",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 10,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -547,7 +553,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-fiatc-girona-08",
@@ -555,11 +562,11 @@
       "lastName": "N'Guessan",
       "birthDate": "2000-06-12",
       "positions": {
-        "Base": 3,
-        "Escolta": 5,
-        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 5
+        "Base": 1,
+        "Escolta": 1,
+        "Alero": 9,
+        "Pívot": 17
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -623,7 +630,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-fiatc-girona-09",
@@ -631,11 +639,11 @@
       "lastName": "Maric",
       "birthDate": "1998-12-19",
       "positions": {
-        "Base": 2,
-        "Escolta": 6,
-        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 9
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -699,7 +707,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-fiatc-girona-10",
@@ -707,11 +716,11 @@
       "lastName": "Kunc",
       "birthDate": "1999-07-30",
       "positions": {
-        "Base": 5,
-        "Escolta": 4,
-        "Alero": 3,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -777,7 +786,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-fiatc-girona-11",
@@ -785,11 +795,11 @@
       "lastName": "Geben",
       "birthDate": "1994-10-20",
       "positions": {
-        "Base": 6,
-        "Escolta": 2,
-        "Alero": 3,
-        "Ala-pívot": 4,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-fiatc-girona",
       "bodyMeasurements": {
@@ -855,7 +865,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

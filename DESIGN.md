@@ -899,30 +899,54 @@ apartado.
   motor funciona con jugadores y equipos ficticios generados para poder
   probar y jugar desde ya.
 
+**Posiciones secundarias de jugadores reales (revisión mini-EPIC POS)**:
+decisión de producto — no se invierte tiempo en investigar fuentes
+externas (ACB/FEB/scouting) para reconstruir con rigor histórico las
+posiciones secundarias de los 414 jugadores reales. En su lugar, se
+derivan por **similitud de perfil de atributos** contra los mismos
+perfiles de posición (`POSITION_PROFILES`) que usa el generador de
+jugadores ficticios: cada posición no-nominal de un jugador real recibe
+un valor 1-20 proporcional a cuánto se parece su perfil de atributos ya
+existente (técnicos/físicos/mentales, calibrados en sesiones anteriores)
+al perfil típico de esa posición. Esto sustituye tanto al criterio de
+la migración original (`migrate-positions-to-map.js`, valores planos
+12/2) como al de la regeneración posterior (`regenerate-real-positions.js`,
+ruido determinista sin correlación con nada) con un criterio que tiene
+significado real sin necesitar ninguna fuente nueva. La posición nominal
+(`nominalPosition`) de cada jugador real es la única posición que ya
+tenía dato fiable (la reportada originalmente) y no se toca.
+
 ### 6.1 Ficha de jugador
 
 Inspirada en el nivel de profundidad de Football Manager, adaptada a
 baloncesto. Todos los atributos numéricos en **escala 1-20**.
 
-**Posiciones**: cada jugador tiene mínimo 1 y hasta 5 posiciones
-(Base, Escolta, Alero, Ala-pívot, Pívot), reflejando polivalencia real.
+**Posiciones** (revisión mini-EPIC POS): cada jugador tiene un **mapa
+con nivel de competencia 1-20 para las 5 posiciones** (Base, Escolta,
+Alero, Ala-pívot, Pívot), siempre presente — nunca una lista variable
+de 1 a 5 entradas.
 
-**Actualización (sesión de diseño de Alineaciones/Rotación, ver 7.11)**:
-el campo deja de ser una lista plana de posiciones habilitadas y pasa a
-ser un **mapa con nivel de competencia para las 5 posiciones,
-siempre presente** (no una lista variable de 1 a 5 entradas):
-
-- Cada jugador tiene un valor 1-20 para **cada una** de las 5
-  posiciones (Base, Escolta, Alero, Ala-pívot, Pívot), no solo para las
-  que "tiene habilitadas". Una posición en la que el jugador no está
-  habilitado en absoluto simplemente lleva un valor bajo (nivel 1), en
-  vez de no existir en los datos.
-- **Posición principal**: no es un campo aparte — se deduce
-  directamente de cuál de las 5 posiciones tiene valor **20** (el
-  jugador rinde al 100% de su capacidad exactamente en su posición
-  principal, por definición, y solo en ella). Esto evita que puedan
-  quedar inconsistentes un campo "principal" declarado y el propio
-  valor numérico.
+- **20 significa dominio/naturalidad completa para las responsabilidades
+  de esa posición — NUNCA significa "es un gran jugador".** Un jugador
+  con posición 20 y atributos mediocres sigue siendo mediocre; la
+  competencia posicional no es un sustituto de Overall.
+- **No existe restricción de unicidad**: un jugador puede tener 0, 1, 2,
+  o más posiciones con valor 20, según su perfil real. El motor debe
+  poder representar sin excepciones de código tanto a un especialista
+  puro (una sola posición en 20, resto bajo) como a un jugador
+  extremadamente polivalente (varias posiciones en 20 o en niveles
+  altos no contiguos).
+- **Los valores no tienen por qué ser contiguos** en el espectro
+  Base-Escolta-Alero-Ala-pívot-Pívot. La cercanía funcional es una
+  tendencia razonable para generación (ver más abajo), nunca una regla
+  dura sobre datos ya conocidos de un jugador real.
+- **Posición nominal** (`nominalPosition`, campo explícito, asignado por
+  el generador o la migración de datos reales — nunca derivado ni
+  inferido): representa la identidad posicional habitual/de ficha del
+  jugador, la que se muestra en listados y convocatorias por defecto.
+  Puede diferir de cuáles posiciones tienen valor 20 en su mapa.
+- **Dominio completo** (qué posiciones tienen valor 20) es una propiedad
+  derivada del mapa, consultable pero no declarada como campo aparte.
 - **Posiciones secundarias**: las que tienen un valor entre 1 y 19,
   coherente con el resto de la ficha — un grado real de competencia,
   no una etiqueta plana de "habilitada/no habilitada" (ej. un base con
@@ -930,14 +954,41 @@ siempre presente** (no una lista variable de 1 a 5 entradas):
 - Este shape simplifica el uso en el motor (7.11.3, polivalencia de
   emergencia): nunca hay que comprobar si una posición "existe" en los
   datos del jugador — siempre hay un valor que consultar, incluso para
-  las posiciones no habilitadas (nivel 1 por defecto), así que la regla
-  de emergencia total queda implícita en los propios datos.
+  las posiciones no habilitadas (nivel 1 por defecto).
 - El generador de jugadores (real o ficticio) decide el valor de cada
-  una de las 5 posiciones según coherencia posicional (ej. un Base
-  tendría un valor muy bajo en Pívot, y probablemente un valor medio en
-  Escolta) — el criterio exacto de generación se deja para cuando se
-  trabaje esa parte del generador, no bloquea el uso del campo en el
-  motor de partido.
+  una de las 5 posiciones. Para jugadores ficticios, distingue tres
+  arquetipos de polivalencia (especialista, combo/polivalente moderado,
+  positionless), con pesos de probabilidad en CONFIG — heurística de
+  generación, no regla de diseño cerrada. Para jugadores reales, ver
+  nota en la sección de datos reales (6, más arriba): las posiciones
+  secundarias se derivan por similitud con el perfil de atributos que
+  el generador ya usa, nunca de investigación externa.
+
+**Semántica de los tramos 1-20** (`config.positions.competenceThresholds`,
+CONFIG_BASE, punto de partida no cerrado, calibrable):
+
+| Rango | Descriptor |
+|---|---|
+| 20 | Dominio natural completo |
+| 18-19 | Prácticamente natural |
+| 15-17 | Muy competente |
+| 11-14 | Funcional |
+| 7-10 | Emergencia |
+| 1-6 | Claramente fuera de posición |
+
+La penalización asociada a un nivel de competencia (usada en 7.11.3 y
+7.12.9) sigue una curva **no lineal**, no una resta lineal proporcional
+al nivel: la diferencia 20→18 debe pesar poco; la diferencia 10→5 debe
+pesar mucho más. Fórmula estructural: `penalización_base × (1 −
+nivel/20)^exponente`, con `exponente > 1` viviendo en CONFIG (punto de
+partida orientativo: 1.6, sin validar con simulación aún).
+
+**Referencia de diseño externa**: esta filosofía de tramos con curva no
+lineal, en vez de una resta lineal proporcional, es coherente con cómo
+simuladores de gestión deportiva maduros (Football Manager) modelan la
+familiaridad posicional: la caída de rendimiento no es proporcional
+punto a punto, sino que se acelera cuanto más lejos está el jugador de
+su nivel natural.
 
 #### Datos Físicos Corporales (reales, no en escala 1-20)
 Distintos de los Atributos Físicos de abajo (que son habilidad/capacidad
@@ -1366,57 +1417,58 @@ anotados aquí como referencia directa para cuando se aborde el futuro
 `CONFIG_MODIFIERS_NBA` — la NBA tiende a interceptos de media distancia
 y tiro libre algo más altos, útil saberlo de antemano.
 
-### 7.4 Modificador de Altura/Envergadura/Peso
+### 7.4 Modificador de Envergadura (revisión mini-EPIC POS)
 
 Sistema aparte, no uno de los 2-5 atributos de la mezcla — se aplica
 DESPUÉS de calcular la fórmula base de atributos de cada acción. Se
-apoya en los nuevos Datos Físicos Corporales de 6.1 (Altura, Envergadura,
-Peso). Basado en investigación específica (ver nota de evidencia al
-final de esta sección): dos ejes independientes, no uno solo.
+apoya en los Datos Físicos Corporales de 6.1 (Altura, Envergadura, Peso).
 
-**Eje 1 — Envergadura relativa** (envergadura − altura del jugador):
+**Un único eje — Envergadura relativa** (envergadura − altura del
+propio jugador):
 - **Beneficia**: Tiro interior, Bandeja/finalización, Rebote (ofensivo y
-  defensivo), Tapón, Robo defensivo.
-- **Perjudica levemente**: precisión de Tiro exterior (triple/media
-  distancia) — evidencia real: los mejores tiradores de referencia
-  (Curry, Bane, Redick) tienden a envergadura corta relativa a su altura.
+  defensivo), Tapón (con un multiplicador mayor), Robo defensivo.
+- **Perjudica levemente**: precisión de Tiro exterior (triple) — ver
+  nota de evidencia más abajo sobre por qué este efecto se modela solo
+  en generación, nunca en partido.
 - En acciones donde **ambos jugadores enfrentados** tienen envergadura
-  relevante (ej. Tiro interior, Rebote), el Eje 1 se aplica a AMBOS por
-  separado — el efecto neto es la diferencia entre ambos modificadores.
+  relevante (ej. Tiro interior, Rebote), el eje se aplica a AMBOS por
+  separado — el efecto neto es la diferencia entre ambos modificadores,
+  ya construyendo una comparación relativa sin necesitar una función de
+  comparación explícita aparte.
 
-**Eje 2 — Altura/Peso vs Agilidad** (umbral de referencia: ~2.05-2.10m,
-punto donde la evidencia de "cuerpo grande = más difícil cambiar de
-dirección" es más clara; no existe un umbral universal exacto publicado,
-así que este es el mejor ancla disponible, ajustable en CONFIG):
-- Por encima del umbral, un **pequeño "impuesto físico" se resta del
-  propio atributo Agilidad/Velocidad** del jugador — NO lo sustituye ni
-  le pone un tope artificial. Un jugador excepcional (ej. un "caso
-  Wembanyama": muy alto pero generado con Agilidad alta) sigue siendo
-  ágil para su tamaño, solo con un descuento proporcional, nunca
-  anulado.
-- Afecta indirectamente a: **Defensa perimetral** (peor capacidad de
-  seguir a manejadores rápidos) y **Pérdida de balón/velocidad en
-  transición** — NO afecta directamente al manejo de balón ofensivo del
-  propio jugador alto (esto se descartó tras investigación: no hay
-  evidencia de que la altura en sí perjudique el bote/manejo propio,
-  solo la capacidad de defender el perímetro por agilidad).
+**Se retira el antiguo "Eje 2" (Altura/Peso vs Agilidad)**: tras
+investigación específica de esta sesión de diseño (evidencia real
+disponible sobre altura/peso y agilidad/cambio de dirección: moderada y
+contradictoria entre estudios —correlaciones entre 0.35 y 0.53 según el
+estudio, sin umbral universal publicado—, con fuerza y potencia como
+predictores más consistentes que la altura aislada), se elimina el
+descuento fijo por superar un umbral absoluto de altura. Los atributos
+físicos explícitos del jugador (`agility`, `topSpeed`, `acceleration`,
+`strength`, `balance`) ya describen su movilidad real, y el generador de
+jugadores ya sesga estos atributos de forma razonable según el cuerpo
+generado — un segundo descuento genérico no añade información, solo
+penaliza artificialmente por segunda vez la misma limitación (o su
+ausencia, en el caso de un jugador alto generado deliberadamente ágil,
+el antiguo "caso Wembanyama" que el Eje 2 quería proteger y que deja de
+necesitar protección especial porque deja de existir el impuesto del
+que protegerse).
 
-**Nota de implementación (confirmada al construir el motor)**: ninguna
-mezcla del catálogo de 7.6 usa un atributo suelto llamado
-"Agilidad"/"Velocidad" (usan `perimeterDefense`, `interiorDefense`,
-`stealing`, `ballHandling`, etc.). Por eso, el "impuesto físico" del
-Eje 2 se aplica sobre el **rating compuesto final** del lado marcado en
-la acción (después de mezclar sus atributos, antes de convertir a
-probabilidad), no sobre un atributo aislado — con el mismo tope acotado
-(máx. ~3 puntos sobre la escala 1-20). Esto conserva la protección del
-caso "Wembanyama": el impuesto es una resta fija, no un porcentaje, así
-que un jugador alto con buen `perimeterDefense`/`interiorDefense` sigue
-quedando por delante de uno sin esos atributos, solo con un descuento
-proporcional menor en términos relativos.
+**Envergadura y tiro exterior — modelo adoptado (Modelo B, generación)**:
+tras investigación específica (única fuente cuantitativa publicada
+encontrada, preprint no revisado por pares, con coeficiente de
+determinación bajo —aproximadamente 0.18— y que mide tiro libre en vez
+de tiro exterior, sin control explícito de posición), la evidencia es
+direccionalmente real pero débil. La envergadura relativa NO modifica
+el tiro durante un partido; en generación de jugadores ficticios (y
+cantera futura) sesga levemente y de forma NO determinista la
+distribución de partida de `outsideShot` (a la baja) y de
+`interiorDefense`/`blocking`/rebote (al alza) — un jugador de brazos
+largos puede seguir generándose con `outsideShot=20`.
 
-Ambos ejes **pueden coexistir** sobre el mismo jugador en distintas
-acciones del mismo partido (ej. un pívot recibe el modificador de Eje 1
-en tiro interior Y el de Eje 2 si defiende en el perímetro).
+**Peso**: se genera y guarda, pero no interviene todavía en ninguna
+fórmula del motor. Queda como hook explícito para el futuro (ej. juego
+de contacto/poste) — no se inventa un coeficiente sin evidencia
+adicional en esta sesión.
 
 ### 7.5 Presión de Momento (sistema transversal)
 
@@ -1798,44 +1850,67 @@ activable/desactivable por el usuario.
   activación/desactivación de forma independiente (uno puede estar en
   minutos de la basura mientras el otro sigue en rotación normal).
 
-#### 7.11.3 Polivalencia de emergencia
+#### 7.11.3 Polivalencia de emergencia (revisión mini-EPIC POS)
 
 Cuando, durante el reparto automático de rotación, una posición se
 queda sin cobertura (los jugadores asignados a ella agotaron su cuota,
 o no hay convocados suficientes en ella):
 
 - El motor busca, entre los convocados que **todavía tengan minutos
-  disponibles**, el que tenga el **mayor nivel** en esa posición dentro
-  de su mapa de 5 posiciones (6.1) combinado con la **menor distancia
-  posicional** a la posición vacía. La distancia se mide como
-  diferencia de índice en el espectro Base(1)–Escolta(2)–Alero(3)–
-  Ala-pívot(4)–Pívot(5) (ej. Alero→Ala-pívot = distancia 1; Base→Pívot
-  = distancia 4). Como el mapa de 5 posiciones (6.1) siempre tiene un
-  valor para cada posición, esta búsqueda no necesita un caso especial
-  para "no la tiene habilitada" — simplemente ese candidato tendrá un
-  nivel bajo (cercano a 1) en la fórmula de penalización de abajo, y el
-  motor puede seguir usándolo sin bloquearse.
-- **Desempate**: si hay varios candidatos a la misma distancia mínima,
-  gana el que tenga más cuota de minutos restante.
+  disponibles**, el que tenga el **mayor nivel de competencia real** en
+  esa posición (mapa de 6.1). **La distancia posicional geométrica ya
+  no interviene en esta selección** — una vez existe un mapa 1-20
+  explícito y siempre presente, el nivel real es toda la información
+  necesaria; añadir distancia geométrica encima sería contabilizar dos
+  veces la misma idea.
+- **Desempate**: si hay varios candidatos con el mismo nivel, gana el
+  que tenga más cuota de minutos restante.
 
-**Penalización por polivalencia**: un jugador que cubre una posición
-distinta a la que se le declaró (7.11.1) sufre una penalización de
-rendimiento en esa jugada:
+**Penalización por polivalencia — diferenciada por tipo de atributo,
+no plana sobre todo el jugador**: revisión central de esta sesión de
+diseño. La versión anterior restaba un único valor de rating al
+resultado final de CUALQUIER mezcla de atributos en la que el jugador
+participara, sin distinguir el tipo de acción. Esto no refleja bien lo
+que realmente falla cuando un jugador cubre una posición ajena: su tiro
+o su velocidad no cambian por jugar en otro sitio del campo — lo que le
+falla es la lectura del juego, el posicionamiento y la ejecución de
+responsabilidades específicas de esa posición.
 
-`penalización_final = penalización_base(distancia_posicional) ×
-(1 − nivel_del_jugador_en_esa_posición / 20)`
-
-- `penalización_base` crece con la distancia posicional (a calibrar en
-  CONFIG, como el resto de fórmulas del motor).
-- El nivel usado es directamente el valor de esa posición en el mapa de
-  6.1 (20 si fuera su principal, caso que no debería darse aquí ya que
-  si es su principal no hay emergencia; el valor 1-20 que corresponda
-  en cualquier otro caso, incluyendo valores bajos para posiciones en
-  las que el jugador apenas tiene competencia).
+- Los atributos de cada mezcla se clasifican en dos categorías
+  (`config.positions.attributeCategory`, catálogo fijo en CONFIG):
+  - **Responsabilidad posicional**: `positioning`, `gameVision`,
+    `pressureDecisionMaking`, `anticipation`, `interiorDefense`,
+    `perimeterDefense`, `teamwork` — reciben la penalización completa
+    de la curva no lineal de 6.1.
+  - **Habilidad pura**: el resto de atributos técnicos y físicos
+    (tiro en sus variantes, pase, manejo, atributos físicos) — reciben
+    una fracción reducida de esa penalización
+    (`config.positions.pureSkillPenaltyFraction`, punto de partida
+    orientativo: 0.2, no una cifra cerrada), reflejando que el cuerpo y
+    la técnica del jugador no desaparecen por jugar fuera de su
+    posición habitual.
+- Esta diferenciación es coherente con cómo simuladores de gestión
+  deportiva maduros de otros deportes (Football Manager) ya modelan el
+  mismo problema: la penalización por jugar fuera de posición se
+  concentra en atributos de posicionamiento y decisión, no se aplica
+  de forma uniforme a todos los atributos del jugador.
+- **Fórmula estructural**:
+  ```
+  basePenalty = config.emergencyVersatility.basePenalty ×
+                (1 − nivel/20)^config.positions.competencePenaltyExponent
+  responsibilityPenalty = basePenalty
+  pureSkillPenalty = basePenalty × config.positions.pureSkillPenaltyFraction
+  ```
 - Efecto práctico: un jugador con nivel alto en la posición de
-  emergencia apenas sufre penalización (tiene sentido, básicamente ya
-  sabe jugar ahí); un jugador con nivel bajo en esa posición sufre la
-  penalización casi completa.
+  emergencia apenas sufre penalización en ningún atributo; un jugador
+  con nivel bajo sufre penalización fuerte en lectura/posicionamiento/
+  defensa específica, pero conserva la mayor parte de su calidad de
+  tiro, pase y atributos físicos.
+- **La distancia posicional geométrica se conserva únicamente como
+  heurística de GENERACIÓN** (playerGenerator) y como criterio de
+  derivación para datos reales (ver sección de datos reales, 6) —
+  nunca vuelve a aparecer en un cálculo de selección o rendimiento
+  durante un partido ya simulado.
 
 #### 7.11.4 Desgaste de Energía dentro del partido
 
@@ -2516,6 +2591,30 @@ calibrable del sistema táctico, punto de partida no cerrado (ver 7.12.31/
 Misma conversión usada por todas las valoraciones en estrellas del sistema
 táctico (`roleFit`, valoraciones derivadas de quinteto de 7.12.28), no solo
 por los roles de esta sección.
+
+**Revisión de `roleFit` (mini-EPIC POS)**: la fórmula anterior sumaba
+competencia posicional ponderada (30%) a la mezcla de atributos del rol
+(70%), lo que permitía que un jugador con atributos neutros pero
+posición natural obtuviera un `roleFit` artificialmente alto —
+violando el principio de que saber jugar una posición no implica
+encajar en un rol que exige atributos concretos.
+
+Nueva fórmula: la mezcla de atributos del rol (`mixScore`) es la base
+del score. La competencia posicional (la mejor entre las
+`preferredPositions` del rol) actúa como **techo con penalización
+acotada**: si el jugador tiene competencia funcional o mejor (≥14,
+tabla de 6.1) en alguna posición preferente del rol, no hay
+penalización. Por debajo de ese umbral, se resta una penalización con
+la misma curva no lineal de 6.1, acotada a un máximo pequeño en CONFIG
+(`config.tactics.roles.fitWeights.positionShortfallMaxPenalty`, punto
+de partida orientativo: 3-4 puntos sobre 20). El factor de Energía
+(`energyBaseline`/`energyRange`) no cambia.
+
+Esto protege dos principios simultáneos: saber jugar de Base con nivel
+alto no mejora automáticamente un `roleFit` de rol que exige atributos
+que el jugador no tiene; y un gran especialista de rol cuya posición
+nominal no es la preferente del catálogo apenas se penaliza, salvo que
+su competencia real en las posiciones del rol sea muy baja.
 
 El motor puede consultar capacidades secundarias cuando una posesión cambia de
 forma orgánica (ej. el Connector recibe un closeout y termina actuando como
@@ -4071,6 +4170,15 @@ Ambos usan el MISMO motor, no dos modos tácticos distintos.
   (7.6), y de los componentes de desgaste/penalización de polivalencia
   de 7.11 — la estructura está fijada, faltan los números definitivos
   tras pruebas de simulación masiva.
+- Magnitud de `pureSkillPenaltyFraction` y del exponente de la curva no
+  lineal de penalización posicional (`config.positions.
+  competencePenaltyExponent`) — puntos de partida sin calibrar por
+  simulación masiva todavía (mini-EPIC POS).
+- ~~Pipeline de reconstrucción rigurosa de posiciones reales con fuentes
+  externas~~ — descartado por decisión de producto (mini-EPIC POS): no
+  es un objetivo del proyecto. Las posiciones secundarias de jugadores
+  reales se derivan por similitud de atributos (ver sección 6), sin
+  necesitar fuentes externas.
 - Bloqueo/pick-and-roll, Tiempo muerto táctico y Falta táctica
   intencionada — **diseño cerrado en 7.12; implementación pendiente según
   TAC-1/TAC-5**.

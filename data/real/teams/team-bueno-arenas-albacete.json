@@ -14,10 +14,10 @@
       "birthDate": "2002-08-19",
       "positions": {
         "Base": 20,
-        "Escolta": 16,
-        "Alero": 5,
+        "Escolta": 17,
+        "Alero": 11,
         "Ala-pívot": 5,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-bueno-arenas-albacete-02",
@@ -89,11 +90,11 @@
       "lastName": "Luis González",
       "birthDate": "1994-08-20",
       "positions": {
-        "Base": 6,
         "Escolta": 20,
-        "Alero": 5,
-        "Ala-pívot": 2,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -157,7 +158,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-bueno-arenas-albacete-03",
@@ -165,11 +167,11 @@
       "lastName": "Reid",
       "birthDate": "2002-03-20",
       "positions": {
-        "Base": 4,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 10,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -233,7 +235,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-bueno-arenas-albacete-04",
@@ -242,10 +245,10 @@
       "birthDate": "2004-10-14",
       "positions": {
         "Base": 20,
-        "Escolta": 13,
-        "Alero": 4,
-        "Ala-pívot": 6,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -309,7 +312,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-bueno-arenas-albacete-05",
@@ -317,11 +321,11 @@
       "lastName": "Vanaclocha",
       "birthDate": "1998-04-16",
       "positions": {
-        "Base": 2,
-        "Escolta": 6,
-        "Alero": 6,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -385,7 +389,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "cac4eb12-e419-4937-852c-45b35df44b07",
@@ -393,11 +398,11 @@
       "lastName": "Serrano Yuste",
       "birthDate": "2000-10-23",
       "positions": {
-        "Base": 4,
-        "Escolta": 4,
-        "Alero": 6,
-        "Ala-pívot": 17,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -464,7 +469,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "a506953b-f186-48ff-92e1-94d966455e2e",
@@ -472,11 +478,11 @@
       "lastName": "Ugarte Tapia",
       "birthDate": "1999-02-17",
       "positions": {
-        "Base": 5,
-        "Escolta": 4,
-        "Alero": 2,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 9,
+        "Pívot": 17
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -543,7 +549,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "0af48263-502b-40d3-827a-abdd3ae2e6bf",
@@ -552,10 +559,10 @@
       "birthDate": "1996-10-27",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 5,
-        "Ala-pívot": 2,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-bueno-arenas-albacete",
       "bodyMeasurements": {
@@ -619,7 +626,8 @@
         "type": "placeholder",
         "basis": "Jugador ficticio generado para completar la plantilla mínima de convocatoria (8), plantilla real incompleta en el dataset importado",
         "confidence": "n/a"
-      }
+      },
+      "nominalPosition": "Base"
     }
   ],
   "reputation": {

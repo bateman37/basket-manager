@@ -14,10 +14,10 @@
       "birthDate": "1993-02-27",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 5,
-        "Ala-pívot": 3,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-coviran-granada-02",
@@ -92,10 +93,10 @@
       "birthDate": "1990-02-07",
       "positions": {
         "Base": 20,
-        "Escolta": 6,
-        "Alero": 5,
-        "Ala-pívot": 3,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-coviran-granada-03",
@@ -169,11 +171,11 @@
       "lastName": "Parham II",
       "birthDate": "1999-01-08",
       "positions": {
-        "Base": 9,
         "Escolta": 20,
-        "Alero": 6,
-        "Ala-pívot": 3,
-        "Pívot": 6
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -237,7 +239,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-coviran-granada-04",
@@ -245,11 +248,11 @@
       "lastName": "Kljajic",
       "birthDate": "2001-09-11",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 17,
-        "Ala-pívot": 6,
-        "Pívot": 6
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -313,7 +316,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-coviran-granada-05",
@@ -321,11 +325,11 @@
       "lastName": "Durán",
       "birthDate": "1991-05-01",
       "positions": {
-        "Base": 4,
         "Escolta": 20,
-        "Alero": 1,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -389,7 +393,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-coviran-granada-06",
@@ -397,11 +402,11 @@
       "lastName": "Kamba",
       "birthDate": "1995-10-05",
       "positions": {
-        "Base": 4,
-        "Escolta": 9,
         "Alero": 20,
-        "Ala-pívot": 1,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -465,7 +470,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-coviran-granada-07",
@@ -473,11 +479,11 @@
       "lastName": "Tomàs",
       "birthDate": "1989-09-05",
       "positions": {
-        "Base": 2,
-        "Escolta": 3,
         "Alero": 20,
-        "Ala-pívot": 11,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -543,7 +549,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-coviran-granada-08",
@@ -551,11 +558,11 @@
       "lastName": "Van Vliet",
       "birthDate": "1995-07-27",
       "positions": {
-        "Base": 5,
-        "Escolta": 4,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 8
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 12,
+        "Pívot": 17
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -619,7 +626,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-coviran-granada-09",
@@ -627,11 +635,11 @@
       "lastName": "McGrew",
       "birthDate": "1993-02-16",
       "positions": {
-        "Base": 3,
-        "Escolta": 5,
-        "Alero": 5,
         "Ala-pívot": 20,
-        "Pívot": 8
+        "Base": 1,
+        "Escolta": 1,
+        "Alero": 12,
+        "Pívot": 17
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -695,7 +703,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-coviran-granada-10",
@@ -703,11 +712,11 @@
       "lastName": "Niang",
       "birthDate": "2001-08-22",
       "positions": {
-        "Base": 3,
-        "Escolta": 5,
-        "Alero": 1,
         "Ala-pívot": 20,
-        "Pívot": 9
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -771,7 +780,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-coviran-granada-11",
@@ -779,11 +789,11 @@
       "lastName": "Thiam",
       "birthDate": "1998-02-13",
       "positions": {
-        "Base": 2,
-        "Escolta": 6,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -847,7 +857,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-coviran-granada-12",
@@ -855,11 +866,11 @@
       "lastName": "Barro",
       "birthDate": "1995-05-10",
       "positions": {
-        "Base": 3,
-        "Escolta": 3,
-        "Alero": 5,
-        "Ala-pívot": 8,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-coviran-granada",
       "bodyMeasurements": {
@@ -923,7 +934,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

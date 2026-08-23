@@ -14,10 +14,10 @@
       "birthDate": "2000-11-27",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 1,
-        "Ala-pívot": 2,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-morabanc-andorra-02",
@@ -92,10 +93,10 @@
       "birthDate": "2009-01-10",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 3,
-        "Ala-pívot": 3,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-morabanc-andorra-03",
@@ -170,10 +172,10 @@
       "birthDate": "1992-02-11",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 1,
-        "Ala-pívot": 6,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -239,7 +241,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-morabanc-andorra-04",
@@ -247,11 +250,11 @@
       "lastName": "Best",
       "birthDate": "1992-09-01",
       "positions": {
-        "Base": 6,
         "Escolta": 20,
-        "Alero": 8,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -315,7 +318,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-morabanc-andorra-05",
@@ -323,11 +327,11 @@
       "lastName": "Ortega",
       "birthDate": "1997-08-13",
       "positions": {
-        "Base": 3,
         "Escolta": 20,
-        "Alero": 14,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -391,7 +395,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-morabanc-andorra-06",
@@ -399,11 +404,11 @@
       "lastName": "Robertson",
       "birthDate": "1994-04-20",
       "positions": {
-        "Base": 4,
         "Escolta": 20,
-        "Alero": 1,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 4,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -467,7 +472,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-morabanc-andorra-07",
@@ -475,10 +481,10 @@
       "lastName": "Kuric",
       "birthDate": "1989-08-25",
       "positions": {
-        "Base": 3,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 5,
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 4,
         "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
@@ -543,7 +549,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-morabanc-andorra-08",
@@ -551,11 +558,11 @@
       "lastName": "Kostadinov",
       "birthDate": "2003-03-25",
       "positions": {
-        "Base": 1,
-        "Escolta": 2,
         "Alero": 20,
+        "Base": 17,
+        "Escolta": 14,
         "Ala-pívot": 5,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -619,7 +626,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-morabanc-andorra-09",
@@ -627,11 +635,11 @@
       "lastName": "Mutic",
       "birthDate": "1999-01-06",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
         "Alero": 20,
-        "Ala-pívot": 8,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -695,7 +703,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-morabanc-andorra-10",
@@ -703,11 +712,11 @@
       "lastName": "Iwundu",
       "birthDate": "1994-12-20",
       "positions": {
-        "Base": 2,
-        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -771,7 +780,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-morabanc-andorra-11",
@@ -779,11 +789,11 @@
       "lastName": "McGriff",
       "birthDate": "1997-09-30",
       "positions": {
-        "Base": 4,
-        "Escolta": 1,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -847,7 +857,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-morabanc-andorra-12",
@@ -855,11 +866,11 @@
       "lastName": "Aquino",
       "birthDate": "2003-01-08",
       "positions": {
-        "Base": 3,
-        "Escolta": 5,
-        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 12
+        "Base": 1,
+        "Escolta": 5,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -923,7 +934,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-morabanc-andorra-13",
@@ -931,11 +943,11 @@
       "lastName": "Pustovyi",
       "birthDate": "1992-06-25",
       "positions": {
-        "Base": 3,
+        "Pívot": 20,
+        "Base": 1,
         "Escolta": 4,
-        "Alero": 3,
-        "Ala-pívot": 6,
-        "Pívot": 20
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -999,7 +1011,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-morabanc-andorra-14",
@@ -1007,11 +1020,11 @@
       "lastName": "Radosevic",
       "birthDate": "1990-02-26",
       "positions": {
-        "Base": 3,
-        "Escolta": 6,
-        "Alero": 1,
-        "Ala-pívot": 10,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-morabanc-andorra",
       "bodyMeasurements": {
@@ -1077,7 +1090,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

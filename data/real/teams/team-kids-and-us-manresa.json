@@ -14,10 +14,10 @@
       "birthDate": "1992-04-29",
       "positions": {
         "Base": 20,
-        "Escolta": 1,
-        "Alero": 5,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-kids-and-us-manresa-02",
@@ -92,10 +93,10 @@
       "birthDate": "2001-01-20",
       "positions": {
         "Base": 20,
-        "Escolta": 1,
-        "Alero": 1,
-        "Ala-pívot": 4,
-        "Pívot": 3
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-kids-and-us-manresa-03",
@@ -170,10 +172,10 @@
       "birthDate": "2002-05-24",
       "positions": {
         "Base": 20,
-        "Escolta": 15,
-        "Alero": 5,
-        "Ala-pívot": 5,
-        "Pívot": 5
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -239,7 +241,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-kids-and-us-manresa-04",
@@ -248,10 +251,10 @@
       "birthDate": "2004-08-09",
       "positions": {
         "Base": 20,
-        "Escolta": 8,
-        "Alero": 6,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -317,7 +320,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-kids-and-us-manresa-05",
@@ -325,11 +329,11 @@
       "lastName": "Kolenda",
       "birthDate": "1999-07-28",
       "positions": {
-        "Base": 16,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 4,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -393,7 +397,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-kids-and-us-manresa-06",
@@ -401,11 +406,11 @@
       "lastName": "Agbo",
       "birthDate": "2001-11-28",
       "positions": {
-        "Base": 1,
-        "Escolta": 10,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -469,7 +474,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-kids-and-us-manresa-07",
@@ -477,10 +483,10 @@
       "lastName": "Tamba",
       "birthDate": "2003-09-04",
       "positions": {
-        "Base": 5,
-        "Escolta": 1,
         "Alero": 20,
-        "Ala-pívot": 4,
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
         "Pívot": 1
       },
       "teamId": "team-kids-and-us-manresa",
@@ -545,7 +551,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-kids-and-us-manresa-08",
@@ -553,11 +560,11 @@
       "lastName": "Vila",
       "birthDate": "1998-05-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 3,
-        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 3
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -621,7 +628,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-kids-and-us-manresa-09",
@@ -629,11 +637,11 @@
       "lastName": "Allen",
       "birthDate": "2000-01-09",
       "positions": {
-        "Base": 4,
-        "Escolta": 1,
-        "Alero": 8,
         "Ala-pívot": 20,
-        "Pívot": 5
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -697,7 +705,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-kids-and-us-manresa-10",
@@ -705,11 +714,11 @@
       "lastName": "Minchev",
       "birthDate": "1998-10-17",
       "positions": {
-        "Base": 3,
-        "Escolta": 4,
-        "Alero": 1,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 11,
+        "Pívot": 17
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -773,7 +782,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-kids-and-us-manresa-11",
@@ -781,11 +791,11 @@
       "lastName": "Ongenda",
       "birthDate": "2000-09-29",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 1,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -851,7 +861,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-kids-and-us-manresa-12",
@@ -859,11 +870,11 @@
       "lastName": "Oriola",
       "birthDate": "1992-09-25",
       "positions": {
-        "Base": 2,
-        "Escolta": 2,
-        "Alero": 5,
-        "Ala-pívot": 14,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-kids-and-us-manresa",
       "bodyMeasurements": {
@@ -929,7 +940,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

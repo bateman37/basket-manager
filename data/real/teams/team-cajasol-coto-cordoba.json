@@ -14,10 +14,10 @@
       "birthDate": "2002-05-07",
       "positions": {
         "Base": 20,
-        "Escolta": 2,
-        "Alero": 4,
+        "Escolta": 17,
+        "Alero": 11,
         "Ala-pívot": 5,
-        "Pívot": 2
+        "Pívot": 1
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-cajasol-coto-cordoba-02",
@@ -89,11 +90,11 @@
       "lastName": "Bello",
       "birthDate": "2003-06-25",
       "positions": {
-        "Base": 3,
-        "Escolta": 12,
         "Alero": 20,
-        "Ala-pívot": 2,
-        "Pívot": 6
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -157,7 +158,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-cajasol-coto-cordoba-03",
@@ -165,11 +167,11 @@
       "lastName": "Sagnia",
       "birthDate": "2000-08-01",
       "positions": {
+        "Pívot": 20,
         "Base": 1,
-        "Escolta": 3,
-        "Alero": 3,
-        "Ala-pívot": 3,
-        "Pívot": 20
+        "Escolta": 4,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -233,7 +235,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-cajasol-coto-cordoba-04",
@@ -241,11 +244,11 @@
       "lastName": "Rodríguez",
       "birthDate": "1998-01-19",
       "positions": {
-        "Base": 6,
-        "Escolta": 4,
-        "Alero": 15,
         "Ala-pívot": 20,
-        "Pívot": 4
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 9,
+        "Pívot": 17
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -309,7 +312,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-cajasol-coto-cordoba-05",
@@ -317,11 +321,11 @@
       "lastName": "Cone",
       "birthDate": "2000-12-14",
       "positions": {
-        "Base": 16,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 5,
-        "Pívot": 4
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -385,7 +389,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-cajasol-coto-cordoba-06",
@@ -394,10 +399,10 @@
       "birthDate": "2007-03-20",
       "positions": {
         "Base": 20,
-        "Escolta": 16,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 4
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -461,7 +466,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-cajasol-coto-cordoba-07",
@@ -469,11 +475,11 @@
       "lastName": "Stephenson-Moore",
       "birthDate": "2001-08-19",
       "positions": {
-        "Base": 2,
         "Escolta": 20,
-        "Alero": 17,
-        "Ala-pívot": 4,
-        "Pívot": 4
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -537,7 +543,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-cajasol-coto-cordoba-08",
@@ -545,11 +552,11 @@
       "lastName": "Nuga",
       "birthDate": "1997-12-27",
       "positions": {
-        "Base": 8,
         "Escolta": 20,
-        "Alero": 4,
-        "Ala-pívot": 1,
-        "Pívot": 3
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 4,
+        "Pívot": 1
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -613,7 +620,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-cajasol-coto-cordoba-09",
@@ -621,11 +629,11 @@
       "lastName": "Treviño",
       "birthDate": "2001-09-04",
       "positions": {
-        "Base": 4,
-        "Escolta": 1,
         "Alero": 20,
-        "Ala-pívot": 16,
-        "Pívot": 3
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -689,7 +697,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-cajasol-coto-cordoba-10",
@@ -697,11 +706,11 @@
       "lastName": "Rosa",
       "birthDate": "1999-07-01",
       "positions": {
-        "Base": 5,
-        "Escolta": 1,
-        "Alero": 4,
         "Ala-pívot": 20,
-        "Pívot": 10
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Pívot": 17
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -765,7 +774,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-cajasol-coto-cordoba-11",
@@ -773,11 +783,11 @@
       "lastName": "Armus",
       "birthDate": "1997-03-26",
       "positions": {
-        "Base": 2,
+        "Pívot": 20,
+        "Base": 1,
         "Escolta": 4,
-        "Alero": 6,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-cajasol-coto-cordoba",
       "bodyMeasurements": {
@@ -841,7 +851,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-cajasol-coto-cordoba-12",
@@ -849,10 +860,10 @@
       "lastName": "Nkereuwem",
       "birthDate": "2000-12-08",
       "positions": {
-        "Base": 4,
-        "Escolta": 3,
-        "Alero": 1,
         "Ala-pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 8,
         "Pívot": 17
       },
       "teamId": "team-cajasol-coto-cordoba",
@@ -917,7 +928,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     }
   ],
   "reputation": {

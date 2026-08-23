@@ -14,10 +14,10 @@
       "birthDate": "2002-04-29",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 6,
-        "Ala-pívot": 2,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -83,7 +83,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-valencia-basket-02",
@@ -92,10 +93,10 @@
       "birthDate": "2006-04-14",
       "positions": {
         "Base": 20,
-        "Escolta": 13,
-        "Alero": 2,
+        "Escolta": 17,
+        "Alero": 12,
         "Ala-pívot": 6,
-        "Pívot": 4
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -161,7 +162,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-valencia-basket-03",
@@ -170,10 +172,10 @@
       "birthDate": "1997-10-15",
       "positions": {
         "Base": 20,
-        "Escolta": 5,
-        "Alero": 3,
-        "Ala-pívot": 1,
-        "Pívot": 6
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -240,7 +242,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-valencia-basket-04",
@@ -248,11 +251,11 @@
       "lastName": "Brooks",
       "birthDate": "1998-06-05",
       "positions": {
-        "Base": 4,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 4
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -316,7 +319,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-valencia-basket-05",
@@ -324,11 +328,11 @@
       "lastName": "Corbalán",
       "birthDate": "2002-03-03",
       "positions": {
-        "Base": 17,
         "Escolta": 20,
-        "Alero": 2,
+        "Base": 17,
+        "Alero": 10,
         "Ala-pívot": 5,
-        "Pívot": 5
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -392,7 +396,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-valencia-basket-06",
@@ -400,11 +405,11 @@
       "lastName": "Puerto",
       "birthDate": "1999-03-08",
       "positions": {
-        "Base": 5,
         "Escolta": 20,
-        "Alero": 15,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -468,7 +473,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-valencia-basket-07",
@@ -476,11 +482,11 @@
       "lastName": "Marí",
       "birthDate": "2005-10-20",
       "positions": {
-        "Base": 16,
         "Escolta": 20,
-        "Alero": 2,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -544,7 +550,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-valencia-basket-08",
@@ -553,10 +560,10 @@
       "birthDate": "2000-09-18",
       "positions": {
         "Base": 20,
-        "Escolta": 15,
+        "Escolta": 17,
         "Alero": 12,
-        "Ala-pívot": 4,
-        "Pívot": 4
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -622,7 +629,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-valencia-basket-09",
@@ -630,11 +638,11 @@
       "lastName": "Valtonen",
       "birthDate": "1999-06-11",
       "positions": {
-        "Base": 1,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 5,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 13,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -698,7 +706,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-valencia-basket-10",
@@ -706,11 +715,11 @@
       "lastName": "Taylor",
       "birthDate": "1994-10-05",
       "positions": {
-        "Base": 2,
-        "Escolta": 8,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 6,
+        "Pívot": 1
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -774,7 +783,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-valencia-basket-11",
@@ -782,11 +792,11 @@
       "lastName": "Osetkowski",
       "birthDate": "1996-08-08",
       "positions": {
-        "Base": 3,
-        "Escolta": 4,
-        "Alero": 3,
         "Ala-pívot": 20,
-        "Pívot": 8
+        "Base": 3,
+        "Escolta": 1,
+        "Alero": 17,
+        "Pívot": 13
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -850,7 +860,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-valencia-basket-12",
@@ -858,11 +869,11 @@
       "lastName": "Gueye",
       "birthDate": "1998-07-08",
       "positions": {
-        "Base": 2,
-        "Escolta": 6,
-        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 1
+        "Base": 1,
+        "Escolta": 2,
+        "Alero": 13,
+        "Pívot": 17
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -926,7 +937,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-valencia-basket-13",
@@ -934,11 +946,11 @@
       "lastName": "Reuvers",
       "birthDate": "1998-09-30",
       "positions": {
-        "Base": 5,
-        "Escolta": 3,
-        "Alero": 6,
         "Ala-pívot": 20,
-        "Pívot": 15
+        "Base": 1,
+        "Escolta": 1,
+        "Alero": 13,
+        "Pívot": 17
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -1002,7 +1014,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-valencia-basket-14",
@@ -1010,11 +1023,11 @@
       "lastName": "Sako",
       "birthDate": "1998-08-13",
       "positions": {
+        "Pívot": 20,
         "Base": 1,
-        "Escolta": 2,
-        "Alero": 5,
-        "Ala-pívot": 4,
-        "Pívot": 20
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -1080,7 +1093,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-valencia-basket-15",
@@ -1088,11 +1102,11 @@
       "lastName": "Sima",
       "birthDate": "1996-07-28",
       "positions": {
-        "Base": 3,
-        "Escolta": 4,
-        "Alero": 1,
-        "Ala-pívot": 2,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 3,
+        "Alero": 9,
+        "Ala-pívot": 17
       },
       "teamId": "team-valencia-basket",
       "bodyMeasurements": {
@@ -1158,7 +1172,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset 2026-27. Plantilla y posición verificadas en la fuente de mercado de la competición; atributos técnicos, físicos, mentales y ocultos son estimaciones de videojuego. Fecha de nacimiento verificada en la consolidación posterior del dataset. Altura, envergadura y peso se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     }
   ],
   "reputation": {

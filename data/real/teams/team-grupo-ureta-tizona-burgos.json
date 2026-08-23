@@ -14,9 +14,9 @@
       "birthDate": "1995-12-09",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 2,
-        "Ala-pívot": 4,
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
@@ -81,7 +81,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-02",
@@ -90,10 +91,10 @@
       "birthDate": "1998-10-05",
       "positions": {
         "Base": 20,
-        "Escolta": 3,
-        "Alero": 1,
-        "Ala-pívot": 3,
-        "Pívot": 2
+        "Escolta": 17,
+        "Alero": 11,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -157,7 +158,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-03",
@@ -166,10 +168,10 @@
       "birthDate": "2007-03-10",
       "positions": {
         "Base": 20,
-        "Escolta": 9,
-        "Alero": 4,
-        "Ala-pívot": 4,
-        "Pívot": 4
+        "Escolta": 17,
+        "Alero": 12,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -235,7 +237,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Base"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-04",
@@ -243,10 +246,10 @@
       "lastName": "Tate",
       "birthDate": "1998-06-18",
       "positions": {
-        "Base": 6,
         "Escolta": 20,
-        "Alero": 8,
-        "Ala-pívot": 2,
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
@@ -311,7 +314,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-05",
@@ -319,11 +323,11 @@
       "lastName": "Jofresa",
       "birthDate": "2001-03-20",
       "positions": {
-        "Base": 16,
         "Escolta": 20,
-        "Alero": 4,
-        "Ala-pívot": 4,
-        "Pívot": 6
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -387,7 +391,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-06",
@@ -395,11 +400,11 @@
       "lastName": "Urdiain",
       "birthDate": "2000-11-16",
       "positions": {
-        "Base": 3,
-        "Escolta": 15,
         "Alero": 20,
-        "Ala-pívot": 3,
-        "Pívot": 3
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -463,7 +468,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-07",
@@ -471,11 +477,11 @@
       "lastName": "Czerapowicz",
       "birthDate": "1991-09-15",
       "positions": {
-        "Base": 5,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 9,
-        "Pívot": 5
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -539,7 +545,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-08",
@@ -547,10 +554,10 @@
       "lastName": "Alonso",
       "birthDate": "2001-04-01",
       "positions": {
-        "Base": 5,
-        "Escolta": 2,
         "Alero": 20,
-        "Ala-pívot": 13,
+        "Base": 17,
+        "Escolta": 15,
+        "Ala-pívot": 5,
         "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
@@ -615,7 +622,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-09",
@@ -623,11 +631,11 @@
       "lastName": "Hernández",
       "birthDate": "1997-02-17",
       "positions": {
-        "Base": 6,
-        "Escolta": 4,
         "Alero": 20,
-        "Ala-pívot": 16,
-        "Pívot": 6
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -691,7 +699,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-10",
@@ -699,11 +708,11 @@
       "lastName": "Phevadze",
       "birthDate": "1998-04-15",
       "positions": {
-        "Base": 2,
-        "Escolta": 6,
         "Alero": 20,
-        "Ala-pívot": 13,
-        "Pívot": 4
+        "Base": 17,
+        "Escolta": 14,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -767,7 +776,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Alero"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-11",
@@ -775,11 +785,11 @@
       "lastName": "Rocak",
       "birthDate": "2001-02-21",
       "positions": {
-        "Base": 2,
-        "Escolta": 5,
-        "Alero": 16,
         "Ala-pívot": 20,
-        "Pívot": 2
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Pívot": 17
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -843,7 +853,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Ala-pívot"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-12",
@@ -851,11 +862,11 @@
       "lastName": "Brown",
       "birthDate": "2002-09-19",
       "positions": {
-        "Base": 5,
-        "Escolta": 2,
-        "Alero": 2,
-        "Ala-pívot": 5,
-        "Pívot": 20
+        "Pívot": 20,
+        "Base": 1,
+        "Escolta": 4,
+        "Alero": 10,
+        "Ala-pívot": 17
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -919,7 +930,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Pívot"
     },
     {
       "id": "player-grupo-ureta-tizona-burgos-13",
@@ -927,11 +939,11 @@
       "lastName": "Echui",
       "birthDate": "2008-11-03",
       "positions": {
-        "Base": 12,
         "Escolta": 20,
-        "Alero": 3,
-        "Ala-pívot": 4,
-        "Pívot": 2
+        "Base": 17,
+        "Alero": 10,
+        "Ala-pívot": 5,
+        "Pívot": 1
       },
       "teamId": "team-grupo-ureta-tizona-burgos",
       "bodyMeasurements": {
@@ -995,7 +1007,8 @@
         "type": "estimated",
         "basis": "Consolidación del dataset Primera FEB 2026-27 generado en esta conversación. Atributos en escala reducida respecto a ACB, salvo jugadores diferenciales. Fecha de nacimiento verificada en la consolidación posterior del dataset. Medidas físicas se estiman por posición cuando el dato individual previo no estaba accesible.",
         "confidence": "medium"
-      }
+      },
+      "nominalPosition": "Escolta"
     }
   ],
   "reputation": {

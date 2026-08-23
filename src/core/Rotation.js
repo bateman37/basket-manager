@@ -26,14 +26,6 @@
   // minutos independientes que se suman a su total.
   const SLOT_KEYS = ['starter', 'sub1', 'sub2'];
 
-  function positionIndex(position) {
-    return POSITIONS.indexOf(position);
-  }
-
-  function positionDistance(a, b) {
-    return Math.abs(positionIndex(a) - positionIndex(b));
-  }
-
   // --- C.1/C.2: construcción y validación de la alineación ---
   //
   // Shape de `lineup` (construido por la pantalla de Alineación):
@@ -68,31 +60,6 @@
       });
     });
     return totals;
-  }
-
-  // Fila de referencia de un jugador (usada por la polivalencia de
-  // emergencia, ver más abajo): la posición en la que tiene más minutos
-  // asignados sumando sus slots en esa fila. Decisión de implementación NO
-  // fijada en DESIGN.md (que sigue hablando de "una posición declarada por
-  // jugador", pensado para el modelo anterior) — con el modelo de slots un
-  // jugador puede aparecer en varias filas a la vez, así que hace falta un
-  // criterio de desempate para saber "cuál es su posición" a efectos de
-  // distancia posicional.
-  function referencePositionForPlayer(lineup, playerId) {
-    let bestPos = null;
-    let bestMinutes = -1;
-    POSITIONS.forEach((pos) => {
-      const row = (lineup.entries && lineup.entries[pos]) || {};
-      const minutes = SLOT_KEYS.reduce((acc, slotKey) => {
-        const slot = row[slotKey];
-        return acc + (slot && slot.playerId === playerId ? (slot.minutesQuota || 0) : 0);
-      }, 0);
-      if (minutes > bestMinutes) {
-        bestMinutes = minutes;
-        bestPos = pos;
-      }
-    });
-    return bestPos;
   }
 
   // Suma de minutos declarados por posición (los 3 slots de cada fila).
@@ -147,14 +114,6 @@
     const totalsMinutes = totalMinutesByPlayer(lineup);
     const quotaSeconds = new Map(Object.entries(totalsMinutes).map(([id, minutes]) => [id, minutes * 60]));
 
-    // Posición de referencia por jugador (ver referencePositionForPlayer):
-    // se precalcula una vez por partido para no recorrer las 5 filas en
-    // cada sustitución.
-    const referencePosition = new Map();
-    players.forEach((_player, playerId) => {
-      referencePosition.set(playerId, referencePositionForPlayer(lineup, playerId));
-    });
-
     const playedSeconds = new Map(squad.map((player) => [player.id, 0]));
 
     // Quinteto inicial: usa directamente el slot "starter" de cada fila (ya
@@ -174,7 +133,6 @@
       players,
       bySlot,
       quotaSeconds,
-      referencePosition,
       playedSeconds,
       onCourt,
       penalties: new Map(), // playerId -> penalización de rendimiento activa (C.3)
@@ -223,12 +181,14 @@
 
   // --- C.3: Polivalencia de emergencia ---
   // Candidato entre TODOS los convocados con minutos disponibles (no solo
-  // los declarados en `slot`): mayor nivel en esa posición (mapa de 5,
-  // C.0) combinado con menor distancia posicional; desempate por mayor
-  // cuota de minutos restante.
+  // los declarados en `slot`) — DESIGN.md 7.11.3, revisión mini-EPIC POS:
+  // el mayor nivel REAL de competencia en esa posición (mapa de 5, C.0) es
+  // toda la información necesaria para elegir; la distancia posicional
+  // geométrica ya no interviene (contabilizaría dos veces la misma idea
+  // una vez existe un mapa 1-20 explícito y siempre presente). Desempate
+  // por mayor cuota de minutos restante.
   function chooseEmergencyCandidate(state, slot, excludeIds) {
     const config = state.config;
-    const weight = config.emergencyVersatility.selectionDistanceWeight;
     let best = null;
     let bestScore = -Infinity;
     state.players.forEach((player, playerId) => {
@@ -237,27 +197,28 @@
       const played = state.playedSeconds.get(playerId) || 0;
       const remaining = quota - played;
       if (remaining <= 0) return;
-      // Posición de referencia (Bloque de tarea "Alineación por slots"): con
-      // el modelo de slots un jugador puede estar declarado en varias filas
-      // a la vez, así que se usa la fila donde tiene más minutos asignados
-      // como su posición a efectos de distancia — ver
-      // referencePositionForPlayer(), decisión de implementación no fijada
-      // en DESIGN.md.
-      const referencePosition = state.referencePosition.get(playerId) || slot;
-      const distance = positionDistance(slot, referencePosition);
-      const level = player.positionLevel(slot);
-      const score = level - distance * weight;
+      const score = player.positionLevel(slot);
       if (score > bestScore || (score === bestScore && remaining > (state.quotaSeconds.get(best) - state.playedSeconds.get(best)))) {
         best = playerId;
         bestScore = score;
       }
     });
     if (!best) return null;
-    const referencePosition = state.referencePosition.get(best) || slot;
-    const distance = positionDistance(slot, referencePosition);
     const level = state.players.get(best).positionLevel(slot);
-    const penalty = config.emergencyVersatility.basePenaltyByDistance[distance] * (1 - level / 20);
-    return { playerId: best, distance, level, penalty };
+    // Penalización diferenciada por tipo de atributo (DESIGN.md 7.11.3,
+    // mini-EPIC POS): los atributos de "responsabilidad posicional"
+    // reciben la penalización COMPLETA de la curva no lineal;
+    // "habilidad pura" recibe solo una fracción reducida
+    // (config.positions.pureSkillPenaltyFraction) — MatchEngine.
+    // computeMixRating aplica cada una según
+    // config.positions.attributeCategory.
+    const basePenalty = config.emergencyVersatility.basePenalty
+      * Math.pow(1 - level / 20, config.positions.competencePenaltyExponent);
+    const penalty = {
+      responsibilityPenalty: basePenalty,
+      pureSkillPenalty: basePenalty * config.positions.pureSkillPenaltyFraction,
+    };
+    return { playerId: best, level, penalty };
   }
 
   // Estudia si hace falta sustituir en UNA posición y ejecuta el cambio.
@@ -302,7 +263,10 @@
       state.onCourt[slot] = bestId;
       state.penalties.delete(bestId);
       if (!overQuota) return null; // dentro de tolerancia normal, cambio silencioso de ritmo
-      return { position: slot, outId: currentId, inId: bestId, emergency: false, penalty: 0 };
+      return {
+        position: slot, outId: currentId, inId: bestId, emergency: false,
+        penalty: { responsibilityPenalty: 0, pureSkillPenalty: 0 },
+      };
     }
 
     // 2) Sin cobertura propia: C.3 polivalencia de emergencia.
@@ -374,7 +338,10 @@
     if (!desiredId || desiredId === currentId) return null;
     state.onCourt[slot] = desiredId;
     state.penalties.delete(desiredId);
-    return { position: slot, outId: currentId, inId: desiredId, emergency: false, penalty: 0, garbageTime: true };
+    return {
+      position: slot, outId: currentId, inId: desiredId, emergency: false,
+      penalty: { responsibilityPenalty: 0, pureSkillPenalty: 0 }, garbageTime: true,
+    };
   }
 
   // --- Ventana de sustitución (C.2): solo se llama en fin de cuarto y en
@@ -424,9 +391,12 @@
   }
 
   // Penalización de rendimiento activa (C.3) para un jugador en la jugada
-  // actual, o 0 si no está cubriendo una posición de emergencia.
+  // actual — objeto { responsibilityPenalty, pureSkillPenalty } (DESIGN.md
+  // 7.11.3, mini-EPIC POS), ambos 0 si no está cubriendo una posición de
+  // emergencia.
   function getPenalty(state, playerId) {
-    return (state && state.penalties.get(playerId)) || 0;
+    return (state && state.penalties.get(playerId))
+      || { responsibilityPenalty: 0, pureSkillPenalty: 0 };
   }
 
   const exportsObj = {
@@ -440,7 +410,6 @@
     runSubstitutionWindow,
     isDeadBallStoppage,
     getPenalty,
-    positionDistance,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
