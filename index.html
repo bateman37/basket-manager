@@ -209,6 +209,18 @@
     <button id="simulate-real-season-btn" type="button">Simular temporada completa (hasta la jornada 34)</button>
     <pre id="real-league-output">(todavía no se ha generado la liga real)</pre>
   </section>
+
+  <!-- LIFE-1 (DESIGN.md 9): herramienta de depuración de TMB/Potencial/
+       desarrollo — NO es una pantalla de carrera de producto (sección 29
+       del prompt de la sesión LIFE-1), solo modo prueba para que Dennis
+       pueda inspeccionar el sistema sin leer código. -->
+  <section id="life1-test">
+    <h2>Prueba: LIFE-1 — Carrera, TMB y Potencial</h2>
+    <button id="life1-inspect-btn" type="button">Generar jugador ficticio nuevo e inspeccionar TMB/Potencial</button>
+    <button id="life1-advance-ticks-btn" type="button">Avanzar 10 ticks (70 días, con minutos simulados) sobre ese jugador</button>
+    <button id="life1-directed-test-btn" type="button">Test dirigido: 16 años, 0/12/40 min, 1ª/2ª (invariantes 30-32)</button>
+    <pre id="life1-output">(todavía no se ha ejecutado ninguna prueba de LIFE-1)</pre>
+  </section>
   </div>
   <!-- fin de #gm-test-mode-section -->
 
@@ -227,6 +239,12 @@
   <script src="src/utils/skewedTeamGenerator.js"></script>
   <script src="data/real/real-data-bundle.js"></script>
   <script src="src/core/MatchConfig.js"></script>
+  <!-- LIFE-1 (DESIGN.md 9): PlayerDevelopment.js accede a playerGenerator.js
+       (POSITION_PROFILES) y MatchConfig.js (CONFIG_BASE) de forma perezosa
+       (global.BasketManager en tiempo de llamada, no a la carga del
+       script), así que su posición exacta aquí no es crítica — se deja
+       justo después de MatchConfig.js por orden temático (src/core/). -->
+  <script src="src/core/PlayerDevelopment.js"></script>
   <script src="src/core/Rotation.js"></script>
   <script src="src/core/CpuLineup.js"></script>
   <script src="src/core/SeasonGoals.js"></script>
@@ -874,6 +892,130 @@
     document.getElementById('generate-real-league-btn').addEventListener('click', generateRealLeague);
     document.getElementById('simulate-real-round-btn').addEventListener('click', simulateNextRealLeagueRound);
     document.getElementById('simulate-real-season-btn').addEventListener('click', simulateFullRealLeagueSeason);
+
+    // -----------------------------------------------------------------
+    // LIFE-1 (DESIGN.md 9, sección 29): herramienta de depuración de TMB/
+    // Potencial/desarrollo — modo prueba, no pantalla de producto (TMB y
+    // Potencial nunca se muestran en la interfaz real de partida).
+    // -----------------------------------------------------------------
+    let life1TestPlayer = null;
+
+    function formatLife1PlayerSummary(player) {
+      const { computeTmbRating, computeUncappedTmb, ageAt, CONFIG_BASE } = window.BasketManager;
+      const tmb = computeTmbRating(player, CONFIG_BASE);
+      const uncapped = computeUncappedTmb(player, CONFIG_BASE);
+      const age = ageAt(player, new Date());
+      const ds = player.developmentState;
+      return [
+        `${player.fullName} — ${player.nominalPosition}, ${age.toFixed(1)} años`,
+        `  TMB Rating: ${tmb} / 200 (sin clamp: ${uncapped.toFixed(1)})`,
+        `  Potencial (PA, oculto en la UI real): ${player.hidden.potential} / 200`,
+        `  learningRate: ${player.hidden.learningRate} — learningPersistence: ${player.hidden.learningPersistence}`,
+        `  Profesionalidad: ${player.hidden.professionalism} — Ambición: ${player.hidden.ambition}`,
+        `  agingOffsetYears: ${ds.agingOffsetYears.toFixed(2)} (negativo = declive más precoz, positivo = más tardío)`,
+        `  developmentSeed: ${ds.developmentSeed}`,
+        `  lastProcessedDate: ${ds.lastProcessedDate.toISOString().slice(0, 10)}`,
+      ].join('\n');
+    }
+
+    function renderLife1Inspect() {
+      const { generateFictionalPlayer } = window.BasketManager;
+      life1TestPlayer = generateFictionalPlayer({ minAge: 16, maxAge: 34 });
+      document.getElementById('life1-output').textContent = formatLife1PlayerSummary(life1TestPlayer);
+    }
+
+    // Avanza 10 ticks (70 días) sobre el jugador generado por
+    // renderLife1Inspect(), simulando además unos minutos de partido
+    // semanales realistas (sin eso, `exposureFactor` se quedaría en su
+    // suelo mínimo — sección 19) y muestra el resumen de cambios tick a
+    // tick (PlayerDevelopment.processPlayerToDate, sección 2 "resumen de
+    // cambios para tests/modo prueba").
+    function renderLife1AdvanceTicks() {
+      if (!life1TestPlayer) renderLife1Inspect();
+      const { recordMatchExposure, processPlayerToDate, CONFIG_BASE } = window.BasketManager;
+      const player = life1TestPlayer;
+      const startDate = new Date(player.developmentState.lastProcessedDate);
+      for (let i = 1; i <= 10; i++) {
+        const matchDate = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+        recordMatchExposure(player, {
+          date: matchDate, minutes: 22, competition: 'league', division: '1ª',
+        });
+      }
+      const before = formatLife1PlayerSummary(player);
+      const target = new Date(startDate.getTime() + 10 * 7 * 24 * 60 * 60 * 1000);
+      const result = processPlayerToDate(player, target, CONFIG_BASE, { facilityLevel: 12 });
+      const after = formatLife1PlayerSummary(player);
+      const tickLines = result.changes.map((tick, i) => {
+        const entries = Object.entries(tick.changes)
+          .map(([attr, delta]) => `${attr}: ${delta > 0 ? '+' : ''}${delta.toFixed(3)}`)
+          .join(', ');
+        return `  Tick ${i + 1} (${tick.date.toISOString().slice(0, 10)}): TMB ${tick.tmbBefore} -> ${tick.tmbAfter}`
+          + (entries ? ` | ${entries}` : ' | (sin cambios visibles este tick)');
+      }).join('\n');
+      document.getElementById('life1-output').textContent = [
+        '--- ANTES ---', before, '',
+        `--- ${result.ticks} TICKS PROCESADOS ---`, tickLines || '(sin ticks pendientes)', '',
+        '--- DESPUÉS ---', after,
+      ].join('\n');
+    }
+
+    // Test dirigido de la sección 31 (invariantes 30/31/32): 4 jugadores
+    // nuevos de 16 años, cada uno con una carga de minutos/división
+    // sostenida durante 8 semanas — mismo criterio que
+    // scripts/test-life1.js, aquí de forma visual para Dennis.
+    function renderLife1DirectedTest() {
+      const {
+        recordMatchExposure, processPlayerToDate, computeUncappedTmb, CONFIG_BASE, generateFictionalPlayer, Player,
+      } = window.BasketManager;
+      const weeks = 8;
+      const scenarios = [
+        { label: '16 años, 0 min, 1ª', minutes: 0, division: '1ª' },
+        { label: '16 años, 12 min, 1ª', minutes: 12, division: '1ª' },
+        { label: '16 años, 12 min, 2ª', minutes: 12, division: '2ª' },
+        { label: '16 años, 40 min, 1ª', minutes: 40, division: '1ª' },
+      ];
+      // Un único perfil base (atributos/posición/mindset/learningRate/seed
+      // IDÉNTICOS, vía toJSON()+reconstrucción con el mismo id) para las 4
+      // ramas — así la única variable que cambia entre escenarios es
+      // minutos/división, que es justo lo que verifican los invariantes
+      // 30-32 (dos jugadores distintos entre sí en otros ejes no serían una
+      // comparación limpia).
+      const basePlayer = generateFictionalPlayer({ minAge: 16, maxAge: 16 });
+      const baseData = basePlayer.toJSON();
+      // Fuerza un Potencial cómodo (190) para que el headroom de PA (sección
+      // 22) nunca sea el factor limitante de esta demo — un jugador recién
+      // generado puede tener muy poco margen entre su TMB inicial y su PA,
+      // lo que igualaría los 4 escenarios por saturación de PA en vez de
+      // por la propia `exposureFactor` que este test quiere ilustrar.
+      baseData.hidden.potential = 190;
+      const lines = scenarios.map(({ label, minutes, division }) => {
+        const player = new Player(baseData);
+        player.developmentState = JSON.parse(JSON.stringify(baseData.developmentState));
+        player.developmentState.lastProcessedDate = new Date(baseData.developmentState.lastProcessedDate);
+        const startDate = new Date(player.developmentState.lastProcessedDate);
+        if (minutes > 0) {
+          for (let i = 1; i <= weeks; i++) {
+            const matchDate = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+            recordMatchExposure(player, { date: matchDate, minutes, competition: 'league', division });
+          }
+        }
+        const before = computeUncappedTmb(player, CONFIG_BASE);
+        const target = new Date(startDate.getTime() + weeks * 7 * 24 * 60 * 60 * 1000);
+        processPlayerToDate(player, target, CONFIG_BASE, { facilityLevel: 10 });
+        const after = computeUncappedTmb(player, CONFIG_BASE);
+        return `${label}: TMB sin clamp ${before.toFixed(2)} -> ${after.toFixed(2)}  (Δ +${(after - before).toFixed(2)})`;
+      });
+      document.getElementById('life1-output').textContent = [
+        `Test dirigido (DESIGN.md 9, invariantes 30-32) — mismo jugador base de 16 años (${basePlayer.fullName}), ${weeks} semanas simuladas por escenario:`,
+        ...lines,
+        '',
+        'Se espera: 12min > 0min con claridad; 12min en 1ª algo mejor que en 2ª (no extremo); 40min mejor que 12-15min pero sin llegar a duplicarlo.',
+      ].join('\n');
+    }
+
+    document.getElementById('life1-inspect-btn').addEventListener('click', renderLife1Inspect);
+    document.getElementById('life1-advance-ticks-btn').addEventListener('click', renderLife1AdvanceTicks);
+    document.getElementById('life1-directed-test-btn').addEventListener('click', renderLife1DirectedTest);
 
     document.getElementById('generate-phase2-league-btn').addEventListener('click', generatePhase2League);
     document.getElementById('title-playoff-next-btn').addEventListener('click', playNextTitlePlayoffGame);

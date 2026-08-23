@@ -1453,6 +1453,211 @@
         },
       },
     },
+
+    // --- LIFE-1 (DESIGN.md 9): Carrera, TMB, Potencial, desarrollo y
+    // declive — ver src/core/PlayerDevelopment.js, que es quien consume
+    // toda esta sección. Aquí solo viven los coeficientes/curvas (7.2:
+    // "el CONFIG es una entidad propia"), nunca lógica.
+    playerDevelopment: {
+      // Días reales entre cada "tick" de desarrollo — PlayerDevelopment
+      // procesa internamente en bloques de 7 días exactos, nunca eventos de
+      // Calendar propios (sección 12 del prompt de esta sesión).
+      tickDays: 7,
+
+      // --- TMB Rating (Current Ability, escala 1-200) ---
+      tmb: {
+        min: 1,
+        max: 200,
+        // Media ponderada de atributos efectivos que se considera "élite"
+        // (mapea a TMB≈200 antes de clamp) — punto de partida, pendiente de
+        // calibración por playtesting real de la liga completa.
+        eliteWeightedAverage: 19.0,
+        // Pesos de relevancia por atributo dentro de la posición nominal
+        // (sección 4.2): un atributo ausente del perfil de esa posición en
+        // POSITION_PROFILES (playerGenerator.js) recibe `relevanceFloor`
+        // (nunca 0, para que ningún atributo mejore "gratis" sin consumir
+        // capacidad); el resto se normaliza dentro del rango de deltas que
+        // REALMENTE aparece en todo el catálogo POSITION_PROFILES (mismo
+        // rango global para las 5 posiciones, para que un delta idéntico
+        // produzca siempre el mismo peso sea cual sea la posición donde
+        // aparece) — ver PlayerDevelopment.getPositionWeights().
+        relevanceFloor: 0.25,
+        relevanceCeiling: 1.00,
+      },
+
+      // --- Professionalism/Ambition -> mindsetFactor (sección 7) ---
+      // Mapeo lineal 1-20 -> [at1, at20], media aritmética 50/50 entre
+      // ambos factores. `learningRateFactor` no viene dado con cifras
+      // concretas por el prompt de esta sesión (solo profesionalidad/
+      // ambición las traen) — se usa el MISMO mapeo lineal por consistencia
+      // y sencillez, como punto de partida propio pendiente de calibración,
+      // documentado explícitamente como decisión de esta sesión.
+      mindset: {
+        professionalismFactor: { at1: 0.75, at20: 1.25 },
+        ambitionFactor: { at1: 0.75, at20: 1.25 },
+        learningRateFactor: { at1: 0.75, at20: 1.25 },
+      },
+
+      // learningPersistence (1-20) amortigua el DECLIVE (nunca el
+      // crecimiento) de las categorías technical/cognitive/social
+      // exclusivamente (sección 21) — mapeo lineal a un multiplicador
+      // acotado sobre declineFactor: persistence=1 -> sin amortiguación
+      // (1.0), persistence=20 -> declive reducido un 40% (0.6) en esas 3
+      // categorías. Explosive/strength/endurance nunca lo usan.
+      learningPersistenceDeclineDamping: { at1: 1.0, at20: 0.6 },
+
+      // --- Coeficientes base de crecimiento/declive (sección 18/21) ---
+      // Orden de magnitud: fracción de punto de atributo por tick (7 días)
+      // en condiciones medias — puntos de partida sin calibrar por
+      // simulación masiva de varias temporadas (sección 30), ajustables
+      // solo aquí sin tocar la fórmula.
+      baseGrowthRate: 0.075,
+      // Calibrado por script Node dedicado (scripts/test-life1.js): con
+      // 0.055 un veterano de 38 años con potencial casi agotado podía
+      // seguir mostrando un TMB agregado ligerísimamente AL ALZA (el
+      // crecimiento residual de technical/cognitive/social, que a esa edad
+      // sigue teniendo factor >0 en las curvas de la sección 14, superaba
+      // al declive de explosive/strength/endurance) — contradice la
+      // calibración esperada de la sección 30 ("38+: declive agregado claro
+      // en la mayoría"). Subido para que el declive físico domine con
+      // claridad a partir de esa edad.
+      baseDeclineRate: 0.09,
+
+      // --- Ruido determinista acotado (sección 24) ---
+      noise: {
+        // Rango de inicialización de residuales legacy (sección 9): ±0.45.
+        residualInitSpread: 0.45,
+        // ±10% sobre growthDelta (sección 18) — declineDelta no lleva ruido
+        // (sección 21 no lo pide, y así declive queda 100% determinista a
+        // partir de edad/curvas, más fácil de verificar en tests).
+        growthNoiseSpread: 0.10,
+      },
+
+      // --- Exposición competitiva (sección 19) ---
+      // Ventana deslizante de matchExposures realmente consumida en cada
+      // tick; los registros más antiguos que la ventana se descartan (no
+      // crecen indefinidamente). Función cóncava elegida: raíz cuadrada de
+      // los minutos SEMANALES ponderados por división sobre
+      // `referenceWeeklyMinutes` — crece rápido entre 0 y ~15 min, se
+      // aplana progresivamente después, sin tope duro (sección 19).
+      exposure: {
+        windowDays: 30,
+        referenceWeeklyMinutes: 120,
+        // Estímulo base incluso sin minutos (entrenamiento diario fuera de
+        // partido) — el salto 0->12min sigue siendo claro (invariante 30)
+        // porque el resto de la fórmula multiplica por un factor bastante
+        // mayor que este suelo.
+        zeroMinutesFactor: 0.15,
+        // Peso moderado por división (invariante 31: "de forma moderada",
+        // nunca un multiplicador extremo) — se aplica a los minutos antes
+        // de la raíz cuadrada.
+        divisionWeight: { '1ª': 1.0, '2ª': 0.7 },
+      },
+
+      // --- Instalaciones del club (sección 20) ---
+      // Reutiliza `team.facilities.trainingCenter` (Team.js, DESIGN.md
+      // 6.2.2, escala 1-20 ya existente) — no se crea ningún campo nuevo.
+      // Rango de efecto moderado: nivel 1 -> 0.9, nivel 20 -> 1.1.
+      facility: {
+        key: 'trainingCenter',
+        minLevel: 1,
+        maxLevel: 20,
+        minFactor: 0.9,
+        maxFactor: 1.1,
+        // Nivel neutro usado cuando se procesa un jugador SIN equipo real
+        // (ej. herramientas de modo prueba) — mismo valor por defecto que
+        // usa Team.buildFacilities() para cualquier instalación (10).
+        neutralLevelWhenNoTeam: 10,
+      },
+
+      // Hook explícito para el futuro sistema de Staff (sección 20-bis) —
+      // multiplicador neutro (1 = sin efecto) hasta que ese módulo exista.
+      // Un futuro Staff sustituirá este valor fijo por un cálculo real; NO
+      // implementar Staff en LIFE-1.
+      staffFactor: 1.0,
+
+      // --- Longevidad individual (sección 15) ---
+      agingOffset: {
+        min: -3,
+        max: 6,
+      },
+
+      // --- Clasificación de atributos mutables por curva (sección 16) ---
+      attributeCategories: {
+        explosive: ['topSpeed', 'acceleration', 'jumping', 'agility'],
+        strength: ['strength', 'balance'],
+        endurance: ['stamina', 'recovery'],
+        technical: [
+          'outsideShot', 'midRangeShot', 'insideShot', 'freeThrows', 'layup',
+          'passing', 'ballHandling', 'offensiveRebound', 'defensiveRebound',
+          'blocking', 'stealing', 'perimeterDefense', 'interiorDefense',
+        ],
+        cognitive: [
+          'gameVision', 'pressureDecisionMaking', 'concentration',
+          'consistency', 'anticipation', 'positioning',
+        ],
+        social: ['leadership', 'teamwork'],
+      },
+
+      // --- Trainability por atributo (sección 17) — cubre exactamente los
+      // 29 atributos mutables de la sección 8 (verificado en
+      // PlayerDevelopment.js al cargar, ver ASSERT_TRAINABILITY_COVERAGE).
+      trainability: {
+        outsideShot: 1.00,
+        midRangeShot: 1.00,
+        insideShot: 0.95,
+        freeThrows: 0.85,
+        layup: 0.95,
+        passing: 0.95,
+        ballHandling: 0.95,
+        offensiveRebound: 0.80,
+        defensiveRebound: 0.80,
+        blocking: 0.75,
+        stealing: 0.80,
+        perimeterDefense: 0.85,
+        interiorDefense: 0.80,
+        topSpeed: 0.70,
+        acceleration: 0.70,
+        jumping: 0.65,
+        strength: 0.90,
+        agility: 0.70,
+        balance: 0.75,
+        stamina: 0.90,
+        recovery: 0.80,
+        gameVision: 0.85,
+        pressureDecisionMaking: 0.80,
+        concentration: 0.85,
+        leadership: 0.70,
+        teamwork: 0.85,
+        consistency: 0.75,
+        anticipation: 0.80,
+        positioning: 0.90,
+      },
+
+      // --- Curvas de aprendizaje positivo (sección 14) — puntos [edad,
+      // factor], interpolación lineal; fuera de rango se usa el extremo. ---
+      growthCurves: {
+        explosive: [[14, 1.00], [16, 1.20], [19, 1.25], [22, 1.00], [24, 0.55], [27, 0.20], [30, 0.05], [34, 0.00]],
+        strength: [[14, 0.55], [16, 0.75], [20, 1.00], [24, 1.05], [28, 0.65], [32, 0.25], [35, 0.08], [38, 0.00]],
+        endurance: [[14, 0.65], [16, 0.90], [20, 1.05], [24, 0.95], [28, 0.55], [32, 0.20], [35, 0.08], [38, 0.00]],
+        technical: [[14, 0.70], [16, 0.95], [19, 1.15], [23, 1.10], [27, 0.85], [30, 0.55], [33, 0.30], [36, 0.12], [40, 0.04]],
+        cognitive: [[14, 0.45], [16, 0.65], [20, 0.90], [24, 1.05], [28, 1.00], [31, 0.75], [34, 0.45], [37, 0.20], [40, 0.08]],
+        social: [[14, 0.20], [16, 0.35], [20, 0.55], [24, 0.80], [28, 1.00], [32, 0.85], [36, 0.55], [40, 0.25]],
+      },
+
+      // --- Curvas de declive (sección 15) — se consultan con
+      // effectiveDeclineAge (edad real - agingOffsetYears), nunca con la
+      // edad real directa. Representan tendencia POBLACIONAL base, nunca
+      // un cliff igual para todos. ---
+      declineCurves: {
+        explosive: [[24, 0], [27, 0.10], [29, 0.35], [31, 0.70], [33, 1.00], [35, 1.35], [38, 1.70], [41, 2.00]],
+        strength: [[28, 0], [31, 0.10], [33, 0.30], [35, 0.60], [38, 1.00], [41, 1.30]],
+        endurance: [[27, 0], [30, 0.15], [32, 0.40], [34, 0.75], [37, 1.20], [40, 1.50]],
+        technical: [[33, 0], [36, 0.05], [38, 0.15], [40, 0.35], [43, 0.70]],
+        cognitive: [[36, 0], [39, 0.05], [42, 0.15]],
+        social: [[14, 0], [50, 0]],
+      },
+    },
   };
 
   // Hueco para modificadores multiplicativos por competición (7.2) — NO
