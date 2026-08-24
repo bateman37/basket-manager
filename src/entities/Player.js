@@ -255,6 +255,18 @@
       // medicalState serializado (partida guardada), se conserva tal cual.
       this.medicalState = data.medicalState || null;
 
+      // --- Histórico de carrera (LIFE-4, DESIGN.md 9.4) ---
+      // Separado a propósito de `dynamicState`/`developmentState`/
+      // `medicalState`: esto es histórico de TEMPORADAS ya cerradas +
+      // temporada en curso + hitos/récords/honores, nunca estado vivo de
+      // partido/desarrollo/lesión (esos siguen siendo la fuente de verdad,
+      // este bloque solo los fotografía al cierre de cada temporada). `null`
+      // hasta que `PlayerCareer.ensureCareerHistory()` lo inicializa (mismo
+      // patrón que `developmentState`/`medicalState` arriba) — si los datos
+      // ya traían un careerHistory serializado (partida guardada), se
+      // conserva tal cual.
+      this.careerHistory = data.careerHistory || null;
+
       // --- Estados dinámicos ---
       // Los tres existen siempre y la simulación de temporada los actualiza
       // constantemente. Su visibilidad en la interfaz (aún sin construir) es,
@@ -441,6 +453,35 @@
             ...entry,
             date: entry.date ? new Date(entry.date).toISOString() : null,
           })),
+        } : null,
+        // LIFE-4 (DESIGN.md 9.4): careerHistory completo (baseline/
+        // temporada en curso/temporadas cerradas/hitos/récords) sobrevive
+        // toJSON()/reconstrucción — mismo criterio de fechas ISO que el
+        // resto de esta ficha.
+        careerHistory: this.careerHistory ? {
+          ...this.careerHistory,
+          historyStartDate: this.careerHistory.historyStartDate
+            ? new Date(this.careerHistory.historyStartDate).toISOString() : null,
+          baseline: {
+            ...this.careerHistory.baseline,
+            date: this.careerHistory.baseline.date ? new Date(this.careerHistory.baseline.date).toISOString() : null,
+          },
+          currentSeason: {
+            ...this.careerHistory.currentSeason,
+            startDate: this.careerHistory.currentSeason.startDate
+              ? new Date(this.careerHistory.currentSeason.startDate).toISOString() : null,
+          },
+          seasons: this.careerHistory.seasons.map((season) => ({
+            ...season,
+            endDate: season.endDate ? new Date(season.endDate).toISOString() : null,
+          })),
+          milestones: this.careerHistory.milestones.map((milestone) => ({
+            ...milestone,
+            date: milestone.date ? new Date(milestone.date).toISOString() : null,
+          })),
+          personalBests: Object.fromEntries(Object.entries(this.careerHistory.personalBests).map(([key, pb]) => ([
+            key, { ...pb, date: pb.date ? new Date(pb.date).toISOString() : null },
+          ]))),
         } : null,
         dynamicState: {
           ...this.dynamicState,

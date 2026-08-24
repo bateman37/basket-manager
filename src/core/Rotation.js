@@ -166,6 +166,14 @@
       onCourt[pos] = (starterId && !unavailablePlayerIds.has(starterId)) ? starterId : null;
     });
 
+    // LIFE-4 (DESIGN.md 9.4, sección 13 del prompt de esa sesión): "starts"
+    // factual — el quinteto inicial REAL (slot "starter" de cada fila, ya
+    // disponible médicamente), fotografiado una sola vez aquí, antes de
+    // cualquier sustitución. Nunca se infiere titularidad por minutos en
+    // ningún otro punto del código — esto NO cambia selección/sustitución,
+    // solo la registra para consumo posterior (PlayerCareer.js).
+    const starterIds = POSITIONS.map((pos) => onCourt[pos]).filter(Boolean);
+
     return {
       lineup,
       config,
@@ -175,6 +183,7 @@
       playedSeconds,
       positionSeconds,
       onCourt,
+      starterIds,
       penalties: new Map(), // playerId -> penalización de rendimiento activa (C.3)
       fixedSegmentActive: null,
       totalGameSeconds: config.match.durationMinutes * 60,
