@@ -376,6 +376,11 @@
     if (!date) return;
     state.calendar.advanceTo(date);
     processDevelopmentToDateForTeams(getAllTeams(), date);
+    // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, sección 26): revisa
+    // el plan de entrenamiento CPU de los 35 clubes que no controla el
+    // usuario, en el mismo punto único que ya dispara el resto del
+    // desarrollo de carrera — nunca en un bucle propio por competición.
+    reviewCpuTrainingForAllTeams(date);
   }
 
   function getAllTeams() {
@@ -387,10 +392,47 @@
     return teams;
   }
 
+  // LIFE-2: contexto de calendario mínimo que Training.js/TrainingAI.js
+  // necesitan (agnósticos de Calendar.js) — solo `seasonStartDate`, para
+  // distinguir ticks de pretemporada (sección 24) de ticks de temporada
+  // regular. Se reconstruye barato en cada llamada, nunca se guarda en
+  // `state` (deriva siempre de `state.calendar`, la fuente real).
+  function buildTrainingCalendarContext() {
+    return { seasonStartDate: state.calendar ? state.calendar.seasonStartDate : null };
+  }
+
   function processDevelopmentToDateForTeams(teams, date) {
-    const { processTeamToDate, CONFIG_BASE } = BM;
+    const { processTeamDevelopmentToDate, CONFIG_BASE } = BM;
+    const calendarCtx = buildTrainingCalendarContext();
     teams.forEach((team) => {
-      processTeamToDate(team, date, CONFIG_BASE);
+      processTeamDevelopmentToDate(team, date, CONFIG_BASE, calendarCtx);
+    });
+  }
+
+  // Partidos YA PROGRAMADOS (pendientes o resueltos, da igual) de `team` en
+  // su propia liga dentro de los próximos `days` días desde `fromDate` —
+  // usado SOLO para pasarle a TrainingAI un número real de "próximos
+  // partidos" (sección 27: "usa el estado ya cargado en game.js/Calendar",
+  // nunca inventar fechas ni hacer polling).
+  function countUpcomingMatchesForTeam(team, fromDate, days) {
+    const league = getLeague(team.division);
+    if (!league) return 0;
+    const windowEnd = new Date(fromDate.getTime() + days * 24 * 60 * 60 * 1000);
+    return league.schedule.filter((m) => (m.homeTeam.id === team.id || m.awayTeam.id === team.id)
+      && m.date >= fromDate && m.date < windowEnd).length;
+  }
+
+  // LIFE-2 (sección 26/29, invariante "user team nunca es sobrescrito por
+  // TrainingAI"): revisa el plan CPU de TODOS los equipos salvo el del
+  // usuario, cada vez que el reloj de mundo avanza — TrainingAI.reviewTeamIfDue
+  // ya decide internamente si toca revisar (cadencias de 28/56 días).
+  function reviewCpuTrainingForAllTeams(date) {
+    const { reviewTeamIfDue, CONFIG_BASE } = BM;
+    const calendarCtx = buildTrainingCalendarContext();
+    getAllTeams().forEach((team) => {
+      if (team.id === state.userTeamId) return;
+      const matchesInNext7Days = countUpcomingMatchesForTeam(team, date, 7);
+      reviewTeamIfDue(team, date, { matchesInNext7Days }, CONFIG_BASE, calendarCtx);
     });
   }
 
@@ -400,30 +442,40 @@
   // regular no lleva key explícita en ningún otro punto), 'cup', 'playoff',
   // 'promotion'. Opcional con default 'league' para no tener que tocar
   // ningún llamador que solo resuelva partidos de liga.
+  // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, sección 9 del prompt
+  // de esa sesión): la recuperación de Energía por descanso entre partidos
+  // y el avance de `lastMatchDate` YA se resolvieron ANTES de simular este
+  // partido (Training.prepareTeamForMatch, disparado desde
+  // buildMatchOptionsResolver) — moverlo ahí corrige el orden temporal real
+  // (antes de esta entrega, la recuperación del descanso se aplicaba
+  // DESPUÉS de simular, así que el partido consumía la Energía sin
+  // recuperar del hueco anterior). Esta función queda solo con lo que
+  // depende del RESULTADO ya simulado (minutos reales jugados): exposición
+  // competitiva y Experience.
   function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date, competitionKey = 'league') {
     if (!date || !result.rotation) return;
-    const {
-      applyRestRecovery, ensureDevelopmentState, recordMatchExposure, CONFIG_BASE,
-    } = BM;
+    const { ensureDevelopmentState, recordMatchExposure, CONFIG_BASE } = BM;
     [{ team: homeTeam, rotation: result.rotation.home }, { team: awayTeam, rotation: result.rotation.away }]
       .forEach(({ team, rotation }) => {
         if (!rotation) return; // este lado no tenía alineación real — sin datos de minutos, no se toca
         team.roster.forEach((player) => {
           const playedSeconds = rotation.playedSeconds[player.id] || 0;
           if (playedSeconds <= 0) return; // convocado sin minutos o no convocado — no se actualiza (DESIGN.md 3.3.4)
-          if (player.dynamicState.lastMatchDate) {
-            const days = Math.round((date - player.dynamicState.lastMatchDate) / (1000 * 60 * 60 * 24));
-            if (days > 0) applyRestRecovery([player], days, CONFIG_BASE);
-          }
-          player.recordMatchDate(date);
 
           // LIFE-1 (DESIGN.md 9, sección 10): registra la exposición
           // competitiva real de este partido. `minutes` redondeado al
           // minuto entero más cercano (Math.round) — decisión de
-          // redondeo simple, documentada en el CHANGELOG.
+          // redondeo simple, documentada en el CHANGELOG. LIFE-2 (sección
+          // 17): extiende el registro con los minutos reales POR POSICIÓN
+          // ocupada en pista (Rotation.js/MatchEngine.rotationSummary),
+          // redondeados igual que el total.
           ensureDevelopmentState(player, CONFIG_BASE, date);
+          const positionSeconds = (rotation.positionSecondsByPlayer && rotation.positionSecondsByPlayer[player.id]) || null;
+          const positionMinutes = positionSeconds
+            ? Object.fromEntries(Object.entries(positionSeconds).map(([pos, secs]) => [pos, Math.round(secs / 60)]))
+            : undefined;
           recordMatchExposure(player, {
-            date, minutes: Math.round(playedSeconds / 60), competition: competitionKey, division: team.division,
+            date, minutes: Math.round(playedSeconds / 60), competition: competitionKey, division: team.division, positionMinutes,
           });
 
           // Sección 28 (Experience): conexión menor, no una fórmula nueva —
@@ -2051,6 +2103,239 @@
   }
 
   // ---------------------------------------------------------------------
+  // Pantalla: Entrenamiento (LIFE-2, DESIGN.md 9, subsección normativa
+  // LIFE-2) — capa de presentación pura sobre src/core/Training.js/
+  // TrainingAI.js: no contiene ninguna regla de entrenamiento propia, solo
+  // lee/escribe `team.trainingPlan` y llama a los helpers ya construidos
+  // ahí (mismo criterio que Alineación es una capa sobre Rotation.js).
+  // ---------------------------------------------------------------------
+  const TRAINING_TEAM_FOCUS_LABELS = {
+    balanced: 'Equilibrado', offense: 'Ataque', defense: 'Defensa', physical: 'Físico', tactical: 'Táctico',
+  };
+  const TRAINING_TEAM_FOCUS_INFO = {
+    balanced: { favors: 'Desarrollo parejo de todos los atributos.', costs: 'Ninguna prioridad especial.' },
+    offense: { favors: 'Tiro, manejo, pase y visión de juego.', costs: 'La mejora defensiva va más lenta.' },
+    defense: { favors: 'Rebote, tapón, robo, defensa y anticipación.', costs: 'La mejora ofensiva va más lenta.' },
+    physical: { favors: 'Velocidad, salto, fuerza, agilidad y resistencia.', costs: 'Lo técnico y lo mental van más lentos.' },
+    tactical: { favors: 'Familiaridad con el sistema, las jugadas y los roles.', costs: 'El desarrollo general de atributos va más lento.' },
+  };
+  const TRAINING_INTENSITY_LABELS = {
+    recovery: 'Recuperación', light: 'Suave', normal: 'Normal', high: 'Alta',
+  };
+  const TRAINING_INTENSITY_INFO = {
+    recovery: 'Prioriza llegar descansado — desarrollo más lento, Energía sube más.',
+    light: 'Ritmo suave — algo menos de desarrollo, cuida bastante la Energía.',
+    normal: 'Ritmo estándar — ni favorece ni penaliza especialmente.',
+    high: 'Exige más — más desarrollo, pero castiga la Energía y la recuperación.',
+  };
+  const TRAINING_FOCUS_TYPE_LABELS = {
+    none: 'Ninguno', attribute: 'Atributo', position: 'Posición', role: 'Rol táctico',
+  };
+  // Mismas traducciones ya usadas como comentario en Player.js (TECHNICAL_
+  // ATTRIBUTES/PHYSICAL_ATTRIBUTES/MENTAL_ATTRIBUTES) — no se inventa una
+  // segunda nomenclatura para los mismos 29 atributos mutables.
+  const TRAINING_ATTRIBUTE_LABELS = {
+    outsideShot: 'Tiro exterior', midRangeShot: 'Tiro media distancia', insideShot: 'Tiro interior', freeThrows: 'Tiro libre',
+    layup: 'Bandeja', passing: 'Pase', ballHandling: 'Manejo de balón', offensiveRebound: 'Rebote ofensivo',
+    defensiveRebound: 'Rebote defensivo', blocking: 'Tapón', stealing: 'Robo', perimeterDefense: 'Defensa perimetral',
+    interiorDefense: 'Defensa interior', topSpeed: 'Velocidad punta', acceleration: 'Aceleración', jumping: 'Salto',
+    strength: 'Fuerza', agility: 'Agilidad', balance: 'Balance', stamina: 'Resistencia', recovery: 'Recuperación física',
+    gameVision: 'Visión de juego', pressureDecisionMaking: 'Decisión bajo presión', concentration: 'Concentración',
+    leadership: 'Liderazgo', teamwork: 'Trabajo en equipo', consistency: 'Consistencia', anticipation: 'Anticipación',
+    positioning: 'Posicionamiento',
+  };
+
+  function trainingAttributeLabel(attr) { return TRAINING_ATTRIBUTE_LABELS[attr] || attr; }
+
+  function renderTrainingPlanBlockHtml(team) {
+    const { TEAM_FOCUS_OPTIONS, INTENSITY_OPTIONS } = BM;
+    const focusOptionsHtml = TEAM_FOCUS_OPTIONS.map((f) => `
+      <option value="${f}" ${team.trainingPlan.teamFocus === f ? 'selected' : ''}>${TRAINING_TEAM_FOCUS_LABELS[f]}</option>`).join('');
+    const intensityOptionsHtml = INTENSITY_OPTIONS.map((i) => `
+      <option value="${i}" ${team.trainingPlan.intensity === i ? 'selected' : ''}>${TRAINING_INTENSITY_LABELS[i]}</option>`).join('');
+    const focusInfo = TRAINING_TEAM_FOCUS_INFO[team.trainingPlan.teamFocus] || TRAINING_TEAM_FOCUS_INFO.balanced;
+    const intensityInfo = TRAINING_INTENSITY_INFO[team.trainingPlan.intensity] || TRAINING_INTENSITY_INFO.normal;
+    return `
+      <div class="gm-card">
+        <h3>Plan de entrenamiento</h3>
+        <label class="training-plan-field">Enfoque
+          <select id="training-team-focus-select">${focusOptionsHtml}</select>
+        </label>
+        <p class="gm-muted">Favorece: ${focusInfo.favors}<br>Sacrifica: ${focusInfo.costs}</p>
+        <label class="training-plan-field">Intensidad
+          <select id="training-intensity-select">${intensityOptionsHtml}</select>
+        </label>
+        <p class="gm-muted">${intensityInfo}</p>
+        <button id="training-save-plan-btn" class="gm-btn gm-btn--primary">Guardar plan</button>
+        <span id="training-save-confirmation" class="gm-muted training-save-confirmation"></span>
+      </div>`;
+  }
+
+  // Bloque B (sección 28): próximo microciclo — margen/carga vía el mismo
+  // helper que usa el motor (Training.describeMicrocycle), nunca una
+  // fórmula duplicada de UI; Energía estimada al próximo partido vía
+  // Training.projectEnergyToDate (puro, no muta estado).
+  function renderTrainingMicrocycleHtml(team) {
+    const { describeMicrocycle, projectEnergyToDate, CONFIG_BASE } = BM;
+    const activeBracket = getActiveBracket();
+    let nextMatchDate = null;
+    let nextMatchHtml;
+    if (activeBracket) {
+      nextMatchHtml = `<p>${activeBracket.title} — ${activeBracket.roundLabel}</p>`;
+    } else {
+      const league = getUserLeague();
+      const nextMatches = league.isSeasonComplete ? [] : league.getCurrentRoundMatches();
+      const userNextMatch = nextMatches.find((m) => m.homeTeam.id === team.id || m.awayTeam.id === team.id);
+      nextMatchDate = userNextMatch ? userNextMatch.date : null;
+      nextMatchHtml = league.isSeasonComplete
+        ? '<p class="gm-muted">Liga regular terminada.</p>'
+        : userNextMatch
+          ? `<p>${matchLabel(userNextMatch, team.id)}</p>`
+          : '<p class="gm-muted">Tu equipo descansa esta jornada.</p>';
+    }
+
+    const referenceNow = state.calendar.currentGameDateTime;
+    const matchesInNext7Days = countUpcomingMatchesForTeam(team, referenceNow, 7);
+    const micro = describeMicrocycle(team, matchesInNext7Days, CONFIG_BASE);
+
+    let alertsHtml = '<p class="gm-muted">Sin próximo partido de liga programado.</p>';
+    if (nextMatchDate) {
+      const calendarCtx = buildTrainingCalendarContext();
+      const alerts = team.roster
+        .map((player) => ({ player, projected: projectEnergyToDate(player, team, nextMatchDate, CONFIG_BASE, calendarCtx) }))
+        .filter((a) => a.projected < 70)
+        .sort((a, b) => a.projected - b.projected);
+      alertsHtml = alerts.length
+        ? `<ul class="training-energy-alerts">${alerts.map((a) => `<li>${a.player.fullName}: Energía estimada ${Math.round(a.projected)}</li>`).join('')}</ul>`
+        : '<p class="gm-muted">Ningún jugador proyecta llegar con Energía baja.</p>';
+    }
+
+    return `
+      <div class="gm-card">
+        <h3>Próximo microciclo</h3>
+        ${nextMatchHtml}
+        <p>Partidos en los próximos 7 días: <strong>${matchesInNext7Days}</strong></p>
+        <p>Margen de entrenamiento: <strong>${micro.marginLabel}</strong> · Carga prevista: <strong>${micro.loadLabel}</strong></p>
+        <h4>Alertas de Energía baja al próximo partido</h4>
+        ${alertsHtml}
+      </div>`;
+  }
+
+  function renderTrainingFocusRow(player, team) {
+    const {
+      FOCUS_TYPES, getIndividualFocus, CONFIG_BASE, MUTABLE_TECHNICAL, MUTABLE_PHYSICAL, MUTABLE_MENTAL,
+      POSITIONS, OFFENSIVE_ROLES, DEFENSIVE_ROLES,
+    } = BM;
+    const focus = getIndividualFocus(team, player.id, CONFIG_BASE);
+    const typeOptionsHtml = FOCUS_TYPES.map((t) => `
+      <option value="${t}" ${focus.type === t ? 'selected' : ''}>${TRAINING_FOCUS_TYPE_LABELS[t]}</option>`).join('');
+
+    let targetHtml = '<span class="gm-muted">—</span>';
+    if (focus.type === 'attribute') {
+      const groupOptions = (attrs, label) => `<optgroup label="${label}">${attrs.map((a) => `
+        <option value="${a}" ${focus.target === a ? 'selected' : ''}>${trainingAttributeLabel(a)}</option>`).join('')}</optgroup>`;
+      targetHtml = `<select class="training-focus-target-select" data-player-id="${player.id}" data-type="attribute">
+        ${groupOptions(MUTABLE_TECHNICAL, 'Técnico')}${groupOptions(MUTABLE_PHYSICAL, 'Físico')}${groupOptions(MUTABLE_MENTAL, 'Mental')}
+      </select>`;
+    } else if (focus.type === 'position') {
+      const options = POSITIONS.map((pos) => `
+        <option value="${pos}" ${focus.target === pos ? 'selected' : ''}>${pos} (nivel ${player.positionLevel(pos)})</option>`).join('');
+      targetHtml = `<select class="training-focus-target-select" data-player-id="${player.id}" data-type="position">${options}</select>`;
+    } else if (focus.type === 'role') {
+      const currentValue = `${focus.side}:${focus.target}`;
+      const offenseOptions = OFFENSIVE_ROLES.map((r) => `
+        <option value="offense:${r.id}" ${currentValue === `offense:${r.id}` ? 'selected' : ''}>${r.label}</option>`).join('');
+      const defenseOptions = DEFENSIVE_ROLES.map((r) => `
+        <option value="defense:${r.id}" ${currentValue === `defense:${r.id}` ? 'selected' : ''}>${r.label}</option>`).join('');
+      targetHtml = `<select class="training-focus-target-select" data-player-id="${player.id}" data-type="role">
+        <optgroup label="Ataque">${offenseOptions}</optgroup>
+        <optgroup label="Defensa">${defenseOptions}</optgroup>
+      </select>`;
+    }
+
+    return `
+      <tr>
+        <td>${player.fullName}</td>
+        <td>${player.age}</td>
+        <td>${Math.round(player.dynamicState.energy)}</td>
+        <td><select class="training-focus-type-select" data-player-id="${player.id}">${typeOptionsHtml}</select></td>
+        <td>${targetHtml}</td>
+      </tr>`;
+  }
+
+  function renderTrainingScreen() {
+    const container = byId('gm-training');
+    const team = getUserTeam();
+    if (!container) return;
+    if (!team) { container.innerHTML = ''; return; }
+    const {
+      setPlan, setIndividualFocus, CONFIG_BASE, MUTABLE_TECHNICAL, POSITIONS, OFFENSIVE_ROLES,
+    } = BM;
+
+    const sortedRoster = [...team.roster].sort((a, b) => {
+      const posDiff = POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition);
+      return posDiff !== 0 ? posDiff : a.fullName.localeCompare(b.fullName, 'es');
+    });
+    const rowsHtml = sortedRoster.map((player) => renderTrainingFocusRow(player, team)).join('');
+
+    container.innerHTML = `
+      <h2>Entrenamiento</h2>
+      ${renderTrainingPlanBlockHtml(team)}
+      ${renderTrainingMicrocycleHtml(team)}
+      <div class="gm-card">
+        <h3>Focos individuales</h3>
+        <div class="gm-table-scroll">
+          <table class="gm-table training-focus-table">
+            <thead><tr><th>Jugador</th><th>Edad</th><th>Energía</th><th>Tipo de foco</th><th>Objetivo</th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const saveBtn = byId('training-save-plan-btn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        const teamFocus = byId('training-team-focus-select').value;
+        const intensity = byId('training-intensity-select').value;
+        setPlan(team, { teamFocus, intensity }, state.calendar.currentGameDateTime, CONFIG_BASE, buildTrainingCalendarContext());
+        const confirmation = byId('training-save-confirmation');
+        if (confirmation) {
+          confirmation.textContent = ' ✔ Plan guardado.';
+          setTimeout(() => { if (confirmation.isConnected) confirmation.textContent = ''; }, 2500);
+        }
+      });
+    }
+
+    container.querySelectorAll('.training-focus-type-select').forEach((el) => {
+      el.addEventListener('change', () => {
+        const { playerId } = el.dataset;
+        const type = el.value;
+        let focus = { type: 'none' };
+        if (type === 'attribute') focus = { type: 'attribute', target: MUTABLE_TECHNICAL[0] };
+        else if (type === 'position') focus = { type: 'position', target: POSITIONS[0] };
+        else if (type === 'role') focus = { type: 'role', side: 'offense', target: OFFENSIVE_ROLES[0].id };
+        setIndividualFocus(team, playerId, focus, state.calendar.currentGameDateTime, CONFIG_BASE, buildTrainingCalendarContext());
+        renderTrainingScreen();
+      });
+    });
+    container.querySelectorAll('.training-focus-target-select').forEach((el) => {
+      el.addEventListener('change', () => {
+        const { playerId, type } = el.dataset;
+        let focus;
+        if (type === 'role') {
+          const [side, roleId] = el.value.split(':');
+          focus = { type: 'role', side, target: roleId };
+        } else {
+          focus = { type, target: el.value };
+        }
+        setIndividualFocus(team, playerId, focus, state.calendar.currentGameDateTime, CONFIG_BASE, buildTrainingCalendarContext());
+        renderTrainingScreen();
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------
   // Pantalla: Tácticas (DESIGN.md 7.12.32) — TAC-2: subset de 3 de las 7
   // vistas (Resumen/Ataque/Roles); Defensa/Playbook/Situaciones/Rival son
   // TAC-3/TAC-4/TAC-5/TAC-7, no se adelantan aquí. Capa de presentación
@@ -3036,6 +3321,21 @@
   // `CpuLineup.buildCpuLineup` (DESIGN.md 7.11.7). resolveMatchOptions
   // tiene el shape que espera League.simulateNextRound(match);
   // resolveBracketOptions, el que espera Bracket.playNextGame(homeEntry, awayEntry).
+  // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, secciones 9/32 del
+  // prompt de esa sesión): procesa Training/PlayerDevelopment/Recovery de
+  // AMBOS equipos hasta la fecha del partido — ANTES de construir
+  // squad/lineup (que en el caso CPU sí usa Energía real,
+  // CpuLineup.playerPositionScore) y ANTES de MatchEngine.simulateMatch.
+  // Único punto de enganche: cubre liga visible, liga de fondo y brackets
+  // por igual, usuario y CPU, sin duplicar la secuencia en ningún otro
+  // sitio (nunca se llama desde MatchEngine.js).
+  function prepareBothTeamsForMatch(homeTeam, awayTeam, matchDate) {
+    const { prepareTeamForMatch, CONFIG_BASE } = BM;
+    const calendarCtx = buildTrainingCalendarContext();
+    prepareTeamForMatch(homeTeam, matchDate, CONFIG_BASE, calendarCtx);
+    prepareTeamForMatch(awayTeam, matchDate, CONFIG_BASE, calendarCtx);
+  }
+
   function buildMatchOptionsResolver(league, userTeam) {
     const userSide = userTeam ? buildUserSideOptions(userTeam) : null;
 
@@ -3051,12 +3351,23 @@
 
     return {
       resolveMatchOptions(match) {
+        prepareBothTeamsForMatch(match.homeTeam, match.awayTeam, match.date);
         return {
           ...sideOptions(match.homeTeam, match.awayTeam, true, 'league'),
           ...sideOptions(match.awayTeam, match.homeTeam, false, 'league'),
         };
       },
       resolveBracketOptions(homeEntry, awayEntry) {
+        // Bracket.Series.playNextGame (DESIGN.md 3.3, Bracket.js — no se
+        // toca en esta entrega, §43) solo calcula la fecha real del
+        // partido DESPUÉS de simularlo (`dateResolver(gameIndex)`), así
+        // que aquí no hay una fecha exacta disponible todavía. Se usa el
+        // reloj de mundo actual como referencia — aproximación razonable
+        // (los partidos de una misma Series/ronda están separados solo
+        // unos pocos días, `seriesGameGapDays`/`seriesRoundGapDays`), que
+        // sigue corrigiendo lo importante: la recuperación/entrenamiento
+        // se resuelve ANTES de simular, nunca después.
+        prepareBothTeamsForMatch(homeEntry.team, awayEntry.team, state.calendar.currentGameDateTime);
         return {
           ...sideOptions(homeEntry.team, awayEntry.team, true, 'bracket'),
           ...sideOptions(awayEntry.team, homeEntry.team, false, 'bracket'),
@@ -3278,7 +3589,7 @@
   // ---------------------------------------------------------------------
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
-  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match'];
+  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'training', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match'];
 
   function goToScreen(screen) {
     state.screen = screen;
@@ -3293,6 +3604,7 @@
     if (screen === 'home') renderHomeScreen();
     if (screen === 'lineup') renderLineupScreen();
     if (screen === 'tactics') renderTacticsScreen();
+    if (screen === 'training') renderTrainingScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();

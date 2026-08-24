@@ -1448,6 +1448,11 @@
     return {
       playedSeconds: Object.fromEntries(rotationState.playedSeconds),
       onCourt: { ...rotationState.onCourt },
+      // LIFE-2 (DESIGN.md 9, sección 17): minutos reales por jugador Y
+      // posición ocupada — ver Rotation.buildRotationState/accumulatePlayedTime.
+      positionSecondsByPlayer: Object.fromEntries(
+        Array.from(rotationState.positionSeconds.entries()).map(([id, byPos]) => [id, { ...byPos }]),
+      ),
     };
   }
 

@@ -76,6 +76,51 @@
     return 'team-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   }
 
+  // --- LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, secciones 4/5 del
+  // prompt de esta sesión): plan de entrenamiento persistente + estado
+  // interno de procesado. Team.js solo guarda datos/fallback de legacy —
+  // esquema/validación/normalización "de verdad" viven en Training.js
+  // (mismo criterio que developmentState de Player.js vive en
+  // PlayerDevelopment.js). Cualquier equipo legacy/nuevo sin
+  // `data.trainingPlan` recibe Balanced/Normal/sin focos, sin reescribir
+  // ningún JSON real.
+  function buildTrainingPlan(data = {}) {
+    return {
+      teamFocus: data.teamFocus || 'balanced',
+      intensity: data.intensity || 'normal',
+      individualFocuses: { ...(data.individualFocuses || {}) },
+    };
+  }
+
+  function buildTrainingState(data = {}) {
+    return {
+      lastProcessedDate: data.lastProcessedDate ? new Date(data.lastProcessedDate) : null,
+      // Historial de cambios de plan aún no completamente consumidos por
+      // Training/PlayerDevelopment (sección 6: "cambiar plan nunca
+      // modifica el pasado") — cada entrada es el plan vigente desde
+      // `effectiveFrom`. Training.js poda los segmentos ya consumidos.
+      planSegments: Array.isArray(data.planSegments)
+        ? data.planSegments.map((segment) => ({
+          teamFocus: segment.teamFocus,
+          intensity: segment.intensity,
+          individualFocuses: { ...(segment.individualFocuses || {}) },
+          effectiveFrom: segment.effectiveFrom ? new Date(segment.effectiveFrom) : null,
+        }))
+        : [],
+      // Sección 5: una fecha por cada partido REAL jugado por el equipo
+      // (cualquier competición), para calcular densidad competitiva.
+      recentTeamMatchDates: Array.isArray(data.recentTeamMatchDates)
+        ? data.recentTeamMatchDates.map((d) => new Date(d))
+        : [],
+      // Sección 26: revisión periódica de TrainingAI — colectiva cada 28
+      // días, focos individuales cada 56 (nombres separados para conservar
+      // la semántica de las dos cadencias distintas del prompt, "puedes
+      // adaptar nombres menores").
+      nextCpuCollectiveReviewDate: data.nextCpuCollectiveReviewDate ? new Date(data.nextCpuCollectiveReviewDate) : null,
+      nextCpuIndividualReviewDate: data.nextCpuIndividualReviewDate ? new Date(data.nextCpuIndividualReviewDate) : null,
+    };
+  }
+
   // Construye las 7 instalaciones a partir de los datos recibidos (o valores
   // por defecto razonables). El coste de mantenimiento y la obsolescencia
   // son solo datos por ahora — la lógica temporal de cuándo se vuelve
@@ -220,6 +265,10 @@
         titles: Array.isArray(history.titles) ? [...history.titles] : [],
         legends: Array.isArray(history.legends) ? [...history.legends] : [],
       };
+
+      // --- LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2) ---
+      this.trainingPlan = buildTrainingPlan(data.trainingPlan);
+      this.trainingState = buildTrainingState(data.trainingState);
     }
 
     static validateDivision(division) {
@@ -263,6 +312,9 @@
       const leaving = this.roster.find((player) => player.id === playerId);
       if (leaving) leaving.teamId = null;
       this.roster = this.roster.filter((player) => player.id !== playerId);
+      // LIFE-2 (sección 4): un jugador que sale de la plantilla no deja un
+      // foco individual huérfano en el plan de entrenamiento.
+      delete this.trainingPlan.individualFocuses[playerId];
     }
 
     // Recibe los ids de jugadores de la plantilla y devuelve la convocatoria
@@ -365,6 +417,21 @@
         tacticalProfile: this.tacticalProfile,
         rivalries: this.rivalries,
         history: this.history,
+        trainingPlan: this.trainingPlan,
+        trainingState: {
+          ...this.trainingState,
+          lastProcessedDate: this.trainingState.lastProcessedDate
+            ? this.trainingState.lastProcessedDate.toISOString() : null,
+          planSegments: this.trainingState.planSegments.map((segment) => ({
+            ...segment,
+            effectiveFrom: segment.effectiveFrom ? segment.effectiveFrom.toISOString() : null,
+          })),
+          recentTeamMatchDates: this.trainingState.recentTeamMatchDates.map((d) => d.toISOString()),
+          nextCpuCollectiveReviewDate: this.trainingState.nextCpuCollectiveReviewDate
+            ? this.trainingState.nextCpuCollectiveReviewDate.toISOString() : null,
+          nextCpuIndividualReviewDate: this.trainingState.nextCpuIndividualReviewDate
+            ? this.trainingState.nextCpuIndividualReviewDate.toISOString() : null,
+        },
       };
     }
   }

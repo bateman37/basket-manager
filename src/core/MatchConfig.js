@@ -1658,6 +1658,191 @@
         social: [[14, 0], [50, 0]],
       },
     },
+
+    // --- LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2): Entrenamiento,
+    // desarrollo dirigido y aprendizaje táctico/posicional. Todos los
+    // coeficientes que usan Training.js/TrainingAI.js viven aquí — nada
+    // hardcodeado en esos ficheros, mismo criterio que playerDevelopment.
+    training: {
+      // --- Sección 7: densidad competitiva semanal (nº de partidos
+      // OFICIALES del equipo, liga+copa+playoff+ascenso, en la ventana de
+      // 7 días de un tick) -> cuánto entrenamiento cabe esa semana. Para 4
+      // o más se reutiliza el tramo de 4.
+      matchDensity: {
+        0: { opportunityFactor: 1.10, loadUnits: 4.0 },
+        1: { opportunityFactor: 1.00, loadUnits: 3.0 },
+        2: { opportunityFactor: 0.68, loadUnits: 1.75 },
+        3: { opportunityFactor: 0.42, loadUnits: 0.75 },
+        4: { opportunityFactor: 0.25, loadUnits: 0.25 },
+      },
+
+      // --- Sección 8/9: intensidad -> desarrollo vs Energy/Recovery ---
+      intensity: {
+        recovery: {
+          developmentMultiplier: 0.50, recoveryMultiplier: 1.30, energyCostPerLoadUnit: 0.15, tacticalMultiplier: 0.70,
+        },
+        light: {
+          developmentMultiplier: 0.82, recoveryMultiplier: 1.12, energyCostPerLoadUnit: 0.50, tacticalMultiplier: 0.90,
+        },
+        normal: {
+          developmentMultiplier: 1.00, recoveryMultiplier: 1.00, energyCostPerLoadUnit: 1.00, tacticalMultiplier: 1.00,
+        },
+        high: {
+          developmentMultiplier: 1.18, recoveryMultiplier: 0.82, energyCostPerLoadUnit: 1.70, tacticalMultiplier: 1.10,
+        },
+      },
+
+      // Referencia de `opportunityShare` (sección 8: loadUnits/4, clamp 0-1)
+      // usada para no aplicar el recoveryMultiplier completo cuando la
+      // densidad competitiva deja casi cero entrenamiento real.
+      recoveryOpportunityReference: 4.0,
+
+      // --- Sección 9: coste de Energy por foco individual (además del
+      // coste base loadUnits*energyCostPerLoadUnit de la intensidad) ---
+      individualFocusEnergyCostPerLoadUnit: {
+        attribute: 0.10, position: 0.15, role: 0.10, none: 0,
+      },
+
+      // --- Sección 10: readinessFactorByEnergy (interpolado, sección 14
+      // reutiliza el mismo estilo de curva [energy, factor] que
+      // playerDevelopment.growthCurves) — modula SOLO el estímulo
+      // POSITIVO de entrenamiento, nunca el declive.
+      readinessFactorByEnergy: [[0, 0.40], [20, 0.55], [40, 0.75], [60, 0.90], [80, 1.00], [100, 1.00]],
+
+      // --- Sección 11: vectores BRUTOS de Team Focus por atributo mutable.
+      // `default` es el peso de cualquier atributo mutable no listado en
+      // `overrides`; `physical` usa `groupOverrides` (por grupo
+      // technical/physical/mental de Player.js) en vez de listar los 29
+      // atributos uno a uno, porque la regla de la sección 11 es "todos los
+      // Physical mutables 1.25, todos los Technical/Mental mutables 0.85"
+      // (una regla de GRUPO, no de atributo individual). Training.js
+      // normaliza el vector resultante contra el presupuesto TMB del
+      // jugador (PlayerDevelopment.getPositionWeights) para que la media
+      // ponderada del estímulo vuelva a 1.00 — estos números son
+      // deliberadamente "brutos", nunca el multiplicador final.
+      teamFocusVectors: {
+        balanced: { default: 1.00, overrides: {} },
+        offense: {
+          default: 0.90,
+          overrides: {
+            outsideShot: 1.30, midRangeShot: 1.20, insideShot: 1.15, freeThrows: 1.10, layup: 1.20,
+            passing: 1.20, ballHandling: 1.20, offensiveRebound: 1.05, gameVision: 1.15, pressureDecisionMaking: 1.10,
+          },
+        },
+        defense: {
+          default: 0.90,
+          overrides: {
+            defensiveRebound: 1.20, offensiveRebound: 1.05, blocking: 1.20, stealing: 1.20,
+            perimeterDefense: 1.25, interiorDefense: 1.25, anticipation: 1.15, positioning: 1.20, concentration: 1.10,
+          },
+        },
+        physical: { default: 0.85, overrides: {}, groupOverrides: { physical: 1.25 } },
+      },
+
+      // --- Sección 15: foco individual de atributo ---
+      attributeFocus: { targetMultiplier: 1.35 },
+
+      // --- Sección 22: foco individual de rol ---
+      roleFocus: { attributeBudgetMultiplier: 0.94 },
+
+      // --- Sección 16/17/18/23: foco/progreso posicional ---
+      position: {
+        basePositionGainPerTrainingWeek: 0.040,
+        attributeBudgetMultiplier: 0.92,
+        // Sección 18: entorno de coaching posicional — pesos sobre los
+        // mismos mappings 1-20->factor ya usados por facilities/staffContext
+        // (computeFacilityFactor/staffRatingToFactor), nunca una fórmula
+        // nueva de instalaciones.
+        environment: {
+          adult: { trainingCenter: 0.40, headCoachDevelopment: 0.40, technicalDevelopment: 0.20 },
+          youth: {
+            trainingCenter: 0.35, headCoachDevelopment: 0.30, technicalDevelopment: 0.15, youthDevelopment: 0.20,
+          },
+          youthAgeThreshold: 21,
+        },
+        // Sección 17: matchRepFactor semanal — saturación exponencial de
+        // los minutos reales jugados en la posición target esa semana.
+        matchRep: { halfLifeMinutes: 12, floor: 0.85, range: 0.25 },
+      },
+
+      // --- Sección 12/20/21/22: entrenamiento táctico colectivo/individual
+      // — reutiliza SIEMPRE Tactics.growFamiliarityValue/PLAY_DEFINITIONS
+      // (nunca una familiaridad paralela); estos números son la velocidad
+      // semanal de Training, propia y separada de config.tactics.familiarity
+      // (que sigue rigiendo el aprendizaje POR POSESIÓN jugando partidos).
+      tactical: {
+        // Sección 12: presupuesto de atributos NO normalizado a 1.00 para
+        // el foco Tactical (a cambio del mayor estímulo de familiaridad) —
+        // por CATEGORÍA de curva de PlayerDevelopment (technical/physical
+        // agrupan explosive+strength+endurance; cognitive/social son las
+        // dos categorías en las que LIFE-1 divide el grupo mental).
+        attributeBase: {
+          technical: 0.82, physical: 0.78, cognitive: 0.95, social: 0.90,
+        },
+        baseTacticalFamiliarityGainPerWeek: 0.60,
+        teamFocusMultiplier: {
+          balanced: 0.55,
+          offense: { offense: 0.90, defense: 0.25 },
+          defense: { offense: 0.25, defense: 0.90 },
+          physical: 0.15,
+          tactical: 1.80,
+        },
+        complexityLearningPenaltyMax: 0.35,
+        individualRoleFocusMultiplier: 1.75,
+        // Rendimientos decrecientes hacia 100 con la MISMA forma que
+        // Tactics.js (7.12.22) pero ritmo propio de Training (base rate
+        // semanal en vez de por posesión) — se reutiliza el patrón
+        // matemático, no la instancia de config.tactics.familiarity.
+        diminishingExponent: 1.4,
+        offseasonTacticalMultiplier: 0.60,
+      },
+
+      // --- Sección 24: offseason — LIFE-1 no dejó ningún
+      // "offseasonLearningMultiplier" real (verificado contra HEAD, mismo
+      // tipo de desviación que staffContext/stimulusByAttribute en la
+      // sección 3-bis: no existía nada que "conservar"). Documentado en el
+      // CHANGELOG. El resto de reglas de la sección 24 (intensidad forzada
+      // a 'normal', sin coste de Energy persistente, offseasonTacticalMultiplier
+      // de arriba) sí se implementan tal cual.
+
+      // --- Sección 26/27: revisión periódica de TrainingAI ---
+      cpuReview: {
+        collectiveReviewDays: 28,
+        individualReviewDays: 56,
+        lowEnergyThreshold: 65,
+        lowEnergyTopN: 10,
+        congestionMatchesWindowDays: 7,
+        congestionMatchesThreshold: 2,
+        lowFamiliarityThreshold: 55,
+        youngHeadroomAgeThreshold: 23,
+        youngHeadroomShareThreshold: 0.35,
+        highIntensityMinEnergy: 85,
+        // Umbral de headroom TMB (potencial - TMB sin cap) considerado
+        // "amplio" — DESIGN.md/prompt LIFE-2 no fija una cifra concreta
+        // para "margen amplio"; punto de partida razonable en la escala
+        // 1-200, pendiente de calibración como el resto de CONFIG.
+        headroomAmpleThreshold: 15,
+        // "Cobertura pobre" de una posición en la plantilla (sección 26,
+        // foco posicional CPU): ningún jugador de la plantilla alcanza
+        // este nivel real en esa posición.
+        poorPositionCoverageThreshold: 14,
+        // "Familiaridad de rol claramente inferior al resto del equipo"
+        // (sección 26, foco de rol CPU): diferencia mínima frente a la
+        // media de familiaridad de rol del equipo.
+        roleFamiliarityGapThreshold: 15,
+      },
+
+      // --- Sección 3-bis/18/37: staffContext — construcción NUEVA de
+      // LIFE-2 (no heredada de LIFE-1), neutro en 10 mientras no exista
+      // Staff real. Separado de `playerDevelopment.staffFactor` (LIFE-1,
+      // escalar plano que sigue multiplicando el crecimiento GENERAL de
+      // atributos exactamente igual que antes) — nunca se mezclan.
+      staffContext: {
+        headCoachDevelopment: 10,
+        technicalDevelopment: 10,
+        youthDevelopment: 10,
+      },
+    },
   };
 
   // Hueco para modificadores multiplicativos por competición (7.2) — NO

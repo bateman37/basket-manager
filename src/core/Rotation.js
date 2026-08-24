@@ -116,6 +116,14 @@
 
     const playedSeconds = new Map(squad.map((player) => [player.id, 0]));
 
+    // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, sección 17 del
+    // prompt de esta sesión): minutos REALES por jugador Y posición
+    // ocupada en pista — necesario para acelerar el aprendizaje posicional
+    // con minutos reales en la posición entrenada (no inferidos de
+    // `nominalPosition`). Tracking puramente factual, no cambia ninguna
+    // regla de sustitución/penalización POS ya existente.
+    const positionSeconds = new Map(squad.map((player) => [player.id, {}]));
+
     // Quinteto inicial: usa directamente el slot "starter" de cada fila (ya
     // no hace falta inferirlo por mayor cuota, el modelo de slots lo declara
     // explícitamente) — si el starter de una posición está vacío, se cubre
@@ -134,6 +142,7 @@
       bySlot,
       quotaSeconds,
       playedSeconds,
+      positionSeconds,
       onCourt,
       penalties: new Map(), // playerId -> penalización de rendimiento activa (C.3)
       fixedSegmentActive: null,
@@ -155,6 +164,11 @@
       const id = state.onCourt[pos];
       if (!id) return;
       state.playedSeconds.set(id, (state.playedSeconds.get(id) || 0) + seconds);
+      // LIFE-2: mismos segundos, desglosados también por la posición
+      // concreta que el jugador ocupaba en pista en este instante.
+      const byPosition = state.positionSeconds.get(id) || {};
+      byPosition[pos] = (byPosition[pos] || 0) + seconds;
+      state.positionSeconds.set(id, byPosition);
     });
   }
 
