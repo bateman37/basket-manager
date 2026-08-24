@@ -99,6 +99,14 @@
     <section id="gm-screen-match" class="gm-screen">
       <div id="gm-match"></div>
     </section>
+
+    <!-- LIFE-4 (DESIGN.md 9.4, sección 27): ficha universal de jugador —
+         pantalla CONTEXTUAL (nunca tiene botón propio en #gm-nav), se abre
+         desde cualquier vista donde aparezca un nombre de jugador vía
+         openPlayerProfile()/playerLinkHtml() en game.js. -->
+    <section id="gm-screen-player-profile" class="gm-screen">
+      <div id="gm-player-profile"></div>
+    </section>
   </div>
 
   <!-- ======================================================================
@@ -278,6 +286,12 @@
        script), así que su posición exacta aquí no es crítica — se deja
        justo después de MatchConfig.js por orden temático (src/core/). -->
   <script src="src/core/PlayerDevelopment.js"></script>
+  <!-- LIFE-4 (DESIGN.md 9.4): PlayerCareer.js destructura ALL_MUTABLE_
+       ATTRIBUTES/computeTmbRating de PlayerDevelopment.js y POSITIONS de
+       Player.js A NIVEL DE MÓDULO (igual que PlayerDevelopment.js hace con
+       Player.js) — debe cargar justo después de PlayerDevelopment.js, antes
+       de cualquier módulo que dependa de él (game.js). -->
+  <script src="src/core/PlayerCareer.js"></script>
   <!-- LIFE-3 (DESIGN.md 9.14): Medical.js accede a Player.js/Team.js/
        PlayerDevelopment.js de forma perezosa — se deja aquí (antes de
        Rotation.js/CpuLineup.js, que sí lo necesitan sin llegar a

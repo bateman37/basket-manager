@@ -723,14 +723,17 @@ una plantilla que solo interpola datos de ese hecho.
 | `competition` | `Cup.createCup`/`Bracket.champion`/`Series.loser`/`Bracket.rounds.length`/resumen de ascenso-descenso de `closeSeasonAndPrepareNext()` | Creación de Copa, campeón, eliminación propia, nueva ronda, ascenso/descenso |
 | `tactical` | `Tactics.summarizeTacticsTelemetry()` (TAC-7), umbral `config.tactics.telemetry.minReliablePossessions` — **el mismo campo que ya usa `smallSampleBadgeHtml`/`renderTacticsRivalTab`, nunca un segundo umbral propio** | Justo antes de cada partido de liga del usuario, sobre la cobertura de P&R con peor `pppAllowed` del próximo rival |
 
-**No implementado, señalado explícitamente** (DESIGN.md pide no
+**No implementado en CAL-2, señalado explícitamente** (DESIGN.md pedía no
 implementar sin dato real de soporte):
-- **Hitos** (récords de carrera de un jugador): no existe ningún
-  histórico de estadísticas acumuladas por jugador entre partidos/
-  temporadas en el proyecto (`Player.js` no guarda puntos/rebotes de
-  carrera, solo `experience`, un contador sin desglose) — inventar un
-  "récord superado" sin ese dato sería narrativa, no un hecho real. Se
-  deja fuera hasta que exista un histórico real que lo sostenga.
+- **Hitos** (récords de carrera de un jugador): en CAL-2 no existía
+  ningún histórico de estadísticas acumuladas por jugador entre
+  partidos/temporadas en el proyecto (`Player.js` no guardaba puntos/
+  rebotes de carrera, solo `experience`, un contador sin desglose) —
+  inventar un "récord superado" sin ese dato habría sido narrativa, no
+  un hecho real. **Cerrado por LIFE-4** (sección 9.15): `PlayerCareer.js`
+  construye ese histórico real, y `newsCategory:'career'` (`Events.js`)
+  redacta la noticia SOLO a partir de un milestone/récord que
+  `PlayerCareer.recordResolvedMatch()` ya detectó como hecho real.
 
 **Alcance deliberadamente reducido de algunas categorías** (evitar ruido,
 "NO NEWS FLUFF"):
@@ -859,8 +862,9 @@ tipos de evento reservados en 3.5.1 son solo catálogo, no implementación.
   mecanismo genérico, no un catálogo — nada de entrenamientos/médico/
   scouting/mercado/contratos como eventos reales, eso es STEP 3, sesión de
   diseño aparte todavía sin hacer, ver nota de cierre al final de 3.5);
-  noticias de "hitos" de carrera (sin histórico real de estadísticas por
-  jugador que las sostenga, ver 3.5.2); variedad horaria ENTRE series
+  noticias de "hitos" de carrera (en CAL-2, sin histórico real de
+  estadísticas por jugador que las sostenga, ver 3.5.2 — cerrado por
+  LIFE-4, sección 9.15); variedad horaria ENTRE series
   simultáneas de una misma ronda de bracket (limitación de `Bracket.js`,
   ver 3.3.1); controles secundarios de "Continuar 1 día/3 días/1 semana"
   (estudiados, no implementados — no hacían falta con el formato de 18
@@ -4893,6 +4897,159 @@ posterior): histórico completo de carrera más allá de
 táctica por no uso, resfriados/enfermedades sin impacto competitivo
 (deliberadamente fuera de alcance, ver sección 1 del prompt de esta
 sesión), forfeits/aplazamientos por escasez médica extrema.
+
+### 9.15 LIFE-4 — Ficha universal, carrera, histórico e hitos
+
+> Desviación de numeración señalada explícitamente (sección 84 del
+> prompt de esta sesión): el prompt pedía "9.4", pero esa subsección ya
+> existía (Atributos mutables, LIFE-1) — sigue la numeración secuencial
+> real de HEAD, igual que LIFE-2/LIFE-3 ocuparon 9.13/9.14.
+
+Módulo nuevo (`src/core/PlayerCareer.js`), responsable ÚNICO de
+persistencia histórica de carrera + cálculos puros derivados (totales,
+tendencias, hitos, récords, honores). No modifica atributos
+(`PlayerDevelopment.js` sigue siendo la única fuente de TMB/crecimiento),
+no calcula lesiones (`Medical.js` sigue siendo la única fuente médica),
+no resuelve partidos, no decide roles tácticos (`Tactics.js`) y no
+escribe `newsLog` directamente — `Events.js` sigue construyendo noticias,
+`src/ui/game.js` decide cuándo llamarlo a partir de los hitos que este
+módulo detecta.
+
+**No inventar pasado**: `player.careerHistory.historyCompleteness` es
+`'partial'` (jugadores reales ya existentes al arrancar la partida — su
+primer partido simulado NO es su debut profesional, la UI lo rotula
+"Registrado en esta partida") o `'complete'` (jugadores creados DENTRO de
+la partida — cantera nueva vía `Team.generateAcademyIntake()`, con
+debut/hitos/récords de carrera reales). Nunca se retrocede la fecha de
+inicio de histórico (`historyStartDate`) a `birthDate`.
+
+**`careerHistory`** (separado de `dynamicState`/`developmentState`/
+`medicalState`, en `Player.js`): `version`, `historyCompleteness`,
+`historyStartDate`, `baseline` (snapshot inicial: fecha, `seasonKey`,
+TMB, atributos, posiciones), `currentSeason` (temporada en curso:
+`stats`, `teamStints`, `honours`, dedupe de partidos ya sumados),
+`seasons` (array de temporadas cerradas), `milestones`, `personalBests`.
+Sobrevive `toJSON()`/reconstrucción igual que `developmentState`/
+`medicalState`; legacy sin `careerHistory` se inicializa vía
+`ensureCareerHistory()` sin inventar pasado (baseline en la fecha real
+de esa llamada).
+
+**Histórico compacto — sin snapshots semanales**: solo baseline + un
+snapshot final por temporada (`closeSeason()`), nunca por partido ni por
+tick de entrenamiento. Los 29 atributos mutables (mismas listas de
+LIFE-1, `PlayerCareer.ATTRIBUTE_SNAPSHOT_KEYS`), las 5 posiciones
+(`POSITION_SNAPSHOT_KEYS`) y 20 campos estadísticos acumulados
+(`STAT_SNAPSHOT_KEYS`: partidos, titularidades factuales, segundos,
+puntos, rebotes of./def., asistencias, robos, tapones, pérdidas, faltas
+cometidas/recibidas, valoración, +/-, tiros de 2/3/libres hechos-
+intentados) se persisten como **arrays de orden fijo**, nunca objetos
+con claves repetidas ni porcentajes (se calculan sobre los acumulados,
+nunca al revés) ni rebotes totales duplicados (se derivan de
+ofensivos+defensivos vía `totalReboundsOf()`). TMB histórico siempre
+sale de `PlayerDevelopment.computeTmbRating()` en el instante del
+snapshot — nunca una fuente viva persistida, el TMB actual se recalcula
+siempre al leer.
+
+**Titularidad factual**: `Rotation.buildRotationState()` fotografía el
+quinteto inicial real (slot "starter" de cada fila, ya disponible
+médicamente) en `state.starterIds`, expuesto por
+`MatchEngine.rotationSummary()` — nunca se infiere titularidad por
+minutos jugados. No cambia selección/sustitución.
+
+**Acumulación por partido** (`PlayerCareer.recordResolvedMatch()`),
+llamada desde el ÚNICO punto de post-procesado común que ya existía
+(`applyRecoveryForResolvedMatch()` en `game.js`, junto a
+`recordMatchExposure`/`addExperience`) — cubre liga, Copa, Playoff por
+el título y Playoff de ascenso, usuario y CPU, división visible y de
+fondo, sin duplicar hooks. Dedupe por `matchKey` (el `gameId`
+determinista de `MatchEngine`) evita sumar dos veces el mismo partido.
+`teamStints` (varios equipos en la misma temporada, preparado para un
+futuro mercado sin implementarlo) se acumula en paralelo al total de
+temporada.
+
+**Hitos y récords — solo para historia completa**: debut, primera
+titularidad real, umbrales de partidos (50/100/250/500) y minutos
+(1.000/5.000/10.000) — cada uno como mucho una vez (IDs estables).
+Récords personales (puntos, rebotes totales, asistencias, tapones,
+robos, valoración) se registran para CUALQUIER histórico (`partial`
+etiquetado "Mejor registro en esta partida", `complete` "Récord personal
+de carrera"), pero solo se convierten en milestone/candidato a noticia
+al superar un mínimo (20 pts/10 reb/8 ast/4 tap/4 rob/20 val) — el
+primer partido de un jugador nunca genera 6 hitos de golpe.
+
+**Honores** (`registerHonour()`, idempotente): campeón de Copa/Playoff
+por el título/liga regular de 2ª, ascenso directo/vía playoff — hechos
+reales ya calculados por `League.js`/`Bracket.js`/`Promotion.js`, nunca
+recalculados aquí, registrados al roster real en el momento del cierre.
+Un honor de equipo NUNCA genera una noticia por cada jugador
+(invariante "honor != noticia individual") — solo queda en la ficha.
+
+**Cierre de temporada** (`closeSeasonAndPrepareNext()` en `game.js`):
+división/equipo capturados ANTES de aplicar ascensos/descensos (un
+ascendido cierra con la división en la que jugó), snapshot final
+(TMB/atributos/posiciones/`nominalPosition`/roles vía
+`Tactics.roleAssignments`+`familiarity.byPlayerRole`, nunca
+recalculados), honores, reinicio de `currentSeason` — todo ANTES de la
+cantera nueva (que arranca con histórico `complete` desde
+`seasonEndDateTime`, nunca con temporadas anteriores vacías).
+`seasonKey` sigue el formato real `"2026-27"` (`seasonKeyFromStartYear`),
+nunca "Temporada 1".
+
+**Noticias de carrera cierran el hueco de CAL-2**: `Events.js` añade
+`newsCategory:'career'` y dos builders puros
+(`buildCareerMilestoneNewsEvent`/`buildPersonalBestNewsEvent`) — solo
+para el equipo del usuario (evita "fluff" de los otros 35 clubes).
+`complete`: debut/100/250/500 partidos generan noticia (prioridad
+media/media/alta/alta); 50 partidos y los umbrales de minutos quedan en
+el timeline pero nunca generan noticia; un récord significativo genera
+noticia de prioridad media. `partial`: nunca "debut" ni "X partidos de
+carrera" — solo "mejor actuación registrada en esta partida" con un
+umbral propio más estricto (30 pts/15 reb/12 ast/30 val). La
+deduplicación de noticia queda garantizada por la deduplicación de
+milestone en `PlayerCareer.js` (IDs estables) — `game.js` solo construye
+noticia para los milestones NUEVOS que `recordResolvedMatch()` devuelve.
+
+**Ficha universal de jugador** (`player-profile`, pantalla CONTEXTUAL sin
+botón propio en `#gm-nav`): `openPlayerProfile(playerId, returnContext)` /
+`closePlayerProfile()`, con 7 sub-pestañas (Resumen, Atributos, Posiciones
+y roles, Desarrollo, Estadísticas, Médico, Carrera). TMB visible en la
+ficha (1-200, con el mismo tooltip ya existente: "TMB mide la capacidad
+actual del jugador..., no es su potencial"); Potencial/`learningRate`/
+`learningPersistence`/Profesionalidad/Ambición/`agingOffsetYears`/seeds/
+residuales NUNCA se muestran. Gráficos de evolución (TMB por temporada,
+atributo seleccionado) en SVG/CSS puro, sin librerías externas, siempre
+con tabla accesible debajo. Pestaña Médico lee `medicalState` directamente
+(nunca copiado a `careerHistory`). `findPlayerById()` busca siempre
+instancias vivas de `Player` entre los 36 equipos actuales, nunca un
+bundle plano. Nombre clicable (`playerLinkHtml()`/`playerLinkHtmlById()`,
+botón semántico accesible) desde Alineación, Entrenamiento, Tácticas
+(pestaña Roles), Estadísticas, Lesiones, box score y Noticias — abrir la
+ficha o cambiar de pestaña NUNCA avanza el calendario ni procesa
+Training/Medical/Development/roles/alineación. Volver preserva el estado
+de la pantalla de origen porque ese estado ya es duradero por sí mismo
+(`state.statsSortKey`, `team.trainingPlan`, `container.dataset.activeTab`
+de Tácticas/Competiciones...) — `openPlayerProfile()` solo necesita
+recordar `returnScreen`.
+
+**Tamaño observado**: `scripts/test-life4.js` mide ~640 bytes/temporada
+para un jugador con estadísticas constantes; `scripts/smoke-life4.js`
+(36 equipos/738 jugadores tras 3 temporadas reales con partidos/hitos/
+honores de verdad) mide ~2,8 MB acumulados, con una proyección lineal a
+20 temporadas de ~18 MB — por encima del objetivo orientativo de 2,5 MB
+de la sección 55 del prompt de esta sesión (desviación señalada
+explícitamente, no silenciosa: ya se aplican arrays de orden fijo, cero
+duplicación de totales/porcentajes/snapshots intermedios y deduplicación
+de milestones — el resto del margen lo consume `milestones`/
+`personalBests` acumulados a lo largo de muchas temporadas reales; queda
+como optimización pendiente para una sesión futura si Dennis lo pide).
+
+**Fuera de alcance de LIFE-4** (ver sección 77 del prompt de esta
+sesión): scouting/PA estimado, mercado/contratos/agentes, Staff
+contratable real, retiros, premios individuales/Hall of Fame,
+comparación de jugadores, editor de histórico, fotos, nuevas reglas de
+TMB/progresión/médicas/roles, decay de POS/táctica por no uso,
+fama/popularidad. **Con LIFE-4, STEP 3 — PLAYER LIFE queda cerrado**
+(LIFE-1 + LIFE-2 + LIFE-3 + LIFE-4).
 
 ## 10. Modo Manager (futuro, derivado del modo Completo)
 

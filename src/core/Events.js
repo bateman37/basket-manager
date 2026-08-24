@@ -33,7 +33,11 @@
   // por falta de histórico real de estadísticas por jugador entre
   // temporadas — señalado explícitamente, no un olvido. LIFE-3 añade
   // 'medical' (lesión/alta), derivada siempre de `medicalState` real.
-  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise', 'medical'];
+  // LIFE-4 (DESIGN.md 9.4, sección 40/71): 'career' — hitos/récords de
+  // carrera derivados de `PlayerCareer.recordResolvedMatch()` (hecho real
+  // ya detectado allí; este módulo solo redacta). Cierra el hueco que
+  // CAL-2 dejó explícitamente pendiente por falta de histórico real.
+  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise', 'medical', 'career'];
 
   let eventIdCounter = 0;
   function nextEventId(prefix) {
@@ -485,6 +489,95 @@
     });
   }
 
+  // ------------------------------------------------------------------
+  // LIFE-4 (DESIGN.md 9.4, sección 40/41/70/71): noticias de carrera —
+  // derivadas SIEMPRE de un milestone/personalBest ya detectado por
+  // `PlayerCareer.recordResolvedMatch()` (hecho real, con su propio id
+  // estable — game.js solo llama a estos builders para los milestones
+  // NUEVOS que esa función acaba de devolver, así que la deduplicación de
+  // noticia ya queda garantizada por la deduplicación de milestone en
+  // PlayerCareer.js, invariantes 21/22). Solo se usan para el equipo del
+  // usuario (game.js filtra antes de llamar, sección 41: "evitar fluff").
+  // ------------------------------------------------------------------
+  const CAREER_MILESTONE_LABELS = {
+    debut: (player, team) => `${player.fullName} debuta con ${team.fullName}`,
+    games100: (player, team) => `${player.fullName} llega a los 100 partidos con ${team.fullName}`,
+    games250: (player, team) => `${player.fullName} llega a los 250 partidos con ${team.fullName}`,
+    games500: (player, team) => `${player.fullName} llega a los 500 partidos con ${team.fullName}`,
+  };
+  // 50 partidos/hitos de minutos/primera titularidad: quedan en el
+  // timeline de Carrera (PlayerCareer.js los registra igual), pero NUNCA
+  // generan noticia (DESIGN.md 9.4, sección 41) — de ahí que no tengan
+  // entrada aquí; `buildCareerMilestoneNewsEvent` devuelve `null` para
+  // cualquier `milestone.type` sin prioridad asignada.
+  const CAREER_MILESTONE_PRIORITY = { debut: 'media', games100: 'media', games250: 'alta', games500: 'alta' };
+
+  function buildCareerMilestoneNewsEvent(player, team, milestone, opts = {}) {
+    const priority = CAREER_MILESTONE_PRIORITY[milestone.type];
+    const labelBuilder = CAREER_MILESTONE_LABELS[milestone.type];
+    if (!priority || !labelBuilder) return null;
+    const title = labelBuilder(player, team);
+    return makeEvent({
+      id: nextEventId('news-career'),
+      type: 'news',
+      dateTime: milestone.date,
+      title,
+      relatedCompetition: opts.relatedCompetition,
+      relatedTeam: team,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      newsCategory: 'career',
+      priority,
+      body: `${title}.`,
+    });
+  }
+
+  const PERSONAL_BEST_STAT_LABELS = {
+    points: 'puntos', totalRebounds: 'rebotes', assists: 'asistencias', blocks: 'tapones', steals: 'robos', valoracion: 'valoración',
+  };
+  // Sección 41: umbral propio (más estricto que el mínimo general de
+  // sección 24) para que un histórico `partial` genere noticia — nunca
+  // "récord de carrera" (no se conoce su carrera completa), solo "mejor
+  // actuación registrada en esta partida". Robos/tapones no generan
+  // noticia parcial (no están en la lista de la sección 41), aunque sí
+  // quedan como milestone en la ficha.
+  const PARTIAL_NEWS_MINIMUMS = { points: 30, totalRebounds: 15, assists: 12, valoracion: 30 };
+
+  function buildPersonalBestNewsEvent(player, team, milestone, historyCompleteness, opts = {}) {
+    const stat = milestone.metadata && milestone.metadata.stat;
+    const label = PERSONAL_BEST_STAT_LABELS[stat];
+    if (!label) return null;
+    if (historyCompleteness === 'complete') {
+      const title = `${player.fullName} firma un nuevo récord personal de ${label} (${milestone.value})`;
+      return makeEvent({
+        id: nextEventId('news-career'),
+        type: 'news',
+        dateTime: milestone.date,
+        title,
+        relatedCompetition: opts.relatedCompetition,
+        relatedTeam: team,
+        relatedPlayer: { id: player.id, fullName: player.fullName },
+        newsCategory: 'career',
+        priority: 'media',
+        body: `${player.fullName} (${team.fullName}) supera su propio récord de ${label} con ${milestone.value}.`,
+      });
+    }
+    const minimum = PARTIAL_NEWS_MINIMUMS[stat];
+    if (minimum === undefined || milestone.value < minimum) return null;
+    const title = `${player.fullName} firma su mejor actuación registrada en esta partida (${milestone.value} ${label})`;
+    return makeEvent({
+      id: nextEventId('news-career'),
+      type: 'news',
+      dateTime: milestone.date,
+      title,
+      relatedCompetition: opts.relatedCompetition,
+      relatedTeam: team,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      newsCategory: 'career',
+      priority: 'media',
+      body: `${player.fullName} (${team.fullName}) firma ${milestone.value} ${label}, su mejor marca registrada desde el inicio de esta partida.`,
+    });
+  }
+
   const exportsObj = {
     EVENT_TYPES,
     RESERVED_FUTURE_EVENT_TYPES,
@@ -507,6 +600,8 @@
     buildInjuryAgendaEvent,
     buildInjuryNewsEvent,
     buildFullRecoveryNewsEvent,
+    buildCareerMilestoneNewsEvent,
+    buildPersonalBestNewsEvent,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

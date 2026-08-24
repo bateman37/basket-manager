@@ -110,6 +110,17 @@
       segmentDraft: null, // formulario en curso de un quinteto fijo nuevo
       garbageTime: { enabled: false }, // DESIGN.md 7.11.2-bis, opción por partido
     },
+    // LIFE-4 (DESIGN.md 9.4, sección 27/28): ficha universal de jugador —
+    // pantalla CONTEXTUAL, nunca la pantalla "actual" en el sentido de
+    // `state.screen`/SCREENS (no tiene botón propio en #gm-nav). `null`
+    // cuando no hay ficha abierta. `returnScreen` es la única pieza de
+    // estado que openPlayerProfile() necesita para volver — el resto del
+    // estado de cada pantalla (sub-pestaña activa, convocatoria, plan de
+    // entrenamiento, orden/filtro de Estadísticas...) ya vive de forma
+    // duradera en su propio sitio (state.statsSortKey, team.trainingPlan,
+    // container.dataset.activeTab...) y sobrevive por sí solo a navegar
+    // aquí y volver, sin que esta pantalla tenga que restaurarlo.
+    playerProfile: null, // { playerId, returnScreen, returnSubscreen, activeTab, developmentAttribute }
   };
 
   function byId(id) { return document.getElementById(id); }
@@ -148,6 +159,14 @@
   // reconstrucción idéntica a la que hace scripts/import-real-data.js
   // al leer de disco, ver DESIGN.md/CLAUDE.md "Datos reales".
   // -----------------------------------------------------------------
+  // LIFE-4 (DESIGN.md 9.4, sección 17): "2026-27", nunca "Temporada 1" —
+  // derivado del año real de inicio de la partida en curso (o del año de
+  // la máquina en el instante de la llamada, para las tarjetas de
+  // previsualización de selección de equipo, ANTES de que exista partida).
+  function buildCareerSeasonKey() {
+    return BM.seasonKeyFromStartYear(state.seasonStartYear || new Date().getFullYear());
+  }
+
   function buildRealTeamFromData(teamData) {
     const { Player, Team, ensureDevelopmentState, CONFIG_BASE } = BM;
     const roster = teamData.roster.map((playerData) => {
@@ -160,6 +179,13 @@
       // punto de integración que ya usa esta función para dataSource.
       ensureDevelopmentState(
         player, CONFIG_BASE, state.calendar ? state.calendar.currentGameDateTime : new Date(),
+      );
+      // LIFE-4 (DESIGN.md 9.4, sección 3/18): jugadores reales ya
+      // existentes antes de esta partida — histórico `partial`, empieza en
+      // el instante real de esta llamada (nunca inventa su pasado real).
+      BM.ensureCareerHistory(
+        player, CONFIG_BASE, state.calendar ? state.calendar.currentGameDateTime : new Date(),
+        { historyCompleteness: 'partial', seasonKey: buildCareerSeasonKey() },
       );
       return player;
     });
@@ -535,8 +561,16 @@
     // partido ya resuelto — Agenda/Noticias, punto único (todo partido
     // resuelto de cualquier competición pasa por aquí).
     pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey);
-    [{ team: homeTeam, rotation: result.rotation.home }, { team: awayTeam, rotation: result.rotation.away }]
-      .forEach(({ team, rotation }) => {
+    // LIFE-4 (DESIGN.md 9.4, sección 11): clave estable del partido — mismo
+    // `gameId` determinista de MatchEngine.createMatchState para ambos
+    // lados, con fallback defensivo por fecha para caminos de modo prueba
+    // que pudieran no traerlo.
+    const matchKey = result.gameId || `match-${homeTeam.id}-${awayTeam.id}-${date.toISOString()}`;
+    [
+      { team: homeTeam, opponent: awayTeam, rotation: result.rotation.home, boxScore: result.boxScore.home },
+      { team: awayTeam, opponent: homeTeam, rotation: result.rotation.away, boxScore: result.boxScore.away },
+    ]
+      .forEach(({ team, opponent, rotation, boxScore }) => {
         if (!rotation) return; // este lado no tenía alineación real — sin datos de minutos, no se toca
         team.roster.forEach((player) => {
           const playedSeconds = rotation.playedSeconds[player.id] || 0;
@@ -562,8 +596,44 @@
           // `addExperience()` existía sin ningún llamador real hasta ahora.
           // Un partido con minutos jugados suma 1 punto de experiencia.
           player.addExperience(1);
+
+          // LIFE-4 (DESIGN.md 9.4): histórico de carrera — mismo punto
+          // único de post-procesado que el resto de esta función (liga,
+          // Copa, Playoff, Ascenso, usuario y CPU, visible y de fondo).
+          if (player.careerHistory) {
+            const line = boxScore.find((l) => l.playerId === player.id);
+            if (line) {
+              const isStarter = (rotation.starterIds || []).indexOf(player.id) !== -1;
+              const careerResult = BM.recordResolvedMatch(player, {
+                date,
+                competition: competitionKey,
+                team: { id: team.id, name: team.fullName, division: team.division },
+                opponent: { id: opponent.id, name: opponent.fullName },
+                boxScoreLine: line,
+                isStarter,
+                matchKey,
+              }, CONFIG_BASE);
+              pushCareerNewsForPlayer(player, team, careerResult, competitionKey);
+            }
+          }
         });
       });
+  }
+
+  // LIFE-4 (DESIGN.md 9.4, sección 41): solo el equipo del usuario genera
+  // noticias de carrera (evita "fluff" de los otros 35 clubes) — los
+  // hitos/récords en sí ya se registraron para CUALQUIER jugador (visible
+  // o de fondo) dentro de `recordResolvedMatch`, esto solo decide si
+  // ADEMÁS se redacta una noticia.
+  function pushCareerNewsForPlayer(player, team, careerResult, competitionKey) {
+    if (team.id !== state.userTeamId) return;
+    const opts = { userTeamId: state.userTeamId, relatedCompetition: competitionKey };
+    careerResult.newMilestones.forEach((milestone) => {
+      pushNews(BM.buildCareerMilestoneNewsEvent(player, team, milestone, opts));
+    });
+    careerResult.newPersonalBests.forEach((milestone) => {
+      pushNews(BM.buildPersonalBestNewsEvent(player, team, milestone, player.careerHistory.historyCompleteness, opts));
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -827,6 +897,43 @@
     return isDivisionFullyDone('1ª') && isDivisionFullyDone('2ª');
   }
 
+  // LIFE-4 (DESIGN.md 9.4, sección 25): honores reales de la temporada que
+  // termina — hechos ya calculados por League.js/Bracket.js/Promotion.js
+  // (nunca recalculados aquí), un código estable por equipo. "Honor !=
+  // noticia individual" (invariante 23): esto NO genera ninguna noticia,
+  // solo queda en la ficha de cada jugador de ese roster.
+  function buildSeasonHonoursByTeamId(leagueA, leagueB, bracketsA, bracketsB, promotedTeams) {
+    const map = new Map();
+    function add(teamId, code) {
+      if (!teamId) return;
+      const list = map.get(teamId) || [];
+      list.push(code);
+      map.set(teamId, list);
+    }
+    const standingsB = leagueB.getStandingsTable();
+    if (standingsB.length) add(standingsB[0].team.id, 'regularSeasonChampion2');
+    if (bracketsA.cup && bracketsA.cup.champion) add(bracketsA.cup.champion.team.id, 'cupChampion');
+    if (bracketsA.titlePlayoff && bracketsA.titlePlayoff.champion) add(bracketsA.titlePlayoff.champion.team.id, 'titlePlayoffChampion');
+    if (promotedTeams[0]) add(promotedTeams[0].id, 'promotedDirect');
+    if (promotedTeams[1]) add(promotedTeams[1].id, 'promotedPlayoff');
+    return map;
+  }
+
+  // LIFE-4 (DESIGN.md 9.4, sección 10): rol asignado + familiaridad de ESE
+  // rol al cierre de temporada — lee directamente `team.tacticalProfile`
+  // (Tactics.js real, nunca recalculado aquí). Sin rol asignado, ambos
+  // lados quedan `null` (mismo criterio neutro que ya usa Tactics.js).
+  function buildRolesSnapshotForPlayer(player, team) {
+    const profile = team.tacticalProfile;
+    if (!profile) return { offense: null, defense: null };
+    const assignment = (profile.roleAssignments && profile.roleAssignments[player.id]) || {};
+    const fam = (profile.familiarity && profile.familiarity.byPlayerRole && profile.familiarity.byPlayerRole[player.id]) || {};
+    return {
+      offense: assignment.offensiveRole ? [assignment.offensiveRole, Math.round(fam.offensiveLevel || 0)] : null,
+      defense: assignment.defensiveRole ? [assignment.defensiveRole, Math.round(fam.defensiveLevel || 0)] : null,
+    };
+  }
+
   // ---------------------------------------------------------------------
   // Cierre de ciclo de temporada y pretemporada (DESIGN.md 3.4.2/3.4.4).
   // Disparado explícitamente por el usuario (botón "Cerrar temporada",
@@ -838,10 +945,18 @@
 
     const leagueA = getLeague('1ª');
     const leagueB = getLeague('2ª');
+    const bracketsA = getBrackets('1ª');
     const bracketsB = getBrackets('2ª');
     // CAL-2: instante real de cierre, capturado ANTES de sustituir
     // `state.calendar` por el de la temporada siguiente (paso 4 más abajo).
     const seasonEndDateTime = state.calendar.currentGameDateTime;
+
+    // LIFE-4 (DESIGN.md 9.4, sección 16): división REAL de la temporada que
+    // se está cerrando, capturada ANTES de aplicar ascensos/descensos (paso
+    // 1 de abajo) — un ascendido/descendido debe cerrar su histórico con la
+    // división en la que JUGÓ esta temporada, no con la nueva.
+    const divisionBeforeByTeamId = new Map();
+    [...leagueA.teams, ...leagueB.teams].forEach((team) => divisionBeforeByTeamId.set(team.id, team.division));
 
     // 1. Ascensos/descensos reales (DESIGN.md 3.4.2) — SOLO team.division
     // cambia; ningún otro campo de jugador/equipo se toca (decisión
@@ -891,10 +1006,46 @@
     // el que el prompt pide explícitamente, sin dejarlo a la casualidad.
     processDevelopmentToDateForTeams(allTeams, seasonEndDateTime);
 
+    // 2.6 (LIFE-4, DESIGN.md 9.4, sección 16): cierra el histórico de
+    // carrera de los 36 equipos YA existentes — ANTES del intake de
+    // cantera de abajo, mismo motivo documentado en LIFE-1 (2.5) para el
+    // orden de procesado: un canterano recién generado no debe recibir una
+    // temporada cerrada que nunca jugó (invariante 15 del prompt de esta
+    // sesión, "season no sobrescribe").
+    const nextSeasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear + 1);
+    const honoursByTeamId = buildSeasonHonoursByTeamId(leagueA, leagueB, bracketsA, bracketsB, promotedTeams);
+    allTeams.forEach((team) => {
+      const honours = honoursByTeamId.get(team.id) || [];
+      team.roster.forEach((player) => {
+        if (!player.careerHistory) return;
+        honours.forEach((honourCode) => BM.registerHonour(player, honourCode));
+        BM.closeSeason(player, {
+          endDate: seasonEndDateTime,
+          teamId: team.id,
+          teamName: team.fullName,
+          division: divisionBeforeByTeamId.get(team.id) || team.division,
+          roles: buildRolesSnapshotForPlayer(player, team),
+          honours,
+          nextSeasonKey,
+        }, CONFIG_BASE);
+      });
+    });
+
     // 3. Cantera/Academia de la nueva temporada (3.4.4 paso 2) — conecta
     // Team.generateAcademyIntake() tal cual (con la fecha real de cierre,
     // LIFE-1), sin ninguna otra regla nueva.
-    allTeams.forEach((team) => team.generateAcademyIntake(3, seasonEndDateTime));
+    allTeams.forEach((team) => {
+      const newPlayers = team.generateAcademyIntake(3, seasonEndDateTime);
+      // LIFE-4 (DESIGN.md 9.4, sección 19): cantera nueva = histórico
+      // `complete` desde el instante real de su incorporación — nunca
+      // recibe temporadas anteriores vacías (arranca directamente en la
+      // temporada que viene, `nextSeasonKey`, ver cierre paso 4 más abajo).
+      newPlayers.forEach((player) => {
+        BM.ensureCareerHistory(player, CONFIG_BASE, seasonEndDateTime, {
+          historyCompleteness: 'complete', seasonKey: nextSeasonKey,
+        });
+      });
+    });
 
     // 4. Nuevo Calendar (3.4.4 paso 3).
     state.seasonStartYear += 1;
@@ -1431,6 +1582,7 @@
         </div>
         <h4 class="news-card__title">${event.title}</h4>
         ${event.body ? `<p class="gm-muted news-card__body">${event.body}</p>` : ''}
+        ${event.relatedPlayer ? `<p class="news-card__player">${playerLinkHtmlById(event.relatedPlayer.id, event.relatedPlayer.fullName)}</p>` : ''}
       </div>`;
   }
 
@@ -1587,6 +1739,7 @@
     // `result` persistido no tiene estos campos en absoluto.
     function addLine(line, teamName) {
       const existing = totals.get(line.playerId) || {
+        playerId: line.playerId,
         name: line.name,
         team: teamName,
         games: 0,
@@ -1756,7 +1909,7 @@
 
     const rows = playerStats.map((p) => `
       <tr>
-        <td>${p.name}</td>
+        <td>${playerLinkHtmlById(p.playerId, p.name)}</td>
         <td>${p.team}</td>
         <td>${p.games}</td>
         ${STATS_COLUMNS.map((col) => `<td>${col.display(p)}</td>`).join('')}
@@ -2059,11 +2212,18 @@
       if (info.status === 'unavailable') return '<span class="gm-badge gm-badge--injury">No disponible por lesión</span>';
       return `<span class="gm-badge gm-badge--limited">Máximo médico: ${info.minuteCap} min</span>`;
     }
+    // LIFE-4 (DESIGN.md 9.4, sección 45): nombre clicable sin activar el
+    // checkbox — ya NO es un único <label> envolviendo todo la fila (eso
+    // convertiría el nombre en "botón dentro de label ambiguo"): el
+    // checkbox vive en su propio <label> pequeño, y el nombre es un botón
+    // hermano fuera de él.
     const squadPickerHtml = sortedRoster.map((player) => `
-      <label class="squad-picker__item">
-        <input type="checkbox" class="squad-checkbox" data-player-id="${player.id}"
-          ${lineup.squadIds.includes(player.id) ? 'checked' : ''}>
-        <span class="squad-picker__name">${player.fullName}</span>
+      <div class="squad-picker__item">
+        <label class="squad-picker__checkbox-wrap">
+          <input type="checkbox" class="squad-checkbox" data-player-id="${player.id}"
+            ${lineup.squadIds.includes(player.id) ? 'checked' : ''}>
+        </label>
+        ${playerLinkHtml(player, { className: 'squad-picker__name' })}
         <span class="squad-picker__pos">${player.primaryPosition}</span>
         ${medicalBadgeHtml(player)}
         <span class="squad-picker__ratings">
@@ -2074,7 +2234,7 @@
           <span>Energía ${Math.round(player.dynamicState.energy)}</span>
           <span class="squad-picker__form">Forma ${competitionRhythmToStars(player.dynamicState.competitionRhythm)}</span>
         </span>
-      </label>`).join('');
+      </div>`).join('');
 
     const convocated = getConvocatedPlayers(team);
 
@@ -2437,7 +2597,7 @@
 
     return `
       <tr>
-        <td>${player.fullName}${medicalHtml}</td>
+        <td>${playerLinkHtml(player)}${medicalHtml}</td>
         <td>${player.age}</td>
         <td>${Math.round(player.dynamicState.energy)}</td>
         <td><select class="training-focus-type-select" data-player-id="${player.id}">${typeOptionsHtml}</select></td>
@@ -2552,7 +2712,7 @@
     const loadBand = BM.describeLoadBand(player, referenceDate, config);
     return `
       <tr class="medical-row medical-row--${info.status}">
-        <td>${player.fullName}</td>
+        <td>${playerLinkHtml(player)}</td>
         <td>${player.age}</td>
         <td>${statusLabel}</td>
         <td>${injuryLabel}</td>
@@ -2934,7 +3094,7 @@
 
       return `
         <tr>
-          <td>${player.fullName}</td>
+          <td>${playerLinkHtml(player)}</td>
           <td>${player.primaryPosition}</td>
           <td>
             <select class="tactics-role-select" data-player-id="${player.id}" data-side="offensive">
@@ -3902,9 +4062,524 @@
   }
 
   // ---------------------------------------------------------------------
+  // Pantalla: ficha universal de jugador (LIFE-4, DESIGN.md 9.4).
+  // Capa de presentación pura sobre PlayerCareer.js/PlayerDevelopment.js/
+  // Tactics.js/Medical.js/Training.js — no contiene ninguna regla propia,
+  // solo lee y (vía openPlayerProfile/closePlayerProfile) navega. Abrir/
+  // cambiar de pestaña aquí NUNCA avanza el calendario ni procesa
+  // Training/Medical/Development/roles/alineación (invariantes 2/3/30).
+  // ---------------------------------------------------------------------
+  const PLAYER_PROFILE_TABS = [
+    { id: 'summary', label: 'Resumen' },
+    { id: 'attributes', label: 'Atributos' },
+    { id: 'positions', label: 'Posiciones y roles' },
+    { id: 'development', label: 'Desarrollo' },
+    { id: 'stats', label: 'Estadísticas' },
+    { id: 'medical', label: 'Médico' },
+    { id: 'career', label: 'Carrera' },
+  ];
+
+  // Sección 30: busca la instancia REAL (viva) de Player entre los 36
+  // equipos actuales — nunca sobre un bundle plano congelado. Devuelve
+  // también su equipo actual (sección 76: se resuelve sobre Teams vivos
+  // via `player.teamId`, nunca sobre el último stint histórico).
+  function findPlayerById(playerId) {
+    const teams = getAllTeams();
+    for (let i = 0; i < teams.length; i++) {
+      const player = teams[i].roster.find((p) => p.id === playerId);
+      if (player) return { player, team: teams[i] };
+    }
+    return null;
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[ch]));
+  }
+
+  // Sección 29: helper único de nombre clicable — botón semántico estilo
+  // enlace, accesible por teclado (es un <button> real), texto escapado.
+  function playerLinkHtmlById(playerId, fullName, options) {
+    const opts = options || {};
+    const cls = opts.className ? ` ${opts.className}` : '';
+    return `<button type="button" class="player-link${cls}" data-player-link-id="${playerId}">${escapeHtml(fullName)}</button>`;
+  }
+  function playerLinkHtml(player, options) {
+    return playerLinkHtmlById(player.id, player.fullName, options);
+  }
+
+  // Sección 28: API única de apertura — `returnContext.returnScreen` es la
+  // pantalla a la que vuelve `← Volver` (el resto del estado de esa
+  // pantalla ya es duradero por sí mismo, ver comentario en `state`).
+  function openPlayerProfile(playerId, returnContext) {
+    state.playerProfile = {
+      playerId,
+      returnScreen: (returnContext && returnContext.returnScreen) || state.screen,
+      returnSubscreen: (returnContext && returnContext.returnSubscreen) || null,
+      activeTab: 'summary',
+      developmentAttribute: null,
+    };
+    goToScreen('player-profile');
+  }
+
+  function closePlayerProfile() {
+    const ctx = state.playerProfile;
+    state.playerProfile = null;
+    goToScreen((ctx && ctx.returnScreen) || 'home');
+  }
+
+  function roleLabelById(roleId, side) {
+    if (!roleId) return null;
+    const catalog = side === 'offensive' ? BM.OFFENSIVE_ROLES : BM.DEFENSIVE_ROLES;
+    const found = catalog.find((r) => r.id === roleId);
+    return found ? found.label : roleId;
+  }
+
+  function attributeGroupLabel(group) {
+    return group === 'technical' ? 'Técnico' : (group === 'physical' ? 'Físico' : 'Mental');
+  }
+
+  function attributesSnapshotLive(player) {
+    return BM.ATTRIBUTE_SNAPSHOT_KEYS.map((attr) => player[BM.ATTRIBUTE_GROUP[attr]][attr]);
+  }
+
+  // Sección 63: tooltip TMB — texto verbatim del prompt de esta sesión.
+  const TMB_TOOLTIP_TEXT = 'TMB mide la capacidad actual del jugador en escala 1–200 a partir de sus atributos '
+    + 'y su perfil posicional. No es su potencial.';
+
+  const SEASON_HONOUR_LABELS = {
+    cupChampion: 'Campeón de Copa',
+    titlePlayoffChampion: 'Campeón del Playoff por el título',
+    regularSeasonChampion2: 'Campeón de la liga regular de 2ª',
+    promotedDirect: 'Ascenso directo a 1ª división',
+    promotedPlayoff: 'Ascenso vía playoff a 1ª división',
+  };
+  const PERSONAL_BEST_TAB_LABELS = {
+    points: 'puntos', totalRebounds: 'rebotes', assists: 'asistencias', blocks: 'tapones', steals: 'robos', valoracion: 'valoración',
+  };
+  const MILESTONE_TIMELINE_LABELS = {
+    debut: () => 'Debut',
+    firstStart: () => 'Primera titularidad',
+    games50: () => '50 partidos',
+    games100: () => '100 partidos',
+    games250: () => '250 partidos',
+    games500: () => '500 partidos',
+    minutes1000: () => '1.000 minutos',
+    minutes5000: () => '5.000 minutos',
+    minutes10000: () => '10.000 minutos',
+    personalBest: (m) => `Récord: ${PERSONAL_BEST_TAB_LABELS[(m.metadata || {}).stat] || (m.metadata || {}).stat} (${m.value})`,
+  };
+
+  // Sección 62: gráfico SVG/CSS puro, sin dependencias — maneja 1 punto,
+  // valores constantes (rango de fallback) y varias temporadas; tabla
+  // accesible debajo SIEMPRE (sección 35/61, fallback textual).
+  function buildSimpleLineChartSvg(points, options) {
+    const opts = Object.assign({ width: 320, height: 130, min: null, max: null, padding: 26 }, options || {});
+    if (!points.length) return '<p class="gm-muted">Sin datos suficientes.</p>';
+    const values = points.map((p) => p.value);
+    const min = opts.min !== null ? opts.min : Math.min(...values);
+    const max = opts.max !== null ? opts.max : Math.max(...values);
+    const range = (max - min) || 1;
+    const innerW = opts.width - opts.padding * 2;
+    const innerH = opts.height - opts.padding * 2;
+    const stepX = points.length > 1 ? innerW / (points.length - 1) : 0;
+    const coords = points.map((p, i) => ({
+      x: opts.padding + stepX * i,
+      y: opts.padding + innerH - ((p.value - min) / range) * innerH,
+      label: p.label,
+      value: p.value,
+    }));
+    const polylinePoints = coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' ');
+    const dotsHtml = coords.map((c) => `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3" class="chart-dot"></circle>`).join('');
+    const labelsHtml = coords.map((c) => `<text x="${c.x.toFixed(1)}" y="${opts.height - 6}" class="chart-axis-label" text-anchor="middle">${escapeHtml(c.label)}</text>`).join('');
+    const tableHtml = `<table class="chart-fallback-table gm-table"><thead><tr>${coords.map((c) => `<th>${escapeHtml(c.label)}</th>`).join('')}</tr></thead>
+      <tbody><tr>${coords.map((c) => `<td>${c.value}</td>`).join('')}</tr></tbody></table>`;
+    return `
+      <svg viewBox="0 0 ${opts.width} ${opts.height}" class="chart-svg" role="img" aria-label="Gráfico de evolución" preserveAspectRatio="xMidYMid meet">
+        <polyline points="${polylinePoints}" class="chart-line" fill="none"></polyline>
+        ${dotsHtml}
+        ${labelsHtml}
+      </svg>
+      ${tableHtml}`;
+  }
+
+  // --- Sección 32: Resumen ---
+  function renderPlayerSummaryTab(player, team, ch, config) {
+    const tmb = BM.computeTmbRating(player, config);
+    const cs = ch.currentSeason;
+    const games = BM.statValue(cs.stats, 'games');
+    const avg = (key) => (games > 0 ? BM.statValue(cs.stats, key) / games : 0);
+    const minutesAvg = games > 0 ? BM.statValue(cs.stats, 'seconds') / games : null;
+
+    const rolesInfo = buildRolesSnapshotForPlayer(player, team);
+    const offenseLabel = roleLabelById(rolesInfo.offense && rolesInfo.offense[0], 'offensive');
+    const defenseLabel = roleLabelById(rolesInfo.defense && rolesInfo.defense[0], 'defensive');
+
+    let medicalLine = '—';
+    if (config.medical.enabled) {
+      const info = BM.getAvailability(player, state.calendar.currentGameDateTime, config, { team });
+      medicalLine = info.status === 'available' ? 'Disponible'
+        : info.status === 'limited' ? `Disponible con restricción (máx. ${info.minuteCap} min)`
+          : 'Lesionado';
+    }
+
+    const focus = BM.getIndividualFocus(team, player.id, config);
+    const focusLabel = focus.type === 'none' ? 'Ninguno'
+      : focus.type === 'attribute' ? `Atributo: ${trainingAttributeLabel(focus.target)}`
+        : focus.type === 'position' ? `Posición: ${focus.target}`
+          : `Rol: ${roleLabelById(focus.target, focus.side === 'offense' ? 'offensive' : 'defensive')}`;
+
+    const completenessNoteHtml = ch.historyCompleteness === 'partial'
+      ? '<p class="gm-muted">Histórico registrado desde el inicio de esta partida.</p>' : '';
+
+    return `
+      <div class="gm-card player-profile__header">
+        <h3>${escapeHtml(player.fullName)}</h3>
+        <p class="gm-muted">${player.age ?? '—'} años · ${escapeHtml(team.fullName)} (${team.division}) · ${player.nominalPosition}</p>
+        <p class="gm-muted">${player.bodyMeasurements.height} cm · Envergadura ${player.bodyMeasurements.wingspan} cm · ${player.bodyMeasurements.weight} kg</p>
+        <p class="player-profile__tmb" title="${escapeHtml(TMB_TOOLTIP_TEXT)}">TMB <strong>${tmb}</strong>/200 <span class="gm-muted">ⓘ</span></p>
+        ${completenessNoteHtml}
+      </div>
+      <div class="gm-card">
+        <h4>Estado</h4>
+        <p>Energía: <strong>${Math.round(player.dynamicState.energy)}</strong>/100</p>
+        <p>Ritmo de competición: ${competitionRhythmToStars(player.dynamicState.competitionRhythm)}</p>
+        <p>Disponibilidad médica: ${medicalLine}</p>
+      </div>
+      <div class="gm-card">
+        <h4>Temporada ${escapeHtml(cs.seasonKey)}</h4>
+        <div class="gm-table-scroll"><table class="gm-table gm-table--totals player-profile__season-summary">
+          <thead><tr><th>PJ</th><th>Min</th><th>Pts</th><th>Reb</th><th>Ast</th><th>Val</th></tr></thead>
+          <tbody><tr>
+            <td>${games}</td>
+            <td>${formatMinutesSingle(minutesAvg)}</td>
+            <td>${avg('points').toFixed(1)}</td>
+            <td>${(avg('offensiveRebounds') + avg('defensiveRebounds')).toFixed(1)}</td>
+            <td>${avg('assists').toFixed(1)}</td>
+            <td>${avg('valoracion').toFixed(1)}</td>
+          </tr></tbody>
+        </table></div>
+      </div>
+      <div class="gm-card">
+        <h4>Roles</h4>
+        <p>Ofensivo: ${offenseLabel || '—'}${rolesInfo.offense ? ` (familiaridad ${rolesInfo.offense[1]}/100)` : ''}</p>
+        <p>Defensivo: ${defenseLabel || '—'}${rolesInfo.defense ? ` (familiaridad ${rolesInfo.defense[1]}/100)` : ''}</p>
+      </div>
+      <div class="gm-card">
+        <h4>Entrenamiento</h4>
+        <p>Foco individual: ${focusLabel}</p>
+        <p class="gm-muted">Plan de equipo: ${TRAINING_TEAM_FOCUS_LABELS[team.trainingPlan.teamFocus]} · ${TRAINING_INTENSITY_LABELS[team.trainingPlan.intensity]}</p>
+      </div>`;
+  }
+
+  // --- Sección 33: Atributos ---
+  function renderPlayerAttributesTab(player, ch) {
+    const previousSnapshot = ch.seasons.length ? ch.seasons[ch.seasons.length - 1].attributes : ch.baseline.attributes;
+    const groups = [
+      { key: 'technical', attrs: BM.MUTABLE_TECHNICAL },
+      { key: 'physical', attrs: BM.MUTABLE_PHYSICAL },
+      { key: 'mental', attrs: BM.MUTABLE_MENTAL },
+    ];
+    return groups.map((g) => {
+      const rowsHtml = g.attrs.map((attr) => {
+        const current = player[g.key][attr];
+        const previous = BM.attributeAt(previousSnapshot, attr);
+        const trend = BM.describeAttributeTrend(previous, current);
+        const deltaText = trend.delta !== 0 ? ` ${trend.arrow} ${trend.delta > 0 ? '+' : ''}${trend.delta}` : ` ${trend.arrow}`;
+        return `<tr><td>${trainingAttributeLabel(attr)}</td><td>${current}${deltaText}</td></tr>`;
+      }).join('');
+      return `<div class="gm-card"><h4>${attributeGroupLabel(g.key)}</h4>
+        <div class="gm-table-scroll"><table class="gm-table player-profile__attributes-table"><tbody>${rowsHtml}</tbody></table></div></div>`;
+    }).join('');
+  }
+
+  // --- Sección 34: Posiciones y roles ---
+  function renderPlayerPositionsTab(player, team, config) {
+    const { POSITIONS } = BM;
+    const focus = BM.getIndividualFocus(team, player.id, config);
+    const focusNote = focus.type === 'position' ? `<p class="gm-muted">Entrenando: ${focus.target}</p>` : '';
+    const posRows = POSITIONS.map((pos) => {
+      const level = player.positionLevel(pos);
+      const tags = [];
+      if (pos === player.nominalPosition) tags.push('Nominal');
+      if (level === 20) tags.push('Dominada');
+      return `<tr><td>${pos}</td><td>${level}/20</td><td>${tags.join(' · ')}</td></tr>`;
+    }).join('');
+
+    const bestOffense = BM.bestRolesForPlayer(player, 'offensive', config, 3).map((r) => `${r.label} ${starsHtml(r.stars)}`).join(' · ');
+    const bestDefense = BM.bestRolesForPlayer(player, 'defensive', config, 3).map((r) => `${r.label} ${starsHtml(r.stars)}`).join(' · ');
+    const rolesSnapshot = buildRolesSnapshotForPlayer(player, team);
+    const currentOffenseHtml = rolesSnapshot.offense
+      ? `${roleLabelById(rolesSnapshot.offense[0], 'offensive')} — familiaridad ${rolesSnapshot.offense[1]}/100, ${starsHtml(BM.roleFit(player, rolesSnapshot.offense[0], config).stars)}`
+      : 'Sin rol asignado';
+    const currentDefenseHtml = rolesSnapshot.defense
+      ? `${roleLabelById(rolesSnapshot.defense[0], 'defensive')} — familiaridad ${rolesSnapshot.defense[1]}/100, ${starsHtml(BM.roleFit(player, rolesSnapshot.defense[0], config).stars)}`
+      : 'Sin rol asignado';
+
+    return `
+      <div class="gm-card">
+        <h4>Posiciones</h4>
+        ${focusNote}
+        <div class="gm-table-scroll"><table class="gm-table"><thead><tr><th>Posición</th><th>Nivel</th><th></th></tr></thead><tbody>${posRows}</tbody></table></div>
+      </div>
+      <div class="gm-card">
+        <h4>Roles</h4>
+        <p>Ofensivo actual: ${currentOffenseHtml}</p>
+        <p class="gm-muted">Mejor encaje ofensivo: ${bestOffense}</p>
+        <p>Defensivo actual: ${currentDefenseHtml}</p>
+        <p class="gm-muted">Mejor encaje defensivo: ${bestDefense}</p>
+      </div>`;
+  }
+
+  // --- Sección 35/36: Desarrollo ---
+  function renderPlayerDevelopmentTab(player, ch, config) {
+    const seasonPoints = [{ label: 'Inicio', value: ch.baseline.tmb }];
+    ch.seasons.forEach((s) => seasonPoints.push({ label: s.seasonKey, value: s.tmb }));
+    seasonPoints.push({ label: 'Actual', value: BM.computeTmbRating(player, config) });
+    const tmbChartHtml = buildSimpleLineChartSvg(seasonPoints, { min: 1, max: 200 });
+
+    const selectedAttr = state.playerProfile.developmentAttribute || BM.ATTRIBUTE_SNAPSHOT_KEYS[0];
+    const attrOptionsHtml = BM.ATTRIBUTE_SNAPSHOT_KEYS.map((attr) => `
+      <option value="${attr}" ${attr === selectedAttr ? 'selected' : ''}>${trainingAttributeLabel(attr)}</option>`).join('');
+    const attrPoints = [{ label: 'Inicio', value: BM.attributeAt(ch.baseline.attributes, selectedAttr) }];
+    ch.seasons.forEach((s) => attrPoints.push({ label: s.seasonKey, value: BM.attributeAt(s.attributes, selectedAttr) }));
+    attrPoints.push({ label: 'Actual', value: player[BM.ATTRIBUTE_GROUP[selectedAttr]][selectedAttr] });
+    const attrChartHtml = buildSimpleLineChartSvg(attrPoints, { min: 1, max: 20 });
+
+    const positionsSeasonsToShow = ch.seasons.filter((s, i) => (
+      i === 0 || JSON.stringify(s.positions) !== JSON.stringify(ch.seasons[i - 1].positions)
+    ));
+    const posRows = positionsSeasonsToShow.map((s) => `
+      <tr><td>${s.seasonKey}</td>${BM.POSITION_SNAPSHOT_KEYS.map((pos) => `<td>${BM.positionAt(s.positions, pos)}</td>`).join('')}</tr>`).join('');
+    const currentPosRow = `<tr><td>Actual</td>${BM.POSITION_SNAPSHOT_KEYS.map((pos) => `<td>${player.positionLevel(pos)}</td>`).join('')}</tr>`;
+
+    const lastAttributes = ch.seasons.length ? ch.seasons[ch.seasons.length - 1].attributes : ch.baseline.attributes;
+    const lastTmb = ch.seasons.length ? ch.seasons[ch.seasons.length - 1].tmb : ch.baseline.tmb;
+    const currentTmb = BM.computeTmbRating(player, config);
+    const groupTrends = BM.summarizeGroupTrends(lastAttributes, attributesSnapshotLive(player));
+    const tmbDelta = currentTmb - lastTmb;
+    const autoText = [];
+    autoText.push(tmbDelta !== 0
+      ? `TMB ${tmbDelta > 0 ? '+' : ''}${tmbDelta} desde ${ch.seasons.length ? 'la temporada pasada' : 'el inicio'}.`
+      : 'TMB se mantiene estable.');
+    ['technical', 'physical', 'mental'].forEach((group) => {
+      const t = groupTrends[group];
+      if (t.direction !== 'stable') {
+        autoText.push(`${attributeGroupLabel(group)} ${t.direction === 'up' ? 'mejora' : 'empeora'} (${t.delta > 0 ? '+' : ''}${t.delta.toFixed(2)}).`);
+      }
+    });
+
+    return `
+      <div class="gm-card">
+        <h4>TMB por temporada</h4>
+        ${tmbChartHtml}
+      </div>
+      <div class="gm-card">
+        <h4>Atributo</h4>
+        <select id="player-profile-attribute-select">${attrOptionsHtml}</select>
+        ${attrChartHtml}
+      </div>
+      <div class="gm-card">
+        <h4>Posiciones</h4>
+        <div class="gm-table-scroll"><table class="gm-table"><thead><tr><th>Temporada</th>${BM.POSITION_SNAPSHOT_KEYS.map((p) => `<th>${p}</th>`).join('')}</tr></thead>
+        <tbody>${posRows}${currentPosRow}</tbody></table></div>
+      </div>
+      <div class="gm-card">
+        <h4>Lectura automática</h4>
+        <ul>${autoText.map((t) => `<li>${t}</li>`).join('')}</ul>
+      </div>`;
+  }
+
+  // --- Sección 37: Estadísticas ---
+  function renderPlayerSeasonStatsRow(seasonKey, stints, statsArray, isCurrent) {
+    const games = BM.statValue(statsArray, 'games');
+    const clubLabel = stints.length > 1 ? `${stints.length} equipos` : ((stints[0] && stints[0].teamName) || '—');
+    const avg = (key) => (games > 0 ? BM.statValue(statsArray, key) / games : 0);
+    return `<tr class="${isCurrent ? 'is-user-team' : ''}">
+      <td>${escapeHtml(seasonKey)}</td>
+      <td>${escapeHtml(clubLabel)}</td>
+      <td>${games}</td>
+      <td>${formatMinutesSingle(games > 0 ? BM.statValue(statsArray, 'seconds') / games : null)}</td>
+      <td>${avg('points').toFixed(1)}</td>
+      <td>${(avg('offensiveRebounds') + avg('defensiveRebounds')).toFixed(1)}</td>
+      <td>${avg('assists').toFixed(1)}</td>
+      <td>${avg('valoracion').toFixed(1)}</td>
+    </tr>`;
+  }
+
+  function pctOrDash(made, attempted) {
+    return attempted > 0 ? `${Math.round((made / attempted) * 100)}%` : '—';
+  }
+
+  function renderPlayerStatsTab(player, ch) {
+    const rows = ch.seasons.map((s) => renderPlayerSeasonStatsRow(s.seasonKey, s.stints, s.stats, false));
+    rows.push(renderPlayerSeasonStatsRow(ch.currentSeason.seasonKey, ch.currentSeason.teamStints, ch.currentSeason.stats, true));
+
+    const totals = BM.computeCareerTotals(player);
+    const totalsLabel = ch.historyCompleteness === 'complete' ? 'Carrera' : 'Registrado en esta partida';
+
+    return `
+      <div class="gm-card">
+        <div class="gm-table-scroll"><table class="gm-table">
+          <thead><tr><th>Temp</th><th>Club</th><th>PJ</th><th>Min</th><th>Pts</th><th>Reb</th><th>Ast</th><th>Val</th></tr></thead>
+          <tbody>${rows.join('')}</tbody>
+        </table></div>
+      </div>
+      <div class="gm-card">
+        <h4>${totalsLabel}</h4>
+        <div class="gm-table-scroll"><table class="gm-table gm-table--totals">
+          <thead><tr><th>PJ</th><th>Min</th><th>Pts</th><th>Reb</th><th>Ast</th><th>Rob</th><th>Tap</th><th>Val</th><th>T2%</th><th>T3%</th><th>TL%</th><th>+/-</th></tr></thead>
+          <tbody><tr>
+            <td>${totals.games}</td>
+            <td>${formatMinutesSingle(totals.seconds)}</td>
+            <td>${totals.points}</td>
+            <td>${totals.totalRebounds}</td>
+            <td>${totals.assists}</td>
+            <td>${totals.steals}</td>
+            <td>${totals.blocks}</td>
+            <td>${totals.valoracion.toFixed(0)}</td>
+            <td>${pctOrDash(totals.fg2Made, totals.fg2Attempted)}</td>
+            <td>${pctOrDash(totals.fg3Made, totals.fg3Attempted)}</td>
+            <td>${pctOrDash(totals.ftMade, totals.ftAttempted)}</td>
+            <td>${totals.plusMinus >= 0 ? '+' : ''}${totals.plusMinus}</td>
+          </tr></tbody>
+        </table></div>
+      </div>`;
+  }
+
+  // --- Sección 38: Médico — reutiliza medicalState directamente, NUNCA
+  // copiado a careerHistory (LIFE-3 sigue siendo la fuente).
+  function renderPlayerMedicalHistoryTable(player, config) {
+    const history = (player.medicalState && player.medicalState.injuryHistory) || [];
+    if (!history.length) return '<p class="gm-muted">Sin lesiones con baja registradas en esta partida.</p>';
+    const rows = [...history].sort((a, b) => b.occurredAt - a.occurredAt).map((entry) => {
+      const label = config.medical.catalog[entry.type] ? config.medical.catalog[entry.type].label : entry.type;
+      return `<tr>
+        <td>${formatMatchTime(entry.occurredAt)}</td>
+        <td>${label}</td>
+        <td>${MEDICAL_SEVERITY_LABELS[entry.severity] || entry.severity}</td>
+        <td>${entry.daysUnavailable}</td>
+        <td>${entry.recurrenceOf ? 'Sí' : 'No'}</td>
+        <td>${entry.sequela ? 'Sí' : 'No'}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="gm-table-scroll"><table class="gm-table">
+      <thead><tr><th>Fecha</th><th>Lesión</th><th>Gravedad</th><th>Días fuera</th><th>Recaída</th><th>Secuela</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  }
+
+  function renderPlayerMedicalTab(player, team, config) {
+    if (!config.medical.enabled) return '<p class="gm-muted">Sistema médico desactivado.</p>';
+    const referenceDate = state.calendar.currentGameDateTime;
+    const info = BM.getAvailability(player, referenceDate, config, { team });
+    const activeHtml = info.injury ? `
+      <div class="gm-card">
+        <h4>Lesión activa</h4>
+        <p>Diagnóstico: ${config.medical.catalog[info.injury.type] ? config.medical.catalog[info.injury.type].label : info.injury.type}</p>
+        <p>Fase: ${info.phase}</p>
+        <p>Gravedad: ${MEDICAL_SEVERITY_LABELS[info.injury.severity] || info.injury.severity}</p>
+        <p>Vuelta estimada: ${(BM.getEstimatedReturnRange(player, referenceDate, config, team) || {}).label || '—'}</p>
+        <p>Máximo médico: ${info.minuteCap !== null && info.minuteCap !== undefined ? `${info.minuteCap} min` : '—'}</p>
+        <p>Recaídas: ${info.injury.setbackCount || 0}</p>
+      </div>` : '';
+    return `${activeHtml}
+      <div class="gm-card">
+        <h4>Historial médico</h4>
+        ${renderPlayerMedicalHistoryTable(player, config)}
+      </div>`;
+  }
+
+  // --- Sección 39: Carrera ---
+  function buildCareerTimelineHtml(ch, includeCareerMilestones) {
+    const honourEntries = [];
+    ch.seasons.forEach((s) => {
+      (s.honours || []).forEach((code) => honourEntries.push({ date: s.endDate, label: SEASON_HONOUR_LABELS[code] || code }));
+    });
+    const milestoneEntries = includeCareerMilestones
+      ? ch.milestones.map((m) => ({ date: m.date, label: (MILESTONE_TIMELINE_LABELS[m.type] || (() => m.type))(m) }))
+      : ch.milestones.filter((m) => m.type === 'personalBest').map((m) => ({
+        date: m.date,
+        label: `Mejor registro en esta partida: ${PERSONAL_BEST_TAB_LABELS[(m.metadata || {}).stat] || ''} (${m.value})`,
+      }));
+    const entries = [...honourEntries, ...milestoneEntries].sort((a, b) => b.date - a.date);
+    if (!entries.length) return '<p class="gm-muted">Todavía no hay hitos registrados.</p>';
+    return `<ul class="career-timeline">${entries.map((e) => `<li>${formatMatchTime(e.date)} — ${e.label}</li>`).join('')}</ul>`;
+  }
+
+  function renderPlayerCareerTab(player, ch) {
+    if (ch.historyCompleteness === 'partial') {
+      return `
+        <div class="gm-card">
+          <p class="gm-muted">El histórico de Basket Manager comienza en ${formatMatchTime(ch.historyStartDate)}. Los logros anteriores no están disponibles.</p>
+        </div>
+        <div class="gm-card"><h4>Timeline</h4>${buildCareerTimelineHtml(ch, false)}</div>`;
+    }
+    return `<div class="gm-card"><h4>Timeline de carrera</h4>${buildCareerTimelineHtml(ch, true)}</div>`;
+  }
+
+  function renderPlayerProfileScreen() {
+    const container = byId('gm-player-profile');
+    const ctx = state.playerProfile;
+    if (!container || !ctx) { if (container) container.innerHTML = ''; return; }
+    const found = findPlayerById(ctx.playerId);
+    if (!found) {
+      container.innerHTML = `
+        <button id="player-profile-back-btn" class="gm-btn player-profile__back" type="button">← Volver</button>
+        <p class="gm-muted">Jugador no encontrado.</p>`;
+      byId('player-profile-back-btn').addEventListener('click', closePlayerProfile);
+      return;
+    }
+    const { player, team } = found;
+    const { CONFIG_BASE } = BM;
+    // Legacy/defensivo (sección 5/54): cualquier jugador sin careerHistory
+    // todavía (guardado anterior a esta entrega, o instancia que nunca
+    // pasó por buildRealTeamFromData) lo recibe aquí mismo, sin inventar
+    // pasado — baseline en el instante real de esta apertura de ficha.
+    BM.ensureCareerHistory(player, CONFIG_BASE, state.calendar.currentGameDateTime, { seasonKey: buildCareerSeasonKey() });
+    const ch = player.careerHistory;
+    const activeTab = ctx.activeTab || 'summary';
+
+    let body = '';
+    if (activeTab === 'summary') body = renderPlayerSummaryTab(player, team, ch, CONFIG_BASE);
+    else if (activeTab === 'attributes') body = renderPlayerAttributesTab(player, ch);
+    else if (activeTab === 'positions') body = renderPlayerPositionsTab(player, team, CONFIG_BASE);
+    else if (activeTab === 'development') body = renderPlayerDevelopmentTab(player, ch, CONFIG_BASE);
+    else if (activeTab === 'stats') body = renderPlayerStatsTab(player, ch);
+    else if (activeTab === 'medical') body = renderPlayerMedicalTab(player, team, CONFIG_BASE);
+    else if (activeTab === 'career') body = renderPlayerCareerTab(player, ch);
+
+    container.innerHTML = `
+      <button id="player-profile-back-btn" class="gm-btn player-profile__back" type="button">← Volver</button>
+      <div class="tabs player-profile__tabs">
+        ${PLAYER_PROFILE_TABS.map((t) => `<button class="tabs__btn ${t.id === activeTab ? 'is-active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
+      </div>
+      <div class="tabs__body player-profile__body">${body}</div>`;
+
+    byId('player-profile-back-btn').addEventListener('click', closePlayerProfile);
+    container.querySelectorAll('.player-profile__tabs .tabs__btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.playerProfile.activeTab = btn.dataset.tab;
+        renderPlayerProfileScreen();
+      });
+    });
+    const attrSelect = byId('player-profile-attribute-select');
+    if (attrSelect) {
+      attrSelect.addEventListener('change', () => {
+        state.playerProfile.developmentAttribute = attrSelect.value;
+        renderPlayerProfileScreen();
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
-  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match'];
+  const SCREENS = [
+    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'player-profile',
+  ];
 
   function goToScreen(screen) {
     state.screen = screen;
@@ -3940,6 +4615,7 @@
       }
       renderMatchScreen();
     }
+    if (screen === 'player-profile') renderPlayerProfileScreen();
   }
 
   function init() {
@@ -3951,6 +4627,20 @@
       state.brackets = { '1ª': { cup: null, titlePlayoff: null }, '2ª': { promotionPlayoff: null } };
       state.userTeamId = null;
       goToScreen('team-select');
+    });
+    // LIFE-4 (DESIGN.md 9.4, sección 27/29): un único listener delegado
+    // para CUALQUIER nombre de jugador clicable de toda la app — evita
+    // repetir el mismo `querySelectorAll` + `addEventListener` en cada
+    // pantalla que ya (o en el futuro) muestre un `playerLinkHtml()`.
+    // `state.screen` en el instante del click ya es la pantalla correcta
+    // a la que volver (returnScreen), sin que cada llamador tenga que
+    // indicarlo.
+    byId('gm-app').addEventListener('click', (event) => {
+      const link = event.target.closest('[data-player-link-id]');
+      if (!link) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openPlayerProfile(link.dataset.playerLinkId, { returnScreen: state.screen });
     });
     renderTeamSelectScreen();
   }
@@ -4011,7 +4701,7 @@
       const plusMinusLabel = `${plusMinus > 0 ? '+' : ''}${plusMinus}`;
       return `
         <tr>
-          <td>${line.name}</td>
+          <td>${playerLinkHtmlById(line.playerId, line.name)}</td>
           <td>${formatMinutesSingle(line.minutesPlayed ?? null)}</td>
           <td>${line.points}</td>
           <td>${madeAttempted(fg.threePointShot)}</td>
