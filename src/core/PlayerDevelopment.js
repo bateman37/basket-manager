@@ -577,6 +577,11 @@
     ALL_MUTABLE_ATTRIBUTES,
     ageAt,
     getEffectiveAttribute,
+    // LIFE-3 (DESIGN.md 9.14, sección 27 del prompt de esa sesión): expuesta
+    // para que Medical.js aplique secuelas de lesión a través del MISMO
+    // mecanismo de residuales/clamps que usa el crecimiento normal — nunca
+    // un bypass que edite `player[group][attr]` directamente.
+    applyResidualDelta,
     computeUncappedTmb,
     computeTmbRating,
     computeMindsetFactor,

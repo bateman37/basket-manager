@@ -15,9 +15,23 @@
   const TeamCore = (typeof module !== 'undefined' && module.exports)
     ? require('../entities/Team.js')
     : global.BasketManager;
+  // LIFE-3 (DESIGN.md 9.14, sección 24 del prompt de esa sesión): la CPU
+  // usa EXACTAMENTE `Medical.getAvailability()` — nunca una segunda IA
+  // médica ni un `isInjured` propio.
+  function MedicalCore() {
+    return (typeof module !== 'undefined' && module.exports) ? require('./Medical.js') : global.BasketManager;
+  }
 
   const { POSITIONS } = PlayerCore;
   const { MATCH_SQUAD_MIN, MATCH_SQUAD_MAX } = TeamCore;
+
+  // Penalización SUAVE (no exclusión) de un jugador `limited` al elegir
+  // TITULAR — sección 24: "no fuerza a un limitado como titular si hay
+  // alternativa razonable". Como suplente compite sin penalización (sigue
+  // siendo la mejor forma de aprovechar sus minutos permitidos); el tope
+  // real de minutos totales lo aplica Rotation.buildRotationState
+  // (clamp de quotaSeconds a minuteCap*60), nunca este módulo.
+  const LIMITED_STARTER_SCORE_PENALTY = 0.7;
 
   // --- Valoración de jugador ---
   //
@@ -80,13 +94,19 @@
   // (para que ninguna quede sin ningún especialista razonable) y se
   // completa hasta 12 (o el tamaño de plantilla si es menor) con los
   // mejores por calidad general.
-  function pickMatchSquadIds(team) {
-    const desiredSize = Math.max(MATCH_SQUAD_MIN, Math.min(MATCH_SQUAD_MAX, team.roster.length));
+  // LIFE-3 (DESIGN.md 9.14, sección 23/24 del prompt de esa sesión):
+  // `availablePlayers` — roster YA filtrado a médicamente convocables
+  // (`status !== 'unavailable'`, ver buildCpuLineup). `effectiveMin`:
+  // mínimo real de convocatoria para ESTA fecha (8 normal, 5-7 solo por
+  // escasez médica real, nunca por elección de la CPU).
+  function pickMatchSquadIds(availablePlayers, effectiveMin) {
+    const desiredSize = Math.max(effectiveMin, Math.min(MATCH_SQUAD_MAX, availablePlayers.length));
     const bestByPosition = {};
     const guaranteed = new Set();
     POSITIONS.forEach((position) => {
-      let best = team.roster[0];
-      team.roster.forEach((player) => {
+      if (!availablePlayers.length) return;
+      let best = availablePlayers[0];
+      availablePlayers.forEach((player) => {
         if (player.positionLevel(position) > best.positionLevel(position)) best = player;
       });
       bestByPosition[position] = best.id;
@@ -109,13 +129,13 @@
           claimedBy.set(playerId, position);
           return;
         }
-        const nextBest = team.roster
+        const nextBest = availablePlayers
           .filter((player) => !guaranteed.has(player.id))
           .sort((a, b) => b.positionLevel(position) - a.positionLevel(position))[0];
         if (nextBest) guaranteed.add(nextBest.id);
       });
     }
-    const ranked = team.roster
+    const ranked = availablePlayers
       .filter((player) => !guaranteed.has(player.id))
       .sort((a, b) => playerQualityScore(b) - playerQualityScore(a));
     const ids = [...guaranteed];
@@ -132,9 +152,28 @@
   // se elige booleano porque la propia sección 7.11.7 solo describe dos
   // comportamientos discretos, "clave" / "no clave", nunca una gradación
   // intermedia).
-  function buildCpuLineup(team, matchImportance, config) {
-    const squadIds = pickMatchSquadIds(team);
-    const squad = team.buildMatchSquad(squadIds);
+  // `date` (LIFE-3, DESIGN.md 9.14, sección 24 del prompt de esa sesión):
+  // fecha real del partido — necesaria para `Medical.getAvailability()`.
+  // Opcional por compatibilidad con llamadores de modo prueba que no
+  // manejan fecha real (usa el reloj de la máquina, comportamiento
+  // idéntico al de antes de esta entrega si `config.medical.enabled` es
+  // `false` o el jugador nunca ha tenido estado médico).
+  function buildCpuLineup(team, matchImportance, config, date) {
+    const matchDate = date || new Date();
+    const Medical = MedicalCore();
+    const availabilityMap = new Map(
+      team.roster.map((player) => [player.id, Medical.getAvailability(player, matchDate, config, { team })]),
+    );
+    const availablePlayers = team.roster.filter((player) => availabilityMap.get(player.id).status !== 'unavailable');
+    const callableCount = availablePlayers.length;
+    const exceptionCfg = config.medical.squadException;
+    // Sección 23: mínimo real de convocatoria para ESTA fecha — 8 normal,
+    // 5-7 solo por escasez médica real (nunca por elección de la CPU),
+    // nunca por debajo de 5 (protegido además por
+    // Medical.wouldDropBelowMinimum al generar la lesión en sí).
+    const effectiveMin = Math.min(exceptionCfg.normalMinimum, Math.max(exceptionCfg.absoluteMinimum, callableCount));
+    const squadIds = pickMatchSquadIds(availablePlayers, effectiveMin);
+    const squad = team.buildMatchSquad(squadIds, effectiveMin);
     const cfg = config.cpuLineup;
     const totalMinutes = config.match.durationMinutes;
 
@@ -153,10 +192,17 @@
     // nadie puede empezar el partido ocupando dos posiciones a la vez).
     const usedStarters = new Set();
     const starterIdByPosition = {};
+    // Sección 24: "no fuerza a un limitado como titular si hay
+    // alternativa razonable" — penalización suave (no exclusión) solo en
+    // la elección de TITULAR, ver LIMITED_STARTER_SCORE_PENALTY arriba.
+    const starterScore = (player, position) => {
+      const base = playerPositionScore(player, position, config);
+      return availabilityMap.get(player.id).status === 'limited' ? base * LIMITED_STARTER_SCORE_PENALTY : base;
+    };
     POSITIONS.forEach((position) => {
       const ranked = squad
         .filter((player) => !usedStarters.has(player.id))
-        .sort((a, b) => playerPositionScore(b, position, config) - playerPositionScore(a, position, config));
+        .sort((a, b) => starterScore(b, position) - starterScore(a, position));
       const pick = pickFromTopCandidates(ranked, poolSize, cfg.candidatePoolWeights);
       starterIdByPosition[position] = pick.id;
       usedStarters.add(pick.id);

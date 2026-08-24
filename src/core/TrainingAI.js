@@ -18,6 +18,13 @@
   function PlayerCore() {
     return (typeof module !== 'undefined' && module.exports) ? require('../entities/Player.js') : core();
   }
+  // LIFE-3 (DESIGN.md 9.14, sección 34 del prompt de esa sesión): "no
+  // crear MedicalAI.js" — TrainingAI.js solo CONSULTA el mismo
+  // Medical.getAvailability()/riskBand que ya calcula todo el mundo,
+  // nunca una probabilidad oculta distinta para la CPU.
+  function MedicalCore() {
+    return (typeof module !== 'undefined' && module.exports) ? require('./Medical.js') : core();
+  }
 
   function addDays(date, days) {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
@@ -93,6 +100,24 @@
     return Object.keys(scores).reduce((best, key) => (scores[key] < scores[best] ? key : best), 'offense');
   }
 
+  // LIFE-3 (DESIGN.md 9.14, sección 34 del prompt de esa sesión): cuántos
+  // jugadores de la ROTACIÓN PRINCIPAL (mismo top-N de minutos recientes
+  // ya usado por averageEnergyTopMinutesPlayers, nunca un segundo criterio
+  // de "rotación") tienen riskBand Alto/Muy alto — Medical.getAvailability
+  // es la ÚNICA fuente, nunca una probabilidad propia de la CPU.
+  function countHighRiskRotationPlayers(team, referenceDate, config) {
+    if (!config.medical || !config.medical.enabled || !team.roster.length) return 0;
+    const Medical = MedicalCore();
+    const n = config.training.cpuReview.lowEnergyTopN;
+    const rotation = [...team.roster]
+      .sort((a, b) => recentMinutes(b, referenceDate, config) - recentMinutes(a, referenceDate, config))
+      .slice(0, n);
+    return rotation.filter((p) => {
+      const band = Medical.getAvailability(p, referenceDate, config, { team }).riskBand;
+      return band === 'alto' || band === 'muyAlto';
+    }).length;
+  }
+
   // ---------------------------------------------------------------------
   // Sección 26: plan colectivo CPU — heurística explicable, EN ESTE ORDEN.
   // ---------------------------------------------------------------------
@@ -100,27 +125,31 @@
     const cfg = config.training.cpuReview;
     const matchesNext7 = (teamContext && teamContext.matchesInNext7Days) || 0;
 
+    let decision;
     if (averageEnergyTopMinutesPlayers(team, referenceDate, config) < cfg.lowEnergyThreshold) {
-      return { teamFocus: team.trainingPlan.teamFocus, intensity: 'recovery' };
-    }
-
-    if (matchesNext7 >= cfg.congestionMatchesThreshold) {
+      decision = { teamFocus: team.trainingPlan.teamFocus, intensity: 'recovery' };
+    } else if (matchesNext7 >= cfg.congestionMatchesThreshold) {
       const focus = averageRelevantTacticalFamiliarity(team) < cfg.lowFamiliarityThreshold ? 'tactical' : 'balanced';
-      return { teamFocus: focus, intensity: 'light' };
-    }
-
-    if (averageRelevantTacticalFamiliarity(team) < cfg.lowFamiliarityThreshold) {
-      return { teamFocus: 'tactical', intensity: 'normal' };
-    }
-
-    if (computeYoungHeadroomShare(team, referenceDate, config) >= cfg.youngHeadroomShareThreshold) {
+      decision = { teamFocus: focus, intensity: 'light' };
+    } else if (averageRelevantTacticalFamiliarity(team) < cfg.lowFamiliarityThreshold) {
+      decision = { teamFocus: 'tactical', intensity: 'normal' };
+    } else if (computeYoungHeadroomShare(team, referenceDate, config) >= cfg.youngHeadroomShareThreshold) {
       const avgEnergyAll = team.roster.length
         ? team.roster.reduce((sum, p) => sum + p.dynamicState.energy, 0) / team.roster.length : 0;
       const intensity = (matchesNext7 <= 1 && avgEnergyAll > cfg.highIntensityMinEnergy) ? 'high' : 'normal';
-      return { teamFocus: 'balanced', intensity };
+      decision = { teamFocus: 'balanced', intensity };
+    } else {
+      decision = { teamFocus: pickWeakestTeamFocus(team, config), intensity: 'normal' };
     }
 
-    return { teamFocus: pickWeakestTeamFocus(team, config), intensity: 'normal' };
+    // Sección 34: "nunca elige High si existe una concentración clara de
+    // jugadores en riesgo Alto/Muy alto" — guarda final sobre CUALQUIER
+    // rama de arriba, nunca al revés (una razón de Energy/congestión ya
+    // más segura que esta seguiría aplicando sin llegar aquí con 'high').
+    if (decision.intensity === 'high' && countHighRiskRotationPlayers(team, referenceDate, config) >= 3) {
+      return { teamFocus: decision.teamFocus, intensity: 'light' };
+    }
+    return decision;
   }
 
   // ---------------------------------------------------------------------
@@ -210,9 +239,15 @@
 
   function reviewIndividualFocuses(team, referenceDate, config, calendarCtx) {
     const PDm = PD();
+    const Medical = (config.medical && config.medical.enabled) ? MedicalCore() : null;
     team.roster.forEach((player) => {
       const age = PDm.ageAt(player, referenceDate);
       if (age === null) return;
+      // Sección 34: "lesionados no reciben nuevos focos individuales hasta
+      // volver al menos a `limited`" — el foco YA asignado sigue vigente
+      // (Training.js lo deja "suspendido", nunca lo borra), esta revisión
+      // solo se abstiene de ASIGNAR uno nuevo.
+      if (Medical && Medical.getAvailability(player, referenceDate, config, { team }).status === 'unavailable') return;
       const headroom = player.hidden.potential - PDm.computeUncappedTmb(player, config);
       if (headroom < config.training.cpuReview.headroomAmpleThreshold) return; // sin margen real de desarrollo, no forzar foco
       const focus = choosePlayerFocus(team, player, config);

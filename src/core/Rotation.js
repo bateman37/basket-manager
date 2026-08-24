@@ -95,24 +95,54 @@
 
   // --- Estado de rotación en tiempo de ejecución (un partido) ---
 
-  function buildRotationState(lineup, squad, config) {
+  // LIFE-3 (DESIGN.md 9.14, sección 21 del prompt de esa sesión):
+  // `medicalAvailability` — Map opcional `playerId -> { status, minuteCap }`
+  // (mismo shape que devuelve `Medical.getAvailability()`), calculada por
+  // quien construye el MatchState (MatchEngine.createMatchState) para toda
+  // la convocatoria. `undefined`/`null` reproduce el comportamiento HEAD
+  // previo a esta entrega (ninguna restricción médica) — Rotation.js NUNCA
+  // llama a Medical.js directamente, solo consume el mapa ya resuelto.
+  function buildRotationState(lineup, squad, config, medicalAvailability) {
     const players = new Map(squad.map((player) => [player.id, player]));
+
+    // Jugadores médicamente no disponibles YA al construir el estado
+    // (debería ser raro: la convocatoria/CpuLineup ya deberían haberlos
+    // excluido, pero se protege por robustez — invariante 10).
+    const unavailablePlayerIds = new Set();
+    if (medicalAvailability) {
+      medicalAvailability.forEach((info, playerId) => {
+        if (info.status === 'unavailable') unavailablePlayerIds.add(playerId);
+      });
+    }
 
     // bySlot: lista plana de playerIds declarados en cada posición (los 3
     // slots de la fila), para "cobertura propia" en considerSlotSubstitution
     // — no necesita distinguir de qué slot viene cada id, solo si tiene
-    // minutos declarados en esa fila.
+    // minutos declarados en esa fila. Los no disponibles quedan fuera de
+    // "cobertura propia" desde el principio (invariante 9: la sustitución
+    // forzada nunca los vuelve a considerar).
     const bySlot = {};
     POSITIONS.forEach((pos) => {
       const row = (lineup.entries && lineup.entries[pos]) || {};
-      bySlot[pos] = SLOT_KEYS.map((slotKey) => row[slotKey] && row[slotKey].playerId).filter(Boolean);
+      bySlot[pos] = SLOT_KEYS.map((slotKey) => row[slotKey] && row[slotKey].playerId)
+        .filter((id) => id && !unavailablePlayerIds.has(id));
     });
 
     // quotaSeconds sigue siendo por jugador (no por slot): si un jugador
     // aparece en varios slots/filas, su cuota es la SUMA de todas ellas —
-    // ver totalMinutesByPlayer().
+    // ver totalMinutesByPlayer(). LIFE-3 (sección 16 del prompt de esa
+    // sesión): un jugador `limited` nunca puede acumular más que su
+    // `minuteCap` médico entre TODOS sus slots — se recorta aquí, en la
+    // propia cuota que ya rige la sustitución por ritmo/agotamiento, sin
+    // inventar un segundo mecanismo de tope.
     const totalsMinutes = totalMinutesByPlayer(lineup);
-    const quotaSeconds = new Map(Object.entries(totalsMinutes).map(([id, minutes]) => [id, minutes * 60]));
+    const quotaSeconds = new Map(Object.entries(totalsMinutes).map(([id, minutes]) => {
+      const info = medicalAvailability && medicalAvailability.get(id);
+      const capMinutes = info && info.status === 'limited' && info.minuteCap !== null && info.minuteCap !== undefined
+        ? info.minuteCap : null;
+      const effectiveMinutes = capMinutes !== null ? Math.min(minutes, capMinutes) : minutes;
+      return [id, effectiveMinutes * 60];
+    }));
 
     const playedSeconds = new Map(squad.map((player) => [player.id, 0]));
 
@@ -132,7 +162,8 @@
     const onCourt = {};
     POSITIONS.forEach((pos) => {
       const row = (lineup.entries && lineup.entries[pos]) || {};
-      onCourt[pos] = (row.starter && row.starter.playerId) || null;
+      const starterId = (row.starter && row.starter.playerId) || null;
+      onCourt[pos] = (starterId && !unavailablePlayerIds.has(starterId)) ? starterId : null;
     });
 
     return {
@@ -150,6 +181,11 @@
       // DESIGN.md 7.11.2-bis: activo/inactivo, evaluado en cada ventana de
       // sustitución (updateGarbageTimeState) de forma independiente por equipo.
       garbageTimeActive: false,
+      // LIFE-3 (DESIGN.md 9.14, sección 21): jugadores médicamente NO
+      // disponibles para este partido — bloqueados globalmente en
+      // cualquier slot/posición, incluidos los que se lesionan EN DIRECTO
+      // durante el propio partido (ver markPlayerUnavailable() más abajo).
+      unavailablePlayerIds,
     };
   }
 
@@ -201,16 +237,20 @@
   // geométrica ya no interviene (contabilizaría dos veces la misma idea
   // una vez existe un mapa 1-20 explícito y siempre presente). Desempate
   // por mayor cuota de minutos restante.
-  function chooseEmergencyCandidate(state, slot, excludeIds) {
+  // `forceIgnoreQuota` (LIFE-3, sección 21 del prompt de esa sesión):
+  // sustitución médica forzada — "no exige cuota restante". Sigue
+  // excluyendo siempre a `state.unavailablePlayerIds` (invariante 9: un
+  // jugador lesionado nunca vuelve a pista aunque aparezca en otros slots).
+  function chooseEmergencyCandidate(state, slot, excludeIds, forceIgnoreQuota) {
     const config = state.config;
     let best = null;
     let bestScore = -Infinity;
     state.players.forEach((player, playerId) => {
-      if (excludeIds.has(playerId)) return;
+      if (excludeIds.has(playerId) || state.unavailablePlayerIds.has(playerId)) return;
       const quota = state.quotaSeconds.get(playerId) || 0;
       const played = state.playedSeconds.get(playerId) || 0;
       const remaining = quota - played;
-      if (remaining <= 0) return;
+      if (remaining <= 0 && !forceIgnoreQuota) return;
       const score = player.positionLevel(slot);
       if (score > bestScore || (score === bestScore && remaining > (state.quotaSeconds.get(best) - state.playedSeconds.get(best)))) {
         best = playerId;
@@ -263,7 +303,7 @@
     // 1) Preferencia: otro convocado declarado en ESTA posición, con
     // minutos disponibles, priorizando al más "por debajo" de su ritmo.
     const ownSlotCandidates = state.bySlot[slot].filter((id) => {
-      if (id === currentId || onCourtIds.has(id)) return false;
+      if (id === currentId || onCourtIds.has(id) || state.unavailablePlayerIds.has(id)) return false;
       return (state.playedSeconds.get(id) || 0) < (state.quotaSeconds.get(id) || 0);
     });
     if (ownSlotCandidates.length > 0) {
@@ -337,24 +377,54 @@
 
   // Sustitución de "minutos de la basura" para UNA posición: deja de exigir
   // cuota y mete banquillo con orden fijo Suplente 2 > Suplente 1 > Titular.
-  // Nota (pendiente, señalada explícitamente): no existe todavía un sistema
-  // de disponibilidad por lesión/expulsión en el motor, así que aquí se
-  // trata cualquier slot con playerId asignado como "disponible" — cuando
-  // exista ese sistema, esta función deberá comprobar disponibilidad real
-  // antes de elegir un slot.
+  // LIFE-3 (DESIGN.md 9.14, sección 21): cada candidato de esa cadena se
+  // salta si está médicamente no disponible — si los tres lo están, cae en
+  // la polivalencia de emergencia normal (ignorando cuota, igual que el
+  // resto de minutos de la basura).
   function considerGarbageTimeSubstitution(state, slot) {
     const row = state.lineup.entries[slot] || {};
-    const desiredId = (row.sub2 && row.sub2.playerId)
-      || (row.sub1 && row.sub1.playerId)
-      || (row.starter && row.starter.playerId)
-      || null;
+    const chain = [row.sub2 && row.sub2.playerId, row.sub1 && row.sub1.playerId, row.starter && row.starter.playerId];
+    let desiredId = chain.find((id) => id && !state.unavailablePlayerIds.has(id)) || null;
     const currentId = state.onCourt[slot];
-    if (!desiredId || desiredId === currentId) return null;
+    if (!desiredId || desiredId === currentId) {
+      if (!desiredId) {
+        const onCourtIds = new Set(POSITIONS.map((pos) => state.onCourt[pos]).filter(Boolean));
+        const excludeIds = new Set([...onCourtIds, currentId].filter(Boolean));
+        const candidate = chooseEmergencyCandidate(state, slot, excludeIds, true);
+        if (candidate) desiredId = candidate.playerId;
+      }
+      if (!desiredId || desiredId === currentId) return null;
+    }
     state.onCourt[slot] = desiredId;
     state.penalties.delete(desiredId);
     return {
       position: slot, outId: currentId, inId: desiredId, emergency: false,
       penalty: { responsibilityPenalty: 0, pureSkillPenalty: 0 }, garbageTime: true,
+    };
+  }
+
+  // LIFE-3 (DESIGN.md 9.14, secciones 20/21 del prompt de esa sesión):
+  // lesión EN DIRECTO durante el partido — retira al jugador DE VERDAD.
+  // Bloquea globalmente cualquier slot/posición donde apareciera (no solo
+  // la que ocupaba en pista) y fuerza sustitución INMEDIATA, ignorando
+  // cuota restante — la salud manda sobre fixed segments/cuota/garbage
+  // time (sección 20). Devuelve la entrada de sustitución para el
+  // `eventLog` del partido, o `null` si el jugador ni siquiera estaba en
+  // pista (convocado con 0 minutos, se marca no disponible igualmente).
+  function markPlayerUnavailable(state, playerId) {
+    state.unavailablePlayerIds.add(playerId);
+    state.penalties.delete(playerId);
+    const occupiedPosition = POSITIONS.find((pos) => state.onCourt[pos] === playerId);
+    if (!occupiedPosition) return null;
+    state.onCourt[occupiedPosition] = null;
+    const onCourtIds = new Set(POSITIONS.map((pos) => state.onCourt[pos]).filter(Boolean));
+    const candidate = chooseEmergencyCandidate(state, occupiedPosition, onCourtIds, true);
+    if (!candidate) return { position: occupiedPosition, outId: playerId, inId: null, emergency: true, medical: true };
+    state.onCourt[occupiedPosition] = candidate.playerId;
+    state.penalties.set(candidate.playerId, candidate.penalty);
+    return {
+      position: occupiedPosition, outId: playerId, inId: candidate.playerId,
+      emergency: true, medical: true, penalty: candidate.penalty,
     };
   }
 
@@ -376,7 +446,10 @@
       state.fixedSegmentActive = activeSegment;
       POSITIONS.forEach((pos) => {
         const forcedId = activeSegment.five[pos];
-        if (forcedId && state.onCourt[pos] !== forcedId) {
+        // LIFE-3 (DESIGN.md 9.14, sección 20): la salud manda incluso
+        // sobre un quinteto fijo — un jugador lesionado nunca vuelve a
+        // pista aunque el usuario lo hubiera fijado de cierre.
+        if (forcedId && !state.unavailablePlayerIds.has(forcedId) && state.onCourt[pos] !== forcedId) {
           state.onCourt[pos] = forcedId;
           state.penalties.delete(forcedId);
         }
@@ -424,6 +497,7 @@
     runSubstitutionWindow,
     isDeadBallStoppage,
     getPenalty,
+    markPlayerUnavailable,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

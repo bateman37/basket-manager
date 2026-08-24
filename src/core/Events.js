@@ -19,8 +19,11 @@
   // (Jugador Vivo/Progresión/Entrenamiento/Lesiones, sesión de diseño
   // aparte todavía sin hacer) quedan reservados aquí solo como catálogo —
   // NUNCA se construye ningún evento de estos tipos en esta entrega.
-  const EVENT_TYPES = ['match', 'competition', 'news'];
-  const RESERVED_FUTURE_EVENT_TYPES = ['training', 'medical', 'scouting', 'market', 'contract', 'board'];
+  // LIFE-3 (DESIGN.md 9.14): CAL-2 ya reservó 'medical' — esta entrega es
+  // quien empieza a construirlo de verdad (lesión/alta), ver builders más
+  // abajo. Sale de RESERVED_FUTURE_EVENT_TYPES a EVENT_TYPES.
+  const EVENT_TYPES = ['match', 'competition', 'news', 'medical'];
+  const RESERVED_FUTURE_EVENT_TYPES = ['training', 'scouting', 'market', 'contract', 'board'];
 
   const NEWS_PRIORITIES = ['alta', 'media', 'baja'];
   // Catálogo de categorías de noticia soportadas hoy (DESIGN.md 3.5) — cada
@@ -28,8 +31,9 @@
   // abajo. 'streak' y 'surprise' usan datos reales ya existentes
   // (schedule/reputation); NO se implementa 'milestone' (hitos de carrera)
   // por falta de histórico real de estadísticas por jugador entre
-  // temporadas — señalado explícitamente, no un olvido.
-  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise'];
+  // temporadas — señalado explícitamente, no un olvido. LIFE-3 añade
+  // 'medical' (lesión/alta), derivada siempre de `medicalState` real.
+  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise', 'medical'];
 
   let eventIdCounter = 0;
   function nextEventId(prefix) {
@@ -411,6 +415,76 @@
     });
   }
 
+  // ------------------------------------------------------------------
+  // LIFE-3 (DESIGN.md 9.14, sección 30 del prompt de esa sesión): eventos
+  // médicos — Agenda (type:'medical', requiresAttention:false: el usuario
+  // no necesita responder un formulario médico para seguir avanzando) y
+  // Noticias (type:'news', newsCategory:'medical'), ambos derivados del
+  // MISMO hecho real (`injury`/datos ya construidos por Medical.js — este
+  // módulo no calcula ningún riesgo/probabilidad, solo redacta).
+  // ------------------------------------------------------------------
+  const SEVERITY_LABELS = { minor: 'leve', moderate: 'moderada', major: 'grave', severe: 'muy grave' };
+
+  function buildInjuryAgendaEvent(player, team, injury, opts = {}) {
+    const label = SEVERITY_LABELS[injury.severity] || injury.severity;
+    return makeEvent({
+      id: nextEventId('medical-injury'),
+      type: 'medical',
+      dateTime: opts.dateTime || injury.occurredAt,
+      title: `${player.fullName} sufre una lesión ${label} (${team.fullName})`,
+      relatedTeam: team,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      requiresAttention: false,
+      body: `Diagnóstico: ${injury.type}. Origen: ${injury.source === 'match' ? 'partido' : 'entrenamiento'}.`,
+    });
+  }
+
+  // `opts.userTeamId`/`opts.isUserPlayer` deciden prioridad — DESIGN.md
+  // 9.14/sección 30: cualquier lesión time-loss del equipo del usuario es
+  // noticia (alta si major/severe, media si minor/moderate); de un rival
+  // de la división visible SOLO major/severe (prioridad media); la
+  // división de fondo nunca genera noticia médica (game.js decide cuándo
+  // llamar a este builder, este módulo no filtra por división).
+  function buildInjuryNewsEvent(player, team, injury, opts = {}) {
+    const isUserPlayer = !!(opts.userTeamId && team.id === opts.userTeamId);
+    const isSevere = injury.severity === 'major' || injury.severity === 'severe';
+    if (!isUserPlayer && !isSevere) return null;
+    const label = SEVERITY_LABELS[injury.severity] || injury.severity;
+    const priority = isUserPlayer ? (isSevere ? 'alta' : 'media') : 'media';
+    return makeEvent({
+      id: nextEventId('news-medical'),
+      type: 'news',
+      dateTime: opts.dateTime || injury.occurredAt,
+      title: `${player.fullName} (${team.fullName}) sufre una lesión ${label}`,
+      relatedCompetition: opts.relatedCompetition,
+      relatedTeam: team,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      newsCategory: 'medical',
+      priority,
+      body: `${player.fullName} se pierde partidos por una lesión ${label} (${injury.type}).`,
+    });
+  }
+
+  // Alta completa — solo noticia si el jugador del usuario estuvo fuera
+  // >=14 días (sección 30). `daysUnavailable`: dato real ya calculado por
+  // Medical.js (`injuryHistory` entry), nunca recalculado aquí.
+  function buildFullRecoveryNewsEvent(player, team, daysUnavailable, opts = {}) {
+    const isUserPlayer = !!(opts.userTeamId && team.id === opts.userTeamId);
+    if (!isUserPlayer || daysUnavailable < 14) return null;
+    return makeEvent({
+      id: nextEventId('news-medical-recovery'),
+      type: 'news',
+      dateTime: opts.dateTime,
+      title: `${player.fullName} recibe el alta médica`,
+      relatedCompetition: opts.relatedCompetition,
+      relatedTeam: team,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      newsCategory: 'medical',
+      priority: 'media',
+      body: `${player.fullName} (${team.fullName}) vuelve a estar disponible tras ${daysUnavailable} días de baja.`,
+    });
+  }
+
   const exportsObj = {
     EVENT_TYPES,
     RESERVED_FUTURE_EVENT_TYPES,
@@ -430,6 +504,9 @@
     buildBracketCreatedNewsEvent,
     buildPromotionRelegationNewsEvents,
     buildTacticalTrendNewsEvent,
+    buildInjuryAgendaEvent,
+    buildInjuryNewsEvent,
+    buildFullRecoveryNewsEvent,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

@@ -40,6 +40,7 @@
       <button class="gm-nav__btn" data-screen="lineup" type="button">Alineación</button>
       <button class="gm-nav__btn" data-screen="tactics" type="button">Tácticas</button>
       <button class="gm-nav__btn" data-screen="training" type="button">Entrenamiento</button>
+      <button class="gm-nav__btn" data-screen="medical" type="button">Lesiones</button>
       <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
       <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
@@ -67,6 +68,10 @@
 
     <section id="gm-screen-training" class="gm-screen">
       <div id="gm-training"></div>
+    </section>
+
+    <section id="gm-screen-medical" class="gm-screen">
+      <div id="gm-medical"></div>
     </section>
 
     <section id="gm-screen-agenda" class="gm-screen">
@@ -237,6 +242,18 @@
     <button id="life2-run-comparison-btn" type="button">Ejecutar comparativa de los 12 escenarios (8 semanas, seed controlada)</button>
     <pre id="life2-output">(todavía no se ha ejecutado ninguna comparativa de LIFE-2)</pre>
   </section>
+
+  <!-- LIFE-3 (DESIGN.md 9.14, sección 43 del prompt de esa sesión):
+       herramienta de depuración para forzar una lesión de entrenamiento
+       determinista y verificar Return to Play/minute cap sin esperar a
+       que el riesgo se dispare por azar en una partida real. -->
+  <section id="life3-test">
+    <h2>Prueba: LIFE-3 — Lesiones, carga médica, rehabilitación y vuelta a competir</h2>
+    <button id="life3-force-injury-btn" type="button">Forzar lesión de entrenamiento en un jugador nuevo</button>
+    <button id="life3-advance-days-btn" type="button">Avanzar 10 días de rehabilitación sobre ese jugador</button>
+    <button id="life3-match-injury-btn" type="button">Simular partido (Medical activado) y mostrar lesiones en directo</button>
+    <pre id="life3-output">(todavía no se ha ejecutado ninguna prueba de LIFE-3)</pre>
+  </section>
   </div>
   <!-- fin de #gm-test-mode-section -->
 
@@ -261,6 +278,11 @@
        script), así que su posición exacta aquí no es crítica — se deja
        justo después de MatchConfig.js por orden temático (src/core/). -->
   <script src="src/core/PlayerDevelopment.js"></script>
+  <!-- LIFE-3 (DESIGN.md 9.14): Medical.js accede a Player.js/Team.js/
+       PlayerDevelopment.js de forma perezosa — se deja aquí (antes de
+       Rotation.js/CpuLineup.js, que sí lo necesitan sin llegar a
+       destructurarlo a nivel de módulo) por orden temático. -->
+  <script src="src/core/Medical.js"></script>
   <script src="src/core/Rotation.js"></script>
   <script src="src/core/CpuLineup.js"></script>
   <script src="src/core/SeasonGoals.js"></script>
@@ -1265,6 +1287,73 @@
     }
 
     document.getElementById('life2-run-comparison-btn').addEventListener('click', runLife2Comparison);
+
+    // -----------------------------------------------------------------
+    // LIFE-3 (DESIGN.md 9.14, sección 43 del prompt de esa sesión):
+    // herramienta de depuración — forzar lesión de entrenamiento
+    // determinista, avanzar rehabilitación por días reales, y comprobar
+    // lesiones en directo de partido con Medical.js activado.
+    // -----------------------------------------------------------------
+    let life3TestPlayer = null;
+    let life3TestTeam = null;
+
+    function life3DescribeAvailability(player, date) {
+      const { getAvailability, CONFIG_BASE, getEstimatedReturnRange } = window.BasketManager;
+      const info = getAvailability(player, date, CONFIG_BASE, { team: life3TestTeam });
+      const range = info.injury ? getEstimatedReturnRange(player, date, CONFIG_BASE, life3TestTeam) : null;
+      return `estado=${info.status} fase=${info.phase} minuteCap=${info.minuteCap} `
+        + `riskBand=${info.riskBand} vuelta=${range ? range.label : '—'}`;
+    }
+
+    function forceLife3TrainingInjury() {
+      const { generateFictionalPlayer, Team, createInjury, CONFIG_BASE, ensureMedicalState } = window.BasketManager;
+      life3TestPlayer = generateFictionalPlayer({ minAge: 24, maxAge: 24 });
+      life3TestTeam = new Team({ name: 'LIFE-3 Test', roster: [life3TestPlayer] });
+      const now = new Date();
+      ensureMedicalState(life3TestPlayer, CONFIG_BASE, now);
+      const injury = createInjury(
+        life3TestPlayer, { mechanism: 'acuteNonContact', date: now, source: 'training', competition: null },
+        CONFIG_BASE, Math.random,
+      );
+      const output = document.getElementById('life3-output');
+      output.textContent = injury
+        ? `Lesión forzada: ${injury.type} (${injury.severity}), objetivo ${injury.targetRecoveryDays} días.\n`
+          + life3DescribeAvailability(life3TestPlayer, now)
+        : 'No se pudo generar una lesión (catálogo sin candidatos para ese mecanismo).';
+    }
+
+    function advanceLife3Rehab() {
+      const output = document.getElementById('life3-output');
+      if (!life3TestPlayer) { output.textContent = 'Primero fuerza una lesión de entrenamiento.'; return; }
+      const { processPlayerMedicalToDate, CONFIG_BASE } = window.BasketManager;
+      const target = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+      processPlayerMedicalToDate(life3TestPlayer, target, CONFIG_BASE, life3TestTeam);
+      output.textContent = `Tras 10 días:\n${life3DescribeAvailability(life3TestPlayer, target)}`;
+    }
+
+    function runLife3MatchInjuryTest() {
+      const {
+        generateFictionalPlayer, Team, buildCpuLineup, simulateMatch, CONFIG_BASE,
+      } = window.BasketManager;
+      const buildRoster = () => { const r = []; for (let i = 0; i < 12; i++) r.push(generateFictionalPlayer({ minAge: 20, maxAge: 32 })); return r; };
+      const homeTeam = new Team({ name: 'LIFE-3 Home', roster: buildRoster() });
+      const awayTeam = new Team({ name: 'LIFE-3 Away', roster: buildRoster() });
+      const now = new Date();
+      const home = buildCpuLineup(homeTeam, false, CONFIG_BASE, now);
+      const away = buildCpuLineup(awayTeam, false, CONFIG_BASE, now);
+      const result = simulateMatch(homeTeam, awayTeam, CONFIG_BASE, {
+        homeSquad: home.squad, homeLineup: home.lineup, awaySquad: away.squad, awayLineup: away.lineup, matchDate: now,
+      });
+      const output = document.getElementById('life3-output');
+      output.textContent = result.injuries.length
+        ? `Lesiones en directo (${result.injuries.length}):\n`
+          + result.injuries.map((inj) => `${inj.playerName} — ${inj.injuryType} (${inj.severity}, ${inj.mechanism})`).join('\n')
+        : 'Sin lesiones en directo en este partido (riesgo bajo por posesión, prueba otra vez).';
+    }
+
+    document.getElementById('life3-force-injury-btn').addEventListener('click', forceLife3TrainingInjury);
+    document.getElementById('life3-advance-days-btn').addEventListener('click', advanceLife3Rehab);
+    document.getElementById('life3-match-injury-btn').addEventListener('click', runLife3MatchInjuryTest);
 
     document.getElementById('generate-phase2-league-btn').addEventListener('click', generatePhase2League);
     document.getElementById('title-playoff-next-btn').addEventListener('click', playNextTitlePlayoffGame);

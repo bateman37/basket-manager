@@ -27,6 +27,13 @@
   const RotationCore = (typeof module !== 'undefined' && module.exports)
     ? require('./Rotation.js')
     : global.BasketManager;
+  // LIFE-3 (DESIGN.md 9.14, sección 31 del prompt de esa sesión):
+  // MatchEngine.js importa de Medical.js, nunca al revés — Medical.js no
+  // conoce el motor de partido, solo recibe ya construidos los jugadores
+  // en pista y los segundos transcurridos.
+  const MedicalCore = (typeof module !== 'undefined' && module.exports)
+    ? require('./Medical.js')
+    : global.BasketManager;
   // DESIGN.md 7.12 (Sistema táctico, TAC-1): punto de enganche mínimo
   // hacia el nuevo módulo — MatchEngine.js importa de Tactics.js, nunca al
   // revés (7.12.2). Ver planPnrPossession() más abajo, único punto donde
@@ -39,8 +46,11 @@
   const { CONFIG_BASE, NEUTRAL_ATTRIBUTE } = ConfigCore;
   const {
     validateLineup, describeValidationErrors, buildRotationState, getOnCourtFive, accumulatePlayedTime,
-    runSubstitutionWindow, isDeadBallStoppage, getPenalty,
+    runSubstitutionWindow, isDeadBallStoppage, getPenalty, markPlayerUnavailable,
   } = RotationCore;
+  const {
+    getAvailability, evaluateMatchPossessionInjuries,
+  } = MedicalCore;
   // DESIGN.md 7.12 (TAC-3): la producción deja de llamar a
   // planPnrPossession directamente y usa planTacticalPossession (playbook +
   // selección real de play-type + continuidad, 7.12.8/7.12.10/7.12.11) —
@@ -1791,6 +1801,32 @@
       state.eventLog.push({ ...event, period: state.period, offenseSide: state.offenseSide });
     });
 
+    // LIFE-3 (DESIGN.md 9.14, secciones 19/20/31 del prompt de esa sesión):
+    // riesgo de lesión evaluado en los 10 jugadores REALMENTE en pista esta
+    // posesión, con el tiempo REALMENTE transcurrido (nunca "% fijo por
+    // posesión") — solo tiene sentido con alineación real de AMBOS lados
+    // (sin ella no hay onCourt/Rotation que retirar consistentemente).
+    if (config.medical && config.medical.enabled && state.homeRotationState && state.awayRotationState) {
+      const offenseSquad = state.offenseSide === 'home' ? state.homeSquad : state.awaySquad;
+      const defenseSquad = state.offenseSide === 'home' ? state.awaySquad : state.homeSquad;
+      const playersOnCourt = offenseFiveForPlusMinus.map((p) => ({ player: p, team: offenseTeam, squad: offenseSquad, side: state.offenseSide }))
+        .concat(defenseFiveForPlusMinus.map((p) => ({ player: p, team: defenseTeam, squad: defenseSquad, side: defenseSide })));
+      const triggered = evaluateMatchPossessionInjuries(playersOnCourt, result.elapsed, state.matchDate, config);
+      triggered.forEach(({ player, team, injury }) => {
+        const side = playersOnCourt.find((p) => p.player.id === player.id).side;
+        state.eventLog.push({
+          type: 'injury', playerId: player.id, injuryType: injury.type, severity: injury.severity,
+          period: state.period, offenseSide: state.offenseSide,
+        });
+        state.injuries.push({
+          playerId: player.id, playerName: player.fullName, teamId: team.id,
+          injuryType: injury.type, severity: injury.severity, mechanism: injury.mechanism, occurredAt: state.matchDate,
+        });
+        const rotationState = side === 'home' ? state.homeRotationState : state.awayRotationState;
+        markPlayerUnavailable(rotationState, player.id);
+      });
+    }
+
     // 7.11.2 (C.2): ventana de sustitución automática — SOLO en paradas de
     // juego reales (falta/violación, nunca a mitad de jugada viva).
     const deadBall = isDeadBallStoppage(result.events);
@@ -1897,11 +1933,26 @@
   // `options.awayGamePlan` (7.12.23, TAC-5, nuevos): instancia de
   // `Tactics.GamePlan` para ese lado — `null` por defecto (sin ajustes
   // este partido, comportamiento idéntico al de antes de esta entrega).
+  // LIFE-3 (DESIGN.md 9.14, sección 17 del prompt de esa sesión): mapa
+  // `playerId -> Medical.getAvailability()` para toda una convocatoria —
+  // punto único donde MatchEngine pregunta a Medical.js (nunca duplicado
+  // como un `isInjured` propio en Rotation.js/CpuLineup.js).
+  function buildMedicalAvailabilityMap(squad, date, config, team) {
+    if (!config.medical || !config.medical.enabled) return null;
+    return new Map(squad.map((player) => [player.id, getAvailability(player, date, config, { team })]));
+  }
+
   function createMatchState(homeTeam, awayTeam, config = CONFIG_BASE, options = {}) {
     const homeSquad = options.homeSquad || defaultMatchSquad(homeTeam);
     const awaySquad = options.awaySquad || defaultMatchSquad(awayTeam);
     const homeTacticalProfile = options.homeTacticalProfile || homeTeam.tacticalProfile || null;
     const awayTacticalProfile = options.awayTacticalProfile || awayTeam.tacticalProfile || null;
+    // LIFE-3: fecha real del partido — necesaria para Medical.js (riesgo,
+    // fecha de la lesión, estimación de vuelta). Por defecto el reloj de
+    // la máquina, para no romper llamadores de modo prueba que no la
+    // conocen (comportamiento idéntico al de antes de esta entrega si
+    // `config.medical.enabled` es `false`).
+    const matchDate = options.matchDate || new Date();
 
     [
       { lineup: options.homeLineup, label: `local (${homeTeam.fullName})` },
@@ -1913,8 +1964,12 @@
         throw new Error(`Alineación del equipo ${label} inválida: ${describeValidationErrors(validation.errors)}`);
       }
     });
-    const homeRotationState = options.homeLineup ? buildRotationState(options.homeLineup, homeSquad, config) : null;
-    const awayRotationState = options.awayLineup ? buildRotationState(options.awayLineup, awaySquad, config) : null;
+    const homeMedicalAvailability = options.homeLineup ? buildMedicalAvailabilityMap(homeSquad, matchDate, config, homeTeam) : null;
+    const awayMedicalAvailability = options.awayLineup ? buildMedicalAvailabilityMap(awaySquad, matchDate, config, awayTeam) : null;
+    const homeRotationState = options.homeLineup
+      ? buildRotationState(options.homeLineup, homeSquad, config, homeMedicalAvailability) : null;
+    const awayRotationState = options.awayLineup
+      ? buildRotationState(options.awayLineup, awaySquad, config, awayMedicalAvailability) : null;
 
     const boxScore = new Map();
     // +/- por jugador (retoques de estadísticas, no forma parte de 7.6):
@@ -1928,6 +1983,10 @@
       config, homeTeam, awayTeam, homeSquad, awaySquad,
       homeTacticalProfile, awayTacticalProfile,
       homeRotationState, awayRotationState,
+      // LIFE-3 (DESIGN.md 9.14): fecha real del partido + lesiones
+      // producidas EN VIVO (sección 31, array compacto para buildMatchResult).
+      matchDate,
+      injuries: [],
       // 7.12.23 (TAC-5): GamePlan de partido de cada lado — mutable EN
       // CUALQUIER MOMENTO entre llamadas a advanceMatch() (game.js asigna/
       // reasigna `state.homeGamePlan`/`state.awayGamePlan` directamente);
@@ -2012,6 +2071,10 @@
         away: state.awaySquad.map((player) => enrichStatLine(getStatLine(state.boxScore, player), state.awayRotationState, state.plusMinus)),
       },
       eventLog: state.eventLog,
+      // LIFE-3 (DESIGN.md 9.14, sección 31): array compacto de lesiones
+      // producidas EN VIVO durante este partido, sin eliminar ningún campo
+      // previo del resultado.
+      injuries: state.injuries,
       rotation: { home: rotationSummary(state.homeRotationState), away: rotationSummary(state.awayRotationState) },
       // DESIGN.md 7.12.27 (TAC-7): `gameId`/`telemetryLog` — lectura pura de
       // `state`, igual que el resto de este resultado (ver comentario de

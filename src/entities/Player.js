@@ -246,6 +246,15 @@
       // conserva tal cual.
       this.developmentState = data.developmentState || null;
 
+      // --- Estado médico de carrera (LIFE-3, DESIGN.md 9.14) ---
+      // Separado a propósito de `dynamicState` (Energy) y de
+      // `developmentState` (TMB/PA/atributos): esto es lesión/tejido/
+      // disponibilidad, nunca crecimiento normal ni batería física. `null`
+      // hasta que `Medical.ensureMedicalState()` lo inicializa (mismo
+      // patrón que `developmentState` arriba) — si los datos ya traían un
+      // medicalState serializado (partida guardada), se conserva tal cual.
+      this.medicalState = data.medicalState || null;
+
       // --- Estados dinámicos ---
       // Los tres existen siempre y la simulación de temporada los actualiza
       // constantemente. Su visibilidad en la interfaz (aún sin construir) es,
@@ -405,6 +414,32 @@
           matchExposures: this.developmentState.matchExposures.map((exp) => ({
             ...exp,
             date: exp.date ? new Date(exp.date).toISOString() : null,
+          })),
+        } : null,
+        // LIFE-3 (DESIGN.md 9.14, invariante 5): currentInjury/injuryHistory/
+        // loadHistory sobreviven toJSON()/reconstrucción — mismas fechas
+        // serializadas a ISO que el resto de esta ficha.
+        medicalState: this.medicalState ? {
+          ...this.medicalState,
+          lastProcessedDate: this.medicalState.lastProcessedDate
+            ? new Date(this.medicalState.lastProcessedDate).toISOString() : null,
+          lastTrainingTickDate: this.medicalState.lastTrainingTickDate
+            ? new Date(this.medicalState.lastTrainingTickDate).toISOString() : null,
+          currentInjury: this.medicalState.currentInjury ? {
+            ...this.medicalState.currentInjury,
+            occurredAt: this.medicalState.currentInjury.occurredAt
+              ? new Date(this.medicalState.currentInjury.occurredAt).toISOString() : null,
+            lastProcessedDate: this.medicalState.currentInjury.lastProcessedDate
+              ? new Date(this.medicalState.currentInjury.lastProcessedDate).toISOString() : null,
+          } : null,
+          injuryHistory: this.medicalState.injuryHistory.map((entry) => ({
+            ...entry,
+            occurredAt: entry.occurredAt ? new Date(entry.occurredAt).toISOString() : null,
+            recoveredAt: entry.recoveredAt ? new Date(entry.recoveredAt).toISOString() : null,
+          })),
+          loadHistory: this.medicalState.loadHistory.map((entry) => ({
+            ...entry,
+            date: entry.date ? new Date(entry.date).toISOString() : null,
           })),
         } : null,
         dynamicState: {
