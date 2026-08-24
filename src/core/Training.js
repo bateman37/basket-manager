@@ -28,6 +28,13 @@
   function RecoveryCore() {
     return (typeof module !== 'undefined' && module.exports) ? require('./Recovery.js') : core();
   }
+  // LIFE-3 (DESIGN.md 9.14, sección 25 del prompt de esa sesión):
+  // "Training debe consultar Medical.getAvailability() antes de construir
+  // el contexto del jugador" — Training.js importa de Medical.js, nunca al
+  // revés (Medical.js no conoce Team Focus/intensidad/foco individual).
+  function MedicalCore() {
+    return (typeof module !== 'undefined' && module.exports) ? require('./Medical.js') : core();
+  }
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -489,16 +496,23 @@
     // 22: individualRoleFocusMultiplier=1.75 sobre la ganancia de ESE rol) ---
     const roleAssignments = profile.roleAssignments || {};
     Object.keys(roleAssignments).forEach((playerId) => {
-      if (!team.roster.some((p) => p.id === playerId)) return; // ya no está en plantilla
+      const player = team.roster.find((p) => p.id === playerId);
+      if (!player) return; // ya no está en plantilla
       const assignment = roleAssignments[playerId];
       const individualFocus = getIndividualFocus(team, playerId, config);
+      // Sección 25: familiaridad de rol reducida por fase médica (mismo
+      // factor `role` de config.medical.trainingStimulusByPhase que ya
+      // reduce el foco individual de rol en buildPlayerTickContext).
+      const medicalMod = getMedicalTrainingModifiers(player, team, tickDate, config);
+      const medicalRoleFactor = (!medicalMod || medicalMod.phase === 'available') ? 1
+        : (medicalMod.phase === 'limited' ? config.medical.trainingStimulusByPhase.limited.stimulusMultiplier : medicalMod.cfg.role);
       [{ key: 'offensiveRole', side: 'offensive', focusSide: 'offense', mult: offenseMultiplier },
         { key: 'defensiveRole', side: 'defensive', focusSide: 'defense', mult: defenseMultiplier }].forEach((entry) => {
         const roleId = assignment[entry.key];
         if (!roleId) return;
         const isFocused = individualFocus.type === 'role' && individualFocus.side === entry.focusSide && individualFocus.target === roleId;
         const extra = isFocused ? config.training.tactical.individualRoleFocusMultiplier : 1;
-        const gain = computeWeeklyTacticalGain(baseRate * 0.4, entry.mult * extra, weeklyCtx.intensityCfg, weeklyCtx, headCoachFactor, undefined, offseasonMultiplier, config);
+        const gain = computeWeeklyTacticalGain(baseRate * 0.4, entry.mult * extra * medicalRoleFactor, weeklyCtx.intensityCfg, weeklyCtx, headCoachFactor, undefined, offseasonMultiplier, config);
         growPlayerRoleFamiliarityFromTraining(profile, playerId, entry.side, roleId, gain, config);
       });
     });
@@ -512,10 +526,50 @@
   // semana (mismo tick, para que readiness de la semana siguiente ya
   // refleje el coste de esta).
   // ---------------------------------------------------------------------
+  // LIFE-3 (DESIGN.md 9.14, sección 8 del prompt de esa sesión): unidad de
+  // carga individual REAL de un tick semanal — la MISMA cifra que ya
+  // decide el coste de Energy de esa semana, extraída aquí para que
+  // Medical.js la reutilice literalmente (nunca reimplementa intensidad/
+  // densidad/foco desde sus nombres, ver Medical.evaluateWeeklyTrainingTick).
+  function computeWeeklyTrainingLoadUnits(weeklyCtx, focusType, config) {
+    const extraCost = config.training.individualFocusEnergyCostPerLoadUnit[focusType] || 0;
+    return weeklyCtx.loadUnits * (weeklyCtx.intensityCfg.energyCostPerLoadUnit + extraCost);
+  }
+
+  // Sección 25: grupo de estímulo (physical/technical/cognitive/social) de
+  // un atributo mutable, para los factores de fase médica de
+  // `config.medical.trainingStimulusByPhase` — MISMO agrupamiento ya usado
+  // por `computeTeamFocusStimulusVector` para el foco Tactical (no un
+  // catálogo nuevo).
+  function stimulusGroupForAttribute(attr, config) {
+    const cat = getCurveCategoryMap(config)[attr];
+    if (cat === 'technical') return 'technical';
+    if (cat === 'cognitive' || cat === 'social') return cat;
+    return 'physical';
+  }
+
+  // Sección 25: factor de reducción de estímulo/coste de Energy según fase
+  // médica ACTUAL del jugador — `null` en 'available' (sin reducción,
+  // comportamiento idéntico a antes de esta entrega). Nunca se aplica al
+  // `declineDelta` de edad (PlayerDevelopment.processOneTick no recibe
+  // este factor, solo `stimulusByAttribute`/coste de Energy/progreso POS).
+  function getMedicalTrainingModifiers(player, team, tickDate, config) {
+    if (!config.medical || !config.medical.enabled) return null;
+    const Medical = MedicalCore();
+    Medical.processPlayerMedicalToDate(player, tickDate, config, team);
+    const availability = Medical.getAvailability(player, tickDate, config, { team });
+    if (availability.phase === 'available') return { phase: 'available', availability };
+    return { phase: availability.phase, availability, cfg: config.medical.trainingStimulusByPhase[availability.phase] };
+  }
+
   function buildPlayerTickContext(player, team, tickDate, config, calendarCtx) {
     const weeklyCtx = computeWeeklyTrainingContext(team, tickDate, config, calendarCtx);
     const readiness = computeReadinessFactor(player.dynamicState.energy, config);
     const focus = getIndividualFocus(team, player.id, config);
+    // Sección 25: consulta ÚNICA a Medical.js antes de construir el resto
+    // del contexto — también avanza la rehabilitación del jugador hasta
+    // ESTE tickDate (día a día, no en bloques semanales, ver Medical.js).
+    const medicalMod = getMedicalTrainingModifiers(player, team, tickDate, config);
 
     let vector = computeTeamFocusStimulusVector(player, team.trainingPlan.teamFocus, config);
     if (focus.type === 'attribute') {
@@ -528,19 +582,45 @@
 
     const stimulusByAttribute = {};
     PD().ALL_MUTABLE_ATTRIBUTES.forEach((attr) => {
-      stimulusByAttribute[attr] = vector[attr] * weeklyCtx.intensityCfg.developmentMultiplier * weeklyCtx.opportunityFactor * readiness;
+      let value = vector[attr] * weeklyCtx.intensityCfg.developmentMultiplier * weeklyCtx.opportunityFactor * readiness;
+      if (medicalMod && medicalMod.phase !== 'available') {
+        value *= medicalMod.phase === 'limited'
+          ? config.medical.trainingStimulusByPhase.limited.stimulusMultiplier
+          : medicalMod.cfg[stimulusGroupForAttribute(attr, config)];
+      }
+      stimulusByAttribute[attr] = value;
     });
 
     if (focus.type === 'position') {
       const offseasonMultiplier = weeklyCtx.isOffseason ? config.training.tactical.offseasonTacticalMultiplier : 1;
-      const delta = computePositionProgressDelta(player, team, focus.target, tickDate, weeklyCtx, offseasonMultiplier, config);
+      let delta = computePositionProgressDelta(player, team, focus.target, tickDate, weeklyCtx, offseasonMultiplier, config);
+      if (medicalMod && medicalMod.phase !== 'available') {
+        delta *= medicalMod.phase === 'limited' ? config.medical.trainingStimulusByPhase.limited.stimulusMultiplier : medicalMod.cfg.position;
+      }
       if (delta) applyPositionResidualDelta(player, focus.target, delta);
     }
 
     if (!weeklyCtx.isOffseason) {
       const extraCost = config.training.individualFocusEnergyCostPerLoadUnit[focus.type] || 0;
-      const cost = weeklyCtx.loadUnits * (weeklyCtx.intensityCfg.energyCostPerLoadUnit + extraCost);
+      let cost = weeklyCtx.loadUnits * (weeklyCtx.intensityCfg.energyCostPerLoadUnit + extraCost);
+      if (medicalMod && medicalMod.phase !== 'available') {
+        cost *= medicalMod.phase === 'limited'
+          ? config.medical.trainingStimulusByPhase.limited.energyCostMultiplier
+          : medicalMod.cfg.energyCost;
+      }
       if (cost > 0) player.adjustEnergy(-cost);
+    }
+
+    // LIFE-3 (sección 18): carga de entrenamiento de ESTA semana ya
+    // conocida — Medical.js evalúa aquí, UNA sola vez por tick real, si
+    // esta semana produce una lesión de sobrecarga/no-contacto (o una
+    // recaída si el jugador ya está en fase `limited`). Se calcula
+    // siempre (incluso en pretemporada: entrenar también desgasta), con
+    // el `weeklyLoadUnits` real independientemente de si esta semana
+    // aplicó coste de Energy o no.
+    if (config.medical && config.medical.enabled) {
+      const weeklyLoadUnits = computeWeeklyTrainingLoadUnits(weeklyCtx, focus.type, config);
+      MedicalCore().evaluateWeeklyTrainingTick(player, team, tickDate, weeklyLoadUnits, config);
     }
 
     const facilityLevel = team.facilities[config.playerDevelopment.facility.key].level;
@@ -590,6 +670,17 @@
   function prepareTeamForMatch(team, matchDate, config, calendarCtx) {
     if (!matchDate) return;
     registerTeamMatchDate(team, matchDate);
+
+    // LIFE-3 (DESIGN.md 9.14, sección 15 del prompt de esa sesión):
+    // rehabilitación por DÍAS reales, con su propio cursor
+    // (`medicalState.lastProcessedDate`) independiente del de LIFE-2 — se
+    // llama SIEMPRE (incluso si el guard de más abajo deja el resto de
+    // esta función sin nada nuevo que procesar), para que una baja corta
+    // no espere al próximo tick semanal de desarrollo para dar el alta.
+    if (config.medical && config.medical.enabled) {
+      MedicalCore().processTeamMedicalToDate(team, matchDate, config);
+    }
+
     if (team.trainingState.lastProcessedDate && matchDate <= team.trainingState.lastProcessedDate) return;
 
     // 1) Recuperación real de Energy desde el último partido de CADA
@@ -689,6 +780,7 @@
     applyPositionResidualDelta,
     applyDiminishingGrowth,
     applyWeeklyTacticalTraining,
+    computeWeeklyTrainingLoadUnits,
     buildPlayerTickContext,
     processTeamDevelopmentToDate,
     prepareTeamForMatch,

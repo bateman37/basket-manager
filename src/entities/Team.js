@@ -269,6 +269,17 @@
       // --- LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2) ---
       this.trainingPlan = buildTrainingPlan(data.trainingPlan);
       this.trainingState = buildTrainingState(data.trainingState);
+
+      // --- LIFE-3 (DESIGN.md 9.14, sección 11 del prompt de esa sesión):
+      // hook neutral de Staff médico — 1-20, default 10, ningún empleado/
+      // contrato real todavía (Staff como entidad queda para una sesión
+      // futura, mismo criterio que `training.staffContext` de LIFE-2). ---
+      const medicalStaffContext = data.medicalStaffContext || {};
+      this.medicalStaffContext = {
+        doctor: medicalStaffContext.doctor !== undefined ? medicalStaffContext.doctor : 10,
+        physiotherapy: medicalStaffContext.physiotherapy !== undefined ? medicalStaffContext.physiotherapy : 10,
+        physicalPreparation: medicalStaffContext.physicalPreparation !== undefined ? medicalStaffContext.physicalPreparation : 10,
+      };
     }
 
     static validateDivision(division) {
@@ -320,13 +331,19 @@
     // Recibe los ids de jugadores de la plantilla y devuelve la convocatoria
     // validada (entre 8 y 12, todos pertenecientes a la plantilla). Lanza
     // error si no se cumple — DESIGN.md 6.2: reglamento real de la ACB.
-    buildMatchSquad(playerIds) {
+    // `minOverride` (LIFE-3, DESIGN.md 9.14, sección 23 del prompt de esa
+    // sesión): excepción médica de convocatoria — 5-7 jugadores solo
+    // cuando la plantilla queda médicamente reducida (nunca por elección
+    // del usuario/CPU). `undefined` reproduce el mínimo normal (8),
+    // comportamiento idéntico al de antes de esta entrega.
+    buildMatchSquad(playerIds, minOverride) {
       const squad = playerIds.map((id) => this.roster.find((player) => player.id === id));
       if (squad.some((player) => !player)) {
         throw new Error('La convocatoria incluye algún jugador que no pertenece a la plantilla');
       }
-      if (squad.length < MATCH_SQUAD_MIN || squad.length > MATCH_SQUAD_MAX) {
-        throw new Error(`La convocatoria debe tener entre ${MATCH_SQUAD_MIN} y ${MATCH_SQUAD_MAX} jugadores`);
+      const min = minOverride || MATCH_SQUAD_MIN;
+      if (squad.length < min || squad.length > MATCH_SQUAD_MAX) {
+        throw new Error(`La convocatoria debe tener entre ${min} y ${MATCH_SQUAD_MAX} jugadores`);
       }
       return squad;
     }
@@ -414,6 +431,7 @@
         fanbase: this.fanbase,
         finances: this.finances,
         clubDNA: this.clubDNA,
+        medicalStaffContext: this.medicalStaffContext,
         tacticalProfile: this.tacticalProfile,
         rivalries: this.rivalries,
         history: this.history,

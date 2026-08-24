@@ -77,6 +77,11 @@
     // comparación antes/después que solo existe en el instante en que
     // ocurre el hecho, por eso ESAS se registran aquí en cuanto pasan.
     newsLog: [],
+    // LIFE-3 (DESIGN.md 9.14, sección 30): eventos de Agenda tipo
+    // 'medical' (lesión/alta) — misma razón de persistencia que
+    // `newsLog`, pero separado porque `renderNewsScreen()` ya asume que
+    // `newsLog` contiene SOLO `type:'news'`.
+    medicalAgendaLog: [],
     // CAL-2: fecha desde la que se centra la vista de Agenda — `null` usa
     // el reloj de mundo actual (siempre vuelve a "Hoy" al reabrir Agenda
     // tras avanzar con Continuar, no se queda anclada a donde se dejó).
@@ -309,6 +314,77 @@
     }
   }
 
+  // LIFE-3 (DESIGN.md 9.14, sección 30 del prompt de esa sesión): eventos
+  // de Agenda tipo 'medical' — separados de `state.newsLog` (que sigue
+  // siendo SOLO `type:'news'`, lo que ya asume `renderNewsScreen`) pero
+  // con el mismo criterio de persistencia: "no son reconstruibles
+  // únicamente desde el estado actual una vez cerrada una lesión".
+  function pushMedicalAgenda(events) {
+    (Array.isArray(events) ? events : [events]).forEach((event) => {
+      if (!event) return;
+      state.medicalAgendaLog.push(event);
+    });
+    if (state.medicalAgendaLog.length > NEWS_LOG_MAX) {
+      state.medicalAgendaLog.splice(0, state.medicalAgendaLog.length - NEWS_LOG_MAX);
+    }
+  }
+
+  // Snapshot mínimo de identidad médica (id de lesión activa + longitud
+  // del histórico) de toda la plantilla — permite detectar, por
+  // diferencia, qué jugadores concretos acaban de lesionarse/recibir el
+  // alta durante el procesado de Training/Medical de un tick, sin que
+  // Training.js/Medical.js tengan que devolver un log de eventos por la
+  // API genérica de ticks (PlayerDevelopment.processPlayerToDate).
+  function snapshotMedicalIdentity(team) {
+    const map = new Map();
+    team.roster.forEach((player) => {
+      map.set(player.id, {
+        currentInjuryId: (player.medicalState && player.medicalState.currentInjury) ? player.medicalState.currentInjury.id : null,
+        historyLength: player.medicalState ? player.medicalState.injuryHistory.length : 0,
+      });
+    });
+    return map;
+  }
+
+  // Noticias/Agenda médicas SOLO para la división visible del usuario
+  // (sección 30: "división de fondo: ninguna noticia médica") — comparado
+  // contra el snapshot `before` de snapshotMedicalIdentity().
+  function pushMedicalDiffEvents(team, before) {
+    if (!BM.CONFIG_BASE.medical.enabled || team.division !== state.division) return;
+    team.roster.forEach((player) => {
+      const prev = before.get(player.id);
+      if (!prev || !player.medicalState) return;
+      const injury = player.medicalState.currentInjury;
+      if (injury && injury.id !== prev.currentInjuryId) {
+        pushMedicalAgenda(BM.buildInjuryAgendaEvent(player, team, injury));
+        pushNews(BM.buildInjuryNewsEvent(player, team, injury, { userTeamId: state.userTeamId, relatedCompetition: 'league' }));
+      }
+      player.medicalState.injuryHistory.slice(prev.historyLength).forEach((entry) => {
+        pushNews(BM.buildFullRecoveryNewsEvent(player, team, entry.daysUnavailable, {
+          userTeamId: state.userTeamId, relatedCompetition: 'league', dateTime: state.calendar.currentGameDateTime,
+        }));
+      });
+    });
+  }
+
+  // Lesiones EN DIRECTO durante un partido (MatchEngine.buildMatchResult
+  // `.injuries`, sección 31) — dato ya construido por el motor, este
+  // helper solo decide cuándo redactar Agenda/Noticias a partir de él.
+  function pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey) {
+    if (!BM.CONFIG_BASE.medical.enabled || !result.injuries || !result.injuries.length) return;
+    if (homeTeam.division !== state.division) return; // división de fondo: nunca noticia médica
+    result.injuries.forEach((entry) => {
+      const team = entry.teamId === homeTeam.id ? homeTeam : awayTeam;
+      const player = team.roster.find((p) => p.id === entry.playerId);
+      if (!player || !player.medicalState || !player.medicalState.currentInjury) return;
+      const injury = player.medicalState.currentInjury;
+      pushMedicalAgenda(BM.buildInjuryAgendaEvent(player, team, injury));
+      pushNews(BM.buildInjuryNewsEvent(player, team, injury, {
+        userTeamId: state.userTeamId, relatedCompetition: competitionKey || 'league',
+      }));
+    });
+  }
+
   // Copia ligera de la clasificación en un instante dado — DELIBERADAMENTE
   // no guarda una referencia a los objetos `standing` originales, porque
   // `League.js` los muta in situ al resolver partidos (mismo objeto, no
@@ -455,6 +531,10 @@
   function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date, competitionKey = 'league') {
     if (!date || !result.rotation) return;
     const { ensureDevelopmentState, recordMatchExposure, CONFIG_BASE } = BM;
+    // LIFE-3 (DESIGN.md 9.14, sección 31): lesiones EN DIRECTO de este
+    // partido ya resuelto — Agenda/Noticias, punto único (todo partido
+    // resuelto de cualquier competición pasa por aquí).
+    pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey);
     [{ team: homeTeam, rotation: result.rotation.home }, { team: awayTeam, rotation: result.rotation.away }]
       .forEach(({ team, rotation }) => {
         if (!rotation) return; // este lado no tenía alineación real — sin datos de minutos, no se toca
@@ -1265,6 +1345,11 @@
     state.newsLog.forEach((event) => {
       if (event.dateTime && event.dateTime >= rangeStart && event.dateTime <= rangeEnd) events.push(event);
     });
+    // LIFE-3 (DESIGN.md 9.14, sección 30): eventos médicos (lesión/alta)
+    // del equipo del usuario, misma fuente de persistencia que newsLog.
+    state.medicalAgendaLog.forEach((event) => {
+      if (event.dateTime && event.dateTime >= rangeStart && event.dateTime <= rangeEnd) events.push(event);
+    });
 
     return events.sort((a, b) => a.dateTime - b.dateTime);
   }
@@ -1746,12 +1831,44 @@
   // Team.buildMatchSquad(), que ya valida 8-12 y pertenencia a plantilla —
   // DESIGN.md 6.2) + Rotation.validateLineup (cuotas de minutos por
   // posición). Ambas deben cumplirse para poder jugar/guardar.
+  // LIFE-3 (DESIGN.md 9.14, sección 22/23 del prompt de esa sesión): fecha
+  // de referencia para Medical.getAvailability() al validar la Alineación
+  // — se usa el reloj de mundo actual (el usuario edita la alineación
+  // "ahora", el estado médico real en la fecha exacta del partido puede
+  // variar ligeramente hasta jugarlo, igual que ya pasa con Energía).
+  function getLineupMedicalAvailability(team) {
+    const { CONFIG_BASE, getAvailability } = BM;
+    if (!CONFIG_BASE.medical.enabled) return null;
+    const referenceDate = state.calendar.currentGameDateTime;
+    const map = new Map();
+    team.roster.forEach((player) => map.set(player.id, getAvailability(player, referenceDate, CONFIG_BASE, { team })));
+    return map;
+  }
+
+  // Validación completa: tamaño de convocatoria (reutiliza
+  // Team.buildMatchSquad(), que ya valida 8-12 — o 5-7 por escasez médica
+  // real, sección 23 — y pertenencia a plantilla) + Rotation.validateLineup
+  // (cuotas de minutos por posición) + LIFE-3 (sección 22): ningún
+  // convocado no disponible en ningún slot, ningún `limited` por encima
+  // de su `minuteCap` médico. Todas deben cumplirse para poder jugar/guardar.
   function getLineupValidity(team) {
-    const { CONFIG_BASE, validateLineup, describeValidationErrors } = BM;
+    const { CONFIG_BASE, validateLineup, describeValidationErrors, totalMinutesByPlayer, countMedicallyCallable } = BM;
+    const availability = getLineupMedicalAvailability(team);
+    const exceptionCfg = CONFIG_BASE.medical.squadException;
+    const effectiveMin = availability
+      ? Math.min(exceptionCfg.normalMinimum, Math.max(exceptionCfg.absoluteMinimum, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE)))
+      : undefined;
     try {
-      team.buildMatchSquad(state.lineup.squadIds);
+      team.buildMatchSquad(state.lineup.squadIds, effectiveMin);
     } catch (err) {
       return { valid: false, message: err.message };
+    }
+    if (availability) {
+      const unavailableIds = state.lineup.squadIds.filter((id) => availability.get(id) && availability.get(id).status === 'unavailable');
+      if (unavailableIds.length) {
+        const names = unavailableIds.map((id) => (team.roster.find((p) => p.id === id) || {}).fullName).join(', ');
+        return { valid: false, message: `No disponible por lesión: ${names}` };
+      }
     }
     const validation = validateLineup(
       { entries: state.lineup.entries, fixedSegments: state.lineup.fixedSegments },
@@ -1759,6 +1876,21 @@
     );
     if (!validation.valid) {
       return { valid: false, message: describeValidationErrors(validation.errors) };
+    }
+    if (availability) {
+      const totals = totalMinutesByPlayer(state.lineup);
+      const overCap = Object.keys(totals).filter((id) => {
+        const info = availability.get(id);
+        return info && info.status === 'limited' && totals[id] > info.minuteCap;
+      });
+      if (overCap.length) {
+        const detail = overCap.map((id) => {
+          const info = availability.get(id);
+          const name = (team.roster.find((p) => p.id === id) || {}).fullName;
+          return `${name} (máx. médico ${info.minuteCap} min)`;
+        }).join(', ');
+        return { valid: false, message: `Supera el máximo médico de minutos: ${detail}` };
+      }
     }
     return { valid: true, message: null };
   }
@@ -1838,14 +1970,26 @@
     if (!body) return;
     const team = getUserTeam();
     if (!team) return;
-    body.innerHTML = renderPlayerTotalsRows(getConvocatedPlayers(team));
+    body.innerHTML = renderPlayerTotalsRows(getConvocatedPlayers(team), team);
   }
 
-  function renderPlayerTotalsRows(convocated) {
+  // LIFE-3 (DESIGN.md 9.14, sección 22): muestra el máximo médico junto al
+  // total real de minutos de un jugador `limited` — nunca la fórmula ni la
+  // probabilidad, solo el hecho ("Máximo médico: 18 min").
+  function renderPlayerTotalsRows(convocated, team) {
     const totals = BM.totalMinutesByPlayer(state.lineup);
     if (convocated.length === 0) return '<tr><td colspan="2" class="gm-muted">Sin convocados todavía.</td></tr>';
-    return convocated.map((player) => `
-      <tr><td>${player.fullName}</td><td>${totals[player.id] || 0} min</td></tr>`).join('');
+    const availability = getLineupMedicalAvailability(team);
+    return convocated.map((player) => {
+      const total = totals[player.id] || 0;
+      const info = availability && availability.get(player.id);
+      let capHtml = '';
+      if (info && info.status === 'limited') {
+        const over = total > info.minuteCap;
+        capHtml = ` <span class="${over ? 'lineup-medical-cap is-bad' : 'lineup-medical-cap'}">(máx. médico ${info.minuteCap} min)</span>`;
+      }
+      return `<tr><td>${player.fullName}</td><td>${total} min${capHtml}</td></tr>`;
+    }).join('');
   }
 
   function addFixedSegment(team) {
@@ -1905,12 +2049,23 @@
     // cada convocado en algún sitio de esta pantalla. Ver nota en la
     // respuesta final: es un traslado del mismo bloque, no un rediseño del
     // mecanismo de checkboxes en sí.
+    // LIFE-3 (DESIGN.md 9.14, sección 22): badge médico junto a cada
+    // jugador — no bloquea el checkbox (el usuario puede desconvocarlo
+    // libremente), la Alineación se invalida vía getLineupValidity().
+    const lineupAvailability = getLineupMedicalAvailability(team);
+    function medicalBadgeHtml(player) {
+      const info = lineupAvailability && lineupAvailability.get(player.id);
+      if (!info || info.status === 'available') return '';
+      if (info.status === 'unavailable') return '<span class="gm-badge gm-badge--injury">No disponible por lesión</span>';
+      return `<span class="gm-badge gm-badge--limited">Máximo médico: ${info.minuteCap} min</span>`;
+    }
     const squadPickerHtml = sortedRoster.map((player) => `
       <label class="squad-picker__item">
         <input type="checkbox" class="squad-checkbox" data-player-id="${player.id}"
           ${lineup.squadIds.includes(player.id) ? 'checked' : ''}>
         <span class="squad-picker__name">${player.fullName}</span>
         <span class="squad-picker__pos">${player.primaryPosition}</span>
+        ${medicalBadgeHtml(player)}
         <span class="squad-picker__ratings">
           <span>T ${player.technicalAverage.toFixed(1)}</span>
           <span>F ${player.physicalAverage.toFixed(1)}</span>
@@ -1965,7 +2120,7 @@
     const playerTotalsHtml = `
       <table class="gm-table lineup-player-totals">
         <thead><tr><th>Jugador</th><th>Minutos totales</th></tr></thead>
-        <tbody id="lineup-player-totals-body">${renderPlayerTotalsRows(convocated)}</tbody>
+        <tbody id="lineup-player-totals-body">${renderPlayerTotalsRows(convocated, team)}</tbody>
       </table>`;
 
     const validity = getLineupValidity(team);
@@ -2210,12 +2365,26 @@
         : '<p class="gm-muted">Ningún jugador proyecta llegar con Energía baja.</p>';
     }
 
+    // LIFE-3 (DESIGN.md 9.14, sección 33 del prompt de esa sesión): resumen
+    // de riesgo médico del microciclo — mismo helper real de Medical.js
+    // (`describeRiskBand`), nunca una fórmula duplicada aquí.
+    let medicalRiskHtml = '';
+    if (CONFIG_BASE.medical.enabled) {
+      const referenceDate = state.calendar.currentGameDateTime;
+      const highRisk = team.roster.filter((p) => {
+        const band = BM.describeRiskBand(p, referenceDate, CONFIG_BASE, team);
+        return band === 'alto' || band === 'muyAlto';
+      }).length;
+      medicalRiskHtml = `<p>Jugadores con riesgo médico Alto/Muy alto: <strong>${highRisk}</strong></p>`;
+    }
+
     return `
       <div class="gm-card">
         <h3>Próximo microciclo</h3>
         ${nextMatchHtml}
         <p>Partidos en los próximos 7 días: <strong>${matchesInNext7Days}</strong></p>
         <p>Margen de entrenamiento: <strong>${micro.marginLabel}</strong> · Carga prevista: <strong>${micro.loadLabel}</strong></p>
+        ${medicalRiskHtml}
         <h4>Alertas de Energía baja al próximo partido</h4>
         ${alertsHtml}
       </div>`;
@@ -2253,9 +2422,22 @@
       </select>`;
     }
 
+    // LIFE-3 (DESIGN.md 9.14, sección 33 del prompt de esa sesión): badge
+    // médico + aviso de foco "suspendido/reducido por rehabilitación" — sin
+    // controles médicos propios en esta pantalla, solo lectura.
+    let medicalHtml = '';
+    if (CONFIG_BASE.medical.enabled) {
+      const info = BM.getAvailability(player, state.calendar.currentGameDateTime, CONFIG_BASE, { team });
+      if (info.status === 'unavailable') {
+        medicalHtml = '<span class="gm-badge gm-badge--injury">Lesionado</span><br><span class="gm-muted">Foco suspendido por rehabilitación</span>';
+      } else if (info.status === 'limited') {
+        medicalHtml = `<span class="gm-badge gm-badge--limited">Retorno limitado</span><br><span class="gm-muted">Foco reducido por rehabilitación</span>`;
+      }
+    }
+
     return `
       <tr>
-        <td>${player.fullName}</td>
+        <td>${player.fullName}${medicalHtml}</td>
         <td>${player.age}</td>
         <td>${Math.round(player.dynamicState.energy)}</td>
         <td><select class="training-focus-type-select" data-player-id="${player.id}">${typeOptionsHtml}</select></td>
@@ -2331,6 +2513,116 @@
         }
         setIndividualFocus(team, playerId, focus, state.calendar.currentGameDateTime, CONFIG_BASE, buildTrainingCalendarContext());
         renderTrainingScreen();
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Pantalla: Lesiones (LIFE-3, DESIGN.md 9.14, sección 32 del prompt de
+  // esa sesión) — capa de presentación pura sobre src/core/Medical.js:
+  // `riskBand`/`loadBand`/fases/rangos de vuelta salen SIEMPRE de sus
+  // helpers reales, nunca recalculados aquí. Móvil primero (tabla con
+  // scroll horizontal propio, mismo patrón que el resto de pantallas).
+  // ---------------------------------------------------------------------
+  const RISK_BAND_LABELS = { bajo: 'Bajo', normal: 'Normal', alto: 'Alto', muyAlto: 'Muy alto' };
+  const LOAD_BAND_LABELS = { baja: 'Baja', normal: 'Normal', alta: 'Alta', muyAlta: 'Muy alta' };
+  const MEDICAL_STATUS_LABELS = { available: 'Disponible', limited: 'Disponible con restricción', unavailable: 'Lesionado' };
+  const MEDICAL_SEVERITY_LABELS = { minor: 'leve', moderate: 'moderada', major: 'grave', severe: 'muy grave' };
+
+  function medicalHistoryRowsHtml(player, team, config) {
+    const history = (player.medicalState && player.medicalState.injuryHistory) || [];
+    if (!history.length) return '<p class="gm-muted">Sin historial médico.</p>';
+    const rows = [...history].sort((a, b) => b.occurredAt - a.occurredAt).map((entry) => {
+      const label = config.medical.catalog[entry.type] ? config.medical.catalog[entry.type].label : entry.type;
+      const severity = MEDICAL_SEVERITY_LABELS[entry.severity] || entry.severity;
+      const recurrence = entry.recurrenceOf ? ' · recurrencia' : '';
+      const sequela = entry.sequela ? ' · con secuela' : '';
+      return `<li>${formatMatchTime(entry.occurredAt)} — ${label} (${severity}), ${entry.daysUnavailable} días fuera${recurrence}${sequela}</li>`;
+    }).join('');
+    return `<ul class="medical-history-list">${rows}</ul>`;
+  }
+
+  function medicalPlayerRowHtml(player, team, config) {
+    const referenceDate = state.calendar.currentGameDateTime;
+    const info = BM.getAvailability(player, referenceDate, config, { team });
+    const statusLabel = MEDICAL_STATUS_LABELS[info.status];
+    const injuryLabel = info.injury ? (config.medical.catalog[info.injury.type] || {}).label || info.injury.type : '—';
+    const returnRange = info.injury ? BM.getEstimatedReturnRange(player, referenceDate, config, team) : null;
+    const minuteCapText = info.status === 'limited' ? `${info.minuteCap} min` : '—';
+    const loadBand = BM.describeLoadBand(player, referenceDate, config);
+    return `
+      <tr class="medical-row medical-row--${info.status}">
+        <td>${player.fullName}</td>
+        <td>${player.age}</td>
+        <td>${statusLabel}</td>
+        <td>${injuryLabel}</td>
+        <td>${returnRange ? returnRange.label : '—'}</td>
+        <td>${minuteCapText}</td>
+        <td>${Math.round(player.dynamicState.energy)}</td>
+        <td>${LOAD_BAND_LABELS[loadBand]}</td>
+        <td>${RISK_BAND_LABELS[info.riskBand]}</td>
+        <td><button class="gm-btn gm-btn--small medical-history-toggle" data-player-id="${player.id}">Historial</button></td>
+      </tr>
+      <tr class="medical-history-row is-hidden" id="medical-history-${player.id}">
+        <td colspan="10">${medicalHistoryRowsHtml(player, team, config)}</td>
+      </tr>`;
+  }
+
+  function renderMedicalScreen() {
+    const container = byId('gm-medical');
+    const team = getUserTeam();
+    if (!container) return;
+    if (!team) { container.innerHTML = ''; return; }
+    const { CONFIG_BASE, POSITIONS } = BM;
+
+    if (!CONFIG_BASE.medical.enabled) {
+      container.innerHTML = '<h2>Lesiones</h2><p class="gm-muted">Sistema médico desactivado.</p>';
+      return;
+    }
+
+    const referenceDate = state.calendar.currentGameDateTime;
+    const sortedRoster = [...team.roster].sort((a, b) => {
+      const posDiff = POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition);
+      return posDiff !== 0 ? posDiff : a.fullName.localeCompare(b.fullName, 'es');
+    });
+    const infos = sortedRoster.map((player) => ({ player, info: BM.getAvailability(player, referenceDate, CONFIG_BASE, { team }) }));
+
+    const summary = {
+      available: infos.filter((e) => e.info.status === 'available').length,
+      limited: infos.filter((e) => e.info.status === 'limited').length,
+      unavailable: infos.filter((e) => e.info.status === 'unavailable').length,
+      highRisk: infos.filter((e) => e.info.riskBand === 'alto' || e.info.riskBand === 'muyAlto').length,
+    };
+
+    const rowsHtml = sortedRoster.map((player) => medicalPlayerRowHtml(player, team, CONFIG_BASE)).join('');
+
+    container.innerHTML = `
+      <h2>Lesiones</h2>
+      <div class="gm-card medical-summary">
+        <div><strong>${summary.available}</strong><span>Disponibles</span></div>
+        <div><strong>${summary.limited}</strong><span>Limitados</span></div>
+        <div><strong>${summary.unavailable}</strong><span>Lesionados</span></div>
+        <div><strong>${summary.highRisk}</strong><span>Riesgo Alto/Muy alto</span></div>
+      </div>
+      <div class="gm-card">
+        <div class="gm-table-scroll">
+          <table class="gm-table medical-table">
+            <thead>
+              <tr>
+                <th>Jugador</th><th>Edad</th><th>Estado</th><th>Lesión actual</th><th>Vuelta estimada</th>
+                <th>Máx. min.</th><th>Energía</th><th>Carga reciente</th><th>Riesgo</th><th></th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    container.querySelectorAll('.medical-history-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const row = byId(`medical-history-${btn.dataset.playerId}`);
+        if (row) row.classList.toggle('is-hidden');
       });
     });
   }
@@ -3284,7 +3576,16 @@
   // `undefined` para el resto — así el rival (u otros partidos de la
   // jornada/bracket) siguen exactamente igual que hasta ahora.
   function buildUserSideOptions(team) {
-    const squad = team.buildMatchSquad(state.lineup.squadIds);
+    // LIFE-3 (DESIGN.md 9.14, sección 23): mismo mínimo real que ya validó
+    // getLineupValidity() — nunca se llega aquí con una alineación
+    // inválida (el botón de jugar está deshabilitado), pero se recalcula
+    // para no duplicar el número en dos sitios.
+    const { CONFIG_BASE, countMedicallyCallable } = BM;
+    const exceptionCfg = CONFIG_BASE.medical.squadException;
+    const effectiveMin = CONFIG_BASE.medical.enabled
+      ? Math.min(exceptionCfg.normalMinimum, Math.max(exceptionCfg.absoluteMinimum, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE)))
+      : undefined;
+    const squad = team.buildMatchSquad(state.lineup.squadIds, effectiveMin);
     const lineup = {
       entries: state.lineup.entries,
       fixedSegments: state.lineup.fixedSegments,
@@ -3304,11 +3605,14 @@
   // cualquier otro valor ('bracket', usado abajo) es siempre clave. `league`
   // (DESIGN.md 3.4.1): la de la división de ESE partido — la visible o la
   // de fondo, nunca asumida como "state.league" a secas (ya no existe).
-  function buildCpuSideOptions(team, opponent, competition, league) {
+  // `date` (LIFE-3, DESIGN.md 9.14): fecha real del partido — CpuLineup la
+  // necesita para Medical.getAvailability() (excluir lesionados, respetar
+  // minuteCap).
+  function buildCpuSideOptions(team, opponent, competition, league, date) {
     const { buildCpuLineup, computeMatchImportance, CONFIG_BASE } = BM;
     const standingsTable = league.getStandingsTable();
     const matchImportance = computeMatchImportance(team, opponent, competition, standingsTable, CONFIG_BASE);
-    return buildCpuLineup(team, matchImportance, CONFIG_BASE);
+    return buildCpuLineup(team, matchImportance, CONFIG_BASE, date);
   }
 
   // Resolver de opciones de MatchEngine compartido por CUALQUIER partido
@@ -3332,20 +3636,28 @@
   function prepareBothTeamsForMatch(homeTeam, awayTeam, matchDate) {
     const { prepareTeamForMatch, CONFIG_BASE } = BM;
     const calendarCtx = buildTrainingCalendarContext();
+    // LIFE-3 (DESIGN.md 9.14, sección 30): snapshot ANTES de procesar —
+    // Training.prepareTeamForMatch ya dispara aquí dentro las lesiones de
+    // entrenamiento/rehabilitación de LIFE-3 (Medical.js), sin devolver un
+    // log propio; se detectan por diferencia, ver pushMedicalDiffEvents.
+    const beforeHome = snapshotMedicalIdentity(homeTeam);
+    const beforeAway = snapshotMedicalIdentity(awayTeam);
     prepareTeamForMatch(homeTeam, matchDate, CONFIG_BASE, calendarCtx);
     prepareTeamForMatch(awayTeam, matchDate, CONFIG_BASE, calendarCtx);
+    pushMedicalDiffEvents(homeTeam, beforeHome);
+    pushMedicalDiffEvents(awayTeam, beforeAway);
   }
 
   function buildMatchOptionsResolver(league, userTeam) {
     const userSide = userTeam ? buildUserSideOptions(userTeam) : null;
 
-    function sideOptions(sideTeam, opponentTeam, isHome, competition) {
+    function sideOptions(sideTeam, opponentTeam, isHome, competition, date) {
       if (userSide && sideTeam.id === userTeam.id) {
         return isHome
           ? { homeSquad: userSide.squad, homeLineup: userSide.lineup }
           : { awaySquad: userSide.squad, awayLineup: userSide.lineup };
       }
-      const cpu = buildCpuSideOptions(sideTeam, opponentTeam, competition, league);
+      const cpu = buildCpuSideOptions(sideTeam, opponentTeam, competition, league, date);
       return isHome ? { homeSquad: cpu.squad, homeLineup: cpu.lineup } : { awaySquad: cpu.squad, awayLineup: cpu.lineup };
     }
 
@@ -3353,8 +3665,9 @@
       resolveMatchOptions(match) {
         prepareBothTeamsForMatch(match.homeTeam, match.awayTeam, match.date);
         return {
-          ...sideOptions(match.homeTeam, match.awayTeam, true, 'league'),
-          ...sideOptions(match.awayTeam, match.homeTeam, false, 'league'),
+          matchDate: match.date, // LIFE-3 (DESIGN.md 9.14): ver MatchEngine.createMatchState
+          ...sideOptions(match.homeTeam, match.awayTeam, true, 'league', match.date),
+          ...sideOptions(match.awayTeam, match.homeTeam, false, 'league', match.date),
         };
       },
       resolveBracketOptions(homeEntry, awayEntry) {
@@ -3367,10 +3680,12 @@
         // unos pocos días, `seriesGameGapDays`/`seriesRoundGapDays`), que
         // sigue corrigiendo lo importante: la recuperación/entrenamiento
         // se resuelve ANTES de simular, nunca después.
-        prepareBothTeamsForMatch(homeEntry.team, awayEntry.team, state.calendar.currentGameDateTime);
+        const approxDate = state.calendar.currentGameDateTime;
+        prepareBothTeamsForMatch(homeEntry.team, awayEntry.team, approxDate);
         return {
-          ...sideOptions(homeEntry.team, awayEntry.team, true, 'bracket'),
-          ...sideOptions(awayEntry.team, homeEntry.team, false, 'bracket'),
+          matchDate: approxDate,
+          ...sideOptions(homeEntry.team, awayEntry.team, true, 'bracket', approxDate),
+          ...sideOptions(awayEntry.team, homeEntry.team, false, 'bracket', approxDate),
         };
       },
     };
@@ -3589,7 +3904,7 @@
   // ---------------------------------------------------------------------
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
-  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'training', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match'];
+  const SCREENS = ['team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match'];
 
   function goToScreen(screen) {
     state.screen = screen;
@@ -3605,6 +3920,7 @@
     if (screen === 'lineup') renderLineupScreen();
     if (screen === 'tactics') renderTacticsScreen();
     if (screen === 'training') renderTrainingScreen();
+    if (screen === 'medical') renderMedicalScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();

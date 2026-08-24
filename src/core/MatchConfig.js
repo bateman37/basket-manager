@@ -1843,6 +1843,310 @@
         youthDevelopment: 10,
       },
     },
+
+    // =====================================================================
+    // LIFE-3 (DESIGN.md 9.14): lesiones, carga médica, rehabilitación y
+    // vuelta a competir. Toda la lógica vive en src/core/Medical.js — este
+    // bloque solo aporta coeficientes/curvas/catálogo, sin números mágicos
+    // en el módulo. `enabled=false` reproduce el motor de partido HEAD
+    // previo a esta entrega (invariante 33 del prompt de esta sesión).
+    // =====================================================================
+    medical: {
+      enabled: true,
+
+      // --- Sección 3: Durability (1-20, Player.physical.durability) como
+      // ÚNICA predisposición basal — no existe un injuryProneness aparte.
+      // Interpolación lineal por puntos [durability, factor de incidencia].
+      durabilityFactorCurve: [[1, 1.70], [10, 1.00], [20, 0.55]],
+
+      // --- Sección 14: Recovery (1-20, Player.physical.recovery) modula
+      // SOLO velocidad de rehabilitación, nunca incidencia.
+      recoveryFactorCurve: [[1, 0.90], [20, 1.10]],
+
+      // --- Sección 8: carga individual — dos señales continuas y acotadas,
+      // sin ACWR/ratios. `matchLoadPerMinute` convierte minutos reales
+      // jugados en unidades de carga (misma unidad que Training.js usa
+      // internamente para el coste de Energy semanal, ver
+      // Training.computeWeeklyTrainingLoadUnits — Medical.js NUNCA
+      // reimplementa intensidad/densidad/foco desde sus nombres, consume
+      // esa misma cifra). `referenceWeeklyLoad` calibrado contra una
+      // semana típica Balanced/Normal + 1 partido de ~30 min
+      // (≈3.0 loadUnits de entrenamiento + ≈1.8 de partido).
+      load: {
+        matchLoadPerMinute: 0.06,
+        referenceWeeklyLoad: 5.0,
+        // Ventana de carga reciente/pico (sección 8) — 7 días para la
+        // carga absoluta reciente, 3 semanas anteriores para el pico.
+        recentWindowDays: 7,
+        spikeLookbackWeeks: 3,
+        absoluteWeight: 0.35,
+        spikeWeight: 0.30,
+        maxLoadFactor: 1.55,
+        // Historial individual de carga (sección 4, loadHistory): máximo
+        // de días de entradas conservadas — nunca histórico de carrera.
+        historyRetentionDays: 42,
+        // acuteContact solo recibe el 20% del exceso de loadFactor/Energy
+        // sobre 1.0 (secciones 8/9) — nunca el efecto completo.
+        contactExcessShare: 0.20,
+      },
+
+      // --- Sección 9: Energy como señal (no diagnóstico) — interpolación
+      // por puntos [energy, factor] para acuteNonContact/overuse.
+      energyFactorCurve: [[0, 1.65], [40, 1.45], [55, 1.25], [70, 1.10], [85, 1.00], [100, 1.00]],
+
+      // --- Sección 10: historial/recurrencia — factor por antigüedad desde
+      // la fecha de RECUPERACIÓN de la lesión previa relevante. "Misma
+      // zona, tipo distinto" aplica solo la mitad del exceso (excess/2).
+      // Clamp global aplicado en Medical.js, nunca aquí.
+      history: {
+        sameTypeCurve: [
+          { maxDays: 90, factor: 1.70 },
+          { maxDays: 365, factor: 1.40 },
+          { maxDays: 730, factor: 1.20 },
+          { maxDays: Infinity, factor: 1.05 },
+        ],
+        sameAreaDifferentTypeShare: 0.5,
+        maxHistoryFactor: 1.80,
+      },
+
+      // --- Sección 11: Centro Médico + Preparación Física + hook de Staff
+      // — medias ponderadas, nunca 5 factores multiplicados entre sí.
+      // Mapeos lineales 1-20 -> factor (mismo patrón que
+      // PlayerDevelopment.computeFacilityFactor/staffRatingToFactor, pero
+      // con sus propios puntos — Medical.js no reutiliza esas instancias
+      // porque los rangos/semántica son propios de esta entrega).
+      environment: {
+        // Prevención médica total (Centro Médico + doctor) — aplica a
+        // TODOS los mecanismos, nunca hace riesgo 0 (nivel 1 -> 1.10 peor
+        // que neutro, nivel 20 -> 0.90 mejor que neutro).
+        medicalPreventionCurve: [[1, 1.10], [20, 0.90]],
+        // Preparación física (facility + physicalPreparation staff) — solo
+        // acuteNonContact/overuse.
+        physicalPreparationCurve: [[1, 1.15], [20, 0.85]],
+        // Velocidad de rehabilitación — Centro Médico + physiotherapy.
+        rehabSpeedCurve: [[1, 0.85], [20, 1.15]],
+        // Peso relativo instalación de club vs hook de staff dentro de cada
+        // media ponderada (mismo peso para las 3 medias, decisión simple
+        // de esta entrega).
+        facilityWeight: 0.6,
+        staffWeight: 0.4,
+        // Reducción de probabilidad de secuela (sección 27) aportada por
+        // el mejor entorno médico posible frente al peor — multiplicador
+        // acotado sobre la probabilidad base del catálogo.
+        sequelaReductionCurve: [[1, 1.15], [20, 0.75]],
+      },
+
+      // Hook neutral de Staff médico (sección 11) — 1-20, default 10,
+      // ningún empleado/contrato real todavía.
+      staffContext: {
+        doctor: 10,
+        physiotherapy: 10,
+        physicalPreparation: 10,
+      },
+
+      // --- Sección 19: hazard base de partido — ancla epidemiológica,
+      // antes de modificadores individuales. Convertido a probabilidad por
+      // segundo de exposición real (nunca "% fijo por posesión").
+      // Calibración real (scripts/smoke-life3.js, 36 equipos/414 jugadores
+      // reales, temporada completa+Copa+Playoffs): con el 35/65 "de
+      // catálogo" (sección 19) la cuota SIN CONTACTO agregada salía ~86%
+      // (objetivo 65-75%) porque los modificadores de acuteContact están
+      // deliberadamente amortiguados (sección 6: "carga/fatiga influyen
+      // poco", solo 20% del exceso de load/energy, sin Preparación
+      // Física) — con los mismos modificadores, un contactShare "de
+      // catálogo" igual al share real deseado se queda corto en la
+      // práctica. Subido para compensar ese amortiguado, no para cambiar
+      // el criterio de la sección 19 en sí.
+      match: {
+        hazardPerThousandPlayerHours: 30,
+        contactShare: 0.52,
+        nonContactShare: 0.48,
+      },
+
+      // --- Sección 18: incidencia base de entrenamiento — ancla semanal
+      // por jugador (independiente del hazard de partido), calibrada para
+      // ~2-4 lesiones time-loss/equipo/temporada de entrenamiento (sección
+      // 35/37) sobre una plantilla de 12 jugadores y ~34-40 ticks/temporada.
+      training: {
+        baseWeeklyIncidence: 0.0065,
+        nonContactShare: 0.45,
+        overuseShare: 0.55,
+      },
+
+      // --- Sección 18 (setback en fase `limited`): rango de
+      // recoveryProgress al que se reduce una lesión activa al sufrir una
+      // recaída, según severidad de la lesión ORIGINAL.
+      setback: {
+        recoveryProgressRangeBySeverity: {
+          minor: [0.65, 0.85],
+          moderate: [0.65, 0.85],
+          major: [0.65, 0.85],
+          severe: [0.65, 0.85],
+        },
+      },
+
+      // --- Sección 12: catálogo mínimo (10 diagnósticos) como DATOS, sin
+      // if/else disperso. `mechanisms`: peso RELATIVO de ese diagnóstico
+      // DENTRO del mecanismo indicado (0 o ausente = mecanismo imposible
+      // para ese diagnóstico). `severities`: peso relativo (0/ausente =
+      // severidad imposible para ese diagnóstico). `recoveryDaysBySeverity`:
+      // rango [min,max] propio, sobrescribe el rango general orientativo de
+      // la sección 13. `sequelaAttributes`: atributos físicos 1-20
+      // susceptibles de secuela (vacío si esa lesión nunca deja secuela).
+      catalog: {
+        // Severidades recalibradas (scripts/smoke-life3.js, temporada
+        // real completa): la primera pasada dejó `severe` en ~2.7% del
+        // total (objetivo sección 36: ~10-18%) — se sube el peso `severe`
+        // en las lesiones que ya lo admitían y se añade un peso `severe`
+        // pequeño a ankleSprain/muscleStrain (esguinces de sindesmosis y
+        // roturas musculares grado III severas sí existen en la
+        // realidad, aunque minoritarias dentro de cada diagnóstico).
+        ankleSprain: {
+          label: 'Esguince de tobillo', bodyArea: 'ankle', weight: 26,
+          mechanisms: { acuteContact: 0.30, acuteNonContact: 0.70 },
+          severities: { minor: 0.40, moderate: 0.31, major: 0.17, severe: 0.12 },
+          recoveryDaysBySeverity: { minor: [3, 10], moderate: [10, 21], major: [22, 35], severe: [40, 65] },
+          sequelaAttributes: ['agility', 'topSpeed'],
+        },
+        kneeSprain: {
+          label: 'Esguince de rodilla', bodyArea: 'knee', weight: 14,
+          mechanisms: { acuteContact: 0.35, acuteNonContact: 0.65 },
+          severities: { minor: 0.26, moderate: 0.29, major: 0.25, severe: 0.20 },
+          recoveryDaysBySeverity: { minor: [5, 12], moderate: [12, 25], major: [26, 45], severe: [46, 80] },
+          sequelaAttributes: ['jumping', 'agility', 'topSpeed'],
+        },
+        majorKneeLigament: {
+          label: 'Rotura ligamentosa de rodilla', bodyArea: 'knee', weight: 1.6,
+          mechanisms: { acuteContact: 0.40, acuteNonContact: 0.60 },
+          severities: { severe: 1.0 },
+          recoveryDaysBySeverity: { severe: [180, 300] },
+          sequelaAttributes: ['jumping', 'agility', 'topSpeed', 'acceleration'],
+        },
+        muscleStrain: {
+          label: 'Sobrecarga/rotura muscular', bodyArea: 'upperLeg', weight: 18,
+          mechanisms: { acuteNonContact: 1.0 },
+          severities: { minor: 0.34, moderate: 0.31, major: 0.23, severe: 0.12 },
+          recoveryDaysBySeverity: { minor: [3, 8], moderate: [9, 20], major: [21, 40], severe: [41, 65] },
+          sequelaAttributes: ['topSpeed', 'acceleration'],
+        },
+        tendonOveruse: {
+          label: 'Tendinopatía por sobrecarga', bodyArea: 'lowerLeg', weight: 10,
+          mechanisms: { overuse: 1.0 },
+          severities: { minor: 0.26, moderate: 0.35, major: 0.28, severe: 0.11 },
+          recoveryDaysBySeverity: { minor: [4, 10], moderate: [11, 25], major: [26, 42], severe: [43, 65] },
+          sequelaAttributes: ['jumping', 'stamina'],
+        },
+        backIssue: {
+          label: 'Lumbalgia/dorsalgia', bodyArea: 'back', weight: 7,
+          mechanisms: { acuteNonContact: 0.5, overuse: 0.5 },
+          severities: { minor: 0.32, moderate: 0.29, major: 0.20, severe: 0.19 },
+          recoveryDaysBySeverity: { minor: [3, 8], moderate: [9, 21], major: [22, 40], severe: [41, 70] },
+          sequelaAttributes: ['strength'],
+        },
+        handFingerInjury: {
+          label: 'Lesión de mano/dedos', bodyArea: 'hand', weight: 6,
+          mechanisms: { acuteContact: 0.8, acuteNonContact: 0.2 },
+          severities: { minor: 0.60, moderate: 0.35, major: 0.05 },
+          recoveryDaysBySeverity: { minor: [2, 7], moderate: [8, 18], major: [19, 30] },
+          sequelaAttributes: [],
+        },
+        contusion: {
+          label: 'Contusión', bodyArea: 'trunk', weight: 7,
+          mechanisms: { acuteContact: 1.0 },
+          severities: { minor: 0.70, moderate: 0.30 },
+          recoveryDaysBySeverity: { minor: [2, 6], moderate: [7, 14] },
+          sequelaAttributes: [],
+        },
+        shoulderSprain: {
+          label: 'Esguince de hombro', bodyArea: 'shoulder', weight: 5,
+          mechanisms: { acuteContact: 0.6, acuteNonContact: 0.4 },
+          severities: { minor: 0.28, moderate: 0.33, major: 0.20, severe: 0.19 },
+          recoveryDaysBySeverity: { minor: [3, 9], moderate: [10, 22], major: [23, 42], severe: [43, 70] },
+          sequelaAttributes: ['strength'],
+        },
+        concussion: {
+          label: 'Conmoción cerebral', bodyArea: 'head', weight: 2,
+          mechanisms: { acuteContact: 1.0 },
+          severities: { minor: 0.50, moderate: 0.35, major: 0.15 },
+          recoveryDaysBySeverity: { minor: [3, 7], moderate: [8, 21], major: [22, 42] },
+          sequelaAttributes: [],
+        },
+      },
+
+      // --- Sección 13: distribución global orientativa de severidad (no
+      // fuerza cada catálogo — cada diagnóstico ya restringe sus propias
+      // severidades posibles arriba; esto documenta el objetivo agregado).
+      severityGlobalTarget: { minor: 0.33, moderate: 0.26, major: 0.26, severe: 0.15 },
+
+      // --- Sección 14: variación individual de recuperación por lesión.
+      recoveryVarianceRange: [0.85, 1.15],
+
+      // --- Sección 15: fases de Return to Play — umbrales sobre
+      // recoveryProgress (0..1). `limitedThreshold` depende de la
+      // severidad de la lesión.
+      phases: {
+        treatmentMax: 0.25,
+        rehabMax: 0.75,
+        modifiedTrainingMaxBySeverity: { minor: 0.85, moderate: 0.88, major: 0.90, severe: 0.93 },
+      },
+
+      // --- Sección 16: minute cap progresivo en fase `limited`.
+      minuteCap: {
+        atEnterLimited: 12,
+        atAvailable: 30,
+        // Preparación física acelera MODERADAMENTE la progresión del cap
+        // (nunca se salta el limitedThreshold — eso lo decide `phases`).
+        physicalPreparationBonusCurve: [[1, 0.0], [20, 6]],
+      },
+
+      // --- Sección 27: secuelas — raras y basadas en la lesión concreta.
+      sequela: {
+        baseProbabilityBySeverity: { minor: 0, moderate: 0.01, major: 0.06, severe: 0.18 },
+        recentRecurrenceBonus: 0.05,
+        recentRecurrenceWindowDays: 365,
+        // Delta agregado (escala 1-20) repartido entre 1-3 atributos de
+        // `catalog[type].sequelaAttributes` — signo siempre negativo.
+        aggregateDeltaRange: [0.35, 1.20],
+        maxAttributesAffected: 3,
+      },
+
+      // --- Sección 23: excepción médica al mínimo de convocatoria 8.
+      squadException: {
+        absoluteMinimum: 5,
+        normalMinimum: 8,
+      },
+
+      // --- Sección 25: factores de estímulo/coste de entrenamiento por
+      // fase médica — multiplican (nunca sustituyen) el estímulo normal ya
+      // calculado por Training.js. `declineDelta` de PlayerDevelopment
+      // NUNCA se ve afectado por estos factores (sección 25, cierre).
+      trainingStimulusByPhase: {
+        treatment: {
+          physical: 0.10, technical: 0.35, cognitive: 0.50, social: 0.50,
+          position: 0.20, role: 0.35, tactical: 0.50, energyCost: 0.25,
+        },
+        rehab: {
+          physical: 0.10, technical: 0.35, cognitive: 0.50, social: 0.50,
+          position: 0.20, role: 0.35, tactical: 0.50, energyCost: 0.25,
+        },
+        modifiedTraining: {
+          physical: 0.50, technical: 0.70, cognitive: 0.80, social: 0.80,
+          position: 0.60, role: 0.60, tactical: 0.75, energyCost: 0.60,
+        },
+        limited: { stimulusMultiplier: 0.90, energyCostMultiplier: 0.85 },
+      },
+
+      // --- Sección 28: decay mínimo de Competition Rhythm durante
+      // indisponibilidad médica (solo si LIFE-2 no dejó ya un decay
+      // temporal real — verificado contra HEAD: `dynamicState.
+      // competitionRhythm` no decae con inactividad hasta esta entrega,
+      // ver Medical.js/CHANGELOG). Puntos por día de indisponibilidad.
+      competitionRhythmDecayPerDayUnavailable: 0.6,
+
+      // --- Sección 29: anchura de incertidumbre del rango de vuelta
+      // mostrado en UI, según nivel de Centro Médico.
+      estimatedReturnUncertainty: { atLevel1: 0.20, atLevel20: 0.08 },
+    },
   };
 
   // Hueco para modificadores multiplicativos por competición (7.2) — NO

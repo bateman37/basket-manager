@@ -814,3 +814,28 @@
   border-radius: 4px;
   max-width: 180px;
 }
+
+/* LIFE-3 (DESIGN.md 9.14): pantalla Lesiones + badges médicos en
+   Alineación/Entrenamiento. Móvil primero: la tabla ya usa
+   .gm-table-scroll (overflow-x propio) como el resto de la interfaz. */
+.gm-badge--injury { background: var(--loss); color: var(--white-line); }
+.gm-badge--limited { background: var(--brick); color: var(--white-line); }
+.lineup-medical-cap { font-size: 11px; color: var(--ink-soft); }
+.lineup-medical-cap.is-bad { color: var(--loss); font-weight: 600; }
+
+.medical-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  text-align: center;
+}
+.medical-summary > div { flex: 1 1 80px; }
+.medical-summary strong { display: block; font-family: var(--font-score); font-size: 22px; color: var(--ink); }
+.medical-summary span { font-size: 11px; color: var(--ink-soft); }
+
+.medical-table { font-size: 12px; }
+.medical-row--unavailable td { color: var(--loss); }
+.medical-row--limited td { color: var(--brick); }
+.medical-history-row.is-hidden { display: none; }
+.medical-history-list { margin: 4px 0; padding-left: 18px; font-size: 12px; color: var(--ink-soft); }
+.gm-btn--small { padding: 3px 8px; font-size: 11px; }
