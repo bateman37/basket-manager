@@ -286,7 +286,12 @@
     get valid() {
       if (this.debtChallengeConfirmed) return false;
       if (this.monetizedAnnualValueMinor < this.minimumRequiredMinor) return false;
-      if (this.maxConsecutiveExercises !== null && this.consecutiveExerciseCount > this.maxConsecutiveExercises) return false;
+      // `consecutiveExerciseCount` cuenta los ejercicios YA realizados
+      // ANTES de este (sección 13.1: "máximo de tres ejercicios") — esta
+      // oferta sería el ejercicio número `count + 1`, así que el cupo se
+      // agota en `count >= max` (con max=3: 0,1,2 previos admiten esta
+      // 1ª/2ª/3ª vez; 3 previos ya agotó el máximo, un 4º no es válido).
+      if (this.maxConsecutiveExercises !== null && this.consecutiveExerciseCount >= this.maxConsecutiveExercises) return false;
       return true;
     }
 
