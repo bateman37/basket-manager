@@ -480,6 +480,43 @@
   gap: 8px;
 }
 
+/* MARKET-1 (DESIGN.md 9.19): formulario de filtro/oferta — mismo criterio
+   visual que .segment-form (grid responsive, sin desbordamiento
+   horizontal en 390px). */
+.market-search-form, .gm-market-offer-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  margin-top: 8px;
+}
+.market-search-form label, .gm-market-offer-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--ink-soft);
+  gap: 3px;
+  min-width: 120px;
+  flex: 1 1 140px;
+}
+.market-search-form input, .market-search-form select,
+.gm-market-offer-form input, .gm-market-offer-form select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.gm-market-offer-error {
+  flex-basis: 100%;
+  color: var(--loss);
+}
+.market-offer-history summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--brick-dark);
+}
+
 .segment-line {
   display: flex;
   justify-content: space-between;

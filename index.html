@@ -43,6 +43,7 @@
       <button class="gm-nav__btn" data-screen="medical" type="button">Lesiones</button>
       <button class="gm-nav__btn" data-screen="contracts" type="button">Contratos</button>
       <button class="gm-nav__btn" data-screen="registrations" type="button">Inscripciones</button>
+      <button class="gm-nav__btn" data-screen="market" type="button">Mercado</button>
       <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
       <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
@@ -77,9 +78,11 @@
     </section>
 
     <!-- CONTRACT-1 (DESIGN.md 9.17): pantalla de consulta de contratos del
-         club del usuario — sin ninguna acción de mercado (renovar, fichar,
-         liberar, ejecutar cláusula, tantear o ceder son MARKET-1/
-         TRANSFER-1/LOAN-1). -->
+         club del usuario — SIGUE sin ejecutar ninguna acción de mercado
+         (renovar, fichar, liberar, ejecutar cláusula, tantear o ceder).
+         MARKET-1 (DESIGN.md 9.19) ya permite crear un Acuerdo en Principio
+         desde la pantalla Mercado, pero eso NUNCA registra un contrato
+         real aquí — la formalización sigue siendo TRANSFER-1. -->
     <section id="gm-screen-contracts" class="gm-screen">
       <div id="gm-contracts"></div>
     </section>
@@ -87,9 +90,21 @@
     <!-- REG-1 (DESIGN.md 9.18): pantalla de consulta de inscripción,
          licencias y elegibilidad del club del usuario — SOLO LECTURA, sin
          botones de alta/baja/suspensión/vinculación/fichaje/renovación/
-         cesión/tanteo/transfer (MARKET-1/TRANSFER-1/LOAN-1/EUROPE-1). -->
+         cesión/tanteo/transfer. MARKET-1 (DESIGN.md 9.19) crea acuerdos en
+         principio y tramita derechos preferentes desde Mercado, pero eso
+         NUNCA concede licencia/inscripción aquí (TRANSFER-1/LOAN-1/
+         EUROPE-1 siguen pendientes). -->
     <section id="gm-screen-registrations" class="gm-screen">
       <div id="gm-registrations"></div>
+    </section>
+
+    <!-- MARKET-1 (DESIGN.md 9.19): mercado profesional — búsqueda mundial,
+         seguimiento, negociaciones, agentes y derechos preferentes ACB.
+         Puede crear un Agreement in Principle, pero NUNCA añade/quita
+         jugadores de Team.roster, registra un Contract ni concede
+         licencia/inscripción — eso es TRANSFER-1. -->
+    <section id="gm-screen-market" class="gm-screen">
+      <div id="gm-market"></div>
     </section>
 
     <section id="gm-screen-agenda" class="gm-screen">
@@ -378,6 +393,25 @@
   <script src="src/core/RegistrationSeeder.js"></script>
   <script src="src/core/EligibilityService.js"></script>
   <script src="src/core/SquadEligibilityService.js"></script>
+
+  <!-- MARKET-1 (DESIGN.md 9.19): mercado, agentes, negociación, ofertas y
+       derechos preferentes — cuarta pieza canónica de la EPIC. Utilidad
+       determinista primero (DeterministicRandom, propia de MARKET-1, sin
+       tocar la de ContractSeeder.js) y ledger de eventos
+       (MarketEventTypes), luego entidades (Agent.js, Market.js), luego
+       registros/servicios que consumen CompetitionRules.js/ContractService.js
+       (ya cargados arriba). -->
+  <script src="src/utils/DeterministicRandom.js"></script>
+  <script src="src/core/MarketEventTypes.js"></script>
+  <script src="src/entities/Agent.js"></script>
+  <script src="src/entities/Market.js"></script>
+  <script src="src/core/AgentRegistry.js"></script>
+  <script src="src/core/MarketRegistry.js"></script>
+  <script src="src/core/NegotiationService.js"></script>
+  <script src="src/core/MarketService.js"></script>
+  <script src="src/core/MarketSeeder.js"></script>
+  <script src="src/core/RightOfFirstRefusalService.js"></script>
+
   <script src="src/core/Bracket.js"></script>
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>

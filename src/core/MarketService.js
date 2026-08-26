@@ -330,6 +330,23 @@
       sourceId: offer.id,
     });
 
+    // Ofertas del CLUB esperan respuesta del jugador/agente (CPU): se
+    // programa un evento NO interactivo (game.js lo procesa solo al
+    // avanzar el reloj, sección 15.3) — nunca bloquea "Continuar", a
+    // diferencia de una contraoferta viva del lado jugador (sección 15.4).
+    if (offeredBy === 'club') {
+      marketRegistry.scheduleEvent({
+        id: `${offer.id}:offer-response`,
+        type: 'offer-response',
+        dueDate: NegSvc().scheduleResponseDate({ fingerprint, fromDate: iso, maxOfficialDeadline: expiresAt }),
+        clubId: draft.clubId,
+        playerId: thread.playerId,
+        threadId: thread.id,
+        requiresAttention: false,
+        payload: { offerId: offer.id, playerId: thread.playerId },
+      });
+    }
+
     return offer;
   }
 
@@ -461,8 +478,44 @@
     return agreement;
   }
 
+  // ---------------------------------------------------------------------
+  // 8. Parada obligatoria del reloj (sección 15.4) — primer punto que
+  //    exige una DECISIÓN del usuario para este club, antes de una fecha
+  //    objetivo: una contraoferta viva esperando respuesta, o una
+  //    decisión de igualar en un derecho preferente del que el club es
+  //    origen. Consultas/respuestas automáticas (interés inicial,
+  //    respuesta CPU a una oferta del usuario) NUNCA aparecen aquí — se
+  //    procesan solas al avanzar el reloj (processDueMarketEventsToDate,
+  //    game.js).
+  // ---------------------------------------------------------------------
+  function computeMarketAttentionForClub(params) {
+    const { marketRegistry, clubId, date } = params;
+    if (!marketRegistry || !clubId) return null;
+    const iso = toIso(date);
+    const items = [];
+    marketRegistry.threadsForClub(clubId).forEach((thread) => {
+      const live = marketRegistry.offersForThread(thread.id).find((o) => o.isLiveOn(iso) && o.offeredBy === 'player-side');
+      if (live) {
+        items.push({
+          type: 'offer-response-needed', dueDate: live.expiresAt, threadId: thread.id, offerId: live.id, playerId: thread.playerId,
+        });
+      }
+    });
+    marketRegistry.rightsCasesForClub(clubId).forEach((rightsCase) => {
+      if (rightsCase.statusOn(iso) === 'matching-window-open' && rightsCase.deadlines.matchingWindow) {
+        items.push({
+          type: 'matching-decision-needed', dueDate: rightsCase.deadlines.matchingWindow.closes, rightsCaseId: rightsCase.id, playerId: rightsCase.playerId,
+        });
+      }
+    });
+    if (!items.length) return null;
+    items.sort((a, b) => LD().compare(a.dueDate, b.dueDate));
+    return items[0];
+  }
+
   const exportsObj = {
     MarketService: {
+      computeMarketAttentionForClub,
       MARKET_BUDGET_POLICY_VERSION,
       addWatch,
       removeWatch,

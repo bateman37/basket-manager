@@ -566,6 +566,11 @@
     // del registro contractual — licencia/inscripción son pasos separados
     // del contrato, nunca concedidos automáticamente por tenerlo.
     bootstrapRegistrationsForNewCareer();
+    // MARKET-1 (DESIGN.md 9.19, sección 14 del prompt): se ejecuta AL
+    // FINAL del arranque — el pool de libres/agentes no depende de
+    // contrato/inscripción, pero reutiliza `state.playerRegistry` ya
+    // completo de los 36 clubes.
+    bootstrapMarketForNewCareer();
 
     state.brackets = {
       '1ª': { cup: null, titlePlayoff: null },
@@ -642,6 +647,45 @@
     });
     state.contractBootstrapWarnings = warnings;
     refreshAllSalaryProjections(seasonKey);
+  }
+
+  // ---------------------------------------------------------------------
+  // MARKET-1 (DESIGN.md 9.19, sección 9.6/14 del prompt) — semilla de
+  // carrera ESTABLE (no `Math.random`, no reloj de sistema): misma
+  // semilla+inputs siempre produce la misma negociación. No necesita ser
+  // "aleatoria de verdad" — solo distinta entre carreras y constante
+  // dentro de una misma carrera, cosa que `userTeamId+seasonStartYear` ya
+  // garantiza.
+  // ---------------------------------------------------------------------
+  function buildMarketCareerSeed() {
+    return `${state.userTeamId}|${state.seasonStartYear}`;
+  }
+
+  function bootstrapMarketForNewCareer() {
+    const { AgentRegistry, MarketRegistry, MarketSeeder, CONFIG_BASE } = BM;
+    state.agentRegistry = new AgentRegistry();
+    state.marketRegistry = new MarketRegistry();
+    state.marketBootstrapWarnings = [];
+    state.marketAgendaLog = [];
+
+    const careerSeed = buildMarketCareerSeed();
+    const referenceDate = state.calendar.currentGameDateTime;
+    const createdFreeAgents = MarketSeeder.seedFreeAgentPool({
+      playerRegistry: state.playerRegistry, careerSeed, referenceDate, config: CONFIG_BASE,
+    });
+    const agentResult = MarketSeeder.seedAgentsAndMandates({
+      playerRegistry: state.playerRegistry,
+      agentRegistry: state.agentRegistry,
+      careerSeed,
+      referenceDate,
+      players: createdFreeAgents,
+    });
+    state.marketBootstrapWarnings = [
+      `Pool inicial de mercado: ${createdFreeAgents.length} jugadores libres ficticios (dataSource: `
+      + `${MarketSeeder.SIMULATED_FREE_AGENT_DATA_SOURCE}) — no son datos reales.`,
+      `Agentes simulados: ${agentResult.agents.length}, ${agentResult.playersWithAgent}/${agentResult.eligiblePlayers} `
+      + 'jugadores del pool con representación (el resto, autorrepresentado).',
+    ];
   }
 
   // Contrato de un jugador que se incorpora con la partida ya en marcha
@@ -834,6 +878,23 @@
     }
   }
 
+  // MARKET-1 (DESIGN.md 9.19, sección 15.3 del prompt): eventos de Agenda
+  // tipo 'market' YA OCURRIDOS (aceptación/rechazo/resultado de derecho) —
+  // mismo criterio de persistencia que `medicalAgendaLog`. Los eventos
+  // FUTUROS (respuesta pendiente, vencimiento) NUNCA se guardan aquí —
+  // `buildAgendaEvents()` los deriva bajo demanda de
+  // `state.marketRegistry.allScheduledEvents()`, siempre reconstruibles
+  // sin pérdida desde el propio registro.
+  function pushMarketAgenda(events) {
+    (Array.isArray(events) ? events : [events]).forEach((event) => {
+      if (!event) return;
+      state.marketAgendaLog.push(event);
+    });
+    if (state.marketAgendaLog.length > NEWS_LOG_MAX) {
+      state.marketAgendaLog.splice(0, state.marketAgendaLog.length - NEWS_LOG_MAX);
+    }
+  }
+
   // Snapshot mínimo de identidad médica (id de lesión activa + longitud
   // del histórico) de toda la plantilla — permite detectar, por
   // diferencia, qué jugadores concretos acaban de lesionarse/recibir el
@@ -955,6 +1016,29 @@
   // por jugador (ver PlayerDevelopment.processPlayerToDate, idempotente).
   function advanceGameClockTo(date) {
     if (!date) return;
+    // MARKET-1 (DESIGN.md 9.19, sección 15.2/15.4 del prompt): punto ÚNICO
+    // de avance del reloj — impide un salto POR ENCIMA de una atención de
+    // mercado pendiente del club del usuario (invariante 20: "Continuar
+    // no salta una atención de mercado"). Recomputado en cada llamada
+    // desde el estado real (nunca cacheado): en cuanto la atención se
+    // resuelve, deja de bloquear por sí solo. Lanza en vez de clampar en
+    // silencio — cualquier llamador que llegue aquí con un salto real ya
+    // debería haber comprobado getMarketAttentionForUser() antes (gating
+    // de "Continuar" en Home).
+    if (state.userTeamId && state.marketRegistry) {
+      const { LocalDate } = BM;
+      const targetIso = LocalDate.fromJsDate(date instanceof Date ? date : new Date(date));
+      const attention = BM.MarketService.computeMarketAttentionForClub({
+        marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: targetIso,
+      });
+      if (attention && LocalDate.isAfter(targetIso, attention.dueDate)) {
+        throw new Error(
+          `advanceGameClockTo: hay una atención de mercado pendiente ("${attention.type}", jugador `
+          + `"${attention.playerId}") con plazo ${attention.dueDate}, anterior a la fecha objetivo ${targetIso} `
+          + '— "Continuar" debe detenerse en Mercado antes de avanzar (DESIGN.md 9.19, invariante 20).',
+        );
+      }
+    }
     state.calendar.advanceTo(date);
     processDevelopmentToDateForTeams(getAllTeams(), date);
     // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, sección 26): revisa
@@ -962,6 +1046,62 @@
     // usuario, en el mismo punto único que ya dispara el resto del
     // desarrollo de carrera — nunca en un bucle propio por competición.
     reviewCpuTrainingForAllTeams(date);
+    // MARKET-1 (DESIGN.md 9.19, sección 15.3 del prompt): procesa eventos
+    // de mercado NO interactivos ya vencidos (respuesta de interés/oferta
+    // del lado jugador-CPU, expiración de ofertas) — mismo punto único que
+    // el resto del desarrollo de carrera.
+    processDueMarketEventsToDate(date);
+  }
+
+  // MARKET-1 (DESIGN.md 9.19, sección 15.4 del prompt): primer punto que
+  // exige una decisión REAL del usuario para su club — wrapper fino sobre
+  // MarketService, usado tanto por el gating de "Continuar" como por la
+  // aserción de advanceGameClockTo() de arriba.
+  function getMarketAttentionForUser(throughDate) {
+    if (!state.userTeamId || !state.marketRegistry) return null;
+    return BM.MarketService.computeMarketAttentionForClub({
+      marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: throughDate || state.calendar.currentGameDateTime,
+    });
+  }
+
+  // Procesa, para TODOS los clubes (usuario y CPU), los eventos de
+  // mercado NO interactivos ya vencidos — respuesta de interés inicial,
+  // respuesta CPU a una oferta enviada por el usuario, y expiración de
+  // ofertas vivas. Idempotente (MarketRegistry.markEventProcessed +
+  // ledger propio de cada entidad) — un render/avance repetido no
+  // reprocesa nada dos veces.
+  function processDueMarketEventsToDate(date) {
+    if (!state.marketRegistry) return;
+    const isoDate = currentGameIsoDate();
+    const due = state.marketRegistry.eventsDueThrough(isoDate);
+    const careerSeed = buildMarketCareerSeed();
+    due.forEach((event) => {
+      if (event.type === 'interest-response') {
+        const { interest } = BM.MarketService.processInterestResponseEvent({
+          marketRegistry: state.marketRegistry, playerRegistry: state.playerRegistry, event, date: event.dueDate, careerSeed,
+        });
+        const player = state.playerRegistry.get(event.playerId);
+        if (interest.level === 'low') {
+          pushMarketAgenda(BM.buildMarketAgendaEvent(
+            { ...event, processed: true, payload: { playerId: event.playerId, playerName: player ? player.fullName : event.playerId } },
+            { body: 'El jugador declina la consulta inicial.' },
+          ));
+        }
+      } else if (event.type === 'offer-response') {
+        const thread = state.marketRegistry.getThread(event.threadId);
+        const offer = state.marketRegistry.getOffer(event.payload.offerId);
+        if (thread && offer && offer.statusOn(event.dueDate) === 'sent') {
+          const marketContext = thread.rulesSnapshot;
+          BM.MarketService.processOfferResponse({
+            marketRegistry: state.marketRegistry, playerRegistry: state.playerRegistry, thread, offer, date: event.dueDate, careerSeed, marketContext,
+          });
+        }
+        state.marketRegistry.markEventProcessed(event.id);
+      } else {
+        state.marketRegistry.markEventProcessed(event.id);
+      }
+    });
+    BM.MarketService.expireDueOffers(state.marketRegistry, isoDate);
   }
 
   function getAllTeams() {
@@ -1751,11 +1891,26 @@
     // ver getActiveBracket) y sobre la jornada de liga.
     const seasonReadyToClose = isSeasonFullyClosable();
 
+    // MARKET-1 (DESIGN.md 9.19, sección 15.4 del prompt): una decisión de
+    // mercado que vence antes del siguiente partido manda incluso sobre
+    // el cierre de temporada — nunca se salta una contraoferta o un
+    // derecho preferente por avanzar directamente.
+    const marketAttention = getMarketAttentionForUser();
+    const marketAttentionLabel = marketAttention && marketAttention.type === 'matching-decision-needed'
+      ? 'Decidir tanteo' : 'Responder negociación';
+
     // Mientras haya un bracket (Copa/Playoff/Ascenso) activo y sin
     // terminar, la tarjeta principal de Home se convierte en "el partido
     // que toca ahora" de ese bracket, en vez de la jornada de liga —
     // el usuario no tiene que ir a Competiciones a buscarlo.
-    const primaryCardHtml = seasonReadyToClose
+    const primaryCardHtml = marketAttention
+      ? `
+        <div class="gm-card">
+          <h3>Mercado espera una decisión</h3>
+          <p class="gm-muted">Hay una negociación o un derecho preferente con plazo antes de poder continuar (vence ${marketAttention.dueDate}).</p>
+          <button id="gm-goto-market-btn" class="gm-btn gm-btn--primary">${marketAttentionLabel}</button>
+        </div>`
+      : seasonReadyToClose
       ? `
         <div class="gm-card">
           <h3>Temporada terminada</h3>
@@ -1825,6 +1980,11 @@
         </div>
       </div>
     `;
+
+    const goToMarketBtn = byId('gm-goto-market-btn');
+    if (goToMarketBtn) {
+      goToMarketBtn.addEventListener('click', () => goToScreen('market'));
+    }
 
     const closeSeasonBtn = byId('gm-close-season-btn');
     if (closeSeasonBtn) {
@@ -4943,6 +5103,12 @@
     // REG-1 (DESIGN.md 9.18, sección 13.2 del prompt): licencia, inscripción
     // y elegibilidad — SOLO LECTURA, sin botones de alta/baja/vinculación.
     { id: 'registration', label: 'Licencia y elegibilidad' },
+    // MARKET-1 (DESIGN.md 9.19, sección 16.8 del prompt): disponibilidad,
+    // representación, hilos y derechos — SIGUE resolviendo al jugador
+    // desde Player Registry, incluso libre y sin club. Puede crear un
+    // Agreement in Principle desde Mercado, pero abrir esta pestaña nunca
+    // muta roster/contrato/inscripción por sí sola.
+    { id: 'market', label: 'Mercado y representación' },
   ];
 
   // BUG-LIFE4-03 (ROSTER-1, DESIGN.md 9.16): resuelve la instancia REAL
@@ -6078,8 +6244,522 @@
         <ul>${integrity.errors.slice(0, 20).map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
       </div>`}
 
-      <p class="gm-muted contract-scope-note">Alta, baja, suspensión, vinculación, fichaje, renovación, cesión, tanteo y transfer
-        todavía no existen como acciones del juego (MARKET-1 / TRANSFER-1 / LOAN-1 / EUROPE-1): esta pantalla es de consulta.</p>`;
+      <p class="gm-muted contract-scope-note">Esta pantalla sigue siendo de SOLO CONSULTA: alta, baja, suspensión, vinculación,
+        fichaje, renovación, cesión y transfer no existen aquí como acciones. Mercado (MARKET-1) ya permite tramitar el
+        procedimiento de derecho preferente y alcanzar un Acuerdo en Principio, pero eso no concede licencia/inscripción por
+        sí solo — la formalización sigue siendo TRANSFER-1 / LOAN-1 / EUROPE-1.</p>`;
+  }
+
+  // ---------------------------------------------------------------------
+  // MARKET-1 (DESIGN.md 9.19, sección 16 del prompt) — pantalla Mercado.
+  // Capa de presentación pura sobre MarketService/RightOfFirstRefusalService
+  // — ninguna regla de mercado vive aquí. Nunca "Fichar" como CTA fijo: el
+  // botón cambia según disponibilidad/estado real (sección 16.2).
+  // ---------------------------------------------------------------------
+  const MARKET_TABS = [
+    { id: 'search', label: 'Buscar jugadores' },
+    { id: 'watchlist', label: 'Seguimiento' },
+    { id: 'negotiations', label: 'Negociaciones' },
+    { id: 'agents', label: 'Agentes' },
+    { id: 'rights', label: 'Derechos' },
+  ];
+
+  const MARKET_AVAILABILITY_LABELS = {
+    free: 'Libre sin derechos conocidos',
+    'free-subject-to-rights': 'Libre — sujeto a derecho preferente',
+    'contract-expiring-soon': 'Contrato próximo a expirar',
+    'under-contract': 'Bajo contrato',
+    'agreement-in-principle': 'Acuerdo en principio con otro club',
+    'not-found': 'No encontrado',
+  };
+
+  function marketSimulatedBadgeHtml(text) {
+    return `<span class="gm-badge gm-badge--simulated" title="${escapeHtml(text || 'Dato simulado para esta partida; no es un dato real.')}">Simulado</span>`;
+  }
+
+  // Contexto normativo de mercado de la competición del club del usuario —
+  // recalculado en cada render (nunca cacheado en `state`, sección 7.1).
+  function buildMarketContextForTeam(team) {
+    const seasonKey = buildCareerSeasonKey();
+    const isoDate = currentGameIsoDate();
+    const competitionId = BM.competitionIdFromLegacyDivision(team.division);
+    return BM.MarketService.resolveMarketContext({
+      domesticCompetitionId: competitionId, seasonKey, date: isoDate, operation: 'market-screen',
+    });
+  }
+
+  function renderMarketScreen() {
+    const container = byId('gm-market');
+    const team = getUserTeam();
+    if (!container) return;
+    if (!team || !state.marketRegistry || !state.agentRegistry) { container.innerHTML = ''; return; }
+    const activeTab = container.dataset.activeTab || 'search';
+    const marketContext = buildMarketContextForTeam(team);
+
+    let body = '';
+    if (activeTab === 'search') body = renderMarketSearchTab(team, marketContext);
+    else if (activeTab === 'watchlist') body = renderMarketWatchlistTab(team);
+    else if (activeTab === 'negotiations') body = renderMarketNegotiationsTab(team, marketContext);
+    else if (activeTab === 'agents') body = renderMarketAgentsTab();
+    else if (activeTab === 'rights') body = renderMarketRightsTab(team, marketContext);
+
+    const rightsTabDisabled = !marketContext.capabilities.has('supportsRightOfFirstRefusal') && activeTab !== 'rights';
+
+    container.innerHTML = `
+      <h2>Mercado — ${escapeHtml(team.fullName)}</h2>
+      ${contractWarningsHtml(state.marketBootstrapWarnings, 'Avisos de bootstrap de mercado')}
+      <div class="tabs">
+        ${MARKET_TABS.map((t) => (
+    (t.id === 'rights' && rightsTabDisabled)
+      ? '' // sección 16.1: la pestaña Derechos solo aparece cuando la competición lo justifica, nunca por división visible
+      : `<button class="tabs__btn ${t.id === activeTab ? 'is-active' : ''}" data-tab="${t.id}" type="button">${t.label}</button>`
+  )).join('')}
+      </div>
+      <div class="tabs__body">${body}</div>
+    `;
+
+    container.querySelectorAll('.tabs__btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        container.dataset.activeTab = btn.dataset.tab;
+        renderMarketScreen();
+      });
+    });
+
+    wireMarketScreenActions(container, team, marketContext);
+  }
+
+  function renderMarketSearchTab(team, marketContext) {
+    const filterState = state.marketSearchFilter || { text: '', position: '', status: '' };
+    state.marketSearchFilter = filterState;
+    const isoDate = currentGameIsoDate();
+
+    const rowsData = state.playerRegistry.all()
+      .filter((p) => !filterState.text || p.fullName.toLowerCase().includes(filterState.text.toLowerCase()))
+      .filter((p) => !filterState.position || p.nominalPosition === filterState.position)
+      .map((player) => ({
+        player,
+        availability: BM.MarketService.resolveMarketAvailability({
+          playerId: player.id, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate,
+        }),
+      }))
+      .filter((row) => !filterState.status || row.availability.status === filterState.status)
+      .sort((a, b) => a.player.fullName.localeCompare(b.player.fullName, 'es'));
+
+    const shown = rowsData.slice(0, 200);
+    const rows = shown.map(({ player, availability }) => {
+      const isFictional = BM.MarketSeeder && player.dataSource === BM.MarketSeeder.SIMULATED_FREE_AGENT_DATA_SOURCE;
+      const watched = state.marketRegistry.isWatched(team.id, player.id);
+      const mandate = state.agentRegistry.actingMandateForTransaction({ playerId: player.id, date: isoDate });
+      const existingThread = state.marketRegistry.threadsForClub(team.id).find((t) => t.playerId === player.id);
+      const clubName = player.teamId ? (getAllTeams().find((t) => t.id === player.teamId) || { fullName: player.teamId }).fullName : 'Sin club';
+      const isOwnPlayer = team.roster.some((p) => p.id === player.id);
+      const canInquire = !existingThread && !isOwnPlayer && availability.status !== 'agreement-in-principle' && availability.status !== 'not-found';
+      return `
+        <tr>
+          <td data-label="Jugador">${playerLinkHtml(player)} ${isFictional ? marketSimulatedBadgeHtml('Jugador ficticio generado para el mercado de esta partida; no es un dato real.') : ''}</td>
+          <td data-label="Posición">${escapeHtml(player.nominalPosition)}</td>
+          <td data-label="Club">${escapeHtml(clubName)}</td>
+          <td data-label="Situación">${escapeHtml(MARKET_AVAILABILITY_LABELS[availability.status] || availability.status)}</td>
+          <td data-label="Representación">${mandate ? `${escapeHtml(state.agentRegistry.getAgent(mandate.agentId).displayName)} ${marketSimulatedBadgeHtml()}` : 'Autorrepresentado'}</td>
+          <td data-label="Acción">
+            <button type="button" class="gm-btn gm-market-watch-btn" data-player-id="${player.id}">${watched ? 'Dejar de seguir' : 'Seguir'}</button>
+            ${existingThread ? '<span class="gm-muted">Ya en negociación</span>' : (canInquire ? `<button type="button" class="gm-btn gm-btn--primary gm-market-inquiry-btn" data-player-id="${player.id}">Consultar</button>` : '')}
+          </td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <div class="gm-card">
+        <form id="gm-market-search-form" class="market-search-form">
+          <label>Nombre <input type="text" name="text" value="${escapeHtml(filterState.text)}"></label>
+          <label>Posición <select name="position">
+            <option value="">Todas</option>
+            ${['Base', 'Escolta', 'Alero', 'Ala-pívot', 'Pívot'].map((p) => `<option value="${p}" ${filterState.position === p ? 'selected' : ''}>${p}</option>`).join('')}
+          </select></label>
+          <label>Situación <select name="status">
+            <option value="">Todas</option>
+            ${Object.keys(MARKET_AVAILABILITY_LABELS).filter((s) => s !== 'not-found').map((s) => `<option value="${s}" ${filterState.status === s ? 'selected' : ''}>${escapeHtml(MARKET_AVAILABILITY_LABELS[s])}</option>`).join('')}
+          </select></label>
+          <button type="submit" class="gm-btn">Filtrar</button>
+        </form>
+      </div>
+      <div class="gm-card">
+        <div class="gm-table-wrapper">
+          <table class="gm-table">
+            <thead><tr><th>Jugador</th><th>Posición</th><th>Club</th><th>Situación</th><th>Representación</th><th>Acción</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="6" class="gm-muted">Sin resultados.</td></tr>'}</tbody>
+          </table>
+        </div>
+        <p class="gm-muted">${shown.length} de ${rowsData.length} jugadores (Player Registry mundial completo — libres, con contrato y con derechos).</p>
+        ${!marketContext.market.domesticProcedure ? '<p class="gm-muted">Esta competición no tiene procedimiento doméstico de derecho preferente codificado — ningún jugador aparecerá "sujeto a derecho preferente" aquí.</p>' : ''}
+      </div>`;
+  }
+
+  function renderMarketWatchlistTab(team) {
+    const isoDate = currentGameIsoDate();
+    const watchedIds = state.marketRegistry.watchlistForClub(team.id);
+    const rows = watchedIds.map((playerId) => {
+      const player = state.playerRegistry.get(playerId);
+      if (!player) return '';
+      const availability = BM.MarketService.resolveMarketAvailability({
+        playerId, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate,
+      });
+      return `
+        <tr>
+          <td data-label="Jugador">${playerLinkHtml(player)}</td>
+          <td data-label="Situación">${escapeHtml(MARKET_AVAILABILITY_LABELS[availability.status] || availability.status)}</td>
+          <td data-label="Acción"><button type="button" class="gm-btn gm-market-watch-btn" data-player-id="${playerId}">Dejar de seguir</button></td>
+        </tr>`;
+    }).join('');
+    return `
+      <div class="gm-card">
+        <div class="gm-table-wrapper">
+          <table class="gm-table">
+            <thead><tr><th>Jugador</th><th>Situación</th><th>Acción</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="3" class="gm-muted">Sin jugadores en seguimiento — añade alguno desde "Buscar jugadores".</td></tr>'}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  // Construye un borrador CONTRACT-1 válido a partir de los campos
+  // mínimos que expone el constructor de oferta (sección 16.5) — reutiliza
+  // ContractService.resolveRulesForClub para calendario/cuotas reales,
+  // nunca inventa un mínimo/duración fuera de lo resuelto.
+  function buildMarketOfferDraft(team, player, formData, isoDate) {
+    const seasonKey = buildCareerSeasonKey();
+    const resolved = BM.ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' });
+    const employment = resolved.employment;
+    const currency = employment.allowedCurrencies[0] || 'EUR';
+    const seasonsCount = Math.max(1, Math.min(employment.maxTermYears || 5, formData.seasons));
+    const seasonKeys = [];
+    let cursorYear = BM.LocalDate.seasonStartYear(seasonKey);
+    for (let i = 0; i < seasonsCount; i += 1) { seasonKeys.push(BM.LocalDate.seasonKeyFromStartYear(cursorYear + i)); }
+    const startDate = BM.LocalDate.seasonWindow(seasonKeys[0]).startDate;
+    const endDate = BM.LocalDate.seasonWindow(seasonKeys[seasonKeys.length - 1]).endDate;
+    const installmentCount = employment.payments.defaultInstallmentCount;
+    const schedule = [];
+    seasonKeys.forEach((sk) => {
+      const window = BM.LocalDate.seasonWindow(sk);
+      BM.buildPaymentSchedule({
+        totalMinor: formData.salaryMinor, installmentCount, firstDueDate: BM.LocalDate.endOfMonth(window.startDate), frequency: employment.payments.frequency || 'monthly', currency, seasonKey: sk,
+      }).forEach((installment) => schedule.push(installment));
+    });
+    return {
+      playerId: player.id,
+      clubId: team.id,
+      signedDate: isoDate,
+      startDate,
+      endDate,
+      coveredSeasonKeys: seasonKeys,
+      guaranteeType: formData.guaranteeType || 'fully-guaranteed',
+      compensation: {
+        currency,
+        declaredBasis: 'gross',
+        seasons: seasonKeys.map((sk) => ({
+          seasonKey: sk, guaranteedBaseSalaryMinor: formData.salaryMinor, guaranteedImageRightsMinor: 0, guaranteedSalaryInKindMinor: 0, signingBonusMinor: 0, variableBonuses: [], nonSalaryBenefits: [], agentCosts: [],
+        })),
+      },
+      paymentPolicy: {
+        installmentCount, frequency: employment.payments.frequency || 'monthly', scheduledComponents: ['guaranteedBaseSalary', 'guaranteedImageRights'], schedule,
+      },
+      clauses: [],
+      declaredDocuments: ['written-contract', ...employment.requiredDocuments],
+      provenance: { dataSource: 'simulated-market-offer-v1', isReal: false },
+    };
+  }
+
+  function renderMarketOfferFormHtml(threadId, mode) {
+    return `
+      <form class="gm-market-offer-form" data-thread-id="${threadId}" data-mode="${mode}">
+        <label>Salario garantizado/temporada (€) <input type="number" name="salaryEuros" min="0" step="1000" required></label>
+        <label>Temporadas <input type="number" name="seasons" min="1" max="5" value="1" required></label>
+        <label>Rol prometido <select name="role">
+          <option value="core">Core</option><option value="star">Star</option><option value="rotation">Rotation</option>
+          <option value="development">Development</option><option value="depth">Depth</option>
+        </select></label>
+        <label>Garantía <select name="guaranteeType">
+          <option value="fully-guaranteed">Totalmente garantizado</option>
+          <option value="partially-guaranteed">Parcialmente garantizado</option>
+          <option value="non-guaranteed">No garantizado</option>
+        </select></label>
+        <button type="submit" class="gm-btn gm-btn--primary">${mode === 'counter' ? 'Enviar contraoferta' : 'Enviar oferta'}</button>
+        <div class="gm-market-offer-error gm-muted" role="alert"></div>
+      </form>`;
+  }
+
+  function renderMarketNegotiationsTab(team, marketContext) {
+    const isoDate = currentGameIsoDate();
+    const threads = state.marketRegistry.threadsForClub(team.id);
+    if (!threads.length) {
+      return '<div class="gm-card"><p class="gm-muted">Sin negociaciones abiertas — inicia una consulta desde "Buscar jugadores".</p></div>';
+    }
+    const cards = threads.map((thread) => {
+      const player = state.playerRegistry.get(thread.playerId);
+      const status = thread.statusOn(isoDate);
+      const offers = state.marketRegistry.offersForThread(thread.id);
+      const liveOffer = state.marketRegistry.liveOfferForThread(thread.id, isoDate);
+      const agreement = thread.agreementId ? state.marketRegistry.getAgreement(thread.agreementId) : null;
+
+      let actionsHtml = '';
+      if (status === 'thread-closed') {
+        actionsHtml = '<p class="gm-muted">Hilo cerrado.</p>';
+      } else if (agreement) {
+        actionsHtml = `<p><strong>Acuerdo en principio alcanzado.</strong> La formalización del contrato, el movimiento de plantilla, la posible
+          compensación/traspaso y la inscripción se ejecutarán en TRANSFER-1.</p>`;
+      } else if (liveOffer && liveOffer.offeredBy === 'player-side') {
+        actionsHtml = `
+          <p>Contraoferta del jugador — vence ${escapeHtml(formatIsoDateEs(liveOffer.expiresAt))}.</p>
+          <button type="button" class="gm-btn gm-btn--primary gm-market-accept-btn" data-thread-id="${thread.id}" data-offer-id="${liveOffer.id}">Aceptar</button>
+          ${renderMarketOfferFormHtml(thread.id, 'counter')}`;
+      } else if (liveOffer && liveOffer.offeredBy === 'club') {
+        actionsHtml = `
+          <p>Oferta enviada, esperando respuesta — vence ${escapeHtml(formatIsoDateEs(liveOffer.expiresAt))}.</p>
+          <button type="button" class="gm-btn gm-market-withdraw-btn" data-thread-id="${thread.id}" data-offer-id="${liveOffer.id}">Retirar oferta</button>`;
+      } else if (status === 'interest-confirmed' && !offers.length) {
+        actionsHtml = renderMarketOfferFormHtml(thread.id, 'initial');
+      } else if (status === 'interest-declined' || status === 'contact-permission-denied') {
+        actionsHtml = '<p class="gm-muted">El jugador/club no ha mostrado interés en continuar.</p>';
+      } else {
+        actionsHtml = '<p class="gm-muted">Esperando respuesta.</p>';
+      }
+
+      const offersHtml = offers.length ? `
+        <details class="market-offer-history">
+          <summary>Historial de ofertas (${offers.length})</summary>
+          <ul>${offers.map((o) => {
+    const summary = BM.NegotiationService.summarizeOfferDraft(o.contractDraft);
+    return `<li>v${o.version} · ${o.offeredBy === 'club' ? 'Club' : 'Jugador'} · ${formatMoneyMinor(summary.guaranteedTotalMinor, summary.currency || 'EUR')} total garantizado ·
+      ${escapeHtml(o.statusOn(isoDate))}</li>`;
+  }).join('')}</ul>
+        </details>` : '';
+
+      return `
+        <div class="gm-card" data-negotiation-thread="${thread.id}">
+          <h3>${player ? playerLinkHtml(player) : escapeHtml(thread.playerId)}</h3>
+          <p class="gm-muted">Estado del hilo: ${escapeHtml(status)}</p>
+          ${offersHtml}
+          ${actionsHtml}
+        </div>`;
+    }).join('');
+    return cards;
+  }
+
+  function renderMarketAgentsTab() {
+    const isoDate = currentGameIsoDate();
+    const agents = state.agentRegistry.allAgents();
+    const rows = agents.map((agent) => {
+      const mandates = state.agentRegistry.mandatesForAgent(agent.id).filter((m) => m.isActiveOn(isoDate));
+      const credentialStatus = agent.credentialStatusOn('fiba-agent-license', isoDate);
+      return `
+        <tr>
+          <td data-label="Agente">${escapeHtml(agent.displayName)} ${marketSimulatedBadgeHtml('Agente ficticio generado para esta partida; no es un dato real.')}</td>
+          <td data-label="Agencia">${escapeHtml(agent.agencyName || '—')}</td>
+          <td data-label="Licencia FIBA (simulada)">${escapeHtml(credentialStatus)}</td>
+          <td data-label="Representados activos">${mandates.length}</td>
+        </tr>`;
+    }).join('');
+    return `
+      <div class="gm-card">
+        <p class="gm-muted">Directorio SIMULADO — no es el directorio oficial FIBA. Referencia normativa:
+          <a href="https://about.fiba.basketball/en/search/agents" target="_blank" rel="noopener">about.fiba.basketball/en/search/agents</a>.</p>
+        <div class="gm-table-wrapper">
+          <table class="gm-table">
+            <thead><tr><th>Agente</th><th>Agencia</th><th>Licencia FIBA (simulada)</th><th>Representados activos</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="4" class="gm-muted">Sin agentes registrados.</td></tr>'}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function renderMarketRightsTab(team, marketContext) {
+    if (!marketContext.capabilities.has('supportsRightOfFirstRefusal')) {
+      return '<div class="gm-card"><p class="gm-muted">Esta competición no tiene procedimiento doméstico de derecho preferente codificado.</p></div>';
+    }
+    const cases = state.marketRegistry.rightsCasesForClub(team.id);
+    const isoDate = currentGameIsoDate();
+    if (!cases.length) {
+      return `<div class="gm-card"><p class="gm-muted">Sin casos de derecho preferente abiertos para este club por ahora.</p>
+        ${contractWarningsHtml(marketContext.knownSourceInconsistencies, 'Continuidad e inconsistencias conocidas de la fuente')}</div>`;
+    }
+    const cards = cases.map((rightsCase) => {
+      const player = state.playerRegistry.get(rightsCase.playerId);
+      const status = rightsCase.statusOn(isoDate);
+      const isOrigin = rightsCase.originClubId === team.id;
+      let decisionHtml = '';
+      if (isOrigin && status === 'matching-window-open') {
+        decisionHtml = `
+          <p><strong>Decisión pendiente</strong> — plazo improrrogable: ${escapeHtml(formatIsoDateEs(rightsCase.deadlines.matchingWindow.closes))}.</p>
+          <button type="button" class="gm-btn gm-btn--primary gm-rights-match-btn" data-case-id="${rightsCase.id}">Igualar</button>
+          <button type="button" class="gm-btn gm-rights-waive-btn" data-case-id="${rightsCase.id}">No igualar</button>`;
+      }
+      return `
+        <div class="gm-card">
+          <h3>${player ? playerLinkHtml(player) : escapeHtml(rightsCase.playerId)} — ${escapeHtml(rightsCase.procedureType)}</h3>
+          <p class="gm-muted">Estado: ${escapeHtml(status)} · Origen: ${escapeHtml(rightsCase.originClubId)} · Último partido oficial: ${escapeHtml(formatIsoDateEs(rightsCase.lastOfficialMatchDate))}</p>
+          ${rightsCase.offerSheet ? `<p>Documento de oferta de "${escapeHtml(rightsCase.offerSheet.filedByClubId)}" trasladado el ${escapeHtml(formatIsoDateEs(rightsCase.offerSheet.forwardedAt))}.</p>` : ''}
+          ${decisionHtml}
+          <p class="gm-muted contract-scope-note">Procedimiento ACB con continuidad PROVISIONAL (el convenio formal expiró
+            2022-06-30; ACB seguía aplicándolo operativamente en 2026) — ver fuentes en DESIGN.md 9.19.</p>
+        </div>`;
+    }).join('');
+    return cards;
+  }
+
+  // ---------------------------------------------------------------------
+  // Acciones de la pantalla Mercado — todas pasan por MarketService, nunca
+  // mutan Team/Player/Contract/Registration directamente.
+  // ---------------------------------------------------------------------
+  function wireMarketScreenActions(container, team, marketContext) {
+    const isoDate = currentGameIsoDate();
+    const careerSeed = buildMarketCareerSeed();
+
+    const searchForm = byId('gm-market-search-form');
+    if (searchForm) {
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const data = new FormData(searchForm);
+        state.marketSearchFilter = { text: data.get('text') || '', position: data.get('position') || '', status: data.get('status') || '' };
+        renderMarketScreen();
+      });
+    }
+
+    container.querySelectorAll('.gm-market-watch-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const playerId = btn.dataset.playerId;
+        if (state.marketRegistry.isWatched(team.id, playerId)) BM.MarketService.removeWatch(state.marketRegistry, team.id, playerId);
+        else BM.MarketService.addWatch(state.marketRegistry, team.id, playerId);
+        renderMarketScreen();
+      });
+    });
+
+    container.querySelectorAll('.gm-market-inquiry-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const playerId = btn.dataset.playerId;
+        BM.MarketService.openInquiry({
+          marketRegistry: state.marketRegistry, agentRegistry: state.agentRegistry, playerId, actingClubId: team.id,
+          prospectiveCompetitionIds: [BM.competitionIdFromLegacyDivision(team.division)], date: isoDate, marketContext, careerSeed,
+        });
+        container.dataset.activeTab = 'negotiations';
+        renderMarketScreen();
+      });
+    });
+
+    container.querySelectorAll('.gm-market-offer-form').forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const threadId = form.dataset.threadId;
+        const thread = state.marketRegistry.requireThread(threadId);
+        const player = state.playerRegistry.get(thread.playerId);
+        const errorEl = form.querySelector('.gm-market-offer-error');
+        const data = new FormData(form);
+        const salaryEuros = Number(data.get('salaryEuros'));
+        const seasons = Number(data.get('seasons'));
+        if (!salaryEuros || salaryEuros <= 0 || !seasons || seasons < 1) {
+          errorEl.textContent = 'Introduce un salario y unas temporadas válidas.';
+          return;
+        }
+        const formData = {
+          salaryMinor: Math.round(salaryEuros * 100), seasons, role: data.get('role'), guaranteeType: data.get('guaranteeType'),
+        };
+        const draft = buildMarketOfferDraft(team, player, formData, isoDate);
+        const validation = BM.MarketService.validateOfferBeforeSend({
+          draft, team, player, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, seasonKey: buildCareerSeasonKey(), date: isoDate, marketContext,
+        });
+        if (!validation.valid) {
+          errorEl.textContent = validation.errors.join(' · ');
+          return;
+        }
+        if (form.dataset.mode === 'counter') {
+          const liveOffer = state.marketRegistry.liveOfferForThread(threadId, isoDate);
+          liveOffer.addEvent({ id: `${liveOffer.id}:club-countered`, type: 'offer-countered', date: isoDate });
+          state.marketRegistry.releaseBudget(`res:${liveOffer.id}`);
+          BM.MarketService.createAndSendOffer({
+            marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
+            employmentValidation: validation.employmentValidation, marketContext, validation, parentOfferId: liveOffer.id, version: liveOffer.version + 1,
+          });
+        } else {
+          BM.MarketService.createAndSendOffer({
+            marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
+            employmentValidation: validation.employmentValidation, marketContext, validation,
+          });
+        }
+        renderMarketScreen();
+      });
+    });
+
+    container.querySelectorAll('.gm-market-accept-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const thread = state.marketRegistry.requireThread(btn.dataset.threadId);
+        const offer = state.marketRegistry.requireOffer(btn.dataset.offerId);
+        offer.addEvent({ id: `${offer.id}:user-accept`, type: 'player-accepted', date: isoDate });
+        BM.MarketService.createAgreementInPrinciple({
+          marketRegistry: state.marketRegistry, thread, offer, date: isoDate,
+          employmentSnapshot: { profileId: marketContext.bundleId },
+          marketRulesSnapshot: { bundleId: marketContext.bundleId },
+        });
+        renderMarketScreen();
+      });
+    });
+
+    container.querySelectorAll('.gm-market-withdraw-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        BM.MarketService.withdrawOffer(state.marketRegistry, btn.dataset.offerId, isoDate);
+        renderMarketScreen();
+      });
+    });
+
+    container.querySelectorAll('.gm-rights-match-btn, .gm-rights-waive-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const rightsCase = state.marketRegistry.getRightsCase(btn.dataset.caseId);
+        if (!rightsCase) return;
+        const decision = btn.classList.contains('gm-rights-match-btn') ? 'match' : 'waive';
+        let matchProposalSummary = null;
+        if (decision === 'match') {
+          matchProposalSummary = rightsCase.offerSheet.contractDraftSummary;
+        }
+        try {
+          BM.RightOfFirstRefusalService.decideMatching({
+            rightsCase, decision, decidedBy: 'user', decidedAt: isoDate, matchProposalSummary,
+          });
+        } catch (err) {
+          window.alert(err.message); // eslint-disable-line no-alert
+        }
+        renderMarketScreen();
+      });
+    });
+  }
+
+  function renderPlayerMarketTab(player, team) {
+    if (!state.marketRegistry || !state.agentRegistry) return '<div class="gm-card"><p class="gm-muted">Mercado no disponible todavía.</p></div>';
+    const isoDate = currentGameIsoDate();
+    const availability = BM.MarketService.resolveMarketAvailability({
+      playerId: player.id, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate,
+    });
+    const mandate = state.agentRegistry.actingMandateForTransaction({ playerId: player.id, date: isoDate });
+    const agent = mandate ? state.agentRegistry.getAgent(mandate.agentId) : null;
+    const threads = state.marketRegistry.threadsForPlayer(player.id);
+    const rightsCases = state.marketRegistry.rightsCasesForPlayer(player.id);
+    const isFictional = BM.MarketSeeder && player.dataSource === BM.MarketSeeder.SIMULATED_FREE_AGENT_DATA_SOURCE;
+
+    return `
+      <div class="gm-card">
+        <h3>Disponibilidad de mercado</h3>
+        <p>${escapeHtml(MARKET_AVAILABILITY_LABELS[availability.status] || availability.status)}
+          ${isFictional ? marketSimulatedBadgeHtml('Jugador ficticio generado para el mercado de esta partida; no es un dato real.') : ''}</p>
+      </div>
+      <div class="gm-card">
+        <h3>Representación</h3>
+        ${agent ? `<p>${escapeHtml(agent.displayName)} (${escapeHtml(agent.agencyName || 'sin agencia')}) ${marketSimulatedBadgeHtml()}</p>
+          <p class="gm-muted">Mandato ${mandate.exclusive ? 'exclusivo' : 'no exclusivo'}, ${escapeHtml(mandate.startDate)} — ${escapeHtml(mandate.endDate || 'sin fin declarado')}.</p>`
+    : '<p class="gm-muted">Autorrepresentado.</p>'}
+      </div>
+      <div class="gm-card">
+        <h3>Hilos con tu club</h3>
+        ${threads.length ? `<ul>${threads.map((t) => `<li>${escapeHtml(t.statusOn(isoDate))} (abierto ${escapeHtml(formatIsoDateEs(t.openedAt))})</li>`).join('')}</ul>` : '<p class="gm-muted">Sin negociaciones abiertas.</p>'}
+      </div>
+      ${rightsCases.length ? `<div class="gm-card"><h3>Derechos</h3><ul>${rightsCases.map((c) => `<li>${escapeHtml(c.procedureType)}: ${escapeHtml(c.statusOn(isoDate))}</li>`).join('')}</ul></div>` : ''}
+      <p class="gm-muted contract-scope-note">Esta pestaña sigue la ficha universal (Player Registry), incluso libre y sin club.</p>`;
   }
 
   function renderPlayerProfileScreen() {
@@ -6114,6 +6794,7 @@
     else if (activeTab === 'career') body = renderPlayerCareerTab(player, ch);
     else if (activeTab === 'contract') body = renderPlayerContractTab(player, team);
     else if (activeTab === 'registration') body = renderPlayerRegistrationTab(player, team);
+    else if (activeTab === 'market') body = renderPlayerMarketTab(player, team);
 
     container.innerHTML = `
       <button id="player-profile-back-btn" class="gm-btn player-profile__back" type="button">← Volver</button>
@@ -6142,7 +6823,7 @@
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
   const SCREENS = [
-    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
     'player-profile',
   ];
 
@@ -6163,6 +6844,7 @@
     if (screen === 'medical') renderMedicalScreen();
     if (screen === 'contracts') renderContractsScreen();
     if (screen === 'registrations') renderRegistrationsScreen();
+    if (screen === 'market') renderMarketScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();
