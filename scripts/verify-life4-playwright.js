@@ -208,7 +208,14 @@ async function main(mode) {
 
   console.log(`\nErrores de consola capturados: ${consoleErrors.length}`);
   consoleErrors.forEach((e) => console.log('  -', e));
-  if (consoleErrors.length > 0) failures += 1;
+  // Ajuste de ENTORNO (CONTRACT-1, no un cambio de alcance de LIFE-4): las
+  // fuentes de Google (index.html) fallan con ERR_CONNECTION_RESET en una
+  // máquina sin acceso a internet, lo que hacía fallar este script aunque
+  // sus 13 comprobaciones funcionales pasaran. Se aplica el MISMO filtro
+  // que ya usa scripts/verify-roster1-playwright.js desde ROSTER-1; el
+  // resto de errores de consola siguen contando como fallo.
+  const realConsoleErrors = consoleErrors.filter((e) => !e.includes('ERR_CONNECTION_RESET') && !e.includes('fonts.googleapis'));
+  if (realConsoleErrors.length > 0) failures += 1;
 
   await browser.close();
   return failures;

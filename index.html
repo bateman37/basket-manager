@@ -41,6 +41,7 @@
       <button class="gm-nav__btn" data-screen="tactics" type="button">Tácticas</button>
       <button class="gm-nav__btn" data-screen="training" type="button">Entrenamiento</button>
       <button class="gm-nav__btn" data-screen="medical" type="button">Lesiones</button>
+      <button class="gm-nav__btn" data-screen="contracts" type="button">Contratos</button>
       <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
       <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
@@ -72,6 +73,14 @@
 
     <section id="gm-screen-medical" class="gm-screen">
       <div id="gm-medical"></div>
+    </section>
+
+    <!-- CONTRACT-1 (DESIGN.md 9.17): pantalla de consulta de contratos del
+         club del usuario — sin ninguna acción de mercado (renovar, fichar,
+         liberar, ejecutar cláusula, tantear o ceder son MARKET-1/
+         TRANSFER-1/LOAN-1). -->
+    <section id="gm-screen-contracts" class="gm-screen">
+      <div id="gm-contracts"></div>
     </section>
 
     <section id="gm-screen-agenda" class="gm-screen">
@@ -265,6 +274,12 @@
   </div>
   <!-- fin de #gm-test-mode-section -->
 
+  <!-- CONTRACT-1 (DESIGN.md 9.17): utilidades puras de dinero entero
+       (unidad mínima + ISO 4217) y de fecha civil ISO date-only. Se cargan
+       las primeras porque CompetitionRules.js y las entidades de contrato
+       las usan; no dependen de nada. -->
+  <script src="src/utils/Money.js"></script>
+  <script src="src/utils/LocalDate.js"></script>
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
   <!-- DESIGN.md 7.12 (Sistema táctico, TAC-2): Team.js instancia
@@ -327,6 +342,17 @@
        dependencia de carga real con League.js — se deja aquí por orden
        temático (capa de identidad/normativa de competición). -->
   <script src="src/core/CompetitionRules.js"></script>
+  <!-- CONTRACT-1 (DESIGN.md 9.17): catálogo de contexto laboral por club
+       (jurisdicción del EMPLEADOR, distinta del país organizador de la
+       competición — caso MoraBanc Andorra), entidad Contract, registro
+       contractual de la partida, servicio de dominio y seeder determinista.
+       ClubEmploymentContextCatalog.js y ContractService.js consultan
+       CompetitionRules.js, así que cargan después de él. -->
+  <script src="src/core/ClubEmploymentContextCatalog.js"></script>
+  <script src="src/entities/Contract.js"></script>
+  <script src="src/core/ContractRegistry.js"></script>
+  <script src="src/core/ContractService.js"></script>
+  <script src="src/core/ContractSeeder.js"></script>
   <script src="src/core/Bracket.js"></script>
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>
