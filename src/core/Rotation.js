@@ -93,6 +93,36 @@
     }).join(' · ');
   }
 
+  // REG-1 (DESIGN.md 9.18, sección 11.4 del prompt) — Primera FEB exige AL
+  // MENOS `minRequired` jugadores de FORMACIÓN en pista durante todo el
+  // tiempo de juego. Módulo PURO: recibe la política ya resuelta
+  // (`minRequired`, `null`/`0` cuando la competición no la tiene — ACB) y
+  // la clasificación YA calculada (`formationQualifyingPlayerIds`, un
+  // `Set<playerId>`) — nunca decide normativa ni conoce
+  // EligibilityService/CompetitionRules. Comprueba titular y cada slot de
+  // rotación declarado (sección 11.4: "comprueba titular y todos los
+  // segmentos/slots de rotación") — un slot con huecos sin cubrir lo
+  // bloquea ya `validateLineup()` (minutos), no esto.
+  const ON_COURT_SLOT_LABELS = { starter: 'Titular', sub1: 'Suplente 1', sub2: 'Suplente 2' };
+
+  function validateOnCourtFormationQuota(lineup, formationQualifyingPlayerIds, minRequired) {
+    if (!minRequired) return { valid: true, errors: [] };
+    const errors = [];
+    SLOT_KEYS.forEach((slotKey) => {
+      const ids = POSITIONS
+        .map((pos) => lineup.entries[pos] && lineup.entries[pos][slotKey] && lineup.entries[pos][slotKey].playerId)
+        .filter(Boolean);
+      if (ids.length < POSITIONS.length) return; // slot incompleto: lo bloquea validateLineup(), no esto
+      const count = ids.filter((id) => formationQualifyingPlayerIds.has(id)).length;
+      if (count < minRequired) errors.push({ slot: slotKey, label: ON_COURT_SLOT_LABELS[slotKey], count, required: minRequired });
+    });
+    return { valid: errors.length === 0, errors };
+  }
+
+  function describeOnCourtFormationQuotaErrors(errors) {
+    return errors.map(({ label, count, required }) => `${label} (${count}/${required})`).join(', ');
+  }
+
   // --- Estado de rotación en tiempo de ejecución (un partido) ---
 
   // LIFE-3 (DESIGN.md 9.14, sección 21 del prompt de esa sesión):
@@ -499,6 +529,8 @@
     SLOT_KEYS,
     validateLineup,
     describeValidationErrors,
+    validateOnCourtFormationQuota,
+    describeOnCourtFormationQuotaErrors,
     totalMinutesByPlayer,
     buildRotationState,
     getOnCourtFive,

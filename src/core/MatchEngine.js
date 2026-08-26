@@ -41,6 +41,13 @@
   const TacticsCore = (typeof module !== 'undefined' && module.exports)
     ? require('./Tactics.js')
     : global.BasketManager;
+  // REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-03): acceso perezoso a
+  // `TEST_MATCH_SQUAD_POLICY` — `Team.js` no depende de `MatchEngine.js`,
+  // así que requerirlo aquí no crea ciclo; en navegador se accede tarde
+  // (dentro de `defaultMatchSquad`), mismo patrón que el resto del archivo.
+  function TeamCore() {
+    return (typeof module !== 'undefined' && module.exports) ? require('../entities/Team.js') : global.BasketManager;
+  }
 
   const { TECHNICAL_ATTRIBUTES, PHYSICAL_ATTRIBUTES, MENTAL_ATTRIBUTES, POSITIONS } = PlayerCore;
   const { CONFIG_BASE, NEUTRAL_ATTRIBUTE } = ConfigCore;
@@ -1411,12 +1418,17 @@
     return { elapsed: elapsedTotal, points: pointsScored, defensePoints, events, fastBreakTrigger: false, tacticalUsage: buildTacticalUsage(resolvedTacticalPlan) };
   }
 
-  // Toma hasta 12 jugadores de la plantilla como convocatoria de partido
-  // por defecto (reutiliza Team.buildMatchSquad, que valida 8-12).
+  // Convocatoria de partido por defecto para llamadores de MODO PRUEBA
+  // (stress tests del motor, scripts de test/smoke sin lineup real) que no
+  // pasan `options.homeSquad`/`awaySquad` — usa EXPLÍCITAMENTE
+  // `TEST_MATCH_SQUAD_POLICY` (REG-1, DESIGN.md 9.18, BUG-CONTRACT1-03):
+  // nunca un fallback silencioso a 8-12 dentro de `Team.buildMatchSquad()`
+  // — la política de prueba se nombra aquí mismo, a la vista.
   function defaultMatchSquad(team) {
-    const count = Math.min(12, team.roster.length);
+    const { TEST_MATCH_SQUAD_POLICY } = TeamCore();
+    const count = Math.min(TEST_MATCH_SQUAD_POLICY.max, team.roster.length);
     const ids = team.roster.slice(0, count).map((player) => player.id);
-    return team.buildMatchSquad(ids);
+    return team.buildMatchSquad(ids, TEST_MATCH_SQUAD_POLICY.min, TEST_MATCH_SQUAD_POLICY.max);
   }
 
   // 7.6.20: Parcial de anotación — ventana deslizante simplificada (no es el

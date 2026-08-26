@@ -25,16 +25,19 @@
 
   const DIVISIONS = ['1ª', '2ª'];
 
-  // ROSTER-1 (DESIGN.md 9.16): estos dos valores dejan de ser la regla
-  // universal de convocatoria — cada competición tiene su propio rango,
-  // resuelto por `CompetitionRules.resolveRules()` (ver game.js/CpuLineup.js)
-  // y pasado explícitamente a `buildMatchSquad()`. Se conservan exportados
-  // SOLO como default legacy (compatibilidad con `MatchEngine.js` en modo
-  // prueba y con `buildMatchSquadExcludingPosition()`, una herramienta de
-  // estrés del motor sin normativa real detrás) — ningún camino de
-  // producción multi-liga debe volver a leerlos directamente.
+  // ROSTER-1 (DESIGN.md 9.16) + REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-03):
+  // estos dos valores NUNCA son la regla universal de convocatoria — cada
+  // competición tiene su propio rango, resuelto por
+  // `CompetitionRules.resolveRules()` (ver game.js/CpuLineup.js) y pasado
+  // EXPLÍCITAMENTE a `buildMatchSquad()`. Desde REG-1, `buildMatchSquad()`
+  // ya NO los usa como fallback silencioso — un llamador de producción sin
+  // política explícita falla (ver más abajo). Se conservan exportados como
+  // `TEST_MATCH_SQUAD_POLICY`, un fixture NOMBRADO de solo prueba/estrés
+  // del motor (usado por `MatchEngine.defaultMatchSquad()` y por
+  // `buildMatchSquadExcludingPosition()`), nunca una ley universal.
   const MATCH_SQUAD_MIN = 8;
   const MATCH_SQUAD_MAX = 12;
+  const TEST_MATCH_SQUAD_POLICY = Object.freeze({ min: MATCH_SQUAD_MIN, max: MATCH_SQUAD_MAX });
 
   const FACILITY_MIN = 1;
   const FACILITY_MAX = 20;
@@ -339,11 +342,14 @@
     // normativa aplicar (ROSTER-1, DESIGN.md 9.16): quien llama resuelve
     // antes el rango real de ESA competición vía
     // `CompetitionRules.resolveRules()` y lo pasa aquí explícito.
-    // `minOverride`/`maxOverride` sin indicar reproducen los defaults
-    // legacy (`MATCH_SQUAD_MIN`/`MATCH_SQUAD_MAX`, 8-12 ACB) — SOLO para
-    // compatibilidad con `MatchEngine.js` en modo prueba y con
-    // `buildMatchSquadExcludingPosition()`; ningún camino de producción
-    // multi-liga debe depender de ese default.
+    //
+    // REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-03): `minOverride`/`maxOverride`
+    // son OBLIGATORIOS — ya NO existe un fallback silencioso a 8-12. Un
+    // llamador de producción sin política/contexto explícito falla con un
+    // error de dominio descriptivo, nunca hereda ACB. Quien necesite el
+    // rango legacy de prueba debe pasar `TEST_MATCH_SQUAD_POLICY.min/max`
+    // explícitamente (ver `MatchEngine.defaultMatchSquad()` y
+    // `buildMatchSquadExcludingPosition()` más abajo).
     // `minOverride` (LIFE-3, DESIGN.md 9.14, sección 23 del prompt de esa
     // sesión): también sirve para la excepción médica de convocatoria —
     // 5-7 jugadores solo cuando la plantilla queda médicamente reducida
@@ -351,14 +357,19 @@
     // ahora lo aporta la competición, la reducción la sigue aportando
     // `Medical.resolveEffectiveSquadMinimum()`.
     buildMatchSquad(playerIds, minOverride, maxOverride) {
+      if (minOverride === undefined || minOverride === null || maxOverride === undefined || maxOverride === null) {
+        throw new Error(
+          'Team.buildMatchSquad: hacen falta "minOverride"/"maxOverride" explícitos — REG-1 (BUG-CONTRACT1-03) '
+          + 'retiró el fallback silencioso a 8-12. Resuelve antes el rango real de la competición (o pasa '
+          + 'TEST_MATCH_SQUAD_POLICY.min/max en un fixture de prueba con nombre explícito).',
+        );
+      }
       const squad = playerIds.map((id) => this.roster.find((player) => player.id === id));
       if (squad.some((player) => !player)) {
         throw new Error('La convocatoria incluye algún jugador que no pertenece a la plantilla');
       }
-      const min = minOverride || MATCH_SQUAD_MIN;
-      const max = maxOverride || MATCH_SQUAD_MAX;
-      if (squad.length < min || squad.length > max) {
-        throw new Error(`La convocatoria debe tener entre ${min} y ${max} jugadores`);
+      if (squad.length < minOverride || squad.length > maxOverride) {
+        throw new Error(`La convocatoria debe tener entre ${minOverride} y ${maxOverride} jugadores`);
       }
       return squad;
     }
@@ -370,18 +381,20 @@
     // también nivel alto en Pívot como secundaria. Genérico por posición:
     // sirve igual para "sin Bases", "sin Aleros", etc., sin tocar código de
     // nuevo. Herramienta de prueba de estrés del motor, no una regla de
-    // reglamento (no está en DESIGN.md) — reutiliza la misma validación 8-12
-    // de buildMatchSquad().
+    // reglamento (no está en DESIGN.md) — usa EXPLÍCITAMENTE
+    // `TEST_MATCH_SQUAD_POLICY` (REG-1, BUG-CONTRACT1-03): nunca consagra
+    // 8-12 como ley universal, es un fixture de prueba nombrado.
     buildMatchSquadExcludingPosition(position) {
       const eligible = this.roster.filter((player) => player.primaryPosition !== position);
-      if (eligible.length < MATCH_SQUAD_MIN) {
+      if (eligible.length < TEST_MATCH_SQUAD_POLICY.min) {
         throw new Error(
           `Tras excluir la posición "${position}" solo quedan ${eligible.length} jugadores elegibles `
-          + `en la plantilla de ${this.fullName} — hacen falta al menos ${MATCH_SQUAD_MIN} para convocar.`,
+          + `en la plantilla de ${this.fullName} — hacen falta al menos ${TEST_MATCH_SQUAD_POLICY.min} para convocar `
+          + '(TEST_MATCH_SQUAD_POLICY, fixture de prueba).',
         );
       }
-      const ids = eligible.slice(0, MATCH_SQUAD_MAX).map((player) => player.id);
-      return this.buildMatchSquad(ids);
+      const ids = eligible.slice(0, TEST_MATCH_SQUAD_POLICY.max).map((player) => player.id);
+      return this.buildMatchSquad(ids, TEST_MATCH_SQUAD_POLICY.min, TEST_MATCH_SQUAD_POLICY.max);
     }
 
     // --- Cantera/Academia (DESIGN.md 6.2.3) ---
@@ -474,6 +487,7 @@
     DIVISIONS,
     MATCH_SQUAD_MIN,
     MATCH_SQUAD_MAX,
+    TEST_MATCH_SQUAD_POLICY,
     FACILITY_KEYS,
     FACILITY_LABELS,
     FACILITY_MIN,

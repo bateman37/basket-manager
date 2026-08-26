@@ -42,6 +42,7 @@
       <button class="gm-nav__btn" data-screen="training" type="button">Entrenamiento</button>
       <button class="gm-nav__btn" data-screen="medical" type="button">Lesiones</button>
       <button class="gm-nav__btn" data-screen="contracts" type="button">Contratos</button>
+      <button class="gm-nav__btn" data-screen="registrations" type="button">Inscripciones</button>
       <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
       <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
@@ -81,6 +82,14 @@
          TRANSFER-1/LOAN-1). -->
     <section id="gm-screen-contracts" class="gm-screen">
       <div id="gm-contracts"></div>
+    </section>
+
+    <!-- REG-1 (DESIGN.md 9.18): pantalla de consulta de inscripción,
+         licencias y elegibilidad del club del usuario — SOLO LECTURA, sin
+         botones de alta/baja/suspensión/vinculación/fichaje/renovación/
+         cesión/tanteo/transfer (MARKET-1/TRANSFER-1/LOAN-1/EUROPE-1). -->
+    <section id="gm-screen-registrations" class="gm-screen">
+      <div id="gm-registrations"></div>
     </section>
 
     <section id="gm-screen-agenda" class="gm-screen">
@@ -353,6 +362,22 @@
   <script src="src/core/ContractRegistry.js"></script>
   <script src="src/core/ContractService.js"></script>
   <script src="src/core/ContractSeeder.js"></script>
+  <!-- REG-1 (DESIGN.md 9.18): inscripción, licencias, elegibilidad, cupos y
+       jugadores vinculados — tercera pieza canónica de la EPIC, separada de
+       identidad (PlayerRegistry) y contrato (ContractRegistry). Utilidades
+       puras primero (RegulatoryCalendar, RegistrationEventTypes), luego
+       entidades (Registration.js), luego registro/servicios que consumen
+       CompetitionRules.js (ya cargado arriba) y las entidades de
+       Contract.js/ContractRegistry.js (también ya cargados). -->
+  <script src="src/utils/RegulatoryCalendar.js"></script>
+  <script src="src/core/RegistrationEventTypes.js"></script>
+  <script src="src/entities/Registration.js"></script>
+  <script src="src/core/RegistrationRegistry.js"></script>
+  <script src="src/core/RegulatoryClassificationService.js"></script>
+  <script src="src/core/RegistrationService.js"></script>
+  <script src="src/core/RegistrationSeeder.js"></script>
+  <script src="src/core/EligibilityService.js"></script>
+  <script src="src/core/SquadEligibilityService.js"></script>
   <script src="src/core/Bracket.js"></script>
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>

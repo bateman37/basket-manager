@@ -831,6 +831,22 @@
    datos incompleta (Alineación) — nunca debe leerse como jugador real. */
 .gm-badge--fictional { background: var(--court-bg-alt); color: var(--ink-soft); border: 1px dashed var(--ink-soft); }
 
+/* REG-1 (DESIGN.md 9.18): badges de acceso/clasificación/procedencia en la
+   pantalla de Alineación e Inscripciones — texto además de color (sección
+   13.3, accesibilidad): cada badge lleva su propia etiqueta legible, el
+   color es un refuerzo visual, nunca la única señal. */
+.gm-badge--access-senior { background: var(--court-bg-alt); color: var(--ink); }
+.gm-badge--access-own-lower-category { background: var(--win); color: var(--white-line); }
+.gm-badge--access-linked { background: var(--brick); color: var(--white-line); }
+.gm-badge--access-additional-list { background: var(--court-bg-alt); color: var(--ink-soft); border: 1px dashed var(--ink-soft); }
+.gm-badge--formation { background: var(--win); color: var(--white-line); }
+.gm-badge--noncommunity { background: var(--court-bg-alt); color: var(--ink); border: 1px solid var(--ink-soft); }
+.gm-badge--unknown { background: var(--court-bg-alt); color: var(--ink-soft); font-style: italic; }
+.gm-badge--simulated { background: var(--court-bg-alt); color: var(--ink-soft); border: 1px dotted var(--ink-soft); }
+.gm-badge--ineligible { background: var(--loss); color: var(--white-line); font-weight: 600; }
+.squad-picker__item--ineligible { opacity: 0.75; }
+.lineup-live-counters { font-size: 13px; color: var(--ink-soft); margin: 4px 0 10px; }
+
 .medical-summary {
   display: flex;
   flex-wrap: wrap;
