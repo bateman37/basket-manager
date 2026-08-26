@@ -79,17 +79,50 @@
     POSITIONS.forEach((pos) => {
       const diff = Math.round((sums[pos] - totalMinutes) * 100) / 100;
       if (Math.abs(diff) > 1e-6) {
-        errors.push({ position: pos, sum: sums[pos], expected: totalMinutes, diff });
+        errors.push({ type: 'minutes-mismatch', position: pos, sum: sums[pos], expected: totalMinutes, diff });
+      }
+    });
+    // BUG-PREEXISTING-TAC-01 (DESIGN.md 9.19 — señalado como nota de
+    // transparencia en REG-1/DESIGN.md 9.18, corregido aquí): dos
+    // posiciones no pueden declarar el MISMO jugador como titular a la
+    // vez. `getOnCourtFive()` construye el quinteto en pista tomando un
+    // jugador por posición desde `onCourt[pos]`; un duplicado produce un
+    // "quinteto" con menos de 5 jugadores DISTINTOS (el mismo Player
+    // aparece dos veces) y `buildPossessionPlan()`/`computeAdvantageScore()`
+    // (Tactics.js) terminan lanzando un TypeError data-dependiente a mitad
+    // de posesión cuando el filtro de candidatos a bloqueador se queda
+    // vacío. Nunca producido por `CpuLineup.js` ni por la pantalla de
+    // Alineación real — esto es una frontera de validación explícita
+    // añadida aquí (donde ya se valida el resto de la alineación, antes de
+    // que MatchEngine/Tactics vean nada), no un cambio de fórmulas, pesos
+    // ni resultados de ninguna alineación válida.
+    const starterPositionsByPlayer = new Map();
+    POSITIONS.forEach((pos) => {
+      const row = (lineup.entries && lineup.entries[pos]) || {};
+      const starterId = row.starter && row.starter.playerId;
+      if (!starterId) return;
+      const positions = starterPositionsByPlayer.get(starterId) || [];
+      positions.push(pos);
+      starterPositionsByPlayer.set(starterId, positions);
+    });
+    starterPositionsByPlayer.forEach((positions, playerId) => {
+      if (positions.length > 1) {
+        errors.push({ type: 'duplicate-on-court-starter', playerId, positions });
       }
     });
     return { valid: errors.length === 0, errors, sums, totalMinutes };
   }
 
-  // Mensaje legible para la UI (C.6): qué posición(es) fallan y en cuánto.
+  // Mensaje legible para la UI (C.6): qué posición(es) fallan y en cuánto,
+  // o qué jugador está duplicado como titular (BUG-PREEXISTING-TAC-01).
   function describeValidationErrors(errors) {
-    return errors.map(({ position, diff }) => {
-      const sign = diff > 0 ? 'sobran' : 'faltan';
-      return `${position}: ${sign} ${Math.abs(diff)} min (debe sumar exactamente la duración del partido)`;
+    return errors.map((error) => {
+      if (error.type === 'duplicate-on-court-starter') {
+        return `${error.playerId} está declarado como titular en más de una posición a la vez `
+          + `(${error.positions.join(', ')}) — un jugador no puede ocupar dos posiciones en pista simultáneamente`;
+      }
+      const sign = error.diff > 0 ? 'sobran' : 'faltan';
+      return `${error.position}: ${sign} ${Math.abs(error.diff)} min (debe sumar exactamente la duración del partido)`;
     }).join(' · ');
   }
 

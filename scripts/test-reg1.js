@@ -637,7 +637,7 @@ check('ACB: doble acta misma jornada se rechaza (EligibilityService)', () => {
     playerRegistry: { has: () => true }, contractRegistry: { get: () => ({ isCurrentOn: () => true }) }, registrationRegistry: registry,
   });
   assert.strictEqual(evaluation.eligible, false);
-  assert.ok(evaluation.reasons.some((r) => r.code === 'ALREADY_ON_OTHER_ACB_ACT_SAME_ROUND'));
+  assert.ok(evaluation.reasons.some((r) => r.code === 'ALREADY_ON_OTHER_ACT_SAME_ROUND'));
 });
 
 check('ACB: una inscripción suspendida se reporta como REGISTRATION_SUSPENDED, nunca como "sin inscripción"', () => {

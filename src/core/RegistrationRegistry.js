@@ -287,6 +287,25 @@
             );
           }
         }
+        // BUG-REG1-07 (DESIGN.md 9.19): el contrato referenciado, cuando
+        // existe, debe ser REALMENTE del jugador y club de esta inscripción
+        // — comprobado para cualquier `contractId` presente (no solo
+        // senior/activa), nunca "corregido" en silencio.
+        if (contractRegistry && registration.contractId) {
+          const contract = contractRegistry.get(registration.contractId);
+          if (contract && contract.playerId !== registration.playerId) {
+            errors.push(
+              `La inscripción "${registration.id}" referencia el contrato "${registration.contractId}", que pertenece `
+              + `al jugador "${contract.playerId}", no a "${registration.playerId}".`,
+            );
+          }
+          if (contract && contract.clubId !== registration.teamId) {
+            errors.push(
+              `La inscripción "${registration.id}" referencia el contrato "${registration.contractId}", que pertenece `
+              + `al club "${contract.clubId}", no a "${registration.teamId}".`,
+            );
+          }
+        }
         // Invariante: no hay inscripción activa fuera de la vigencia de la
         // licencia asociada.
         const license = this.getLicense(registration.licenseId);

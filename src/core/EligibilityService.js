@@ -29,6 +29,13 @@
     REGISTRATION_NOT_EFFECTIVE: 'REGISTRATION_NOT_EFFECTIVE',
     REGISTRATION_SUSPENDED: 'REGISTRATION_SUSPENDED',
     CONTRACT_NOT_ACTIVE: 'CONTRACT_NOT_ACTIVE',
+    // BUG-REG1-07 (DESIGN.md 9.19): la inscripción referencia un contrato
+    // que existe y está vigente, pero pertenece a OTRO jugador o a OTRO
+    // club — nunca se corrige en silencio, se rechaza con un motivo
+    // estable y no ambiguo (distinto de CONTRACT_NOT_ACTIVE, que es sobre
+    // vigencia, no sobre identidad).
+    CONTRACT_PLAYER_MISMATCH: 'CONTRACT_PLAYER_MISMATCH',
+    CONTRACT_CLUB_MISMATCH: 'CONTRACT_CLUB_MISMATCH',
     MANDATORY_DOCUMENT_MISSING: 'MANDATORY_DOCUMENT_MISSING',
     PROVISIONAL_AUTHORIZATION_INVALID: 'PROVISIONAL_AUTHORIZATION_INVALID',
     INTERNATIONAL_CLEARANCE_REQUIRED: 'INTERNATIONAL_CLEARANCE_REQUIRED',
@@ -36,7 +43,7 @@
     LINKED_PLAYER_NOT_ON_LIST: 'LINKED_PLAYER_NOT_ON_LIST',
     LINKED_PLAYER_AGE_OR_CATEGORY_INVALID: 'LINKED_PLAYER_AGE_OR_CATEGORY_INVALID',
     SAME_COMPETITION_LINK_INEFFECTIVE: 'SAME_COMPETITION_LINK_INEFFECTIVE',
-    ALREADY_ON_OTHER_ACB_ACT_SAME_ROUND: 'ALREADY_ON_OTHER_ACB_ACT_SAME_ROUND',
+    ALREADY_ON_OTHER_ACT_SAME_ROUND: 'ALREADY_ON_OTHER_ACT_SAME_ROUND',
     MEDICALLY_UNAVAILABLE: 'MEDICALLY_UNAVAILABLE',
     DISCIPLINARY_SUSPENSION: 'DISCIPLINARY_SUSPENSION',
     CLASSIFICATION_UNKNOWN: 'CLASSIFICATION_UNKNOWN',
@@ -113,7 +120,23 @@
       // Inscripción senior activa exige contrato vigente (sección 8.1).
       if (accessCategory === 'senior') {
         const contract = registration.contractId && deps.contractRegistry ? deps.contractRegistry.get(registration.contractId) : null;
-        if (!contract || !contract.isCurrentOn(context.date)) {
+        if (!contract) {
+          reasons.push(reason(REASON_CODES.CONTRACT_NOT_ACTIVE, 'blocking'));
+        } else if (contract.playerId !== registration.playerId) {
+          // BUG-REG1-07: el contrato existe pero es de OTRO jugador —
+          // nunca se acepta como si acreditara relación laboral de este.
+          reasons.push(reason(REASON_CODES.CONTRACT_PLAYER_MISMATCH, 'blocking'));
+        } else if (contract.clubId !== registration.teamId) {
+          // BUG-REG1-07: el contrato existe, es del jugador correcto, pero
+          // con OTRO club — tampoco acredita relación laboral con el club
+          // que está inscribiéndolo.
+          reasons.push(reason(REASON_CODES.CONTRACT_CLUB_MISMATCH, 'blocking'));
+        } else if (!contract.isActiveOn(context.date)) {
+          // BUG-REG1-08: elegibilidad de PARTIDO exige relación laboral
+          // ACTIVA hoy, no "vigente o pendiente" (isCurrentOn incluye un
+          // contrato ya firmado que todavía no ha empezado — útil para
+          // compromisos de nómina/solapamientos, pero no para acreditar
+          // que hoy hay relación laboral para disputar un partido).
           reasons.push(reason(REASON_CODES.CONTRACT_NOT_ACTIVE, 'blocking'));
         }
       }
@@ -171,7 +194,7 @@
       const clash = deps.registrationRegistry.playerAlreadyOnActThisRound(
         playerId, resolved.registrationScopeId, context.seasonKey, context.roundId, context.matchId,
       );
-      if (clash) reasons.push(reason(REASON_CODES.ALREADY_ON_OTHER_ACB_ACT_SAME_ROUND, 'blocking'));
+      if (clash) reasons.push(reason(REASON_CODES.ALREADY_ON_OTHER_ACT_SAME_ROUND, 'blocking'));
     }
 
     const blocking = reasons.filter((r) => r.severity === 'blocking');

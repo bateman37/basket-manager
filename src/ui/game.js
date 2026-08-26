@@ -53,6 +53,39 @@
     // normativas provisionales) — se muestran en la pantalla Contratos, no
     // se esconden.
     contractBootstrapWarnings: [],
+    // REG-1 (DESIGN.md 9.18): instancia EXPLÍCITA del registro de
+    // inscripciones/licencias de ESTA partida — declarada aquí junto al
+    // resto del estado canónico (BUG-REG1-06: antes se creaba de forma
+    // dinámica solo en bootstrapRegistrationsForNewCareer() y nunca se
+    // limpiaba al volver a selección de equipo, así que una carrera nueva
+    // con el mismo playerId/competición/temporada podía heredar estado de
+    // la anterior).
+    registrationRegistry: null,
+    registrationBootstrapWarnings: [],
+    // BUG-REG1-06: caché de clasificación formación/no-comunitario por
+    // CARRERA — antes se creaba perezosa y accidentalmente desde el
+    // primer renderizador que la necesitara (RegulatoryClassificationService
+    // consultado desde Alineación/Inscripciones/ficha), nunca declarada ni
+    // limpiada, así que podía sobrevivir a un cambio de carrera y devolver
+    // una clasificación calculada para OTRO perfil regulatorio si
+    // coincidían playerId+competición+temporada+versión. Ahora se declara
+    // aquí y se crea/limpia siempre junto al resto del registro
+    // regulatorio (bootstrapRegistrationsForNewCareer() / "volver a
+    // selección de equipo").
+    registrationClassificationCache: null,
+    // MARKET-1 (DESIGN.md 9.19): mismo principio aplicado desde el
+    // principio a los registros nuevos de mercado — instancias EXPLÍCITAS
+    // por carrera, nunca un singleton oculto, limpiadas junto al resto del
+    // estado regulatorio/contractual al volver a selección de equipo.
+    agentRegistry: null,
+    marketRegistry: null,
+    marketBootstrapWarnings: [],
+    // Agenda de mercado (respuestas de interés, expiración de ofertas, fin
+    // de autorización, ventanas de derechos, decisión de igualar...) — no
+    // es reconstruible desde otro estado ya vivo (a diferencia de un
+    // partido de liga/bracket), así que sigue el mismo patrón de
+    // persistencia que `medicalAgendaLog` (ver buildAgendaEvents()).
+    marketAgendaLog: [],
     // Año real de inicio de temporada (DESIGN.md 3.3, Entidad Calendario) —
     // no existía ningún concepto de fecha real en el estado de partida
     // antes de esto. Decisión NO fijada en DESIGN.md, señalada aquí: se usa
@@ -260,8 +293,7 @@
     if (!registry) return null;
     const { getAvailability, CONFIG_BASE, EligibilityService } = BM;
     const medicalAvailability = CONFIG_BASE.medical.enabled ? new Map() : null;
-    const classificationCache = state.registrationClassificationCache
-      || (state.registrationClassificationCache = new Map());
+    const classificationCache = getRegistrationClassificationCache();
 
     function evaluateFor(player, accessCategory, extraDeps) {
       if (medicalAvailability && !medicalAvailability.has(player.id)) {
@@ -646,6 +678,10 @@
     const { RegistrationRegistry, RegistrationSeeder, CONFIG_BASE } = BM;
     state.registrationRegistry = new RegistrationRegistry();
     state.registrationBootstrapWarnings = [];
+    // BUG-REG1-06: la caché por carrera se crea aquí, en el ÚNICO punto de
+    // arranque regulatorio — nunca de forma perezosa/accidental desde un
+    // renderizador (ver getRegistrationClassificationCache() más abajo).
+    state.registrationClassificationCache = new Map();
 
     const seasonKey = buildCareerSeasonKey();
     const isoDate = currentGameIsoDate();
@@ -658,6 +694,19 @@
       config: CONFIG_BASE,
     });
     state.registrationBootstrapWarnings = warnings;
+  }
+
+  // BUG-REG1-06 (DESIGN.md 9.19): único punto de lectura de la caché de
+  // clasificación regulatoria — nunca `state.registrationClassificationCache
+  // || (state.registrationClassificationCache = new Map())` repetido en
+  // cada renderizador (ese patrón perezoso era justo lo que permitía que
+  // sobreviviera sin limpiar entre carreras). La caché SIEMPRE existe ya
+  // desde bootstrapRegistrationsForNewCareer(); este getter solo evita
+  // duplicar el acceso, y de forma defensiva crea una vacía si se llama
+  // antes de tiempo (nunca debería pasar en producción).
+  function getRegistrationClassificationCache() {
+    if (!state.registrationClassificationCache) state.registrationClassificationCache = new Map();
+    return state.registrationClassificationCache;
   }
 
   // Licencia/inscripción de un jugador que se incorpora con la partida ya
@@ -2521,7 +2570,7 @@
     LINKED_PLAYER_NOT_ON_LIST: 'vinculado fuera de la lista autorizada',
     LINKED_PLAYER_AGE_OR_CATEGORY_INVALID: 'edad/categoría no válida para vinculación',
     SAME_COMPETITION_LINK_INEFFECTIVE: 'vinculación ineficaz (misma competición)',
-    ALREADY_ON_OTHER_ACB_ACT_SAME_ROUND: 'ya en otra acta esta jornada',
+    ALREADY_ON_OTHER_ACT_SAME_ROUND: 'ya en otra acta esta jornada',
     MEDICALLY_UNAVAILABLE: 'no disponible por lesión',
     DISCIPLINARY_SUSPENSION: 'sanción disciplinaria',
     CLASSIFICATION_UNKNOWN: 'clasificación regulatoria desconocida',
@@ -5677,8 +5726,7 @@
     let eligibilityHtml = '<p class="gm-muted">Jugador libre: no hay próximo partido que evaluar.</p>';
     if (team) {
       const { context, resolved } = resolveNextMatchRegistration(team);
-      const classificationCache = state.registrationClassificationCache
-        || (state.registrationClassificationCache = new Map());
+      const classificationCache = getRegistrationClassificationCache();
       const evaluation = BM.EligibilityService.evaluateEligibility(player.id, team.id, context, {
         playerRegistry: state.playerRegistry,
         contractRegistry: state.contractRegistry,
@@ -5918,8 +5966,7 @@
 
     // Ficha por jugador (afiliación+contrato, licencia, inscripción,
     // formación/no-comunitario, procedencia, razones) — sección 13.1.
-    const classificationCache = state.registrationClassificationCache
-      || (state.registrationClassificationCache = new Map());
+    const classificationCache = getRegistrationClassificationCache();
     const medicalAvailability = getLineupMedicalAvailability(team);
     const playerRowsHtml = [...team.roster]
       .sort((a, b) => a.fullName.localeCompare(b.fullName, 'es'))
@@ -6153,6 +6200,22 @@
       // contractual — los contratos pertenecen a UNA partida.
       state.contractRegistry = null;
       state.contractBootstrapWarnings = [];
+      // BUG-REG1-06 (DESIGN.md 9.19): mismo criterio para el registro
+      // regulatorio y su caché de clasificación — antes NINGUNO de los
+      // tres se limpiaba aquí (ni siquiera estaban declarados en el
+      // `state` canónico), así que una carrera nueva podía heredar
+      // clasificaciones/inscripciones de la anterior.
+      state.registrationRegistry = null;
+      state.registrationBootstrapWarnings = [];
+      state.registrationClassificationCache = null;
+      // MARKET-1 (DESIGN.md 9.19): mismo criterio para los registros de
+      // mercado — agentes/mandatos, hilos/ofertas/acuerdos/derechos y su
+      // agenda pertenecen a UNA partida, nunca sobreviven a "Volver a
+      // selección de equipo".
+      state.agentRegistry = null;
+      state.marketRegistry = null;
+      state.marketBootstrapWarnings = [];
+      state.marketAgendaLog = [];
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado
