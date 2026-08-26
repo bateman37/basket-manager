@@ -43,6 +43,16 @@
     // registro es quien permite encontrar a un jugador aunque no esté en
     // ninguna plantilla (ficha universal, LIFE-4/BUG-LIFE4-03).
     playerRegistry: null,
+    // CONTRACT-1 (DESIGN.md 9.17): instancia EXPLÍCITA del registro
+    // CONTRACTUAL de ESTA partida — `null` hasta `startSeason()`, nunca un
+    // singleton global oculto. Es la fuente CANÓNICA de contratos: ni
+    // `Player` ni `Team` guardan una copia (`currentContract` duplicado) y
+    // la nómina de la interfaz es siempre una consulta derivada de aquí.
+    contractRegistry: null,
+    // Warnings del bootstrap de contratos (calibración económica, fuentes
+    // normativas provisionales) — se muestran en la pantalla Contratos, no
+    // se esconden.
+    contractBootstrapWarnings: [],
     // Año real de inicio de temporada (DESIGN.md 3.3, Entidad Calendario) —
     // no existía ningún concepto de fecha real en el estado de partida
     // antes de esto. Decisión NO fijada en DESIGN.md, señalada aquí: se usa
@@ -235,9 +245,14 @@
     fallbackPlayers.forEach((player) => {
       // Histórico `complete` desde su creación en la partida (sin pasado
       // inventado) — mismo criterio que la cantera nueva
-      // (`generateAcademyIntake()`). Nunca reciben licencia/contrato/
-      // vinculado ficticio: esas entidades todavía no existen (CONTRACT-1/
-      // REG-1).
+      // (`generateAcademyIntake()`). CONTRACT-1 (DESIGN.md 9.17): sí
+      // reciben CONTRATO simulado como cualquier otro afiliado, pero se
+      // crea aparte, vía ContractService, después de registrarlos en el
+      // Player Registry (ver `bootstrapContractsForNewCareer()`), nunca
+      // desde aquí. Licencia/inscripción (REG-1) y "jugador vinculado"
+      // (REG-1, y LOAN-1 cuando exista una relación temporal) siguen sin
+      // existir — corrección documental de ROSTER-1, que los atribuía a
+      // CONTRACT-1.
       BM.ensureCareerHistory(
         player, CONFIG_BASE, referenceDate,
         { historyCompleteness: 'complete', seasonKey: buildCareerSeasonKey() },
@@ -357,6 +372,14 @@
       ));
     });
 
+    // CONTRACT-1 (DESIGN.md 9.17, sección 11 del prompt): con los 36
+    // equipos ya construidos y el Player Registry completo, se crea el
+    // registro CONTRACTUAL de la partida, se valida que los 36 clubes
+    // tienen contexto laboral explícito y se generan los contratos
+    // bootstrap SIMULADOS de todos los jugadores afiliados. Nada de esto
+    // toca `data/real/`.
+    bootstrapContractsForNewCareer();
+
     state.brackets = {
       '1ª': { cup: null, titlePlayoff: null },
       '2ª': { promotionPlayoff: null },
@@ -383,6 +406,74 @@
     const league = getUserLeague();
     if (!league || !state.userTeamId) return null;
     return league.teams.find((t) => t.id === state.userTeamId) || null;
+  }
+
+  // ---------------------------------------------------------------------
+  // CONTRACT-1 (DESIGN.md 9.17) — integración de la vertical contractual.
+  //
+  // Esta capa de UI NO contiene ninguna regla laboral propia: solo decide
+  // CUÁNDO llamar a `ContractSeeder`/`ContractService` (arranque de
+  // partida, incorporación de cantera) y muestra el resultado. Toda la
+  // normativa vive en `CompetitionRules`/`ClubEmploymentContextCatalog`.
+  // ---------------------------------------------------------------------
+  function currentGameIsoDate() {
+    return BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
+  }
+
+  // Nómina proyectada de los 36 clubes desde el registro contractual —
+  // `team.finances.expenses.playerSalaries` deja de ser un valor editable y
+  // pasa a ser esta proyección (nunca una segunda verdad).
+  function refreshAllSalaryProjections(seasonKey) {
+    if (!state.contractRegistry) return;
+    getAllTeams().forEach((team) => {
+      BM.ContractService.refreshTeamSalaryProjection(team, state.contractRegistry, seasonKey);
+    });
+  }
+
+  function bootstrapContractsForNewCareer() {
+    const { ContractRegistry, ContractSeeder, ClubEmploymentContextCatalog, CONFIG_BASE } = BM;
+    state.contractRegistry = new ContractRegistry();
+    state.contractBootstrapWarnings = [];
+
+    const teams = getAllTeams();
+    // Los 36 clubes deben tener contexto laboral EXPLÍCITO: un club
+    // desconocido no hereda España, ACB ni ningún otro perfil.
+    const catalogCheck = ClubEmploymentContextCatalog.validateCatalog(teams);
+    if (!catalogCheck.valid) {
+      throw new Error(`CONTRACT-1: contexto laboral de club incompleto — ${catalogCheck.errors.join(' | ')}`);
+    }
+
+    const seasonKey = buildCareerSeasonKey();
+    const isoDate = currentGameIsoDate();
+    const { warnings } = ContractSeeder.seedContractsForTeams({
+      teams,
+      seasonKey,
+      date: isoDate,
+      registry: state.contractRegistry,
+      playerRegistry: state.playerRegistry,
+      config: CONFIG_BASE,
+    });
+    state.contractBootstrapWarnings = warnings;
+    refreshAllSalaryProjections(seasonKey);
+  }
+
+  // Contrato de un jugador que se incorpora con la partida ya en marcha
+  // (cantera). Usa SIEMPRE el contexto doméstico vigente DESPUÉS de
+  // ascensos/descensos — y nunca reescribe los contratos ya firmados.
+  function signContractsForNewPlayers(team, players, seasonKey, isoDate, calibration) {
+    if (!state.contractRegistry) return;
+    players.forEach((player) => {
+      BM.ContractSeeder.seedContractForNewPlayer({
+        player,
+        team,
+        seasonKey,
+        date: isoDate,
+        registry: state.contractRegistry,
+        playerRegistry: state.playerRegistry,
+        config: BM.CONFIG_BASE,
+        calibration,
+      });
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -1099,6 +1190,15 @@
     // 3. Cantera/Academia de la nueva temporada (3.4.4 paso 2) — conecta
     // Team.generateAcademyIntake() tal cual (con la fecha real de cierre,
     // LIFE-1), sin ninguna otra regla nueva.
+    //
+    // CONTRACT-1 (DESIGN.md 9.17, sección 11): cada newgen firma un
+    // contrato NUEVO con el contexto doméstico YA ACTUALIZADO (los
+    // ascensos/descensos se aplicaron en el paso 1). Los contratos ya
+    // firmados NO se recrean ni cambian su `signingContext`: un ascenso no
+    // reescribe la ley histórica de un contrato anterior.
+    const closeIsoDate = BM.LocalDate.fromJsDate(seasonEndDateTime);
+    const intakeCalibration = state.contractRegistry
+      ? BM.ContractSeeder.buildCompetitionCalibration(allTeams, CONFIG_BASE) : null;
     allTeams.forEach((team) => {
       const newPlayers = team.generateAcademyIntake(3, seasonEndDateTime);
       // LIFE-4 (DESIGN.md 9.15, sección 19): cantera nueva = histórico
@@ -1115,7 +1215,15 @@
       // jugador ilocalizable ni colisiona con ids existentes (PlayerRegistry
       // rechaza duplicados con error descriptivo).
       state.playerRegistry.registerMany(newPlayers);
+      // CONTRACT-1: el contrato se crea DESPUÉS de registrar al jugador en
+      // el registro mundial (nunca desde `Player`/`Team.addPlayer`), vía
+      // ContractService, y ya con la competición doméstica nueva.
+      signContractsForNewPlayers(team, newPlayers, nextSeasonKey, closeIsoDate, intakeCalibration);
     });
+
+    // CONTRACT-1: la nómina proyectada de los 36 clubes se recalcula para
+    // la temporada que entra, siempre desde el registro contractual.
+    refreshAllSalaryProjections(nextSeasonKey);
 
     // 4. Nuevo Calendar (3.4.4 paso 3).
     state.seasonStartYear += 1;
@@ -4185,6 +4293,10 @@
     { id: 'stats', label: 'Estadísticas' },
     { id: 'medical', label: 'Médico' },
     { id: 'career', label: 'Carrera' },
+    // CONTRACT-1 (DESIGN.md 9.17, sección 10.2): pestaña de solo lectura —
+    // abrirla NUNCA crea, muta ni renueva un contrato, ni avanza el reloj,
+    // ni infiere licencia/elegibilidad (eso es REG-1).
+    { id: 'contract', label: 'Contrato' },
   ];
 
   // BUG-LIFE4-03 (ROSTER-1, DESIGN.md 9.16): resuelve la instancia REAL
@@ -4666,6 +4778,375 @@
     return `<div class="gm-card"><h4>Timeline de carrera</h4>${buildCareerTimelineHtml(ch, true)}</div>`;
   }
 
+  // ---------------------------------------------------------------------
+  // CONTRACT-1 (DESIGN.md 9.17) — presentación de contratos.
+  //
+  // Capa de solo lectura: NO hay ningún botón de renovar, fichar, liberar,
+  // ejecutar cláusula, tantear ni ceder (eso es MARKET-1/TRANSFER-1/
+  // LOAN-1). Todo lo que se muestra sale de `state.contractRegistry` y de
+  // `CompetitionRules` — esta pantalla no calcula ninguna regla propia.
+  // ---------------------------------------------------------------------
+  const CONTRACT_STATUS_LABELS = {
+    pending: 'Pendiente de inicio',
+    active: 'Vigente',
+    expired: 'Expirado',
+    terminated: 'Terminado',
+    void: 'Anulado',
+  };
+
+  const RULE_STATUS_LABELS = {
+    verified: 'Verificada',
+    provisional: 'Provisional',
+    deprecated: 'Derogada',
+    'reference-only': 'Solo referencia',
+  };
+
+  // Umbral de la etiqueta "expira pronto": es una etiqueta DE INTERFAZ
+  // derivada, nunca un estado jurídico persistido en el contrato.
+  const CONTRACT_EXPIRING_SOON_SEASONS = 1;
+
+  function formatMoneyMinor(amountMinor, currency, options) {
+    return BM.Money.format(amountMinor || 0, currency || 'EUR', options || { compact: true });
+  }
+
+  function formatIsoDateEs(iso) {
+    return BM.LocalDate.formatEs(iso);
+  }
+
+  function simulatedContractNoticeHtml() {
+    return `
+      <p class="contract-notice" role="note">
+        <span class="gm-badge gm-badge--simulated">Simulado</span>
+        ${BM.ContractSeeder.SIMULATED_CONTRACT_WARNING}
+      </p>`;
+  }
+
+  function ruleResolutionBadgeHtml(resolutionMode) {
+    if (resolutionMode === 'provisionalCarryForward') {
+      return '<span class="gm-badge gm-badge--provisional" title="Norma aplicada por continuidad provisional: no verificada para esta temporada">Continuidad provisional</span>';
+    }
+    if (resolutionMode === 'pinned') {
+      return '<span class="gm-badge gm-badge--pinned" title="Versión normativa fijada (congelada) para este contrato">Versión fijada</span>';
+    }
+    return '<span class="gm-badge gm-badge--verified" title="Norma vigente y verificada para la temporada solicitada">Vigente verificada</span>';
+  }
+
+  function ruleModuleListHtml(moduleIds, ruleVersions) {
+    return `<ul class="contract-modules">${moduleIds.map((moduleId) => {
+      let module_ = null;
+      try { module_ = BM.getEmploymentModule(moduleId); } catch (err) { module_ = null; }
+      const status = module_ ? module_.status : 'desconocido';
+      const version = (ruleVersions && ruleVersions[moduleId]) || (module_ ? module_.version : '?');
+      const sources = module_ ? module_.sourceRefs.map((ref) => (
+        `<li><a href="${escapeHtml(ref.url)}" target="_blank" rel="noopener">${escapeHtml(ref.title)}</a>`
+        + `<span class="gm-muted"> · consultado ${escapeHtml(ref.retrievedAt)}</span></li>`
+      )).join('') : '';
+      return `
+        <li class="contract-module">
+          <span class="contract-module__id">${escapeHtml(moduleId)}</span>
+          <span class="gm-badge gm-badge--${status === 'verified' ? 'verified' : 'provisional'}">${escapeHtml(RULE_STATUS_LABELS[status] || status)}</span>
+          <span class="gm-muted">v${escapeHtml(String(version))}</span>
+          ${sources ? `<ul class="contract-sources">${sources}</ul>` : ''}
+        </li>`;
+    }).join('')}</ul>`;
+  }
+
+  function contractWarningsHtml(warnings, title) {
+    if (!warnings || !warnings.length) return '';
+    return `
+      <details class="contract-warnings">
+        <summary>${escapeHtml(title)} (${warnings.length})</summary>
+        <ul>${warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
+      </details>`;
+  }
+
+  // --- Pestaña "Contrato" de la ficha universal --------------------------
+  function renderPlayerContractTab(player, team) {
+    if (!state.contractRegistry) {
+      return '<div class="gm-card"><p class="gm-muted">Todavía no hay registro contractual en esta partida.</p></div>';
+    }
+    const isoDate = currentGameIsoDate();
+    const history = state.contractRegistry.forPlayer(player.id);
+    const current = state.contractRegistry.currentForPlayer(player.id, isoDate);
+    if (!current) {
+      return `
+        <div class="gm-card">
+          <h4>Contrato</h4>
+          <p class="gm-muted">Sin contrato${team ? '' : ' · Sin club'}.</p>
+          <p class="gm-muted">Un jugador puede existir sin club y sin contrato: contrato, afiliación y licencia son cosas distintas.</p>
+        </div>
+        ${history.length ? renderContractHistoryCard(history, isoDate) : ''}`;
+    }
+
+    const seasonKey = buildCareerSeasonKey();
+    const breakdown = current.breakdownForSeason(
+      current.coveredSeasonKeys.includes(seasonKey) ? seasonKey : current.coveredSeasonKeys[0],
+    );
+    const context = current.signingContext || {};
+    const employerLabel = BM.ClubEmploymentContextCatalog.jurisdictionLabel(context.employerJurisdictionId);
+    const status = current.statusOn(isoDate);
+    const remaining = current.remainingSeasonKeys(seasonKey).length;
+    const expiringSoon = remaining <= CONTRACT_EXPIRING_SOON_SEASONS && status !== 'expired';
+
+    const seasonRows = current.coveredSeasonKeys.map((key) => {
+      const b = current.breakdownForSeason(key);
+      return `
+        <tr>
+          <th scope="row">${escapeHtml(key)}</th>
+          <td>${formatMoneyMinor(b.guaranteedBaseSalaryMinor, b.currency)}</td>
+          <td>${formatMoneyMinor(b.guaranteedImageRightsMinor, b.currency)}</td>
+          <td>${formatMoneyMinor(b.guaranteedSalaryInKindMinor, b.currency)}</td>
+          <td>${formatMoneyMinor(b.variableMaxMinor, b.currency)}</td>
+          <td>${formatMoneyMinor(b.guaranteedTotalMinor, b.currency)}</td>
+        </tr>`;
+    }).join('');
+
+    const scheduleRows = current.scheduleForSeason(breakdown.seasonKey).map((installment) => `
+      <tr>
+        <th scope="row">${installment.index}</th>
+        <td>${escapeHtml(formatIsoDateEs(installment.dueDate))}</td>
+        <td>${formatMoneyMinor(installment.amountMinor, installment.currency, { compact: false })}</td>
+      </tr>`).join('');
+
+    const clausesHtml = current.clauses.length
+      ? `<ul class="contract-clauses">${current.clauses.map((clause) => {
+        const definition = BM.CLAUSE_TYPE_DEFINITIONS[clause.type];
+        return `
+          <li>
+            <strong>${escapeHtml(definition ? definition.label : clause.type)}</strong>
+            ${clause.amount ? ` — ${formatMoneyMinor(clause.amount.amountMinor, clause.amount.currency)}` : ''}
+            <span class="gm-badge gm-badge--simulated">Simulada</span>
+            <span class="gm-badge gm-badge--modeled" title="Modelada, todavía no ejecutable (MARKET-1/TRANSFER-1)">No ejecutable</span>
+          </li>`;
+      }).join('')}</ul>`
+      : '<p class="gm-muted">Sin cláusulas.</p>';
+
+    const minorHtml = current.minorProtections ? `
+      <div class="gm-card">
+        <h4>Protección de menores</h4>
+        <p>Edad al firmar: ${current.minorProtections.ageAtSigning} años.</p>
+        <p>Marcadores exigidos por el perfil: ${current.minorProtections.markers.map((m) => escapeHtml(m)).join(', ')}
+          <span class="gm-badge gm-badge--simulated">Simulados</span></p>
+        <p class="gm-muted">${escapeHtml(current.minorProtections.note)}</p>
+      </div>` : '';
+
+    return `
+      <div class="gm-card contract-card">
+        <h4>Contrato actual</h4>
+        ${simulatedContractNoticeHtml()}
+        <dl class="contract-facts">
+          <div><dt>Club empleador</dt><dd>${escapeHtml(team ? team.fullName : current.clubId)}</dd></div>
+          <div><dt>Estado</dt><dd>${escapeHtml(CONTRACT_STATUS_LABELS[status])}${expiringSoon ? ' <span class="gm-badge gm-badge--warning">Expira pronto</span>' : ''}</dd></div>
+          <div><dt>Vigencia</dt><dd>${escapeHtml(formatIsoDateEs(current.startDate))} → ${escapeHtml(formatIsoDateEs(current.endDate))}</dd></div>
+          <div><dt>Temporadas restantes</dt><dd>${remaining}</dd></div>
+          <div><dt>Garantía</dt><dd>${current.guaranteeType === 'fully-guaranteed' ? 'Totalmente garantizado' : escapeHtml(current.guaranteeType)}</dd></div>
+          <div><dt>Jurisdicción laboral</dt><dd>${escapeHtml(employerLabel)}</dd></div>
+          <div><dt>Perfil normativo</dt><dd>${escapeHtml(context.employmentProfileId || '—')} ${ruleResolutionBadgeHtml(context.resolutionMode)}</dd></div>
+          <div><dt>Periodo de prueba</dt><dd>${current.probation.enabled
+    ? `${current.probation.durationDays} días (${escapeHtml(formatIsoDateEs(current.probation.startDate))} → ${escapeHtml(formatIsoDateEs(current.probation.endDate))})`
+    : 'No'}</dd></div>
+        </dl>
+      </div>
+
+      <div class="gm-card">
+        <h4>Desglose por temporada (${escapeHtml(breakdown.basis === 'gross' ? 'importes brutos' : breakdown.basis)})</h4>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table">
+            <thead><tr><th>Temporada</th><th>Salario base</th><th>Imagen</th><th>Especie</th><th>Variable máx.</th><th>Garantizado</th></tr></thead>
+            <tbody>${seasonRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="gm-card">
+        <h4>Calendario de pagos ${escapeHtml(breakdown.seasonKey)} (${current.paymentPolicy.installmentCount} cuotas)</h4>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table">
+            <thead><tr><th>Cuota</th><th>Vencimiento</th><th>Importe</th></tr></thead>
+            <tbody>${scheduleRows}</tbody>
+          </table>
+        </div>
+        <p class="gm-muted">Compromiso de pago previsto; el juego no simula pagos realizados, impagos ni tesorería.</p>
+      </div>
+
+      <div class="gm-card">
+        <h4>Cláusulas</h4>
+        ${clausesHtml}
+      </div>
+      ${minorHtml}
+
+      <div class="gm-card">
+        <h4>Normativa aplicada en la firma</h4>
+        <p class="gm-muted">Módulos congelados el ${escapeHtml(formatIsoDateEs(current.signedDate))}: un ascenso o descenso posterior no reescribe la norma de un contrato ya firmado.</p>
+        ${ruleModuleListHtml(context.ruleModuleIds || [], context.ruleVersions)}
+        ${contractWarningsHtml(context.warnings, 'Advertencias normativas')}
+        ${contractWarningsHtml(context.knownSourceInconsistencies, 'Inconsistencias conocidas de las fuentes')}
+      </div>
+      ${history.length > 1 ? renderContractHistoryCard(history, isoDate) : ''}`;
+  }
+
+  function renderContractHistoryCard(history, isoDate) {
+    return `
+      <div class="gm-card">
+        <h4>Histórico contractual</h4>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table">
+            <thead><tr><th>Club</th><th>Desde</th><th>Hasta</th><th>Estado</th></tr></thead>
+            <tbody>${history.map((contract) => {
+    const club = getAllTeams().find((t) => t.id === contract.clubId);
+    return `
+              <tr>
+                <td>${escapeHtml(club ? club.fullName : contract.clubId)}</td>
+                <td>${escapeHtml(formatIsoDateEs(contract.startDate))}</td>
+                <td>${escapeHtml(formatIsoDateEs(contract.endDate))}</td>
+                <td>${escapeHtml(CONTRACT_STATUS_LABELS[contract.statusOn(isoDate)])}</td>
+              </tr>`;
+  }).join('')}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  // --- Pantalla "Contratos" ----------------------------------------------
+  function renderContractsScreen() {
+    const container = byId('gm-contracts');
+    const team = getUserTeam();
+    if (!container) return;
+    if (!team || !state.contractRegistry) { container.innerHTML = ''; return; }
+
+    const seasonKey = buildCareerSeasonKey();
+    const isoDate = currentGameIsoDate();
+    const registry = state.contractRegistry;
+    const { ContractService } = BM;
+
+    const resolved = ContractService.resolveRulesForClub(team, {
+      seasonKey, date: isoDate, operation: 'validateContract',
+    });
+    const payroll = ContractService.guaranteedPayrollForClub(registry, team.id, seasonKey);
+    const variable = ContractService.potentialVariableCompensationForClub(registry, team.id, seasonKey);
+    const benefits = ContractService.benefitsValueForClub(registry, team.id, seasonKey);
+    const agentCosts = ContractService.agentCostsForClub(registry, team.id, seasonKey);
+    const commitments = ContractService.futureCommitmentsForClub(registry, team.id, seasonKey);
+    const integrity = registry.validateIntegrity({ playerRegistry: state.playerRegistry, teams: getAllTeams(), date: isoDate });
+
+    const maxCommitment = commitments.reduce((acc, c) => Math.max(acc, c.guaranteed.amountMinor), 0) || 1;
+    const commitmentRows = commitments.map((commitment) => `
+      <tr>
+        <th scope="row">${escapeHtml(commitment.seasonKey)}</th>
+        <td>
+          <span class="contract-bar" style="--contract-bar-width:${Math.round((commitment.guaranteed.amountMinor / maxCommitment) * 100)}%"
+            aria-hidden="true"></span>
+          ${formatMoneyMinor(commitment.guaranteed.amountMinor, 'EUR')}
+        </td>
+        <td>${commitment.guaranteed.contracts}</td>
+        <td>${formatMoneyMinor(commitment.variableMax.amountMinor, 'EUR')}</td>
+      </tr>`).join('');
+
+    const contracts = registry.forClubInSeason(team.id, seasonKey)
+      .map((contract) => {
+        const player = state.playerRegistry.get(contract.playerId);
+        const breakdown = contract.breakdownForSeason(seasonKey);
+        const status = contract.statusOn(isoDate);
+        const remaining = contract.remainingSeasonKeys(seasonKey).length;
+        const clauseLabels = contract.clauses.map((clause) => {
+          const definition = BM.CLAUSE_TYPE_DEFINITIONS[clause.type];
+          return definition ? definition.label : clause.type;
+        });
+        return { contract, player, breakdown, status, remaining, clauseLabels };
+      })
+      .sort((a, b) => b.breakdown.guaranteedTotalMinor - a.breakdown.guaranteedTotalMinor);
+
+    const rosterRows = contracts.map((row) => `
+      <tr>
+        <td data-label="Jugador">${row.player ? playerLinkHtml(row.player) : escapeHtml(row.contract.playerId)}
+          <span class="gm-badge gm-badge--simulated" title="${escapeHtml(BM.ContractSeeder.SIMULATED_CONTRACT_WARNING)}">Simulado</span></td>
+        <td data-label="Estado">${escapeHtml(CONTRACT_STATUS_LABELS[row.status])}</td>
+        <td data-label="Inicio">${escapeHtml(formatIsoDateEs(row.contract.startDate))}</td>
+        <td data-label="Final">${escapeHtml(formatIsoDateEs(row.contract.endDate))}</td>
+        <td data-label="Temporadas restantes">${row.remaining}</td>
+        <td data-label="Garantía">${row.contract.guaranteeType === 'fully-guaranteed' ? 'Total' : escapeHtml(row.contract.guaranteeType)}</td>
+        <td data-label="Salario base">${formatMoneyMinor(row.breakdown.guaranteedBaseSalaryMinor, row.breakdown.currency)}</td>
+        <td data-label="Imagen/especie">${formatMoneyMinor(row.breakdown.guaranteedImageRightsMinor + row.breakdown.guaranteedSalaryInKindMinor, row.breakdown.currency)}</td>
+        <td data-label="Cuotas">${row.contract.paymentPolicy.installmentCount}</td>
+        <td data-label="Cláusulas">${row.clauseLabels.length ? escapeHtml(row.clauseLabels.join(', ')) : '—'}</td>
+      </tr>`).join('');
+
+    const minimum = resolved.employment.effectiveMinimumAnnual;
+
+    container.innerHTML = `
+      <h2>Contratos — ${escapeHtml(team.fullName)}</h2>
+      ${simulatedContractNoticeHtml()}
+
+      <div class="gm-card contract-profile">
+        <h3>Marco laboral aplicable</h3>
+        <dl class="contract-facts">
+          <div><dt>Jurisdicción laboral del empleador</dt>
+            <dd>${escapeHtml(BM.ClubEmploymentContextCatalog.jurisdictionLabel(resolved.requestedContext.employerJurisdictionId))}</dd></div>
+          <div><dt>Competición doméstica</dt><dd>${escapeHtml(BM.getCompetitionDefinition(resolved.requestedContext.domesticCompetitionId).name)}</dd></div>
+          <div><dt>Perfil</dt><dd>${escapeHtml(resolved.profileId)} ${ruleResolutionBadgeHtml(resolved.resolutionMode)}</dd></div>
+          <div><dt>Duración máxima</dt><dd>${resolved.employment.maxTermYears} años</dd></div>
+          <div><dt>Salario mínimo aplicado</dt>
+            <dd>${minimum ? `${formatMoneyMinor(minimum.amountMinor, minimum.currency)} · ${escapeHtml(minimum.ruleModuleId)}
+              <span class="gm-badge gm-badge--${minimum.status === 'verified' ? 'verified' : 'provisional'}">${escapeHtml(RULE_STATUS_LABELS[minimum.status] || minimum.status)}</span>` : '—'}</dd></div>
+          <div><dt>Cuotas por temporada</dt><dd>${resolved.employment.payments.defaultInstallmentCount}
+            (rango ${resolved.employment.payments.installmentRange.min}-${resolved.employment.payments.installmentRange.max})</dd></div>
+          <div><dt>Periodo de prueba máximo</dt><dd>${resolved.employment.probation.maxDays} días</dd></div>
+        </dl>
+        ${ruleModuleListHtml(resolved.ruleModuleIds, resolved.ruleVersions)}
+        ${contractWarningsHtml(resolved.warnings, 'Advertencias normativas')}
+        ${contractWarningsHtml(resolved.knownSourceInconsistencies, 'Inconsistencias conocidas de las fuentes')}
+        ${contractWarningsHtml(state.contractBootstrapWarnings, 'Avisos de calibración del bootstrap')}
+      </div>
+
+      <div class="gm-card">
+        <h3>Resumen de ${escapeHtml(seasonKey)}</h3>
+        <div class="contract-summary">
+          <div class="contract-summary__item"><span class="contract-summary__label">Nómina garantizada</span>
+            <strong>${formatMoneyMinor(payroll.amountMinor, 'EUR')}</strong>
+            <span class="gm-muted">${payroll.contracts} contratos</span></div>
+          <div class="contract-summary__item"><span class="contract-summary__label">Variable potencial máximo</span>
+            <strong>${formatMoneyMinor(variable.amountMinor, 'EUR')}</strong></div>
+          <div class="contract-summary__item"><span class="contract-summary__label">Beneficios valorados</span>
+            <strong>${formatMoneyMinor(benefits.amountMinor, 'EUR')}</strong></div>
+          <div class="contract-summary__item"><span class="contract-summary__label">Costes de agente</span>
+            <strong>${formatMoneyMinor(agentCosts.amountMinor, 'EUR')}</strong></div>
+        </div>
+        <p class="gm-muted">Compromisos contractuales, no un presupuesto disponible: el juego todavía no simula tesorería, impuestos ni ingresos reales.</p>
+      </div>
+
+      <div class="gm-card">
+        <h3>Compromisos por temporada</h3>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table">
+            <thead><tr><th>Temporada</th><th>Nómina garantizada</th><th>Contratos</th><th>Variable máx.</th></tr></thead>
+            <tbody>${commitmentRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="gm-card">
+        <h3>Plantilla contractual (${contracts.length})</h3>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table contract-table--roster">
+            <thead><tr>
+              <th>Jugador</th><th>Estado</th><th>Inicio</th><th>Final</th><th>Temp. rest.</th>
+              <th>Garantía</th><th>Salario base</th><th>Imagen/especie</th><th>Cuotas</th><th>Cláusulas</th>
+            </tr></thead>
+            <tbody>${rosterRows}</tbody>
+          </table>
+        </div>
+      </div>
+
+      ${integrity.valid ? '' : `
+      <div class="gm-card contract-integrity">
+        <h3>Alertas de integridad contractual</h3>
+        <ul>${integrity.errors.slice(0, 20).map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
+      </div>`}
+
+      <p class="gm-muted contract-scope-note">Renovar, fichar, liberar, ejecutar una cláusula, tantear o ceder todavía no
+        existen como acciones del juego (MARKET-1 / TRANSFER-1 / LOAN-1): esta pantalla es de consulta.</p>`;
+  }
+
   function renderPlayerProfileScreen() {
     const container = byId('gm-player-profile');
     const ctx = state.playerProfile;
@@ -4696,6 +5177,7 @@
     else if (activeTab === 'stats') body = renderPlayerStatsTab(player, ch);
     else if (activeTab === 'medical') body = renderPlayerMedicalTab(player, team, CONFIG_BASE);
     else if (activeTab === 'career') body = renderPlayerCareerTab(player, ch);
+    else if (activeTab === 'contract') body = renderPlayerContractTab(player, team);
 
     container.innerHTML = `
       <button id="player-profile-back-btn" class="gm-btn player-profile__back" type="button">← Volver</button>
@@ -4724,7 +5206,7 @@
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
   const SCREENS = [
-    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
     'player-profile',
   ];
 
@@ -4743,6 +5225,7 @@
     if (screen === 'tactics') renderTacticsScreen();
     if (screen === 'training') renderTrainingScreen();
     if (screen === 'medical') renderMedicalScreen();
+    if (screen === 'contracts') renderContractsScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();
@@ -4776,6 +5259,10 @@
       // ROSTER-1 (DESIGN.md 9.16): la próxima partida construye su propio
       // registro — no queda un registro de la carrera anterior colgando.
       state.playerRegistry = null;
+      // CONTRACT-1 (DESIGN.md 9.17): mismo criterio para el registro
+      // contractual — los contratos pertenecen a UNA partida.
+      state.contractRegistry = null;
+      state.contractBootstrapWarnings = [];
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado

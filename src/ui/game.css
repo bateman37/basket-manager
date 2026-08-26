@@ -897,3 +897,121 @@
 .career-timeline li { margin-bottom: 4px; }
 
 .news-card__player { margin: 6px 0 0; }
+
+/* --- CONTRACT-1 (DESIGN.md 9.17): pantalla Contratos + pestaña Contrato de
+   la ficha universal. Se reutilizan los mismos componentes que el resto de
+   la interfaz (gm-card / gm-table / gm-table-scroll / gm-badge): aquí solo
+   se añaden los estados nuevos (simulado, verificado, provisional) y el
+   colapso a tarjetas en móvil de la tabla de plantilla contractual.
+   Ninguna de estas clases pinta un botón de acción: renovar/fichar/liberar/
+   ejecutar/tantear/ceder no existen todavía (MARKET-1/TRANSFER-1/LOAN-1). --- */
+
+/* Badges con TEXTO además de color (accesibilidad, sección 10.4). */
+.gm-badge--simulated { background: var(--court-bg-alt); color: var(--ink-soft); border: 1px dashed var(--brick-dark); }
+.gm-badge--verified { background: var(--slate); color: var(--white-line); }
+.gm-badge--provisional { background: var(--brick); color: var(--white-line); }
+.gm-badge--pinned { background: var(--slate-light); color: var(--white-line); }
+.gm-badge--warning { background: var(--brick-dark); color: var(--white-line); }
+.gm-badge--modeled { background: var(--court-bg-alt); color: var(--ink-soft); border: 1px solid var(--line); }
+
+.contract-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--white-line);
+  border-left: 4px solid var(--brick);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 0 0 14px;
+}
+
+.contract-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 18px;
+  margin: 0;
+}
+.contract-facts > div { margin: 0; }
+.contract-facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.contract-facts dd { margin: 2px 0 0; font-size: 14px; font-weight: 600; }
+
+.contract-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.contract-summary__item { flex: 1 1 150px; }
+.contract-summary__label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.contract-summary__item strong { display: block; font-family: var(--font-score); font-size: 22px; color: var(--ink); }
+
+.contract-table { font-size: 12px; }
+.contract-table td, .contract-table th { vertical-align: middle; }
+
+/* Barra de compromiso por temporada: puramente decorativa (el importe
+   siempre se lee en texto al lado, nunca solo por el color/anchura). */
+.contract-bar {
+  display: inline-block;
+  height: 6px;
+  width: var(--contract-bar-width, 0%);
+  min-width: 2px;
+  max-width: 120px;
+  background: var(--brick);
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.contract-modules { list-style: none; margin: 10px 0 0; padding: 0; font-size: 12px; }
+.contract-module { padding: 6px 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.contract-module__id { font-weight: 600; }
+.contract-sources { flex: 1 1 100%; margin: 2px 0 0; padding-left: 16px; color: var(--ink-soft); }
+.contract-sources a { color: var(--brick-dark); }
+
+.contract-warnings { margin-top: 10px; font-size: 12px; }
+.contract-warnings summary { cursor: pointer; font-weight: 600; color: var(--brick-dark); }
+.contract-warnings ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-soft); }
+
+.contract-clauses { margin: 0; padding-left: 18px; font-size: 13px; }
+.contract-clauses li { margin-bottom: 6px; }
+
+.contract-integrity { border-left: 4px solid var(--loss); }
+.contract-integrity ul { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: var(--loss); }
+
+.contract-scope-note { font-size: 12px; margin-top: 10px; }
+
+/* Foco visible en cualquier control/enlace de estas vistas. */
+.contract-warnings summary:focus-visible,
+.contract-sources a:focus-visible { outline: 2px solid var(--brick-dark); outline-offset: 2px; }
+
+/* Móvil: la tabla de plantilla contractual colapsa a tarjetas legibles
+   (importes y fechas nunca se cortan), en vez de scroll horizontal largo. */
+@media (max-width: 720px) {
+  .contract-table--roster thead { display: none; }
+  .contract-table--roster tbody tr {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    background: var(--white-line);
+  }
+  .contract-table--roster tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border: none;
+    padding: 3px 0;
+  }
+  .contract-table--roster tbody td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    flex: 0 0 auto;
+  }
+  .contract-facts { grid-template-columns: 1fr; }
+}

@@ -148,12 +148,22 @@ con dos botones:
     (`src/utils/playerGenerator.js`) — los jugadores añadidos se marcan
     con `dataSource = FICTIONAL_FALLBACK_DATA_SOURCE` y se muestran como
     tales (badge en Alineación, nota en la ficha).
+  - Contratos (CONTRACT-1, DESIGN.md 9.17): `state.contractRegistry` se
+    construye en `startSeason()` y se rellena con `ContractSeeder`; la
+    cantera firma en `closeSeasonAndPrepareNext()` vía `ContractService`,
+    nunca desde `Player`/`Team.addPlayer()`. La pantalla **Contratos** y la
+    pestaña **Contrato** de la ficha son de SOLO LECTURA: no pueden
+    incorporar botones de renovar/fichar/liberar/ejecutar/tantear/ceder
+    (MARKET-1/TRANSFER-1/LOAN-1). `team.finances.expenses.playerSalaries`
+    es una PROYECCIÓN refrescada desde el registro
+    (`ContractService.refreshTeamSalaryProjection`), no un valor editable.
 
-## Ciclo profesional de plantilla (ROSTER-1 y siguientes)
+## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1 y siguientes)
 
-Convenciones permanentes de la EPIC iniciada en ROSTER-1 (ver DESIGN.md
-9.16) — aplican a toda sesión futura que toque contratos, licencias,
-mercado, traspasos, cesiones o transfer internacional:
+Convenciones permanentes de la EPIC iniciada en ROSTER-1 (DESIGN.md 9.16)
+y ampliada en CONTRACT-1 (DESIGN.md 9.17) — aplican a toda sesión futura
+que toque contratos, licencias, mercado, traspasos, cesiones o transfer
+internacional:
 
 - Todo jugador vive en el Player Registry mundial
   (`src/core/PlayerRegistry.js`, `state.playerRegistry`); una plantilla
@@ -185,6 +195,56 @@ mercado, traspasos, cesiones o transfer internacional:
 - Las reglas de una temporada ya iniciada quedarán congeladas por
   versión (`rulesetBundleId`+`version`) cuando exista persistencia real
   (HARDEN-1) — no se implementa guardado nuevo antes de esa entrega.
+
+### Contratos (CONTRACT-1, DESIGN.md 9.17)
+
+- `ContractRegistry` (`src/core/ContractRegistry.js`,
+  `state.contractRegistry`) es la fuente CANÓNICA de contratos: nunca
+  duplicar un `currentContract` en `Player`/`Team` ni mantener un array
+  paralelo de contratos en el equipo. "Contrato actual", "contratos del
+  club" y "nómina" son consultas derivadas del registro.
+- Contrato, afiliación de plantilla, licencia/inscripción y clearance
+  internacional son cuatro conceptos DISTINTOS. Un contrato no concede
+  licencia ni mueve a nadie de `Team.roster`.
+- El dominio `employment` se resuelve por CLUB + jurisdicción del
+  EMPLEADOR + fecha (`ClubEmploymentContextCatalog.js`), nunca por "la
+  competición del próximo partido".
+- `CompetitionDefinition.organizerCountry` describe al ORGANIZADOR de la
+  competición: jamás usarlo como `employerJurisdictionId`.
+- **MoraBanc Andorra es el test transfronterizo obligatorio**: compite en
+  ACB con empleador en Andorra. Cualquier cambio normativo debe seguir
+  resolviéndole AD, sin RD 1006 ni SMI español, con el convenio ACB solo
+  como capa de membresía.
+- Toda regla está versionada, fechada (`validity`), trazada
+  (`trace.fields`) y con `status`. No hay fallback ACB ni selección
+  silenciosa de "la última versión": sin coincidencia exacta solo continúa
+  quien declare `carryForwardUntilSuperseded`, y con warning.
+- Un contrato congela sus módulos de firma (`signingContext`): un
+  ascenso/descenso no reescribe la normativa de un contrato anterior; solo
+  una firma nueva usa el contexto nuevo.
+- Dinero SIEMPRE en unidad mínima entera (`...Minor`) + moneda ISO 4217
+  (`src/utils/Money.js`); nunca floats de euros. Los totales se derivan,
+  no se guardan.
+- Fechas contractuales SIEMPRE civiles ISO `YYYY-MM-DD` e inclusivas
+  (`src/utils/LocalDate.js`); el estado del contrato se DERIVA de fechas y
+  eventos, nunca se persiste ("expira pronto" es etiqueta de UI).
+- Los datos simulados nunca se presentan como reales: todo contrato
+  generado lleva `dataSource: 'simulated-contract-v1'`, `isReal: false` y
+  el aviso "Contrato simulado para esta partida; no es un dato contractual
+  real.". Nunca escribir contratos en `data/real/`.
+- El seeder es DETERMINISTA (hash de `playerId+clubId+seasonKey+
+  generatorVersion`, sin `Math.random`) y solo usa señales VISIBLES (TMB,
+  edad, percentiles de su competición): nunca Potencial, Ambición,
+  Profesionalidad, `team.reputation` ni `budget` del dataset.
+- Las cláusulas son una unión discriminada tipada con validador propio, y
+  hoy todas `modeled-only`. Nunca un booleano tipo `hasTanteo`: el tanteo
+  será una máquina de estados en MARKET-1. Un buyout no es un transfer fee.
+- No hay renovaciones, traspasos, cesiones ni ejecución de cláusulas
+  automáticas antes de sus entregas (MARKET-1/TRANSFER-1/LOAN-1/CYCLE-1);
+  la interfaz no debe mostrar controles falsos de esas acciones.
+- El puente `minimumPlayableRemainingSeasons = 3` del seeder es staging
+  temporal documentado, no una distribución contractual real: CYCLE-1 lo
+  retirará.
 - Añadir una liga/competición nueva es registrar su
   `CompetitionDefinition`/`RuleModule`/`RulesetBundle` en los catálogos
   existentes — nunca editar `Team.js`, `game.js` ni introducir una rama
