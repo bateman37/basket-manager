@@ -376,7 +376,7 @@
   border-radius: 6px;
 }
 .squad-picker__item:hover { background: var(--court-bg-alt); }
-/* LIFE-4 (DESIGN.md 9.4, sección 45): el checkbox vive en su propia
+/* LIFE-4 (DESIGN.md 9.15, sección 45): el checkbox vive en su propia
    etiqueta pequeña — ya no es toda la fila la que activa/desactiva la
    convocatoria, para que el nombre (fuera de esta etiqueta) pueda ser un
    botón real sin disparar el checkbox al pulsarlo. */
@@ -827,6 +827,10 @@
 .lineup-medical-cap { font-size: 11px; color: var(--ink-soft); }
 .lineup-medical-cap.is-bad { color: var(--loss); font-weight: 600; }
 
+/* ROSTER-1 (DESIGN.md 9.16): jugador de relleno ficticio por cobertura de
+   datos incompleta (Alineación) — nunca debe leerse como jugador real. */
+.gm-badge--fictional { background: var(--court-bg-alt); color: var(--ink-soft); border: 1px dashed var(--ink-soft); }
+
 .medical-summary {
   display: flex;
   flex-wrap: wrap;
@@ -844,7 +848,7 @@
 .medical-history-list { margin: 4px 0; padding-left: 18px; font-size: 12px; color: var(--ink-soft); }
 .gm-btn--small { padding: 3px 8px; font-size: 11px; }
 
-/* --- LIFE-4 (DESIGN.md 9.4): helper único de nombre clicable — botón
+/* --- LIFE-4 (DESIGN.md 9.15): helper único de nombre clicable — botón
    semántico con aspecto de enlace, usado en cualquier pantalla donde
    aparezca un jugador (Alineación/Entrenamiento/Tácticas/Estadísticas/
    Lesiones/box score/Noticias). --- */

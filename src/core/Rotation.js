@@ -166,7 +166,7 @@
       onCourt[pos] = (starterId && !unavailablePlayerIds.has(starterId)) ? starterId : null;
     });
 
-    // LIFE-4 (DESIGN.md 9.4, sección 13 del prompt de esa sesión): "starts"
+    // LIFE-4 (DESIGN.md 9.15, sección 13 del prompt de esa sesión): "starts"
     // factual — el quinteto inicial REAL (slot "starter" de cada fila, ya
     // disponible médicamente), fotografiado una sola vez aquí, antes de
     // cualquier sustitución. Nunca se infiere titularidad por minutos en

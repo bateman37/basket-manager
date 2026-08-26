@@ -36,6 +36,13 @@
     screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'agenda' | 'news' | 'calendar' | 'competitions' | 'stats' | 'match'
     division: '1ª',
     userTeamId: null,
+    // ROSTER-1 (DESIGN.md 9.16): instancia EXPLÍCITA del registro mundial
+    // de jugadores de ESTA partida — `null` hasta `startSeason()` (nunca
+    // un singleton global oculto: cada partida nueva construye la suya).
+    // `Team.roster` sigue siendo la afiliación deportiva actual; este
+    // registro es quien permite encontrar a un jugador aunque no esté en
+    // ninguna plantilla (ficha universal, LIFE-4/BUG-LIFE4-03).
+    playerRegistry: null,
     // Año real de inicio de temporada (DESIGN.md 3.3, Entidad Calendario) —
     // no existía ningún concepto de fecha real en el estado de partida
     // antes de esto. Decisión NO fijada en DESIGN.md, señalada aquí: se usa
@@ -110,7 +117,7 @@
       segmentDraft: null, // formulario en curso de un quinteto fijo nuevo
       garbageTime: { enabled: false }, // DESIGN.md 7.11.2-bis, opción por partido
     },
-    // LIFE-4 (DESIGN.md 9.4, sección 27/28): ficha universal de jugador —
+    // LIFE-4 (DESIGN.md 9.15, sección 27/28): ficha universal de jugador —
     // pantalla CONTEXTUAL, nunca la pantalla "actual" en el sentido de
     // `state.screen`/SCREENS (no tiene botón propio en #gm-nav). `null`
     // cuando no hay ficha abierta. `returnScreen` es la única pieza de
@@ -159,7 +166,7 @@
   // reconstrucción idéntica a la que hace scripts/import-real-data.js
   // al leer de disco, ver DESIGN.md/CLAUDE.md "Datos reales".
   // -----------------------------------------------------------------
-  // LIFE-4 (DESIGN.md 9.4, sección 17): "2026-27", nunca "Temporada 1" —
+  // LIFE-4 (DESIGN.md 9.15, sección 17): "2026-27", nunca "Temporada 1" —
   // derivado del año real de inicio de la partida en curso (o del año de
   // la máquina en el instante de la llamada, para las tarjetas de
   // previsualización de selección de equipo, ANTES de que exista partida).
@@ -167,8 +174,33 @@
     return BM.seasonKeyFromStartYear(state.seasonStartYear || new Date().getFullYear());
   }
 
+  // ROSTER-1 (DESIGN.md 9.16): resuelve el `competitionId` real de una
+  // división legacy ('1ª'/'2ª') y sus reglas — ÚNICO punto de game.js que
+  // debe tocar el adaptador legacy para esta llamada, nunca repetido a
+  // mano en otro sitio.
+  function resolveCompetitionSquadRules(division, referenceDate) {
+    const competitionId = BM.competitionIdFromLegacyDivision(division);
+    const resolved = BM.resolveRules({
+      competitionId,
+      seasonKey: buildCareerSeasonKey(),
+      date: referenceDate,
+      operation: 'buildMatchSquad',
+    });
+    return resolved.squadRules;
+  }
+
+  // Atajo usado por la Alineación/CPU en partida real: `team.division`
+  // (legacy) + reloj de mundo actual — mismo resolver de arriba, sin
+  // repetir el adaptador en cada llamador.
+  function resolveTeamSquadRules(team) {
+    return resolveCompetitionSquadRules(team.division, state.calendar.currentGameDateTime);
+  }
+
   function buildRealTeamFromData(teamData) {
-    const { Player, Team, ensureDevelopmentState, CONFIG_BASE } = BM;
+    const {
+      Player, Team, ensureDevelopmentState, CONFIG_BASE, padRosterToMinimum,
+    } = BM;
+    const referenceDate = state.calendar ? state.calendar.currentGameDateTime : new Date();
     const roster = teamData.roster.map((playerData) => {
       const { dataSource, ...playerFields } = playerData;
       const player = new Player(playerFields);
@@ -177,18 +209,41 @@
       // de cada jugador real EN MEMORIA, cada vez que se reconstruye desde
       // el bundle — nunca se reescriben los 414 JSON de data/real/. Idéntico
       // punto de integración que ya usa esta función para dataSource.
-      ensureDevelopmentState(
-        player, CONFIG_BASE, state.calendar ? state.calendar.currentGameDateTime : new Date(),
-      );
-      // LIFE-4 (DESIGN.md 9.4, sección 3/18): jugadores reales ya
+      ensureDevelopmentState(player, CONFIG_BASE, referenceDate);
+      // LIFE-4 (DESIGN.md 9.15, sección 3/18): jugadores reales ya
       // existentes antes de esta partida — histórico `partial`, empieza en
       // el instante real de esta llamada (nunca inventa su pasado real).
       BM.ensureCareerHistory(
-        player, CONFIG_BASE, state.calendar ? state.calendar.currentGameDateTime : new Date(),
+        player, CONFIG_BASE, referenceDate,
         { historyCompleteness: 'partial', seasonKey: buildCareerSeasonKey() },
       );
       return player;
     });
+
+    // ROSTER-1 (DESIGN.md 9.16): puente de COBERTURA DE DATOS, no de
+    // normativa — completa EN MEMORIA (nunca data/real/) hasta el mínimo
+    // REAL de convocatoria de la competición de este equipo, cuando el
+    // roster cargado se queda corto (hoy: varios clubes de Primera FEB con
+    // menos jugadores en el bundle que el mínimo real de acta). El mínimo
+    // objetivo lo decide SIEMPRE `CompetitionRules`, nunca un número fijo
+    // aquí — esta necesidad desaparece sola en cuanto el dataset real
+    // mejore, sin tocar ninguna regla de competición.
+    const squadRules = resolveCompetitionSquadRules(teamData.division, referenceDate);
+    const fallbackPlayers = padRosterToMinimum(
+      roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate },
+    );
+    fallbackPlayers.forEach((player) => {
+      // Histórico `complete` desde su creación en la partida (sin pasado
+      // inventado) — mismo criterio que la cantera nueva
+      // (`generateAcademyIntake()`). Nunca reciben licencia/contrato/
+      // vinculado ficticio: esas entidades todavía no existen (CONTRACT-1/
+      // REG-1).
+      BM.ensureCareerHistory(
+        player, CONFIG_BASE, referenceDate,
+        { historyCompleteness: 'complete', seasonKey: buildCareerSeasonKey() },
+      );
+    });
+
     return new Team({ ...teamData, roster });
   }
 
@@ -247,16 +302,26 @@
   // Arranque de temporada
   // ---------------------------------------------------------------------
   function startSeason(teamId, division) {
-    const { League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision } = BM;
+    const {
+      League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision, PlayerRegistry,
+    } = BM;
     state.division = division;
     state.userTeamId = teamId;
     state.seasonStartYear = new Date().getFullYear();
     state.calendar = new Calendar(state.seasonStartYear, CONFIG_BASE);
+    // ROSTER-1 (DESIGN.md 9.16): una carrera nueva construye su PROPIO
+    // registro mundial — nunca un singleton compartido entre partidas.
+    state.playerRegistry = new PlayerRegistry();
 
     // DESIGN.md 3.4.1: las DOS divisiones reales se construyen SIEMPRE,
     // no solo la del usuario — comparten el mismo Calendar de temporada.
     ['1ª', '2ª'].forEach((div) => {
       const teams = getRealTeamsByDivision(div);
+      // ROSTER-1 (DESIGN.md 9.16): registra el universo completo de
+      // jugadores de ESTE equipo (reales + relleno ficticio por cobertura
+      // incompleta) en cuanto se construye — antes de cualquier otro
+      // procesado de pretemporada.
+      teams.forEach((team) => state.playerRegistry.registerMany(team.roster));
       // Decisión no pedida explícitamente por el prompt de esta sesión,
       // señalada aquí: se recalcula sportingGoal (Bloque 2, DESIGN.md
       // 3.4.3) también al ARRANCAR una partida nueva, no solo en el
@@ -561,7 +626,7 @@
     // partido ya resuelto — Agenda/Noticias, punto único (todo partido
     // resuelto de cualquier competición pasa por aquí).
     pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey);
-    // LIFE-4 (DESIGN.md 9.4, sección 11): clave estable del partido — mismo
+    // LIFE-4 (DESIGN.md 9.15, sección 11): clave estable del partido — mismo
     // `gameId` determinista de MatchEngine.createMatchState para ambos
     // lados, con fallback defensivo por fecha para caminos de modo prueba
     // que pudieran no traerlo.
@@ -597,7 +662,7 @@
           // Un partido con minutos jugados suma 1 punto de experiencia.
           player.addExperience(1);
 
-          // LIFE-4 (DESIGN.md 9.4): histórico de carrera — mismo punto
+          // LIFE-4 (DESIGN.md 9.15): histórico de carrera — mismo punto
           // único de post-procesado que el resto de esta función (liga,
           // Copa, Playoff, Ascenso, usuario y CPU, visible y de fondo).
           if (player.careerHistory) {
@@ -620,7 +685,7 @@
       });
   }
 
-  // LIFE-4 (DESIGN.md 9.4, sección 41): solo el equipo del usuario genera
+  // LIFE-4 (DESIGN.md 9.15, sección 41): solo el equipo del usuario genera
   // noticias de carrera (evita "fluff" de los otros 35 clubes) — los
   // hitos/récords en sí ya se registraron para CUALQUIER jugador (visible
   // o de fondo) dentro de `recordResolvedMatch`, esto solo decide si
@@ -897,7 +962,7 @@
     return isDivisionFullyDone('1ª') && isDivisionFullyDone('2ª');
   }
 
-  // LIFE-4 (DESIGN.md 9.4, sección 25): honores reales de la temporada que
+  // LIFE-4 (DESIGN.md 9.15, sección 25): honores reales de la temporada que
   // termina — hechos ya calculados por League.js/Bracket.js/Promotion.js
   // (nunca recalculados aquí), un código estable por equipo. "Honor !=
   // noticia individual" (invariante 23): esto NO genera ninguna noticia,
@@ -919,7 +984,7 @@
     return map;
   }
 
-  // LIFE-4 (DESIGN.md 9.4, sección 10): rol asignado + familiaridad de ESE
+  // LIFE-4 (DESIGN.md 9.15, sección 10): rol asignado + familiaridad de ESE
   // rol al cierre de temporada — lee directamente `team.tacticalProfile`
   // (Tactics.js real, nunca recalculado aquí). Sin rol asignado, ambos
   // lados quedan `null` (mismo criterio neutro que ya usa Tactics.js).
@@ -951,7 +1016,7 @@
     // `state.calendar` por el de la temporada siguiente (paso 4 más abajo).
     const seasonEndDateTime = state.calendar.currentGameDateTime;
 
-    // LIFE-4 (DESIGN.md 9.4, sección 16): división REAL de la temporada que
+    // LIFE-4 (DESIGN.md 9.15, sección 16): división REAL de la temporada que
     // se está cerrando, capturada ANTES de aplicar ascensos/descensos (paso
     // 1 de abajo) — un ascendido/descendido debe cerrar su histórico con la
     // división en la que JUGÓ esta temporada, no con la nueva.
@@ -1006,7 +1071,7 @@
     // el que el prompt pide explícitamente, sin dejarlo a la casualidad.
     processDevelopmentToDateForTeams(allTeams, seasonEndDateTime);
 
-    // 2.6 (LIFE-4, DESIGN.md 9.4, sección 16): cierra el histórico de
+    // 2.6 (LIFE-4, DESIGN.md 9.15, sección 16): cierra el histórico de
     // carrera de los 36 equipos YA existentes — ANTES del intake de
     // cantera de abajo, mismo motivo documentado en LIFE-1 (2.5) para el
     // orden de procesado: un canterano recién generado no debe recibir una
@@ -1036,7 +1101,7 @@
     // LIFE-1), sin ninguna otra regla nueva.
     allTeams.forEach((team) => {
       const newPlayers = team.generateAcademyIntake(3, seasonEndDateTime);
-      // LIFE-4 (DESIGN.md 9.4, sección 19): cantera nueva = histórico
+      // LIFE-4 (DESIGN.md 9.15, sección 19): cantera nueva = histórico
       // `complete` desde el instante real de su incorporación — nunca
       // recibe temporadas anteriores vacías (arranca directamente en la
       // temporada que viene, `nextSeasonKey`, ver cierre paso 4 más abajo).
@@ -1045,6 +1110,11 @@
           historyCompleteness: 'complete', seasonKey: nextSeasonKey,
         });
       });
+      // ROSTER-1 (DESIGN.md 9.16): registra cada newgen en el registro
+      // mundial en cuanto se crea — el intake de cantera nunca deja a un
+      // jugador ilocalizable ni colisiona con ids existentes (PlayerRegistry
+      // rechaza duplicados con error descriptivo).
+      state.playerRegistry.registerMany(newPlayers);
     });
 
     // 4. Nuevo Calendar (3.4.4 paso 3).
@@ -1353,6 +1423,18 @@
   // fecha — antes de esta entrega no existía ninguna hora que mostrar.
   function formatMatchTime(date) {
     return date ? date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '—';
+  }
+
+  // BUG-LIFE4-01 (ROSTER-1, DESIGN.md 9.16 — corrige LIFE-4, DESIGN.md
+  // 9.15): formateador SEMÁNTICO propio para fechas de histórico/carrera
+  // (lesiones cerradas, hitos, honores, inicio de histórico) — nunca
+  // horarios de partido, que siguen usando `formatMatchTime` (HH:mm) tal
+  // cual. Muestra SIEMPRE día/mes/año (nunca solo una hora, que es lo que
+  // ocurría antes de esta corrección al reutilizar `formatMatchTime` para
+  // estas fechas); ninguna de las tres categorías de fecha histórica tiene
+  // hoy información real de hora del día que aportar, así que no se añade.
+  function formatHistoryDate(date) {
+    return date ? date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
   }
 
   function formatMatchDateTime(date) {
@@ -1999,20 +2081,27 @@
   }
 
   // Validación completa: tamaño de convocatoria (reutiliza
-  // Team.buildMatchSquad(), que ya valida 8-12 — o 5-7 por escasez médica
-  // real, sección 23 — y pertenencia a plantilla) + Rotation.validateLineup
+  // Team.buildMatchSquad() con el rango YA resuelto por
+  // CompetitionRules para la competición real de `team` — ACB 8-12,
+  // Primera FEB 10-12, ROSTER-1 DESIGN.md 9.16 — o su excepción médica,
+  // sección 23 — y pertenencia a plantilla) + Rotation.validateLineup
   // (cuotas de minutos por posición) + LIFE-3 (sección 22): ningún
   // convocado no disponible en ningún slot, ningún `limited` por encima
   // de su `minuteCap` médico. Todas deben cumplirse para poder jugar/guardar.
   function getLineupValidity(team) {
-    const { CONFIG_BASE, validateLineup, describeValidationErrors, totalMinutesByPlayer, countMedicallyCallable } = BM;
+    const {
+      CONFIG_BASE, validateLineup, describeValidationErrors, totalMinutesByPlayer,
+      countMedicallyCallable, resolveEffectiveSquadMinimum,
+    } = BM;
     const availability = getLineupMedicalAvailability(team);
-    const exceptionCfg = CONFIG_BASE.medical.squadException;
+    const squadRules = resolveTeamSquadRules(team);
     const effectiveMin = availability
-      ? Math.min(exceptionCfg.normalMinimum, Math.max(exceptionCfg.absoluteMinimum, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE)))
-      : undefined;
+      ? resolveEffectiveSquadMinimum(
+        squadRules.min, CONFIG_BASE, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE),
+      )
+      : squadRules.min;
     try {
-      team.buildMatchSquad(state.lineup.squadIds, effectiveMin);
+      team.buildMatchSquad(state.lineup.squadIds, effectiveMin, squadRules.max);
     } catch (err) {
       return { valid: false, message: err.message };
     }
@@ -2174,6 +2263,10 @@
     const durationMinutes = CONFIG_BASE.match.durationMinutes;
     const lineup = state.lineup;
     const activeBracket = getActiveBracket();
+    // ROSTER-1 (DESIGN.md 9.16): rango real de convocatoria de la
+    // competición de ESTE equipo (ACB 8-12, Primera FEB 10-12) — nunca el
+    // 8-12 universal de antes de esta entrega.
+    const squadRules = resolveTeamSquadRules(team);
 
     // Mismo criterio que Home para identificar "el próximo partido" — ver
     // getActiveBracket() (Bloque B), reutilizado tal cual.
@@ -2212,7 +2305,15 @@
       if (info.status === 'unavailable') return '<span class="gm-badge gm-badge--injury">No disponible por lesión</span>';
       return `<span class="gm-badge gm-badge--limited">Máximo médico: ${info.minuteCap} min</span>`;
     }
-    // LIFE-4 (DESIGN.md 9.4, sección 45): nombre clicable sin activar el
+    // ROSTER-1 (DESIGN.md 9.16): un jugador generado como relleno de un
+    // roster real con cobertura de datos incompleta (hoy: algunos clubes
+    // de Primera FEB) nunca debe presentarse como jugador real — badge de
+    // solo lectura, mismo patrón que `medicalBadgeHtml`.
+    function fictionalFallbackBadgeHtml(player) {
+      if (player.dataSource !== BM.FICTIONAL_FALLBACK_DATA_SOURCE) return '';
+      return '<span class="gm-badge gm-badge--fictional" title="Jugador ficticio generado por cobertura de datos incompleta">Ficticio (relleno de plantilla)</span>';
+    }
+    // LIFE-4 (DESIGN.md 9.15, sección 45): nombre clicable sin activar el
     // checkbox — ya NO es un único <label> envolviendo todo la fila (eso
     // convertiría el nombre en "botón dentro de label ambiguo"): el
     // checkbox vive en su propio <label> pequeño, y el nombre es un botón
@@ -2226,6 +2327,7 @@
         ${playerLinkHtml(player, { className: 'squad-picker__name' })}
         <span class="squad-picker__pos">${player.primaryPosition}</span>
         ${medicalBadgeHtml(player)}
+        ${fictionalFallbackBadgeHtml(player)}
         <span class="squad-picker__ratings">
           <span>T ${player.technicalAverage.toFixed(1)}</span>
           <span>F ${player.physicalAverage.toFixed(1)}</span>
@@ -2333,13 +2435,13 @@
       <div class="gm-card">${nextMatchHtml}</div>
 
       <div class="gm-card">
-        <h3>Convocatoria (${lineup.squadIds.length}/12, mínimo 8)</h3>
+        <h3>Convocatoria (${lineup.squadIds.length}/${squadRules.max}, mínimo ${squadRules.min})</h3>
         <div class="squad-picker">${squadPickerHtml}</div>
       </div>
 
       <div class="gm-card">
         <h3>Alineación por posición</h3>
-        ${convocated.length ? slotsTableHtml : '<p class="gm-muted">Selecciona al menos 8 jugadores en la convocatoria.</p>'}
+        ${convocated.length ? slotsTableHtml : `<p class="gm-muted">Selecciona al menos ${squadRules.min} jugadores en la convocatoria.</p>`}
         ${convocated.length ? `<div class="lineup-player-totals-wrap"><h4>Minutos totales por jugador</h4>${playerTotalsHtml}</div>` : ''}
         <label class="gm-checkbox lineup-garbage-time-toggle">
           <input type="checkbox" id="lineup-garbage-time-checkbox" ${lineup.garbageTime.enabled ? 'checked' : ''}>
@@ -3739,13 +3841,17 @@
     // LIFE-3 (DESIGN.md 9.14, sección 23): mismo mínimo real que ya validó
     // getLineupValidity() — nunca se llega aquí con una alineación
     // inválida (el botón de jugar está deshabilitado), pero se recalcula
-    // para no duplicar el número en dos sitios.
-    const { CONFIG_BASE, countMedicallyCallable } = BM;
-    const exceptionCfg = CONFIG_BASE.medical.squadException;
+    // para no duplicar el número en dos sitios. ROSTER-1 (DESIGN.md 9.16):
+    // el mínimo NORMAL ahora lo resuelve CompetitionRules para la
+    // competición real de `team`, no una cifra universal.
+    const { CONFIG_BASE, countMedicallyCallable, resolveEffectiveSquadMinimum } = BM;
+    const squadRules = resolveTeamSquadRules(team);
     const effectiveMin = CONFIG_BASE.medical.enabled
-      ? Math.min(exceptionCfg.normalMinimum, Math.max(exceptionCfg.absoluteMinimum, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE)))
-      : undefined;
-    const squad = team.buildMatchSquad(state.lineup.squadIds, effectiveMin);
+      ? resolveEffectiveSquadMinimum(
+        squadRules.min, CONFIG_BASE, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE),
+      )
+      : squadRules.min;
+    const squad = team.buildMatchSquad(state.lineup.squadIds, effectiveMin, squadRules.max);
     const lineup = {
       entries: state.lineup.entries,
       fixedSegments: state.lineup.fixedSegments,
@@ -3772,7 +3878,9 @@
     const { buildCpuLineup, computeMatchImportance, CONFIG_BASE } = BM;
     const standingsTable = league.getStandingsTable();
     const matchImportance = computeMatchImportance(team, opponent, competition, standingsTable, CONFIG_BASE);
-    return buildCpuLineup(team, matchImportance, CONFIG_BASE, date);
+    // ROSTER-1 (DESIGN.md 9.16): la CPU consulta la MISMA fuente de reglas
+    // que el usuario — nunca un rango universal aparte.
+    return buildCpuLineup(team, matchImportance, CONFIG_BASE, date, resolveTeamSquadRules(team));
   }
 
   // Resolver de opciones de MatchEngine compartido por CUALQUIER partido
@@ -4062,7 +4170,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Pantalla: ficha universal de jugador (LIFE-4, DESIGN.md 9.4).
+  // Pantalla: ficha universal de jugador (LIFE-4, DESIGN.md 9.15).
   // Capa de presentación pura sobre PlayerCareer.js/PlayerDevelopment.js/
   // Tactics.js/Medical.js/Training.js — no contiene ninguna regla propia,
   // solo lee y (vía openPlayerProfile/closePlayerProfile) navega. Abrir/
@@ -4079,17 +4187,21 @@
     { id: 'career', label: 'Carrera' },
   ];
 
-  // Sección 30: busca la instancia REAL (viva) de Player entre los 36
-  // equipos actuales — nunca sobre un bundle plano congelado. Devuelve
-  // también su equipo actual (sección 76: se resuelve sobre Teams vivos
-  // via `player.teamId`, nunca sobre el último stint histórico).
+  // BUG-LIFE4-03 (ROSTER-1, DESIGN.md 9.16): resuelve la instancia REAL
+  // (viva) desde el Player Registry mundial de la partida — YA NO recorre
+  // `Team.roster` de los equipos actuales como si fuera un directorio
+  // global (dejaba de funcionar en cuanto un jugador quedara sin club,
+  // algo que todavía no puede pasar en ROSTER-1 pero que sí podrá con
+  // MARKET-1/TRANSFER-1). El equipo actual se resuelve aparte por
+  // `player.teamId` (sección 76 original: nunca por el último stint
+  // histórico) — `null` si el jugador no tiene club, sin inventar equipo
+  // ni división (ficha universal degradada, ver renderPlayer*Tab).
   function findPlayerById(playerId) {
-    const teams = getAllTeams();
-    for (let i = 0; i < teams.length; i++) {
-      const player = teams[i].roster.find((p) => p.id === playerId);
-      if (player) return { player, team: teams[i] };
-    }
-    return null;
+    if (!state.playerRegistry) return null;
+    const player = state.playerRegistry.get(playerId);
+    if (!player) return null;
+    const team = player.teamId ? (getAllTeams().find((t) => t.id === player.teamId) || null) : null;
+    return { player, team };
   }
 
   function escapeHtml(value) {
@@ -4205,6 +4317,10 @@
   }
 
   // --- Sección 32: Resumen ---
+  // `team` puede ser `null` (BUG-LIFE4-03, ROSTER-1 DESIGN.md 9.16):
+  // jugador sin club actual — degrada cabecera/roles/entrenamiento sin
+  // inventar equipo/división/plan, sin dejar de mostrar lo que sí depende
+  // solo del jugador (TMB, estado, estadísticas de temporada).
   function renderPlayerSummaryTab(player, team, ch, config) {
     const tmb = BM.computeTmbRating(player, config);
     const cs = ch.currentSeason;
@@ -4212,34 +4328,69 @@
     const avg = (key) => (games > 0 ? BM.statValue(cs.stats, key) / games : 0);
     const minutesAvg = games > 0 ? BM.statValue(cs.stats, 'seconds') / games : null;
 
-    const rolesInfo = buildRolesSnapshotForPlayer(player, team);
-    const offenseLabel = roleLabelById(rolesInfo.offense && rolesInfo.offense[0], 'offensive');
-    const defenseLabel = roleLabelById(rolesInfo.defense && rolesInfo.defense[0], 'defensive');
-
     let medicalLine = '—';
     if (config.medical.enabled) {
+      // Medical.js ya tolera `team: null` (usa el contexto médico neutral
+      // de `config.medical.staffContext`, nunca asume instalaciones de un
+      // equipo) — ver Medical.js, sección "hook de Staff".
       const info = BM.getAvailability(player, state.calendar.currentGameDateTime, config, { team });
       medicalLine = info.status === 'available' ? 'Disponible'
         : info.status === 'limited' ? `Disponible con restricción (máx. ${info.minuteCap} min)`
           : 'Lesionado';
     }
 
-    const focus = BM.getIndividualFocus(team, player.id, config);
-    const focusLabel = focus.type === 'none' ? 'Ninguno'
-      : focus.type === 'attribute' ? `Atributo: ${trainingAttributeLabel(focus.target)}`
-        : focus.type === 'position' ? `Posición: ${focus.target}`
-          : `Rol: ${roleLabelById(focus.target, focus.side === 'offense' ? 'offensive' : 'defensive')}`;
-
     const completenessNoteHtml = ch.historyCompleteness === 'partial'
       ? '<p class="gm-muted">Histórico registrado desde el inicio de esta partida.</p>' : '';
+    // ROSTER-1 (DESIGN.md 9.16): un jugador de relleno ficticio por
+    // cobertura de datos incompleta nunca se presenta como jugador real.
+    const fictionalFallbackNoteHtml = player.dataSource === BM.FICTIONAL_FALLBACK_DATA_SOURCE
+      ? '<p class="gm-muted">Jugador ficticio generado para completar esta plantilla (cobertura de datos reales incompleta).</p>'
+      : '';
+
+    const headerSubtitle = team
+      ? `${player.age ?? '—'} años · ${escapeHtml(team.fullName)} (${team.division}) · ${player.nominalPosition}`
+      : `${player.age ?? '—'} años · Sin club · ${player.nominalPosition}`;
+
+    let rolesCardHtml;
+    if (team) {
+      const rolesInfo = buildRolesSnapshotForPlayer(player, team);
+      const offenseLabel = roleLabelById(rolesInfo.offense && rolesInfo.offense[0], 'offensive');
+      const defenseLabel = roleLabelById(rolesInfo.defense && rolesInfo.defense[0], 'defensive');
+      rolesCardHtml = `
+      <div class="gm-card">
+        <h4>Roles</h4>
+        <p>Ofensivo: ${offenseLabel || '—'}${rolesInfo.offense ? ` (familiaridad ${rolesInfo.offense[1]}/100)` : ''}</p>
+        <p>Defensivo: ${defenseLabel || '—'}${rolesInfo.defense ? ` (familiaridad ${rolesInfo.defense[1]}/100)` : ''}</p>
+      </div>`;
+    } else {
+      rolesCardHtml = '<div class="gm-card"><h4>Roles</h4><p class="gm-muted">Sin rol de club actual.</p></div>';
+    }
+
+    let trainingCardHtml;
+    if (team) {
+      const focus = BM.getIndividualFocus(team, player.id, config);
+      const focusLabel = focus.type === 'none' ? 'Ninguno'
+        : focus.type === 'attribute' ? `Atributo: ${trainingAttributeLabel(focus.target)}`
+          : focus.type === 'position' ? `Posición: ${focus.target}`
+            : `Rol: ${roleLabelById(focus.target, focus.side === 'offense' ? 'offensive' : 'defensive')}`;
+      trainingCardHtml = `
+      <div class="gm-card">
+        <h4>Entrenamiento</h4>
+        <p>Foco individual: ${focusLabel}</p>
+        <p class="gm-muted">Plan de equipo: ${TRAINING_TEAM_FOCUS_LABELS[team.trainingPlan.teamFocus]} · ${TRAINING_INTENSITY_LABELS[team.trainingPlan.intensity]}</p>
+      </div>`;
+    } else {
+      trainingCardHtml = '<div class="gm-card"><h4>Entrenamiento</h4><p class="gm-muted">No disponible sin club.</p></div>';
+    }
 
     return `
       <div class="gm-card player-profile__header">
         <h3>${escapeHtml(player.fullName)}</h3>
-        <p class="gm-muted">${player.age ?? '—'} años · ${escapeHtml(team.fullName)} (${team.division}) · ${player.nominalPosition}</p>
+        <p class="gm-muted">${headerSubtitle}</p>
         <p class="gm-muted">${player.bodyMeasurements.height} cm · Envergadura ${player.bodyMeasurements.wingspan} cm · ${player.bodyMeasurements.weight} kg</p>
         <p class="player-profile__tmb" title="${escapeHtml(TMB_TOOLTIP_TEXT)}">TMB <strong>${tmb}</strong>/200 <span class="gm-muted">ⓘ</span></p>
         ${completenessNoteHtml}
+        ${fictionalFallbackNoteHtml}
       </div>
       <div class="gm-card">
         <h4>Estado</h4>
@@ -4261,16 +4412,8 @@
           </tr></tbody>
         </table></div>
       </div>
-      <div class="gm-card">
-        <h4>Roles</h4>
-        <p>Ofensivo: ${offenseLabel || '—'}${rolesInfo.offense ? ` (familiaridad ${rolesInfo.offense[1]}/100)` : ''}</p>
-        <p>Defensivo: ${defenseLabel || '—'}${rolesInfo.defense ? ` (familiaridad ${rolesInfo.defense[1]}/100)` : ''}</p>
-      </div>
-      <div class="gm-card">
-        <h4>Entrenamiento</h4>
-        <p>Foco individual: ${focusLabel}</p>
-        <p class="gm-muted">Plan de equipo: ${TRAINING_TEAM_FOCUS_LABELS[team.trainingPlan.teamFocus]} · ${TRAINING_INTENSITY_LABELS[team.trainingPlan.intensity]}</p>
-      </div>`;
+      ${rolesCardHtml}
+      ${trainingCardHtml}`;
   }
 
   // --- Sección 33: Atributos ---
@@ -4295,10 +4438,14 @@
   }
 
   // --- Sección 34: Posiciones y roles ---
+  // `team` puede ser `null` (BUG-LIFE4-03) — el encaje de roles
+  // (`bestRolesForPlayer`/`roleFit`) es calculable SIN club (depende solo
+  // del jugador) y se mantiene siempre; el rol ASIGNADO actual sí depende
+  // de `team.tacticalProfile` y se degrada a "Sin club actual".
   function renderPlayerPositionsTab(player, team, config) {
     const { POSITIONS } = BM;
-    const focus = BM.getIndividualFocus(team, player.id, config);
-    const focusNote = focus.type === 'position' ? `<p class="gm-muted">Entrenando: ${focus.target}</p>` : '';
+    const focusNote = team && BM.getIndividualFocus(team, player.id, config).type === 'position'
+      ? `<p class="gm-muted">Entrenando: ${BM.getIndividualFocus(team, player.id, config).target}</p>` : '';
     const posRows = POSITIONS.map((pos) => {
       const level = player.positionLevel(pos);
       const tags = [];
@@ -4309,13 +4456,13 @@
 
     const bestOffense = BM.bestRolesForPlayer(player, 'offensive', config, 3).map((r) => `${r.label} ${starsHtml(r.stars)}`).join(' · ');
     const bestDefense = BM.bestRolesForPlayer(player, 'defensive', config, 3).map((r) => `${r.label} ${starsHtml(r.stars)}`).join(' · ');
-    const rolesSnapshot = buildRolesSnapshotForPlayer(player, team);
-    const currentOffenseHtml = rolesSnapshot.offense
+    const rolesSnapshot = team ? buildRolesSnapshotForPlayer(player, team) : { offense: null, defense: null };
+    const currentOffenseHtml = !team ? 'Sin club actual' : (rolesSnapshot.offense
       ? `${roleLabelById(rolesSnapshot.offense[0], 'offensive')} — familiaridad ${rolesSnapshot.offense[1]}/100, ${starsHtml(BM.roleFit(player, rolesSnapshot.offense[0], config).stars)}`
-      : 'Sin rol asignado';
-    const currentDefenseHtml = rolesSnapshot.defense
+      : 'Sin rol asignado');
+    const currentDefenseHtml = !team ? 'Sin club actual' : (rolesSnapshot.defense
       ? `${roleLabelById(rolesSnapshot.defense[0], 'defensive')} — familiaridad ${rolesSnapshot.defense[1]}/100, ${starsHtml(BM.roleFit(player, rolesSnapshot.defense[0], config).stars)}`
-      : 'Sin rol asignado';
+      : 'Sin rol asignado');
 
     return `
       <div class="gm-card">
@@ -4456,7 +4603,7 @@
     const rows = [...history].sort((a, b) => b.occurredAt - a.occurredAt).map((entry) => {
       const label = config.medical.catalog[entry.type] ? config.medical.catalog[entry.type].label : entry.type;
       return `<tr>
-        <td>${formatMatchTime(entry.occurredAt)}</td>
+        <td>${formatHistoryDate(entry.occurredAt)}</td>
         <td>${label}</td>
         <td>${MEDICAL_SEVERITY_LABELS[entry.severity] || entry.severity}</td>
         <td>${entry.daysUnavailable}</td>
@@ -4505,14 +4652,14 @@
       }));
     const entries = [...honourEntries, ...milestoneEntries].sort((a, b) => b.date - a.date);
     if (!entries.length) return '<p class="gm-muted">Todavía no hay hitos registrados.</p>';
-    return `<ul class="career-timeline">${entries.map((e) => `<li>${formatMatchTime(e.date)} — ${e.label}</li>`).join('')}</ul>`;
+    return `<ul class="career-timeline">${entries.map((e) => `<li>${formatHistoryDate(e.date)} — ${e.label}</li>`).join('')}</ul>`;
   }
 
   function renderPlayerCareerTab(player, ch) {
     if (ch.historyCompleteness === 'partial') {
       return `
         <div class="gm-card">
-          <p class="gm-muted">El histórico de Basket Manager comienza en ${formatMatchTime(ch.historyStartDate)}. Los logros anteriores no están disponibles.</p>
+          <p class="gm-muted">El histórico de Basket Manager comienza en ${formatHistoryDate(ch.historyStartDate)}. Los logros anteriores no están disponibles.</p>
         </div>
         <div class="gm-card"><h4>Timeline</h4>${buildCareerTimelineHtml(ch, false)}</div>`;
     }
@@ -4626,9 +4773,12 @@
       state.leagues = { '1ª': null, '2ª': null };
       state.brackets = { '1ª': { cup: null, titlePlayoff: null }, '2ª': { promotionPlayoff: null } };
       state.userTeamId = null;
+      // ROSTER-1 (DESIGN.md 9.16): la próxima partida construye su propio
+      // registro — no queda un registro de la carrera anterior colgando.
+      state.playerRegistry = null;
       goToScreen('team-select');
     });
-    // LIFE-4 (DESIGN.md 9.4, sección 27/29): un único listener delegado
+    // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado
     // para CUALQUIER nombre de jugador clicable de toda la app — evita
     // repetir el mismo `querySelectorAll` + `addEventListener` en cada
     // pantalla que ya (o en el futuro) muestre un `playerLinkHtml()`.

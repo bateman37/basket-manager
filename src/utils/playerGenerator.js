@@ -510,7 +510,41 @@
     return players;
   }
 
-  const exportsObj = { generateFictionalPlayer, generateFictionalPlayers, POSITION_PROFILES };
+  // ROSTER-1 (DESIGN.md 9.16): marcador ÚNICO de `dataSource` para
+  // jugadores generados como relleno de un roster real con cobertura de
+  // datos incompleta (hoy: varios clubes de Primera FEB con menos
+  // jugadores cargados en data/real/ que el mínimo real de convocatoria) —
+  // nunca se presentan como jugadores reales.
+  const FICTIONAL_FALLBACK_DATA_SOURCE = 'fictional-fallback-incomplete-roster';
+
+  // Puente de CARGA DE DATOS, no del RulesetBundle de CompetitionRules.js:
+  // completa EN MEMORIA (nunca escribe en data/real/) un `roster` real
+  // hasta `targetMinimum` jugadores, usando el generador ficticio ya
+  // existente. `targetMinimum` llega YA resuelto por quien llama
+  // (normalmente `CompetitionRules.resolveRules(...).squadRules.min`) —
+  // esta función no decide ninguna regla de competición, solo tapa un
+  // hueco de datos. Devuelve SOLO los jugadores añadidos (para que quien
+  // llama pueda inicializar su `careerHistory`/registrarlos en
+  // PlayerRegistry, igual que ya hace con `Team.generateAcademyIntake()`).
+  // Si el roster ya alcanza `targetMinimum`, no añade nada — la necesidad
+  // desaparece por sí sola en cuanto el dataset real mejore, sin tocar
+  // ninguna regla.
+  function padRosterToMinimum(roster, targetMinimum, options) {
+    const missing = targetMinimum - roster.length;
+    if (missing <= 0) return [];
+    const added = generateFictionalPlayers(missing, options);
+    added.forEach((player) => { player.dataSource = FICTIONAL_FALLBACK_DATA_SOURCE; });
+    roster.push(...added);
+    return added;
+  }
+
+  const exportsObj = {
+    generateFictionalPlayer,
+    generateFictionalPlayers,
+    padRosterToMinimum,
+    FICTIONAL_FALLBACK_DATA_SOURCE,
+    POSITION_PROFILES,
+  };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

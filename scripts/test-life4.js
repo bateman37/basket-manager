@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // scripts/test-life4.js
-// Verificación LIFE-4 (DESIGN.md 9.4) — script Node ad-hoc, mismo criterio
+// Verificación LIFE-4 (DESIGN.md 9.15) — script Node ad-hoc, mismo criterio
 // que test-life1.js/test-life2.js/test-life3.js (no hay framework de tests
 // instalado, ver CLAUDE.md). Ejecutar con:
 //   node scripts/test-life4.js

@@ -25,8 +25,14 @@
 
   const DIVISIONS = ['1ª', '2ª'];
 
-  // Convocatoria de partido — DESIGN.md 6.2: mínimo 8, máximo 12, fiel al
-  // reglamento real de la ACB. No afecta al tamaño de la plantilla total.
+  // ROSTER-1 (DESIGN.md 9.16): estos dos valores dejan de ser la regla
+  // universal de convocatoria — cada competición tiene su propio rango,
+  // resuelto por `CompetitionRules.resolveRules()` (ver game.js/CpuLineup.js)
+  // y pasado explícitamente a `buildMatchSquad()`. Se conservan exportados
+  // SOLO como default legacy (compatibilidad con `MatchEngine.js` en modo
+  // prueba y con `buildMatchSquadExcludingPosition()`, una herramienta de
+  // estrés del motor sin normativa real detrás) — ningún camino de
+  // producción multi-liga debe volver a leerlos directamente.
   const MATCH_SQUAD_MIN = 8;
   const MATCH_SQUAD_MAX = 12;
 
@@ -329,21 +335,30 @@
     }
 
     // Recibe los ids de jugadores de la plantilla y devuelve la convocatoria
-    // validada (entre 8 y 12, todos pertenecientes a la plantilla). Lanza
-    // error si no se cumple — DESIGN.md 6.2: reglamento real de la ACB.
+    // validada. `Team` SOLO valida el rango recibido — nunca decide qué
+    // normativa aplicar (ROSTER-1, DESIGN.md 9.16): quien llama resuelve
+    // antes el rango real de ESA competición vía
+    // `CompetitionRules.resolveRules()` y lo pasa aquí explícito.
+    // `minOverride`/`maxOverride` sin indicar reproducen los defaults
+    // legacy (`MATCH_SQUAD_MIN`/`MATCH_SQUAD_MAX`, 8-12 ACB) — SOLO para
+    // compatibilidad con `MatchEngine.js` en modo prueba y con
+    // `buildMatchSquadExcludingPosition()`; ningún camino de producción
+    // multi-liga debe depender de ese default.
     // `minOverride` (LIFE-3, DESIGN.md 9.14, sección 23 del prompt de esa
-    // sesión): excepción médica de convocatoria — 5-7 jugadores solo
-    // cuando la plantilla queda médicamente reducida (nunca por elección
-    // del usuario/CPU). `undefined` reproduce el mínimo normal (8),
-    // comportamiento idéntico al de antes de esta entrega.
-    buildMatchSquad(playerIds, minOverride) {
+    // sesión): también sirve para la excepción médica de convocatoria —
+    // 5-7 jugadores solo cuando la plantilla queda médicamente reducida
+    // (nunca por elección del usuario/CPU) — el mínimo normal de partida
+    // ahora lo aporta la competición, la reducción la sigue aportando
+    // `Medical.resolveEffectiveSquadMinimum()`.
+    buildMatchSquad(playerIds, minOverride, maxOverride) {
       const squad = playerIds.map((id) => this.roster.find((player) => player.id === id));
       if (squad.some((player) => !player)) {
         throw new Error('La convocatoria incluye algún jugador que no pertenece a la plantilla');
       }
       const min = minOverride || MATCH_SQUAD_MIN;
-      if (squad.length < min || squad.length > MATCH_SQUAD_MAX) {
-        throw new Error(`La convocatoria debe tener entre ${min} y ${MATCH_SQUAD_MAX} jugadores`);
+      const max = maxOverride || MATCH_SQUAD_MAX;
+      if (squad.length < min || squad.length > max) {
+        throw new Error(`La convocatoria debe tener entre ${min} y ${max} jugadores`);
       }
       return squad;
     }

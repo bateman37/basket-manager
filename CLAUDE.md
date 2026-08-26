@@ -134,6 +134,63 @@ con dos botones:
   - Checkbox "Permitir minutos de la basura" (DESIGN.md 7.11.2-bis): vive
     en `lineup.garbageTime.enabled`, por defecto desactivado, opción de
     partido (no de club/global).
+  - Player Registry (ROSTER-1, DESIGN.md 9.16): `state.playerRegistry`
+    se construye en `startSeason()` y se rellena registrando el roster de
+    cada equipo (`getRealTeamsByDivision()`) y, en cada cierre de
+    temporada, los newgens de `generateAcademyIntake()`. La ficha
+    universal (`findPlayerById()`) resuelve SIEMPRE desde ahí, nunca
+    recorriendo `Team.roster` de los equipos actuales.
+  - Convocatoria por competición (ROSTER-1, DESIGN.md 9.16): el rango
+    real (min/max) se resuelve con `resolveTeamSquadRules(team)` →
+    `CompetitionRules.resolveRules()`, nunca con un 8-12 fijo en la
+    pantalla ni en `Team.js`. Un roster real con cobertura de datos
+    incompleta se completa en memoria con `padRosterToMinimum()`
+    (`src/utils/playerGenerator.js`) — los jugadores añadidos se marcan
+    con `dataSource = FICTIONAL_FALLBACK_DATA_SOURCE` y se muestran como
+    tales (badge en Alineación, nota en la ficha).
+
+## Ciclo profesional de plantilla (ROSTER-1 y siguientes)
+
+Convenciones permanentes de la EPIC iniciada en ROSTER-1 (ver DESIGN.md
+9.16) — aplican a toda sesión futura que toque contratos, licencias,
+mercado, traspasos, cesiones o transfer internacional:
+
+- Todo jugador vive en el Player Registry mundial
+  (`src/core/PlayerRegistry.js`, `state.playerRegistry`); una plantilla
+  (`Team.roster`) solo contiene referencias afiliadas, nunca es el
+  directorio global de jugadores.
+- Código nuevo nunca busca a un jugador recorriendo los rosters de los
+  equipos actuales como si fueran un índice global — se resuelve desde el
+  registro.
+- Lógica normativa nueva usa `competitionId` (`src/core/
+  CompetitionRules.js`) y `RulesetBundle`/`RuleModule` — nunca `division`
+  (`1ª`/`2ª`), el nombre visible de una liga, ni un comportamiento ACB
+  aplicado por defecto a una competición desconocida.
+- La UI consulta CAPACIDADES derivadas (`resolved.capabilities.has(...)`)
+  para decidir qué mostrar, pero el CORE siempre valida con la política
+  real correspondiente — una capacidad nunca implementa el
+  comportamiento por sí sola.
+- La relación laboral (contrato) y el registro/licencia por competición
+  son conceptos separados — un contrato no concede una licencia, una
+  licencia no sustituye a un contrato.
+- Toda norma codificada (cupos, convocatoria, altas, ventanas...) incluye
+  fuente oficial, versión/temporada de vigencia y estado
+  (`verified`/`provisional`/`deprecated`) — nunca un número sin
+  procedencia.
+- No se mezclan perfiles normativos con `Object.assign()`/spread
+  genérico — cada tipo de regla usa la estrategia de composición que le
+  corresponde (mínimos concurrentes → el mayor; máximos concurrentes → el
+  menor; ventanas → intersección; procedimientos como el tanteo → state
+  machine, nunca merge de campos).
+- Las reglas de una temporada ya iniciada quedarán congeladas por
+  versión (`rulesetBundleId`+`version`) cuando exista persistencia real
+  (HARDEN-1) — no se implementa guardado nuevo antes de esa entrega.
+- Añadir una liga/competición nueva es registrar su
+  `CompetitionDefinition`/`RuleModule`/`RulesetBundle` en los catálogos
+  existentes — nunca editar `Team.js`, `game.js` ni introducir una rama
+  nueva repartida por la UI.
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambian la arquitectura normativa o las reglas activas.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 
