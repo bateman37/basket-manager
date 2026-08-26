@@ -110,7 +110,20 @@ async function main(mode) {
   // 2. BUG-LIFE4-01: fechas de histórico completas (día/mes/año), nunca
   //    solo una hora — se comprueba en la pestaña Carrera de la ficha.
   // -------------------------------------------------------------------
-  await page.click('#gm-lineup .player-link');
+  // BUG-ROSTER1-03 (detectado y corregido en CONTRACT-1): antes se pulsaba
+  // el PRIMER nombre de la lista, que depende del orden por posición y por
+  // tanto de qué jugadores ficticios genere `padRosterToMinimum()` en esa
+  // ejecución (`Math.random`). Si el primero resultaba ser uno de relleno,
+  // su histórico es `complete` y nunca muestra el texto "El histórico...
+  // comienza en", así que el test fallaba de forma intermitente sin que
+  // hubiera ninguna regresión real. Se elige explícitamente un jugador REAL
+  // (histórico `partial`), que es el caso que BUG-LIFE4-01 quería cubrir.
+  const realPlayerId = await page.evaluate(() => {
+    const { getUserTeam } = window.BasketManagerGame;
+    const real = getUserTeam().roster.find((p) => p.dataSource !== window.BasketManager.FICTIONAL_FALLBACK_DATA_SOURCE);
+    return real.id;
+  });
+  await page.click(`#gm-lineup .player-link[data-player-link-id="${realPlayerId}"]`);
   await page.waitForSelector('#gm-screen-player-profile.is-active', { timeout: 10000 });
   await page.click('.player-profile__tabs .tabs__btn[data-tab="career"]');
   await page.waitForTimeout(120);

@@ -209,11 +209,19 @@ check('resolveRules: Primera FEB resuelve 10-12', () => {
 });
 
 check('resolveRules: capacidades no implementadas no aparecen como activas', () => {
-  const resolved = CompetitionRules.resolveRules({ competitionId: 'acb', operation: 'buildMatchSquad' });
+  const resolved = CompetitionRules.resolveRules({ competitionId: 'acb', seasonKey: '2026-27', operation: 'buildMatchSquad' });
   assert.ok(!resolved.capabilities.has('rightOfFirstRefusal'));
   assert.ok(!resolved.capabilities.has('loanEligible'));
-  assert.ok(resolved.notImplemented.includes('employment'));
+  // ADAPTACIÓN CONTRACT-1 (DESIGN.md 9.17): `employment` YA NO figura como
+  // dominio no implementado — CONTRACT-1 lo implementa de verdad, pero
+  // resuelto por la JURISDICCIÓN DEL EMPLEADOR (BUG-ROSTER1-02), no por la
+  // competición. Se conserva el objetivo original del test (una capacidad
+  // sin política real detrás nunca aparece activa) comprobando los dominios
+  // que siguen sin módulo: market/transfer/internationalTransfer.
+  assert.ok(!resolved.notImplemented.includes('employment'));
   assert.ok(resolved.notImplemented.includes('market'));
+  assert.ok(resolved.notImplemented.includes('transfer'));
+  assert.ok(resolved.notImplemented.includes('internationalTransfer'));
   assert.ok(resolved.notImplemented.some((f) => f.startsWith('registration.')));
 });
 
@@ -263,10 +271,21 @@ check('RulesetBundle: ACB/FEB declaran fuentes oficiales con URL y temporada', (
   const acbModule = CompetitionRules.REGISTRATION_MODULES['acb-registration-2025-26-v1'];
   const febModule = CompetitionRules.REGISTRATION_MODULES['primera-feb-registration-2026-27-v1'];
   assert.ok(acbModule.sourceRefs[0].url.includes('acb.com'));
-  assert.strictEqual(acbModule.effectiveSeason, '2025-26');
   assert.ok(febModule.sourceRefs[0].url.includes('feb.es'));
-  assert.strictEqual(febModule.effectiveSeason, '2026-27');
-  assert.ok(febModule.knownSourceInconsistency, 'la discrepancia 13-15 del PDF FEB debe quedar registrada');
+  // ADAPTACIÓN CONTRACT-1 (BUG-ROSTER1-01): `effectiveSeason` (una sola
+  // temporada suelta) se sustituye por `validity` (temporada/fecha de
+  // inicio y fin + continuidad provisional declarada), que es lo que ahora
+  // usa el resolver para seleccionar por la temporada SOLICITADA. El
+  // objetivo original del test —cada módulo declara fuente oficial y
+  // temporada de vigencia— se conserva leyendo `validity.seasonFrom`.
+  assert.strictEqual(acbModule.validity.seasonFrom, '2025-26');
+  assert.strictEqual(febModule.validity.seasonFrom, '2026-27');
+  // `knownSourceInconsistency` (string) pasa a `knownSourceInconsistencies`
+  // (lista), homogéneo con los módulos laborales de CONTRACT-1.
+  assert.ok(
+    febModule.knownSourceInconsistencies.some((k) => k.includes('13-15')),
+    'la discrepancia 13-15 del PDF FEB debe quedar registrada',
+  );
 });
 
 // ---------------------------------------------------------------------
