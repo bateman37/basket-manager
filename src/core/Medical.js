@@ -593,6 +593,19 @@
     return afterInjury < config.medical.squadException.absoluteMinimum;
   }
 
+  // ROSTER-1 (DESIGN.md 9.16): punto ÚNICO donde se combina el mínimo
+  // NORMAL de convocatoria de la competición (`normalMinimum`, resuelto por
+  // `CompetitionRules.resolveRules()` — ya NO vive en `config.medical`) con
+  // el mínimo ABSOLUTO por escasez médica real (`config.medical.
+  // squadException.absoluteMinimum`, que sigue siendo política médica de
+  // `MatchConfig.js`) — antes duplicado literalmente en game.js (x2) y
+  // CpuLineup.js. Nunca por debajo del mínimo absoluto ni por encima del
+  // normal de esa competición.
+  function resolveEffectiveSquadMinimum(normalMinimum, config, callableCount) {
+    const { absoluteMinimum } = config.medical.squadException;
+    return Math.min(normalMinimum, Math.max(absoluteMinimum, callableCount));
+  }
+
   // ===========================================================================
   // Entrenamiento (sección 18) — evaluado UNA vez por tick semanal real de
   // LIFE-2, llamado desde Training.buildPlayerTickContext con la carga YA
@@ -730,6 +743,7 @@
     processTeamMedicalToDate,
     countMedicallyCallable,
     wouldDropBelowMinimum,
+    resolveEffectiveSquadMinimum,
     evaluateWeeklyTrainingTick,
     evaluateMatchPossessionInjuries,
     getEstimatedReturnRange,

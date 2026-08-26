@@ -100,7 +100,7 @@
       <div id="gm-match"></div>
     </section>
 
-    <!-- LIFE-4 (DESIGN.md 9.4, sección 27): ficha universal de jugador —
+    <!-- LIFE-4 (DESIGN.md 9.15, sección 27): ficha universal de jugador —
          pantalla CONTEXTUAL (nunca tiene botón propio en #gm-nav), se abre
          desde cualquier vista donde aparezca un nombre de jugador vía
          openPlayerProfile()/playerLinkHtml() en game.js. -->
@@ -276,6 +276,11 @@
        constructor, en tiempo de ejecución (cuando ya cargaron todos los
        scripts) — ver comentario en Team.js. -->
   <script src="src/entities/Team.js"></script>
+  <!-- ROSTER-1 (DESIGN.md 9.16): PlayerRegistry.js es un módulo puro (no
+       conoce Player/Team como clases, solo duck-typing sobre player.id/
+       teamId) — se carga aquí, justo después de Team.js, por orden
+       temático (capa de identidad mundial de jugadores/equipos). -->
+  <script src="src/core/PlayerRegistry.js"></script>
   <script src="src/utils/teamGenerator.js"></script>
   <script src="src/utils/skewedTeamGenerator.js"></script>
   <script src="data/real/real-data-bundle.js"></script>
@@ -286,7 +291,7 @@
        script), así que su posición exacta aquí no es crítica — se deja
        justo después de MatchConfig.js por orden temático (src/core/). -->
   <script src="src/core/PlayerDevelopment.js"></script>
-  <!-- LIFE-4 (DESIGN.md 9.4): PlayerCareer.js destructura ALL_MUTABLE_
+  <!-- LIFE-4 (DESIGN.md 9.15): PlayerCareer.js destructura ALL_MUTABLE_
        ATTRIBUTES/computeTmbRating de PlayerDevelopment.js y POSITIONS de
        Player.js A NIVEL DE MÓDULO (igual que PlayerDevelopment.js hace con
        Player.js) — debe cargar justo después de PlayerDevelopment.js, antes
@@ -317,6 +322,11 @@
   <script src="src/core/TrainingAI.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script src="src/core/League.js"></script>
+  <!-- ROSTER-1 (DESIGN.md 9.16): CompetitionRules.js es un módulo puro
+       (catálogo de competiciones/reglas/bundles + resolver), sin
+       dependencia de carga real con League.js — se deja aquí por orden
+       temático (capa de identidad/normativa de competición). -->
+  <script src="src/core/CompetitionRules.js"></script>
   <script src="src/core/Bracket.js"></script>
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>

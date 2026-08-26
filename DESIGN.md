@@ -25,6 +25,10 @@ motor, quitando funciones en vez de añadirlas.
   separado del desarrollo del motor.
 - Los datos reales se cargan en el mismo formato que los datos ficticios,
   así que el motor no necesita cambios cuando se sustituyen.
+- **En curso:** EPIC "Ciclo profesional de plantilla" (ver 9.16) —
+  transformará las plantillas estáticas actuales en un ecosistema
+  profesional (contratos, licencias, mercado, traspasos, cesiones,
+  transfer internacional) sobre un núcleo normativo multi-liga.
 
 ⚠️ **Nota legal activa:** el proyecto usa nombres reales de jugadores y
 clubes para uso privado. Si en el futuro se comercializa, hay que revisar
@@ -1127,9 +1131,12 @@ taquilla) viven en esa entidad, no aquí.
 #### Plantilla
 Agrupa jugadores (entidad `Jugador`, ver 6.1).
 - **Plantilla total del club**: sin límite duro por ahora.
-- **Convocatoria de partido**: mínimo 8, máximo 12 jugadores, fiel al
-  reglamento real de la ACB. Se aplica solo a la selección de partido,
-  no a la plantilla total.
+- **Convocatoria de partido**: rango real de la competición donde juega el
+  club — ACB 8-12, Primera FEB 10-12 (ROSTER-1, ver 9.16, primera vertical
+  del núcleo normativo multi-liga). "8-12" NO es una cifra universal del
+  motor: es el rango de ACB, resuelto por `CompetitionRules.resolveRules()`
+  igual que cualquier otra competición futura. Se aplica solo a la
+  selección de partido, no a la plantilla total.
 
 #### 6.2.1 Reputación (el "número maestro")
 Se muestra al usuario como **3 sub-componentes visibles por separado**,
@@ -1787,8 +1794,9 @@ de desgaste y recuperación de Energía que depende directamente de ella.
 
 #### 7.11.1 Convocatoria y posición declarada
 
-- La convocatoria de partido sigue la regla ya fijada en 6.2 (mínimo 8,
-  máximo 12 jugadores de la plantilla total).
+- La convocatoria de partido sigue la regla ya fijada en 6.2: rango real
+  de la competición (ACB 8-12, Primera FEB 10-12 — ROSTER-1, 9.16), nunca
+  un 8-12 fijo para toda la plantilla total.
 - Para cada jugador convocado, el usuario declara **una posición para
   ese partido concreto**, elegida entre las posiciones en las que el
   jugador tiene un nivel razonable según su mapa de 5 posiciones (6.1):
@@ -4840,11 +4848,20 @@ Alineación, Entrenamiento, pantalla Lesiones) la usan igual, nunca un
 `isInjured` duplicado.
 
 **Excepción médica de convocatoria**: `Team.buildMatchSquad()` acepta un
-`minOverride` — 8 normal; si solo hay 5-7 jugadores médicamente
-disponibles/limitados se permite convocarlos a todos, nunca por debajo
-de 5. El propio motor de riesgo (`Medical.wouldDropBelowMinimum()`) se
-niega a generar una lesión nueva que dejaría al club por debajo de 5
-disponibles — protección de integridad, no probabilidad de gameplay.
+`minOverride` — el mínimo NORMAL de la competición real del club (8 ACB,
+10 Primera FEB desde ROSTER-1, ver 9.16 — **corrección**: esta sección
+decía "8 normal" como si fuera universal; nunca lo fue, era solo el caso
+de ACB, la única competición que existía al escribir LIFE-3); si solo hay
+escasez médica real por debajo de ese mínimo normal se permite convocar a
+todos los disponibles, nunca por debajo del mínimo ABSOLUTO de 5. El
+mínimo normal lo resuelve `CompetitionRules.resolveRules()`; el mínimo
+absoluto (5) y la lógica de reducción siguen siendo política médica de
+`CONFIG_BASE.medical.squadException` — combinados en el único punto que
+antes los duplicaba a mano tres veces
+(`Medical.resolveEffectiveSquadMinimum()`). El propio motor de riesgo
+(`Medical.wouldDropBelowMinimum()`) se niega a generar una lesión nueva
+que dejaría al club por debajo de 5 disponibles — protección de
+integridad, no probabilidad de gameplay.
 
 **CPU** (`CpuLineup.js`): usa exactamente `Medical.getAvailability()` —
 excluye `unavailable`, puede usar `limited` (con penalización suave, no
@@ -5019,9 +5036,19 @@ actual del jugador..., no es su potencial"); Potencial/`learningRate`/
 residuales NUNCA se muestran. Gráficos de evolución (TMB por temporada,
 atributo seleccionado) en SVG/CSS puro, sin librerías externas, siempre
 con tabla accesible debajo. Pestaña Médico lee `medicalState` directamente
-(nunca copiado a `careerHistory`). `findPlayerById()` busca siempre
-instancias vivas de `Player` entre los 36 equipos actuales, nunca un
-bundle plano. Nombre clicable (`playerLinkHtml()`/`playerLinkHtmlById()`,
+(nunca copiado a `careerHistory`). `findPlayerById()` resuelve la
+instancia viva desde el **Player Registry mundial** de la partida
+(`state.playerRegistry`, ROSTER-1 — ver 9.16), **corrección de
+BUG-LIFE4-03**: la versión original de esta entrega recorría los 36
+equipos actuales como si fuera un directorio global, lo que dejaba de
+funcionar en el instante en que un jugador quedara sin club (todavía
+imposible en ROSTER-1, pero MARKET-1/TRANSFER-1 lo harán posible). El
+equipo actual se resuelve aparte por `player.teamId` contra los equipos
+vivos — `null` si no tiene club, y la ficha lo refleja como "Sin club"
+en la cabecera sin inventar equipo/división; roles/entrenamiento
+degradan a "Sin rol de club actual"/"No disponible sin club";
+estadísticas, desarrollo y carrera siguen visibles (no dependen del
+club). Nombre clicable (`playerLinkHtml()`/`playerLinkHtmlById()`,
 botón semántico accesible) desde Alineación, Entrenamiento, Tácticas
 (pestaña Roles), Estadísticas, Lesiones, box score y Noticias — abrir la
 ficha o cambiar de pestaña NUNCA avanza el calendario ni procesa
@@ -5030,6 +5057,15 @@ de la pantalla de origen porque ese estado ya es duradero por sí mismo
 (`state.statsSortKey`, `team.trainingPlan`, `container.dataset.activeTab`
 de Tácticas/Competiciones...) — `openPlayerProfile()` solo necesita
 recordar `returnScreen`.
+
+**Corrección de BUG-LIFE4-01**: el histórico médico, el timeline de
+carrera (hitos/honores) y la fecha de inicio de histórico (`partial`)
+reutilizaban por error `formatMatchTime()` (formateador de HORA de
+partido, `HH:mm`) para mostrar FECHAS de carrera — el resultado visible
+era una hora ("18:30") donde hacía falta una fecha. `formatHistoryDate()`
+(nuevo, día/mes/año) es ahora el formateador único para estas tres
+categorías de fecha histórica; `formatMatchTime()` sigue siendo solo para
+horarios de partido.
 
 **Tamaño observado**: `scripts/test-life4.js` mide ~640 bytes/temporada
 para un jugador con estadísticas constantes; `scripts/smoke-life4.js`
@@ -5050,6 +5086,285 @@ comparación de jugadores, editor de histórico, fotos, nuevas reglas de
 TMB/progresión/médicas/roles, decay de POS/táctica por no uso,
 fama/popularidad. **Con LIFE-4, STEP 3 — PLAYER LIFE queda cerrado**
 (LIFE-1 + LIFE-2 + LIFE-3 + LIFE-4).
+
+### 9.16 ROSTER-1 — Estabilización LIFE-4, registro mundial y núcleo normativo multi-liga
+
+Primera entrega de la **EPIC "Ciclo profesional de plantilla"**, que
+transformará las plantillas actuales (hoy estáticas) en un ecosistema
+profesional europeo vivo: jugadores que existen aunque no pertenezcan a un
+club, contratos laborales reales, inscripción por competición, mercado,
+traspasos, cesiones y renovación natural de las plantillas a lo largo de
+muchas temporadas. Objetivo de producto: **realismo de simulador, no
+comportamiento arcade** — una operación de plantilla nunca se reduce a
+"pagar una cantidad y mover un jugador".
+
+#### Partes de la EPIC
+
+1. **ROSTER-1** — estabilización de LIFE-4, registro mundial de jugadores
+   y núcleo normativo multi-liga (esta entrega).
+2. **CONTRACT-1** — contrato profesional, vigencia, salario y cláusulas.
+3. **REG-1** — inscripción, licencias, elegibilidad, cupos y vinculados.
+4. **MARKET-1** — negociación, agentes, libres y derechos preferentes
+   (tanteo como procedimiento temporal, no un booleano).
+5. **TRANSFER-1** — traspasos, buyouts, rescisión y compensaciones.
+6. **LOAN-1** — cesiones, subrogación y vinculación temporal.
+7. **CYCLE-1** — mercado anual CPU, renovaciones, retiros y equilibrio de
+   población (control del crecimiento infinito actual de cantera).
+8. **EUROPE-1** — mercado internacional, transfer FIBA (Letter of
+   Clearance) y competiciones superpuestas (liga doméstica + Europa).
+9. **HARDEN-1** — persistencia/migraciones, simulación larga (10-20
+   temporadas), calibración y endurecimiento de invariantes.
+
+Dependencias: ROSTER-1 (identidad global + núcleo de reglas) es
+prerrequisito de todo lo demás; CONTRACT-1 y REG-1 son prerrequisito de
+MARKET-1/TRANSFER-1/LOAN-1; CYCLE-1 necesita las cinco anteriores; EUROPE-1
+necesita REG-1 + CYCLE-1; HARDEN-1 cierra la Epic. Un contrato no concede
+por sí solo una licencia, y una licencia no sustituye al contrato — ambos
+conceptos, junto con la afiliación de plantilla y el transfer
+internacional, se mantienen deliberadamente separados desde esta entrega
+(ver "Conceptos distintos" más abajo).
+
+#### Bugs corregidos de LIFE-4 (PR #37)
+
+- **BUG-LIFE4-01**: fechas de histórico mostradas como hora — corregido
+  con `formatHistoryDate()` (ver nota en 9.15).
+- **BUG-LIFE4-02**: comentarios de código citando "DESIGN.md 9.4" en vez
+  de 9.15 (LIFE-4 quedó numerado 9.15, no 9.4 — ver nota en el propio
+  9.15) — auditados y corregidos todos los archivos tocados por LIFE-4.
+- **BUG-LIFE4-03**: `findPlayerById()` dependía de que el jugador siguiera
+  en `Team.roster` — corregido con el Player Registry (ver más abajo).
+
+#### Player Registry — identidad mundial de jugadores
+
+Un `Player` pertenece al **mundo de la partida**, no a un array concreto.
+`Team.roster` sigue siendo la afiliación deportiva ACTUAL de un club, pero
+deja de ser el directorio mundial de jugadores: quitar a un jugador de una
+plantilla (CONTRACT-1/MARKET-1/TRANSFER-1, todavía no implementado) nunca
+debe destruirlo ni volverlo ilocalizable.
+
+`src/core/PlayerRegistry.js` (módulo puro, sin conocer Player/Team como
+clases) indexa por `player.id` la MISMA instancia viva usada por los
+equipos. La partida posee una instancia EXPLÍCITA
+(`state.playerRegistry`, construida en `startSeason()`) — nunca un
+singleton global oculto; dos partidas o dos tests pueden tener registros
+independientes. API: `register`/`registerMany`/`get`/`require`/`has`/
+`all`/`forTeam`/`setAffiliation`/`validateAgainstTeams`/`snapshot`.
+`forTeam()` es una vista DERIVADA de `all()` (nunca un segundo índice que
+pueda desincronizarse). `snapshot()` es mínimo (solo id+teamId) — no es
+todavía un sistema de guardado (eso es HARDEN-1).
+
+**Invariantes** (verificados en `scripts/test-roster1.js`/
+`scripts/smoke-roster1.js`): cada jugador de cada plantilla aparece
+exactamente una vez en el registro; dos plantillas nunca comparten un
+`player.id`; `player.teamId` coincide siempre con el equipo en cuyo
+roster está; un jugador sin club puede seguir en el registro con
+`teamId === null` y no aparece en ningún `Team.roster`; ascender/descender
+un club no recrea jugadores; el intake de cantera registra cada newgen
+sin colisionar; liberar y reincorporar a un jugador conserva la misma
+instancia y su `careerHistory`/`developmentState`/`medicalState`
+completos; un id duplicado con otra instancia se rechaza con error
+descriptivo; `validateAgainstTeams()` detecta `teamId` incoherente y doble
+afiliación. `data/real/` permanece inmutable — el registro se construye
+en memoria a partir de instancias ya creadas, nunca reescribiendo los
+JSON de origen.
+
+Integración: `startSeason()` construye los 36 equipos (con el puente de
+cobertura de datos de Primera FEB, ver más abajo) y registra el universo
+completo; `closeSeasonAndPrepareNext()` registra inmediatamente los
+newgens de `generateAcademyIntake()`. `Team.addPlayer()`/`removePlayer()`
+NO sincronizan el registro por sí solos todavía (acoplaría la entidad a
+`game.js`) — la sincronización explícita (`registry.setAffiliation()`)
+queda para el futuro servicio/orquestador de fichajes de MARKET-1/
+TRANSFER-1.
+
+#### Núcleo normativo multi-liga
+
+Hoy el juego solo instancia dos competiciones domésticas españolas (ACB y
+Primera FEB), identificadas legacy como `1ª`/`2ª`. **Eso es solo el punto
+de partida**: en el futuro convivirán muchas ligas, federaciones, países y
+competiciones supranacionales, algunas con reglas de contratación,
+inscripción y transferencia diferentes, incluso varias normativas
+aplicables al mismo club a la vez (liga doméstica + EuroLeague). Por eso:
+
+- `1ª`/`2ª` **no vuelven a usarse como claves de lógica nueva** — quedan
+  como compatibilidad/presentación de calendario/ascensos (sin
+  reescribirlos en esta entrega). Toda regla NUEVA usa `competitionId`
+  (`acb`, `primera-feb`), estable e independiente del nombre visible o del
+  orden de división.
+- El adaptador de frontera `competitionIdFromLegacyDivision()`
+  (`src/core/CompetitionRules.js`) es el ÚNICO punto que traduce
+  `1ª`/`2ª` → `competitionId` — lanza explícito ante una división
+  desconocida, nunca asume ACB.
+- Una competición desconocida o un `bundleId`/versión inexistente generan
+  error explícito — **nunca hereda el comportamiento de ACB por
+  defecto**.
+
+**Capas de identidad de competición** (`src/core/CompetitionRules.js`):
+
+- `CompetitionDefinition` (catálogo `CompetitionCatalog`): identidad pura
+  — id, nombre, país, tier — sin ninguna regla.
+- `RuleModule` (catálogo `RuleModuleCatalog`, por ahora solo dominio
+  `registration`): una pieza de normativa versionada — versión, temporada
+  de vigencia, estado (`verified`/`provisional`/`deprecated`), fuente(s)
+  oficial(es) con URL y fecha de consulta, y qué partes de la norma real
+  quedan explícitamente `notImplemented` (nunca una regla vacía que
+  parezca activa).
+- `RulesetBundle` (catálogo `RulesetBundleCatalog`): compone módulos de
+  ÁMBITOS DISTINTOS para una competición+temporada —
+  `jurisdictionId`/`federationId`/`collectiveAgreementId` (declarados,
+  todavía sin `RuleModule` real detrás — CONTRACT-1 los rellenará) +
+  `modules.{registration, employment, market, transfer,
+  internationalTransfer}` (cada uno `null` hasta que exista el módulo
+  real).
+- `resolveRules(context)`: punto de entrada único, recibe CONTEXTO
+  explícito (`competitionId`, `seasonKey`, `date`, `operation`, `clubId`,
+  `playerId`, `overlays`) — nunca lee `state`/variables globales, usable
+  igual desde `game.js` que desde tests Node. Devuelve
+  `{bundleId, version, effectiveSeason, squadRules, capabilities,
+  notImplemented, trace}`.
+- **Capacidad ≠ comportamiento** (sección 5.3 del prompt de ROSTER-1): la
+  UI podrá consultar `resolved.capabilities.has('matchSquadSizeLimit')`
+  para saber qué mostrar, pero la capacidad se DERIVA siempre de qué
+  módulo está realmente presente — nunca se mantiene una lista aparte que
+  pueda divergir, y nunca aparece "activa" una capacidad sin política real
+  detrás.
+- **Composición por capas, nunca `Object.assign`/spread "el último
+  gana"**: cada tipo de regla tiene su propia estrategia semántica
+  (`MERGE_STRATEGIES`) — mínimos concurrentes conservan el MAYOR, máximos
+  concurrentes conservan el MENOR. `overlays` (competiciones superpuestas,
+  EUROPE-1) se componen así sobre el módulo base; ROSTER-1 no genera
+  overlays todavía, pero el mecanismo ya está probado
+  (`scripts/test-roster1.js`).
+- **Trazabilidad**: `trace.{sourceRuleIds, bundleId, version}` en todo
+  resultado — de dónde sale cada decisión, útil para tests y futuros
+  tooltips de UI.
+- **Versionado temporal** (sección 5.5 del prompt): cada `RuleModule`/
+  `RulesetBundle` tiene id estable + versión + temporada de vigencia +
+  fuentes oficiales + estado. `resolveRules()` sin `bundleId` explícito
+  resuelve el de versión más alta para esa competición — nunca el de otra
+  competición. Queda fijado (no implementado todavía) que una carrera
+  guardada futura (HARDEN-1) congelará `rulesetBundleId`+versión al
+  empezar cada temporada, para que un cambio normativo no altere
+  retroactivamente una temporada ya iniciada.
+- **Perfil ficticio de test** (`bm-test-fictional-league`, límites 6-9):
+  registrado en los mismos catálogos que ACB/FEB — demuestra que añadir
+  una liga nueva es dato de catálogo, nunca una rama nueva en `Team.js`/
+  `game.js`/UI.
+
+#### Primera vertical real: convocatoria por competición
+
+`Team.buildMatchSquad(playerIds, minOverride, maxOverride)` ya NO decide
+qué normativa aplicar — solo valida el rango recibido. `MATCH_SQUAD_MIN`/
+`MATCH_SQUAD_MAX` (8/12) quedan como default LEGACY (tests antiguos,
+`MatchEngine.js` en modo prueba, `buildMatchSquadExcludingPosition()`),
+nunca como fuente para producción multi-liga. `CpuLineup.buildCpuLineup()`
+recibe un 5º parámetro opcional `squadRules` (mismo default legacy si se
+omite) — la CPU consulta EXACTAMENTE la misma fuente de reglas que el
+usuario.
+
+- **ACB**: convocatoria normal **8-12** — fuente: *ACB — Normas Internas
+  2025-26*, artículos 15 y 17
+  (<https://www.acb.com/docs/descarga/pdf/transparencia/normas_internas_25-26_180825.pdf>,
+  consultado 2026-08-24). Cupos de formación (3 con 8-9 inscritos / 4 con
+  10-12), máximo 2 extranjeros no comunitarios, máximo acumulado de 20
+  inscripciones/temporada y sustituciones de no computables quedan
+  declarados `notImplemented` — alcance de REG-1.
+- **Primera FEB**: convocatoria normal **10-12** — fuente: *FEB — Bases de
+  Competición Primera FEB 2026-27*, apartados 2.2/2.3
+  (<https://www.feb.es/Documentos/Enlaces/%5B6537%5DBBCC%20Primera%20FEB%2026-27%20-%20Versi%C3%B3n%20Web.pdf>,
+  consultado 2026-08-24). El propio PDF incluye una fila "13-15
+  jugadores" en esa tabla que contradice el máximo de 12 fijado en el
+  texto inmediatamente anterior — **discrepancia real del documento
+  oficial, registrada en `knownSourceInconsistency` del módulo, no
+  resuelta por interpretación propia**; se mantiene el máximo inequívoco
+  (12) hasta que haya aclaración oficial. Formación, no comunitarios,
+  máximo de 20 altas, mínimo de 10 en acta (concepto distinto del rango de
+  inscripción) y ventanas de fecha límite quedan `notImplemented` —
+  alcance de REG-1.
+- **Excepción médica** (LIFE-3, ver corrección en 9.14): el mínimo NORMAL
+  ahora lo aporta la competición; el mínimo ABSOLUTO (5) y la reducción
+  siguen siendo política médica, combinados en
+  `Medical.resolveEffectiveSquadMinimum()`.
+
+**Puente de cobertura de datos (Primera FEB)**: el snapshot del bundle
+real de Primera FEB tiene 8 clubes con menos de 10 jugadores cargados
+(8-9) — limitación de COBERTURA del dataset, no una lesión, y no autoriza
+a bajar el mínimo normativo. `playerGenerator.padRosterToMinimum(roster,
+targetMinimum, options)` completa EN MEMORIA (nunca `data/real/`, nunca
+más allá del mínimo REAL resuelto por `CompetitionRules`) cada roster
+corto con el generador ficticio ya existente. Cada jugador añadido: se
+marca `dataSource = 'fictional-fallback-incomplete-roster'`
+(`FICTIONAL_FALLBACK_DATA_SOURCE`) y se muestra como tal en la interfaz
+(badge "Ficticio (relleno de plantilla)" en la Alineación, nota en la
+ficha universal) — nunca como jugador real; es una instancia normal de
+`Player`, se inscribe en Player Registry igual que cualquier otro; recibe
+histórico `complete` desde su creación (sin pasado inventado, mismo
+criterio que la cantera nueva); NO recibe contrato/licencia/vinculado
+ficticio (esas entidades no existen todavía); desaparece por sí solo
+(deja de generarse) en cuanto el dataset real de ese club alcance el
+mínimo, sin cambiar ninguna regla de competición. Un roster de 10
+jugadores reales con varias bajas médicas NO activa este puente (se
+distingue explícitamente en `scripts/test-roster1.js`) — ese caso es
+disponibilidad médica, no cobertura de datos.
+
+#### Conceptos distintos (para las entregas futuras)
+
+Esta entrega fija la separación conceptual que CONTRACT-1/REG-1/
+MARKET-1/TRANSFER-1/LOAN-1/EUROPE-1 desarrollarán, para no confundirlos
+entre sí desde ahora:
+
+- **Afiliación de plantilla** (`Team.roster`/`player.teamId`, ya
+  existente): pertenencia deportiva actual a un club — no implica
+  contrato ni licencia.
+- **Identidad mundial** (Player Registry, esta entrega): que un jugador
+  exista y sea localizable, tenga o no club.
+- **Contrato/relación laboral** (CONTRACT-1, todavía no implementado):
+  vínculo laboral club-jugador — duración, salario, cláusulas.
+- **Licencia/inscripción por competición** (REG-1, todavía no
+  implementado): derecho a competir en una competición concreta —
+  cupos, acta, formación, extranjeros, vinculados. Un jugador puede estar
+  contratado por un club y ser elegible en unas competiciones pero no en
+  otras (ej. liga doméstica sí, EuroLeague no, hasta que se resuelva el
+  transfer/LOC correspondiente).
+- **Transfer internacional/Letter of Clearance** (EUROPE-1, todavía no
+  implementado): movimiento entre federaciones — requiere LOC; un
+  movimiento doméstico no.
+
+Ninguna de estas cinco entidades sustituye a otra: un contrato no concede
+licencia, una licencia no sustituye al contrato.
+
+#### Fuentes consultadas ya estudiadas para entregas futuras (anexo)
+
+No implementadas todavía — registradas aquí para no repetir la
+investigación quando toque cada entrega:
+
+- *Real Decreto 1006/1985* (relación laboral especial de deportistas
+  profesionales) — base de CONTRACT-1/LOAN-1.
+- *Convenio colectivo ACB–ABP* (BOE-A-2021-4226) — contrato tipo, mínimos
+  y tanteo — base de CONTRACT-1/MARKET-1 (verificar vigencia operativa
+  antes de usar).
+- *ACB — procedimiento operativo de tanteo* — evidencia de estados/plazos
+  reales — base de MARKET-1.
+- *FIBA Internal Regulations, Book 3* (Players and Officials) — LOC,
+  federación de licencia, agentes — base de EUROPE-1.
+- *EuroLeague Players Association — Standard Player Contract* —
+  referencia de estructura contractual europea — base de CONTRACT-1 (no
+  sustituye la ley nacional).
+- *LNB Francia — reglamentación 2025-26* — prueba de arquitectura (otras
+  ligas admiten cláusulas/límites distintos) — no implementado, no
+  extrapolado a España.
+- *FEB — Reglamento General y de Competiciones* — definiciones
+  federativas, licencias, formación y vinculaciones — base de REG-1/
+  LOAN-1.
+
+#### Fuera de alcance de ROSTER-1
+
+Entidad `Contract`/salarios, negociación jugador/agente, derecho de
+tanteo/ofertas cualificadas, licencias completas/cupos de formación o no
+comunitarios/máximo de 20 altas, transfer fees/buyouts/rescisiones,
+cesiones, Letter of Clearance, ligas extranjeras reales, retiros/IA de
+mercado, reducción del intake de cantera, UI de mercado/contratos,
+save/load nuevo. Siguiente entrega: **CONTRACT-1**.
 
 ## 10. Modo Manager (futuro, derivado del modo Completo)
 

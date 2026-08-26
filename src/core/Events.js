@@ -33,7 +33,7 @@
   // por falta de histórico real de estadísticas por jugador entre
   // temporadas — señalado explícitamente, no un olvido. LIFE-3 añade
   // 'medical' (lesión/alta), derivada siempre de `medicalState` real.
-  // LIFE-4 (DESIGN.md 9.4, sección 40/71): 'career' — hitos/récords de
+  // LIFE-4 (DESIGN.md 9.15, sección 40/71): 'career' — hitos/récords de
   // carrera derivados de `PlayerCareer.recordResolvedMatch()` (hecho real
   // ya detectado allí; este módulo solo redacta). Cierra el hueco que
   // CAL-2 dejó explícitamente pendiente por falta de histórico real.
@@ -490,7 +490,7 @@
   }
 
   // ------------------------------------------------------------------
-  // LIFE-4 (DESIGN.md 9.4, sección 40/41/70/71): noticias de carrera —
+  // LIFE-4 (DESIGN.md 9.15, sección 40/41/70/71): noticias de carrera —
   // derivadas SIEMPRE de un milestone/personalBest ya detectado por
   // `PlayerCareer.recordResolvedMatch()` (hecho real, con su propio id
   // estable — game.js solo llama a estos builders para los milestones
@@ -507,7 +507,7 @@
   };
   // 50 partidos/hitos de minutos/primera titularidad: quedan en el
   // timeline de Carrera (PlayerCareer.js los registra igual), pero NUNCA
-  // generan noticia (DESIGN.md 9.4, sección 41) — de ahí que no tengan
+  // generan noticia (DESIGN.md 9.15, sección 41) — de ahí que no tengan
   // entrada aquí; `buildCareerMilestoneNewsEvent` devuelve `null` para
   // cualquier `milestone.type` sin prioridad asignada.
   const CAREER_MILESTONE_PRIORITY = { debut: 'media', games100: 'media', games250: 'alta', games500: 'alta' };

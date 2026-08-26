@@ -2110,10 +2110,17 @@
         maxAttributesAffected: 3,
       },
 
-      // --- Sección 23: excepción médica al mínimo de convocatoria 8.
+      // --- Sección 23: excepción médica al mínimo NORMAL de convocatoria.
+      // ROSTER-1 (DESIGN.md 9.16): `normalMinimum` se RETIRA de aquí — ya
+      // no es una cifra universal (8 solo era el rango de ACB). El mínimo
+      // normal de cada partido lo resuelve `CompetitionRules.resolveRules()`
+      // según la competición (ACB 8, Primera FEB 10...); solo el mínimo
+      // ABSOLUTO por escasez médica real (protección de integridad, no
+      // regla de reglamento de ninguna liga) sigue siendo política médica
+      // de este CONFIG. Ver `Medical.resolveEffectiveSquadMinimum()`, que
+      // combina ambos en el único punto que antes los duplicaba a mano.
       squadException: {
         absoluteMinimum: 5,
-        normalMinimum: 8,
       },
 
       // --- Sección 25: factores de estímulo/coste de entrenamiento por

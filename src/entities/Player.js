@@ -255,7 +255,7 @@
       // medicalState serializado (partida guardada), se conserva tal cual.
       this.medicalState = data.medicalState || null;
 
-      // --- Histórico de carrera (LIFE-4, DESIGN.md 9.4) ---
+      // --- Histórico de carrera (LIFE-4, DESIGN.md 9.15) ---
       // Separado a propósito de `dynamicState`/`developmentState`/
       // `medicalState`: esto es histórico de TEMPORADAS ya cerradas +
       // temporada en curso + hitos/récords/honores, nunca estado vivo de
@@ -454,7 +454,7 @@
             date: entry.date ? new Date(entry.date).toISOString() : null,
           })),
         } : null,
-        // LIFE-4 (DESIGN.md 9.4): careerHistory completo (baseline/
+        // LIFE-4 (DESIGN.md 9.15): careerHistory completo (baseline/
         // temporada en curso/temporadas cerradas/hitos/récords) sobrevive
         // toJSON()/reconstrucción — mismo criterio de fechas ISO que el
         // resto de esta ficha.

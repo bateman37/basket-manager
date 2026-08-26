@@ -99,8 +99,8 @@
   // (`status !== 'unavailable'`, ver buildCpuLineup). `effectiveMin`:
   // mínimo real de convocatoria para ESTA fecha (8 normal, 5-7 solo por
   // escasez médica real, nunca por elección de la CPU).
-  function pickMatchSquadIds(availablePlayers, effectiveMin) {
-    const desiredSize = Math.max(effectiveMin, Math.min(MATCH_SQUAD_MAX, availablePlayers.length));
+  function pickMatchSquadIds(availablePlayers, effectiveMin, max) {
+    const desiredSize = Math.max(effectiveMin, Math.min(max, availablePlayers.length));
     const bestByPosition = {};
     const guaranteed = new Set();
     POSITIONS.forEach((position) => {
@@ -158,22 +158,28 @@
   // manejan fecha real (usa el reloj de la máquina, comportamiento
   // idéntico al de antes de esta entrega si `config.medical.enabled` es
   // `false` o el jugador nunca ha tenido estado médico).
-  function buildCpuLineup(team, matchImportance, config, date) {
+  // `squadRules` (ROSTER-1, DESIGN.md 9.16): `{min, max}` YA resuelto por
+  // `CompetitionRules.resolveRules()` para la competición real de `team`
+  // — nunca decidido aquí. Sin indicar (llamadores legacy de LIFE-1/2/3/4,
+  // sin multi-liga), reproduce el default legacy 8-12 de `Team.js`,
+  // comportamiento idéntico al de antes de esta entrega.
+  function buildCpuLineup(team, matchImportance, config, date, squadRules) {
     const matchDate = date || new Date();
+    const limits = squadRules || { min: MATCH_SQUAD_MIN, max: MATCH_SQUAD_MAX };
     const Medical = MedicalCore();
     const availabilityMap = new Map(
       team.roster.map((player) => [player.id, Medical.getAvailability(player, matchDate, config, { team })]),
     );
     const availablePlayers = team.roster.filter((player) => availabilityMap.get(player.id).status !== 'unavailable');
     const callableCount = availablePlayers.length;
-    const exceptionCfg = config.medical.squadException;
-    // Sección 23: mínimo real de convocatoria para ESTA fecha — 8 normal,
-    // 5-7 solo por escasez médica real (nunca por elección de la CPU),
-    // nunca por debajo de 5 (protegido además por
-    // Medical.wouldDropBelowMinimum al generar la lesión en sí).
-    const effectiveMin = Math.min(exceptionCfg.normalMinimum, Math.max(exceptionCfg.absoluteMinimum, callableCount));
-    const squadIds = pickMatchSquadIds(availablePlayers, effectiveMin);
-    const squad = team.buildMatchSquad(squadIds, effectiveMin);
+    // Sección 23 (LIFE-3): mínimo real de convocatoria para ESTA fecha —
+    // el normal de la competición (`limits.min`) salvo escasez médica real
+    // (nunca por elección de la CPU), nunca por debajo del mínimo absoluto
+    // (protegido además por Medical.wouldDropBelowMinimum al generar la
+    // lesión en sí).
+    const effectiveMin = Medical.resolveEffectiveSquadMinimum(limits.min, config, callableCount);
+    const squadIds = pickMatchSquadIds(availablePlayers, effectiveMin, limits.max);
+    const squad = team.buildMatchSquad(squadIds, effectiveMin, limits.max);
     const cfg = config.cpuLineup;
     const totalMinutes = config.match.durationMinutes;
 

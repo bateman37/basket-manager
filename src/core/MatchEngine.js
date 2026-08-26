@@ -1463,7 +1463,7 @@
       positionSecondsByPlayer: Object.fromEntries(
         Array.from(rotationState.positionSeconds.entries()).map(([id, byPos]) => [id, { ...byPos }]),
       ),
-      // LIFE-4 (DESIGN.md 9.4, sección 13): quinteto inicial REAL (factual,
+      // LIFE-4 (DESIGN.md 9.15, sección 13): quinteto inicial REAL (factual,
       // no inferido por minutos) — ver Rotation.buildRotationState.
       starterIds: [...(rotationState.starterIds || [])],
     };

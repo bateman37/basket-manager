@@ -1,5 +1,5 @@
 // src/core/PlayerCareer.js
-// LIFE-4 (DESIGN.md 9.4): ficha universal, histórico de carrera, evolución,
+// LIFE-4 (DESIGN.md 9.15): ficha universal, histórico de carrera, evolución,
 // hitos y noticias. Responsabilidad ÚNICA de este módulo: persistencia
 // histórica compacta + cálculos puros de carrera (totales, tendencias,
 // hitos, récords, honores). NO modifica atributos, NO calcula crecimiento
@@ -104,7 +104,7 @@
     return sum / keys.length;
   }
 
-  // Temporada "2026-27" a partir del año real de inicio — DESIGN.md 9.4,
+  // Temporada "2026-27" a partir del año real de inicio — DESIGN.md 9.15,
   // sección 17 del prompt de esta sesión: nunca "Temporada 1".
   function seasonKeyFromStartYear(startYear) {
     const nextYearShort = String((startYear + 1) % 100).padStart(2, '0');
