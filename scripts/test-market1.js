@@ -805,6 +805,22 @@ check('competición desconocida no hereda ACB (lanza explícito)', () => {
   assert.throws(() => CompetitionRules.resolveMarketRules({ domesticCompetitionId: 'liga-inventada-xyz', seasonKey: SEASON, date: GAME_DATE }));
 });
 
+check('RightOfFirstRefusalService.openCase valida en el CORE, no solo por capacidad de UI (sección 20)', () => {
+  // La pestaña "Derechos" se oculta en la UI cuando falta
+  // supportsRightOfFirstRefusal, pero esa ocultación nunca debe ser la
+  // ÚNICA barrera — si algo llamara a openCase() para una competición sin
+  // procedimiento doméstico (p.ej. Primera FEB), el propio servicio debe
+  // rechazarlo, no solo el botón ausente.
+  const febContext = CompetitionRules.resolveMarketRules({ domesticCompetitionId: 'primera-feb', seasonKey: SEASON, date: GAME_DATE });
+  assert.throws(() => RightOfFirstRefusalService.openCase({
+    marketRegistry: new MarketRegistry(),
+    playerId: 'player-x',
+    originClubId: 'club-x',
+    lastOfficialMatchDate: GAME_DATE,
+    marketContext: febContext,
+  }), /no resuelve ningún procedimiento doméstico/);
+});
+
 check('fixture de contacto distinto (reference-only) funciona SOLO fijado explícitamente', () => {
   const unpinned = CompetitionRules.resolveMarketRules({ domesticCompetitionId: 'bm-test-fictional-league', seasonKey: SEASON, date: GAME_DATE });
   assert.strictEqual(unpinned.market.domesticProcedure, null, 'nunca se autoselecciona');
@@ -1179,6 +1195,20 @@ check('ningún comando de Market llama a ContractRegistry.register/ContractServi
   ['src/core/MarketService.js', 'src/core/RightOfFirstRefusalService.js', 'src/core/NegotiationService.js', 'src/core/MarketSeeder.js'].forEach((file) => {
     const code = stripComments(readSource(file));
     assert.ok(!/\.register\(.*[Cc]ontract\)|createContract\(|addPlayer\(|removePlayer\(|RegistrationService\./.test(code), `${file} ejecuta una mutación de TRANSFER-1`);
+  });
+});
+
+check('ningún comando de Market asigna player.teamId (mover de plantilla es de TRANSFER-1)', () => {
+  ['src/core/MarketService.js', 'src/core/RightOfFirstRefusalService.js', 'src/core/NegotiationService.js', 'src/core/MarketSeeder.js'].forEach((file) => {
+    const code = stripComments(readSource(file));
+    assert.ok(!/\.teamId\s*=[^=]/.test(code), `${file} asigna player.teamId directamente`);
+  });
+});
+
+check('ningún Date.now()/reloj de sistema dentro del core de mercado (sección 15.2)', () => {
+  MARKET_SOURCES.forEach((file) => {
+    const code = stripComments(readSource(file));
+    assert.ok(!/Date\.now\(\)|new Date\(\)/.test(code), `${file} usa el reloj de sistema en vez de una fecha explícita`);
   });
 });
 

@@ -6293,8 +6293,15 @@
     const team = getUserTeam();
     if (!container) return;
     if (!team || !state.marketRegistry || !state.agentRegistry) { container.innerHTML = ''; return; }
-    const activeTab = container.dataset.activeTab || 'search';
     const marketContext = buildMarketContextForTeam(team);
+    const rightsTabDisabled = !marketContext.capabilities.has('supportsRightOfFirstRefusal');
+    let activeTab = container.dataset.activeTab || 'search';
+    // Cambiar de club puede cambiar de competición (p. ej. ACB -> Primera
+    // FEB): una pestaña "Derechos" activa que ya no aplica a la
+    // competición actual nunca debe quedar "atascada" activa solo porque
+    // el dataset del contenedor la conservaba de la club anterior.
+    if (activeTab === 'rights' && rightsTabDisabled) activeTab = 'search';
+    container.dataset.activeTab = activeTab;
 
     let body = '';
     if (activeTab === 'search') body = renderMarketSearchTab(team, marketContext);
@@ -6302,8 +6309,6 @@
     else if (activeTab === 'negotiations') body = renderMarketNegotiationsTab(team, marketContext);
     else if (activeTab === 'agents') body = renderMarketAgentsTab();
     else if (activeTab === 'rights') body = renderMarketRightsTab(team, marketContext);
-
-    const rightsTabDisabled = !marketContext.capabilities.has('supportsRightOfFirstRefusal') && activeTab !== 'rights';
 
     container.innerHTML = `
       <h2>Mercado — ${escapeHtml(team.fullName)}</h2>
@@ -6435,14 +6440,39 @@
     const seasonKeys = [];
     let cursorYear = BM.LocalDate.seasonStartYear(seasonKey);
     for (let i = 0; i < seasonsCount; i += 1) { seasonKeys.push(BM.LocalDate.seasonKeyFromStartYear(cursorYear + i)); }
-    const startDate = BM.LocalDate.seasonWindow(seasonKeys[0]).startDate;
+    // Una firma de mercado casi nunca cae en el primer día de temporada:
+    // Contract.js rechaza toda firma retroactiva (signedDate posterior a
+    // startDate), así que la vigencia arranca en la fecha de firma real
+    // cuando esta cae dentro de (o después de) la primera temporada
+    // cubierta, nunca retrocedida al 1 de julio de esa temporada.
+    const firstSeasonStart = BM.LocalDate.seasonWindow(seasonKeys[0]).startDate;
+    const startDate = BM.LocalDate.isAfter(isoDate, firstSeasonStart) ? isoDate : firstSeasonStart;
     const endDate = BM.LocalDate.seasonWindow(seasonKeys[seasonKeys.length - 1]).endDate;
     const installmentCount = employment.payments.defaultInstallmentCount;
+    const frequency = employment.payments.frequency || 'monthly';
+    const monthStep = frequency === 'quarterly' ? 3 : 1;
     const schedule = [];
-    seasonKeys.forEach((sk) => {
+    seasonKeys.forEach((sk, index) => {
       const window = BM.LocalDate.seasonWindow(sk);
+      // La primera temporada cubierta ancla su primera cuota en la vigencia
+      // real del contrato (startDate ya corregido arriba), nunca en el
+      // inicio natural de la temporada si la firma es posterior — de lo
+      // contrario la cuota vencería antes de startDate y Contract.js la
+      // rechazaría como fuera de vigencia.
+      const anchorStartDate = index === 0 ? startDate : window.startDate;
+      // El número de cuotas por defecto asume una temporada completa desde
+      // julio: si la firma cae mid-season, ese mismo número de cuotas
+      // mensuales/trimestrales desbordaría el fin de ESA temporada (fuera
+      // de vigencia). Se acota al número de periodos que realmente caben
+      // entre la firma y el fin de esa temporada — nunca se toca
+      // `defaultInstallmentCount` en sí (CONTRACT-1), solo su aplicación
+      // aquí para la temporada parcial.
+      const [anchorYear, anchorMonth] = anchorStartDate.split('-').map(Number);
+      const [endYear, endMonth] = window.endDate.split('-').map(Number);
+      const periodsAvailable = Math.floor(((endYear - anchorYear) * 12 + (endMonth - anchorMonth)) / monthStep) + 1;
+      const seasonInstallmentCount = Math.max(1, Math.min(installmentCount, periodsAvailable));
       BM.buildPaymentSchedule({
-        totalMinor: formData.salaryMinor, installmentCount, firstDueDate: BM.LocalDate.endOfMonth(window.startDate), frequency: employment.payments.frequency || 'monthly', currency, seasonKey: sk,
+        totalMinor: formData.salaryMinor, installmentCount: seasonInstallmentCount, firstDueDate: BM.LocalDate.endOfMonth(anchorStartDate), frequency, currency, seasonKey: sk,
       }).forEach((installment) => schedule.push(installment));
     });
     return {
