@@ -184,26 +184,175 @@
     return BM.seasonKeyFromStartYear(state.seasonStartYear || new Date().getFullYear());
   }
 
-  // ROSTER-1 (DESIGN.md 9.16): resuelve el `competitionId` real de una
-  // división legacy ('1ª'/'2ª') y sus reglas — ÚNICO punto de game.js que
-  // debe tocar el adaptador legacy para esta llamada, nunca repetido a
-  // mano en otro sitio.
-  function resolveCompetitionSquadRules(division, referenceDate) {
-    const competitionId = BM.competitionIdFromLegacyDivision(division);
-    const resolved = BM.resolveRules({
-      competitionId,
-      seasonKey: buildCareerSeasonKey(),
-      date: referenceDate,
-      operation: 'buildMatchSquad',
-    });
-    return resolved.squadRules;
+  // REG-1 (DESIGN.md 9.18): traduce la `competitionKey` de `getActiveBracket()`
+  // ('cup'/'playoff'/'promotion') al `phaseId` usado por los RuleModule de
+  // inscripción (ver CompetitionRules.js, `acb-playoff-window`) — único
+  // punto de traducción, nunca repetido.
+  const BRACKET_PHASE_IDS = { cup: 'cup', playoff: 'title-playoff', promotion: 'promotion' };
+
+  // Identificador ESTABLE equivalente a `matchId` (sección 6.2 del prompt
+  // de REG-1: "matchId o identificador estable equivalente") — los
+  // partidos de `League.js` no llevan un `id` propio; ronda+enfrentamiento
+  // ya es único dentro de una temporada/división.
+  function matchStableId(match) {
+    return `league:${match.round}:${match.homeTeam.id}:${match.awayTeam.id}`;
   }
 
-  // Atajo usado por la Alineación/CPU en partida real: `team.division`
-  // (legacy) + reloj de mundo actual — mismo resolver de arriba, sin
-  // repetir el adaptador en cada llamador.
+  // ROSTER-1 (DESIGN.md 9.16) + REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-02):
+  // resuelve el `competitionId` real de una división legacy ('1ª'/'2ª') y
+  // construye el CONTEXTO EXPLÍCITO de competición/ámbito/fecha/jornada
+  // que exige `CompetitionRules.resolveRules()` — ÚNICO punto de game.js
+  // que debe tocar el adaptador legacy `team.division` para esto, nunca
+  // repetido a mano en otro sitio, y NUNCA leyendo `state.calendar.
+  // currentGameDateTime` por su cuenta: la fecha SIEMPRE llega como
+  // parámetro explícito de quien conoce el partido concreto.
+  //
+  // `options.phaseId`: 'league' | 'cup' | 'title-playoff' | 'promotion' —
+  // ACB comparte el mismo `registrationScopeId` en las tres fases (Copa y
+  // Playoff por el título se juegan bajo las mismas Normas Internas ACB,
+  // declarado como DATO en el bundle, nunca deducido aquí); Primera FEB
+  // usa su propio ámbito para liga + Playoff de ascenso.
+  function buildMatchCompetitionContext(team, options) {
+    const opts = options || {};
+    if (!opts.date) {
+      throw new Error(
+        'buildMatchCompetitionContext: falta "date" — REG-1 (BUG-CONTRACT1-02) exige la fecha REAL del '
+        + 'encuentro, nunca un reloj global leído dentro del resolver.',
+      );
+    }
+    const competitionId = BM.competitionIdFromLegacyDivision(team.division);
+    return {
+      competitionId,
+      // Sin competiciones estructuralmente distintas para Copa/Playoff en
+      // este motor (Bracket.js reutiliza el mismo ACB/Primera FEB — ver
+      // CLAUDE.md), `competitionInstanceId` coincide con `competitionId`;
+      // documentado explícitamente, no un campo inventado sin uso.
+      competitionInstanceId: competitionId,
+      seasonKey: buildCareerSeasonKey(),
+      date: opts.date,
+      phaseId: opts.phaseId || 'league',
+      roundId: opts.roundId || null,
+      matchId: opts.matchId || null,
+      operation: opts.operation || 'buildMatchSquad',
+    };
+  }
+
+  // REG-1 (DESIGN.md 9.18): resolución COMPLETA (`domain: 'registration'`)
+  // para un partido concreto — expone `resolved.registration` (cupos,
+  // acta, no comunitarios, reglas en pista...) además de `squadRules`.
+  function resolveRegistrationForMatch(team, options) {
+    return BM.resolveRules(buildMatchCompetitionContext(team, options));
+  }
+
+  function resolveSquadRulesForMatch(team, options) {
+    return resolveRegistrationForMatch(team, options).squadRules;
+  }
+
+  // Pool REGULADO de candidatos de `team` para un partido concreto (sección
+  // 11.1 del prompt de REG-1): seniors afiliados + propios de categoría
+  // inferior + vinculados autorizados — NUNCA solo `team.roster`. Cada
+  // candidato llega YA evaluado por `EligibilityService` (el MISMO
+  // servicio que usa la CPU y que valida al usuario). Devuelve `null` si la
+  // partida todavía no tiene `state.registrationRegistry` (defensivo; tras
+  // REG-1 siempre debería existir desde `startSeason()`).
+  function buildEligiblePoolForMatch(team, context) {
+    const registry = state.registrationRegistry;
+    if (!registry) return null;
+    const { getAvailability, CONFIG_BASE, EligibilityService } = BM;
+    const medicalAvailability = CONFIG_BASE.medical.enabled ? new Map() : null;
+    const classificationCache = state.registrationClassificationCache
+      || (state.registrationClassificationCache = new Map());
+
+    function evaluateFor(player, accessCategory, extraDeps) {
+      if (medicalAvailability && !medicalAvailability.has(player.id)) {
+        medicalAvailability.set(player.id, getAvailability(player, context.date, CONFIG_BASE, { team }));
+      }
+      const deps = {
+        playerRegistry: state.playerRegistry,
+        contractRegistry: state.contractRegistry,
+        registrationRegistry: registry,
+        medicalAvailability,
+        classificationCache,
+        ...extraDeps,
+      };
+      return { player, accessCategory, evaluation: EligibilityService.evaluateEligibility(player.id, team.id, context, deps) };
+    }
+
+    const pool = team.roster.map((player) => evaluateFor(player, 'senior'));
+
+    registry.registrationsForClub(team.id)
+      .filter((r) => r.accessCategory === 'own-lower-category' && r.seasonKey === context.seasonKey && r.isEffectiveOn(context.date))
+      .forEach((r) => {
+        const player = state.playerRegistry.get(r.playerId);
+        if (player) pool.push(evaluateFor(player, 'own-lower-category'));
+      });
+
+    registry.linkAgreementsAsBeneficiary(team.id).forEach((agreement) => {
+      const direction = agreement.upperClubId === team.id ? 'lowerToUpper' : 'upperToLower';
+      const originClubId = direction === 'lowerToUpper' ? agreement.lowerClubId : agreement.upperClubId;
+      const originTeam = getAllTeams().find((t) => t.id === originClubId);
+      if (!originTeam) return;
+      const lowerClubTeam = direction === 'lowerToUpper' ? originTeam : team;
+      const upperClubTeam = direction === 'lowerToUpper' ? team : originTeam;
+      agreement.lists[direction].forEach((playerId) => {
+        const player = state.playerRegistry.get(playerId);
+        if (!player) return;
+        pool.push(evaluateFor(player, 'linked', {
+          linkAgreement: agreement,
+          linkDirection: direction,
+          lowerClubCompetitionId: BM.competitionIdFromLegacyDivision(lowerClubTeam.division),
+          upperClubCompetitionId: BM.competitionIdFromLegacyDivision(upperClubTeam.division),
+        }));
+      });
+    });
+
+    return pool;
+  }
+
+  // Contexto del PRÓXIMO partido real de `team` — usado por la pantalla de
+  // Alineación (que no conoce todavía si el usuario va a pulsar "jugar"):
+  // liga → fecha exacta programada del próximo partido pendiente; bracket
+  // activo (Copa/Playoff/Ascenso) → todavía sin fecha programada de verdad
+  // (Bracket.Series.playNextGame la calcula DESPUÉS de simular, igual que
+  // ya asumía `resolveBracketOptions` antes de esta entrega) — se usa el
+  // reloj de mundo como mejor aproximación disponible, pero SIEMPRE pasado
+  // como parámetro explícito, nunca leído dentro del resolver de reglas.
+  function resolveNextMatchContextForTeam(team) {
+    const activeBracket = getActiveBracket();
+    if (activeBracket) {
+      return {
+        date: state.calendar.currentGameDateTime,
+        phaseId: BRACKET_PHASE_IDS[activeBracket.competitionKey] || activeBracket.competitionKey,
+      };
+    }
+    const league = getUserLeague();
+    const nextMatch = league && !league.isSeasonComplete ? findNextPendingMatchForTeam(league, team) : null;
+    return {
+      date: nextMatch ? nextMatch.date : state.calendar.currentGameDateTime,
+      phaseId: 'league',
+      roundId: nextMatch ? nextMatch.round : null,
+      matchId: nextMatch ? matchStableId(nextMatch) : null,
+    };
+  }
+
   function resolveTeamSquadRules(team) {
-    return resolveCompetitionSquadRules(team.division, state.calendar.currentGameDateTime);
+    return resolveSquadRulesForMatch(team, resolveNextMatchContextForTeam(team));
+  }
+
+  // REG-1 (DESIGN.md 9.18): resolución COMPLETA + contexto del PRÓXIMO
+  // partido de `team` — usado por la pantalla de Alineación para construir
+  // el pool regulado y validar la convocatoria con los mismos servicios
+  // que la CPU.
+  function resolveNextMatchRegistration(team) {
+    const context = buildMatchCompetitionContext(team, resolveNextMatchContextForTeam(team));
+    return { context, resolved: BM.resolveRules(context) };
+  }
+
+  // Pool regulado + contexto + reglas del PRÓXIMO partido de `team`, listo
+  // para la pantalla de Alineación (sección 11.2 del prompt de REG-1).
+  function getLineupPool(team) {
+    const { context, resolved } = resolveNextMatchRegistration(team);
+    return { context, resolved, pool: buildEligiblePoolForMatch(team, context) || [] };
   }
 
   function buildRealTeamFromData(teamData) {
@@ -238,7 +387,9 @@
     // objetivo lo decide SIEMPRE `CompetitionRules`, nunca un número fijo
     // aquí — esta necesidad desaparece sola en cuanto el dataset real
     // mejore, sin tocar ninguna regla de competición.
-    const squadRules = resolveCompetitionSquadRules(teamData.division, referenceDate);
+    const squadRules = resolveSquadRulesForMatch(
+      { division: teamData.division }, { date: referenceDate, phaseId: 'league' },
+    );
     const fallbackPlayers = padRosterToMinimum(
       roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate },
     );
@@ -379,6 +530,10 @@
     // bootstrap SIMULADOS de todos los jugadores afiliados. Nada de esto
     // toca `data/real/`.
     bootstrapContractsForNewCareer();
+    // REG-1 (DESIGN.md 9.18, sección 10.4 del prompt): se ejecuta DESPUÉS
+    // del registro contractual — licencia/inscripción son pasos separados
+    // del contrato, nunca concedidos automáticamente por tenerlo.
+    bootstrapRegistrationsForNewCareer();
 
     state.brackets = {
       '1ª': { cup: null, titlePlayoff: null },
@@ -474,6 +629,125 @@
         calibration,
       });
     });
+  }
+
+  // ---------------------------------------------------------------------
+  // REG-1 (DESIGN.md 9.18) — integración de la vertical de inscripción,
+  // licencias y elegibilidad. Esta capa de UI NO contiene ninguna regla
+  // regulatoria propia: solo decide CUÁNDO llamar a
+  // `RegistrationSeeder`/`RegistrationService` (arranque de partida,
+  // incorporación de cantera, transición de temporada) y muestra el
+  // resultado. Toda la normativa vive en `CompetitionRules`.
+  // Orden de inicialización (sección 10.4 del prompt de REG-1): jugadores
+  // → PlayerRegistry → ContractRegistry → RegistrationRegistry → perfiles
+  // → licencias/inscripciones → validación conjunta → lineup/pools.
+  // ---------------------------------------------------------------------
+  function bootstrapRegistrationsForNewCareer() {
+    const { RegistrationRegistry, RegistrationSeeder, CONFIG_BASE } = BM;
+    state.registrationRegistry = new RegistrationRegistry();
+    state.registrationBootstrapWarnings = [];
+
+    const seasonKey = buildCareerSeasonKey();
+    const isoDate = currentGameIsoDate();
+    const { warnings } = RegistrationSeeder.seedRegistrationsForTeams({
+      teams: getAllTeams(),
+      seasonKey,
+      date: isoDate,
+      registrationRegistry: state.registrationRegistry,
+      contractRegistry: state.contractRegistry,
+      config: CONFIG_BASE,
+    });
+    state.registrationBootstrapWarnings = warnings;
+  }
+
+  // Licencia/inscripción de un jugador que se incorpora con la partida ya
+  // en marcha (cantera) — sección 10.3: "reciben perfil, contrato ya
+  // existente y alta regulatoria mediante servicios, nunca por estar en el
+  // array". Se llama DESPUÉS de `signContractsForNewPlayers()` (CONTRACT-1
+  // sigue creando el contrato; REG-1 se ejecuta después — tener contrato
+  // no activa por sí solo la licencia).
+  // `existingClassification` (BUG-REG1-02): OBLIGATORIA — calculada por
+  // quien llama ANTES de que `Team.generateAcademyIntake()` añada a
+  // `players` a `team.roster` (`RegistrationSeeder.classifyRosterForClub`
+  // sobre el roster SENIOR previo, el mismo usado por
+  // `bootstrapRegistrationsForSeasonTransition()` momentos antes para ese
+  // club). Sin ella, cada newgen recalculaba su propia clasificación sobre
+  // el roster YA AMPLIADO — un sorteo independiente de formación/no
+  // comunitario que podía superar el cupo del club ya congelado en las
+  // inscripciones senior recién creadas (softlock detectado por el smoke
+  // de 3 temporadas: `NON_COMMUNITY_CAP_EXCEEDED` en jornada 1 de la
+  // temporada siguiente al intake).
+  function signRegistrationsForNewPlayers(team, players, seasonKey, isoDate, existingClassification) {
+    if (!state.registrationRegistry) return;
+    players.forEach((player) => {
+      BM.RegistrationSeeder.seedRegistrationForNewPlayer({
+        player,
+        team,
+        seasonKey,
+        date: isoDate,
+        registrationRegistry: state.registrationRegistry,
+        contractRegistry: state.contractRegistry,
+        config: BM.CONFIG_BASE,
+        existingClassification,
+      });
+    });
+  }
+
+  // Cierre de ciclo (sección 12 del prompt de REG-1): las licencias/
+  // inscripciones de la temporada que termina EXPIRAN mediante evento (no
+  // se borran) — `teamsWithOldAffiliation`/`divisionBeforeByTeamId`:
+  // plantilla y división EXACTAS con las que compitió cada equipo en la
+  // temporada que se cierra (antes de aplicar ascensos/descensos).
+  function expireRegistrationsForSeasonClose(teamsWithOldAffiliation, divisionBeforeByTeamId, prevSeasonKey, isoDate) {
+    if (!state.registrationRegistry) return;
+    const registry = state.registrationRegistry;
+    // Recorrido por el REGISTRO, nunca por `team.roster` (BUG-REG1-01): un
+    // propio de categoría inferior o un vinculado (sección 5.4) NUNCA
+    // aparecen en `Team.roster` por diseño — iterar plantillas los dejaba
+    // huérfanos, con la inscripción de la temporada anterior indefinidamente
+    // "activa" mientras su licencia sí expiraba (detectado por
+    // `RegistrationRegistry.validateIntegrity()` en el smoke test de 3
+    // temporadas). Los ámbitos de inscripción posibles se derivan de las
+    // divisiones REALES con las que compitieron los equipos esa temporada
+    // (nunca un literal fijo de competición).
+    const scopeIds = new Set();
+    teamsWithOldAffiliation.forEach((team) => {
+      const oldDivision = divisionBeforeByTeamId.get(team.id);
+      const oldCompetitionId = BM.competitionIdFromLegacyDivision(oldDivision);
+      const oldResolved = BM.resolveRules({
+        domain: 'registration', competitionId: oldCompetitionId, seasonKey: prevSeasonKey, date: isoDate,
+        phaseId: 'league', operation: 'bootstrap',
+      });
+      scopeIds.add(oldResolved.registrationScopeId);
+    });
+    scopeIds.forEach((scopeId) => {
+      registry.registrationsForScope(scopeId)
+        .filter((registration) => registration.seasonKey === prevSeasonKey && registration.statusOn(isoDate) === 'active')
+        .forEach((registration) => BM.RegistrationService.advanceRegistrationEvent(registration, 'expired', isoDate));
+    });
+    registry.allLicenses()
+      .filter((license) => license.seasonKey === prevSeasonKey && license.statusOn(isoDate) === 'active')
+      .forEach((license) => BM.RegistrationService.advanceLicenseEvent(license, 'expired', isoDate));
+  }
+
+  // Nuevas licencias/inscripciones de TRANSICIÓN para el ámbito/temporada
+  // NUEVO (sección 12: "se recalculan clasificación y cupos para el nuevo
+  // ámbito, sin copiar la etiqueta de la liga anterior; el máximo
+  // acumulado comienza en el ámbito/temporada nuevo") — se llama con la
+  // plantilla YA en su división nueva pero ANTES del intake de cantera
+  // (los newgens reciben la suya aparte, vía `signRegistrationsForNewPlayers`,
+  // para no colisionar con esta re-siembra masiva).
+  function bootstrapRegistrationsForSeasonTransition(allTeams, nextSeasonKey, closeIsoDate) {
+    if (!state.registrationRegistry) return;
+    const { warnings } = BM.RegistrationSeeder.seedRegistrationsForTeams({
+      teams: allTeams,
+      seasonKey: nextSeasonKey,
+      date: closeIsoDate,
+      registrationRegistry: state.registrationRegistry,
+      contractRegistry: state.contractRegistry,
+      config: BM.CONFIG_BASE,
+    });
+    state.registrationBootstrapWarnings = warnings;
   }
 
   // ---------------------------------------------------------------------
@@ -984,8 +1258,9 @@
       { bracket: brackets.promotionPlayoff, competitionKey: 'promotion' },
     ].forEach(({ bracket, competitionKey }) => {
       if (!bracket) return;
+      const phaseId = BRACKET_PHASE_IDS[competitionKey];
       while (!bracket.isComplete) {
-        const game = bracket.playNextGame(undefined, resolver.resolveBracketOptions);
+        const game = bracket.playNextGame(undefined, resolver.resolveBracketOptionsFor(bracket, phaseId));
         applyRecoveryForResolvedMatch(game.homeEntry.team, game.awayEntry.team, game.result, game.date, competitionKey);
         if (game.date) advanceGameClockTo(game.date);
       }
@@ -1169,6 +1444,19 @@
     // temporada cerrada que nunca jugó (invariante 15 del prompt de esta
     // sesión, "season no sobrescribe").
     const nextSeasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear + 1);
+    // REG-1 (DESIGN.md 9.18, sección 12 del prompt): las licencias/
+    // inscripciones de la temporada que TERMINA expiran mediante evento
+    // (nunca se borran) — con la plantilla y división EXACTAS de la
+    // temporada que se cierra (`divisionBeforeByTeamId`, ya capturado
+    // arriba antes de aplicar ascensos/descensos).
+    const prevSeasonKey = buildCareerSeasonKey();
+    const closeIsoDateForRegistrations = BM.LocalDate.fromJsDate(seasonEndDateTime);
+    expireRegistrationsForSeasonClose(allTeams, divisionBeforeByTeamId, prevSeasonKey, closeIsoDateForRegistrations);
+    // Nuevas licencias/inscripciones de TRANSICIÓN para el ámbito/temporada
+    // NUEVO — con la plantilla YA en su división actualizada (paso 1), y
+    // ANTES del intake de cantera (los newgens se registran aparte, más
+    // abajo, para no colisionar con esta re-siembra masiva).
+    bootstrapRegistrationsForSeasonTransition(allTeams, nextSeasonKey, closeIsoDateForRegistrations);
     const honoursByTeamId = buildSeasonHonoursByTeamId(leagueA, leagueB, bracketsA, bracketsB, promotedTeams);
     allTeams.forEach((team) => {
       const honours = honoursByTeamId.get(team.id) || [];
@@ -1200,6 +1488,17 @@
     const intakeCalibration = state.contractRegistry
       ? BM.ContractSeeder.buildCompetitionCalibration(allTeams, CONFIG_BASE) : null;
     allTeams.forEach((team) => {
+      // BUG-REG1-02: clasificación del club ANTES del intake, sobre el
+      // MISMO roster senior que acaba de usar
+      // `bootstrapRegistrationsForSeasonTransition()` — ver comentario de
+      // `signRegistrationsForNewPlayers` más abajo.
+      const intakeClassification = state.registrationRegistry ? (() => {
+        const competitionId = BM.competitionIdFromLegacyDivision(team.division);
+        const resolved = BM.resolveRules({
+          domain: 'registration', competitionId, seasonKey: nextSeasonKey, date: closeIsoDate, phaseId: 'league', operation: 'bootstrap',
+        });
+        return BM.RegistrationSeeder.classifyRosterForClub(team, resolved, nextSeasonKey);
+      })() : null;
       const newPlayers = team.generateAcademyIntake(3, seasonEndDateTime);
       // LIFE-4 (DESIGN.md 9.15, sección 19): cantera nueva = histórico
       // `complete` desde el instante real de su incorporación — nunca
@@ -1219,6 +1518,12 @@
       // el registro mundial (nunca desde `Player`/`Team.addPlayer`), vía
       // ContractService, y ya con la competición doméstica nueva.
       signContractsForNewPlayers(team, newPlayers, nextSeasonKey, closeIsoDate, intakeCalibration);
+      // REG-1: la licencia/inscripción del newgen se crea DESPUÉS de su
+      // contrato (sección 10.3: "tener contrato no activa por sí solo la
+      // licencia") — un newgen NO es automáticamente jugador de formación
+      // senior por nacer en la cantera (RegistrationSeeder lo clasifica
+      // igual que cualquier otro afiliado nuevo del club).
+      signRegistrationsForNewPlayers(team, newPlayers, nextSeasonKey, closeIsoDate, intakeClassification);
     });
 
     // CONTRACT-1: la nómina proyectada de los 36 clubes se recalcula para
@@ -1481,7 +1786,12 @@
     if (bracketBtn) {
       bracketBtn.addEventListener('click', () => {
         if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
-        playBracketGameWithReveal(activeBracket.bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions, activeBracket.competitionKey);
+        const bracketPhaseId = BRACKET_PHASE_IDS[activeBracket.competitionKey];
+        playBracketGameWithReveal(
+          activeBracket.bracket,
+          buildLineupMatchOptionsResolver(team).resolveBracketOptionsFor(activeBracket.bracket, bracketPhaseId),
+          activeBracket.competitionKey,
+        );
       });
     }
 
@@ -1900,7 +2210,10 @@
     // partido de bracket, nunca uno con reveal y otro sin él.
     const advanceBracket = (bracket, competitionKey) => {
       if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
-      playBracketGameWithReveal(bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptions, competitionKey);
+      const bracketPhaseId = BRACKET_PHASE_IDS[competitionKey];
+      playBracketGameWithReveal(
+        bracket, buildLineupMatchOptionsResolver(team).resolveBracketOptionsFor(bracket, bracketPhaseId), competitionKey,
+      );
     };
 
     const cupBtn = byId('gm-advance-cup-btn');
@@ -2155,11 +2468,15 @@
 
   // Lista de convocados (instancias reales de Player), en el mismo orden
   // que usa la pantalla de Alineación en varios sitios (tabla de slots,
-  // resumen de minutos totales, desplegables de quinteto fijo).
+  // resumen de minutos totales, desplegables de quinteto fijo). REG-1
+  // (DESIGN.md 9.18): resuelve desde el POOL regulado (senior+propios+
+  // vinculados), nunca solo `team.roster` — un vinculado convocado no
+  // pertenece al roster del club beneficiario.
   function getConvocatedPlayers(team) {
     const { POSITIONS } = BM;
+    const { pool } = getLineupPool(team);
     return state.lineup.squadIds
-      .map((id) => team.roster.find((p) => p.id === id))
+      .map((id) => { const entry = pool.find((p) => p.player.id === id); return entry ? entry.player : null; })
       .filter(Boolean)
       .sort((a, b) => POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition));
   }
@@ -2170,55 +2487,121 @@
     return SLOT_KEYS.reduce((acc, slotKey) => acc + ((lineup.entries[pos][slotKey] && lineup.entries[pos][slotKey].minutesQuota) || 0), 0);
   }
 
-  // Validación completa: tamaño de convocatoria (reutiliza
-  // Team.buildMatchSquad(), que ya valida 8-12 y pertenencia a plantilla —
-  // DESIGN.md 6.2) + Rotation.validateLineup (cuotas de minutos por
-  // posición). Ambas deben cumplirse para poder jugar/guardar.
   // LIFE-3 (DESIGN.md 9.14, sección 22/23 del prompt de esa sesión): fecha
   // de referencia para Medical.getAvailability() al validar la Alineación
   // — se usa el reloj de mundo actual (el usuario edita la alineación
   // "ahora", el estado médico real en la fecha exacta del partido puede
   // variar ligeramente hasta jugarlo, igual que ya pasa con Energía).
+  // REG-1: itera sobre el POOL regulado, no solo `team.roster`.
   function getLineupMedicalAvailability(team) {
     const { CONFIG_BASE, getAvailability } = BM;
     if (!CONFIG_BASE.medical.enabled) return null;
     const referenceDate = state.calendar.currentGameDateTime;
+    const { pool } = getLineupPool(team);
     const map = new Map();
-    team.roster.forEach((player) => map.set(player.id, getAvailability(player, referenceDate, CONFIG_BASE, { team })));
+    pool.forEach((entry) => map.set(entry.player.id, getAvailability(entry.player, referenceDate, CONFIG_BASE, { team })));
     return map;
   }
 
-  // Validación completa: tamaño de convocatoria (reutiliza
-  // Team.buildMatchSquad() con el rango YA resuelto por
-  // CompetitionRules para la competición real de `team` — ACB 8-12,
-  // Primera FEB 10-12, ROSTER-1 DESIGN.md 9.16 — o su excepción médica,
-  // sección 23 — y pertenencia a plantilla) + Rotation.validateLineup
-  // (cuotas de minutos por posición) + LIFE-3 (sección 22): ningún
-  // convocado no disponible en ningún slot, ningún `limited` por encima
-  // de su `minuteCap` médico. Todas deben cumplirse para poder jugar/guardar.
+  // Traducción de códigos de razón estables (EligibilityService/
+  // SquadEligibilityService) a texto — SOLO en la capa de presentación,
+  // nunca como clave de lógica (sección 6.6 del prompt de REG-1).
+  const REASON_CODE_LABELS = {
+    PLAYER_NOT_FOUND: 'jugador no encontrado',
+    NO_VALID_FEDERATION_LICENSE: 'sin licencia federativa válida',
+    LICENSE_SUSPENDED: 'licencia suspendida',
+    NOT_REGISTERED_IN_SCOPE: 'sin inscripción en este ámbito',
+    REGISTRATION_NOT_EFFECTIVE: 'inscripción no efectiva',
+    REGISTRATION_SUSPENDED: 'inscripción suspendida',
+    CONTRACT_NOT_ACTIVE: 'sin contrato vigente',
+    MANDATORY_DOCUMENT_MISSING: 'falta documento imprescindible',
+    PROVISIONAL_AUTHORIZATION_INVALID: 'autorización provisional inválida',
+    INTERNATIONAL_CLEARANCE_REQUIRED: 'requiere autorización internacional',
+    LINK_AGREEMENT_INVALID: 'acuerdo de vinculación inválido',
+    LINKED_PLAYER_NOT_ON_LIST: 'vinculado fuera de la lista autorizada',
+    LINKED_PLAYER_AGE_OR_CATEGORY_INVALID: 'edad/categoría no válida para vinculación',
+    SAME_COMPETITION_LINK_INEFFECTIVE: 'vinculación ineficaz (misma competición)',
+    ALREADY_ON_OTHER_ACB_ACT_SAME_ROUND: 'ya en otra acta esta jornada',
+    MEDICALLY_UNAVAILABLE: 'no disponible por lesión',
+    DISCIPLINARY_SUSPENSION: 'sanción disciplinaria',
+    CLASSIFICATION_UNKNOWN: 'clasificación regulatoria desconocida',
+  };
+
+  function describeReasonCodes(codes) {
+    return codes.map((code) => REASON_CODE_LABELS[code] || code).join(', ');
+  }
+
+  function describeSquadFinding(finding, pool) {
+    switch (finding.code) {
+      case 'SQUAD_SIZE_OUT_OF_RANGE':
+        return `La convocatoria debe tener entre ${finding.params.min} y ${finding.params.max} jugadores (actual: ${finding.params.actual})`;
+      case 'DUPLICATE_PLAYER_IN_SQUAD':
+        return 'Hay un jugador repetido en la convocatoria';
+      case 'INELIGIBLE_PLAYER_IN_SQUAD': {
+        const details = finding.params.playerIds.map((id) => {
+          const entry = pool.find((p) => p.player.id === id);
+          const name = entry ? entry.player.fullName : id;
+          const codes = entry ? entry.evaluation.reasons.filter((r) => r.severity === 'blocking').map((r) => r.code) : [];
+          return `${name} (${describeReasonCodes(codes) || 'no elegible'})`;
+        }).join('; ');
+        return `No elegible para este partido: ${details}`;
+      }
+      case 'FORMATION_QUOTA_NOT_MET':
+        return `Cupo de formación no cumplido (mínimo ${finding.params.required}, actual ${finding.params.actual})`;
+      case 'NON_COMMUNITY_CAP_EXCEEDED':
+        return `Supera el máximo de jugadores no comunitarios (máximo ${finding.params.max}, actual ${finding.params.actual})`;
+      default:
+        return finding.code;
+    }
+  }
+
+  // REG-1 (sección 11.4 del prompt): adaptador de UI sobre
+  // `Rotation.validateOnCourtFormationQuota()` (módulo PURO — ver
+  // Rotation.js): construye el `Set` de formación desde el pool ya
+  // evaluado y traduce el resultado a mensaje. ACB (sin esta capacidad) no
+  // ejecuta ninguna comprobación.
+  function validateOnCourtFormationQuota(lineup, pool, resolved) {
+    const minRequired = resolved.registration && resolved.registration.onCourtConstraints
+      && resolved.registration.onCourtConstraints.minFormationOnCourtAtAllTimes;
+    if (!minRequired) return { valid: true, message: null };
+    const formationQualifyingPlayerIds = new Set(
+      pool.filter((entry) => entry.evaluation.classification.formation.status === 'qualifies').map((entry) => entry.player.id),
+    );
+    const result = BM.validateOnCourtFormationQuota(lineup, formationQualifyingPlayerIds, minRequired);
+    if (result.valid) return { valid: true, message: null };
+    return { valid: false, message: `Cupo de formación en pista no cumplido: ${BM.describeOnCourtFormationQuotaErrors(result.errors)}` };
+  }
+
+  // Validación completa (REG-1, DESIGN.md 9.18): conjunto de la
+  // convocatoria vía `SquadEligibilityService.validateSquad()` — el MISMO
+  // servicio que usa la CPU — sobre el POOL regulado, NUNCA solo el rango
+  // 8-12/pertenencia a `team.roster` de antes de esta entrega. Se añaden
+  // Rotation.validateLineup (cuotas de minutos), el tope médico de minutos
+  // (LIFE-3) y el cupo de formación en pista (Primera FEB).
   function getLineupValidity(team) {
     const {
-      CONFIG_BASE, validateLineup, describeValidationErrors, totalMinutesByPlayer,
-      countMedicallyCallable, resolveEffectiveSquadMinimum,
+      CONFIG_BASE, validateLineup, describeValidationErrors, totalMinutesByPlayer, SquadEligibilityService,
+      getAvailability, resolveEffectiveSquadMinimum,
     } = BM;
-    const availability = getLineupMedicalAvailability(team);
-    const squadRules = resolveTeamSquadRules(team);
-    const effectiveMin = availability
-      ? resolveEffectiveSquadMinimum(
-        squadRules.min, CONFIG_BASE, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE),
-      )
-      : squadRules.min;
-    try {
-      team.buildMatchSquad(state.lineup.squadIds, effectiveMin, squadRules.max);
-    } catch (err) {
-      return { valid: false, message: err.message };
-    }
-    if (availability) {
-      const unavailableIds = state.lineup.squadIds.filter((id) => availability.get(id) && availability.get(id).status === 'unavailable');
-      if (unavailableIds.length) {
-        const names = unavailableIds.map((id) => (team.roster.find((p) => p.id === id) || {}).fullName).join(', ');
-        return { valid: false, message: `No disponible por lesión: ${names}` };
-      }
+    const { resolved, pool } = getLineupPool(team);
+    const evaluations = new Map(pool.map((entry) => [entry.player.id, entry.evaluation]));
+    // Misma excepción médica de convocatoria que usa la CPU (DESIGN.md,
+    // "Excepción médica de convocatoria") — el usuario no puede quedar
+    // bloqueado exigiendo un mínimo normal que la plantilla, por escasez
+    // médica real, no puede cumplir.
+    const referenceDate = state.calendar.currentGameDateTime;
+    const callableCount = pool.filter((entry) => (
+      entry.evaluation.eligible && getAvailability(entry.player, referenceDate, CONFIG_BASE, { team }).status !== 'unavailable'
+    )).length;
+    const effectiveMin = resolveEffectiveSquadMinimum(resolved.squadRules.min, CONFIG_BASE, callableCount);
+    const squadValidation = SquadEligibilityService.validateSquad(
+      state.lineup.squadIds, evaluations, resolved, { effectiveMin },
+    );
+    if (!squadValidation.valid) {
+      const messages = squadValidation.findings
+        .filter((f) => f.severity !== 'informational')
+        .map((f) => describeSquadFinding(f, pool));
+      return { valid: false, message: messages.join(' · ') };
     }
     const validation = validateLineup(
       { entries: state.lineup.entries, fixedSegments: state.lineup.fixedSegments },
@@ -2227,6 +2610,7 @@
     if (!validation.valid) {
       return { valid: false, message: describeValidationErrors(validation.errors) };
     }
+    const availability = getLineupMedicalAvailability(team);
     if (availability) {
       const totals = totalMinutesByPlayer(state.lineup);
       const overCap = Object.keys(totals).filter((id) => {
@@ -2236,12 +2620,15 @@
       if (overCap.length) {
         const detail = overCap.map((id) => {
           const info = availability.get(id);
-          const name = (team.roster.find((p) => p.id === id) || {}).fullName;
+          const entry = pool.find((p) => p.player.id === id);
+          const name = entry ? entry.player.fullName : id;
           return `${name} (máx. médico ${info.minuteCap} min)`;
         }).join(', ');
         return { valid: false, message: `Supera el máximo médico de minutos: ${detail}` };
       }
     }
+    const onCourtCheck = validateOnCourtFormationQuota(state.lineup, pool, resolved);
+    if (!onCourtCheck.valid) return onCourtCheck;
     return { valid: true, message: null };
   }
 
@@ -2260,6 +2647,11 @@
     });
   }
 
+  // REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-01): el máximo de selección ya NO
+  // es un `12` oculto — procede SIEMPRE del contexto del partido concreto
+  // (`resolveTeamSquadRules(team).max`), igual que la cabecera y la
+  // validación posterior. Una competición fixture con máximo 9 (o el
+  // acta 15 del perfil U22 de referencia) queda respetada aquí también.
   function toggleSquadMember(team, playerId) {
     const lineup = state.lineup;
     const idx = lineup.squadIds.indexOf(playerId);
@@ -2267,7 +2659,14 @@
       lineup.squadIds.splice(idx, 1);
       removePlayerFromAllSlots(playerId);
     } else {
-      if (lineup.squadIds.length >= 12) return; // máximo de convocatoria (6.2)
+      const { resolved, pool } = getLineupPool(team);
+      if (lineup.squadIds.length >= resolved.squadRules.max) return; // máximo de convocatoria de ESTA competición/partido
+      // REG-1 (DESIGN.md 9.18, sección 11.2 del prompt): un jugador
+      // inelegible no puede AÑADIRSE a la convocatoria (defensa en
+      // profundidad — el checkbox ya se deshabilita en el HTML, esto
+      // protege también cambios de estado entre renders).
+      const entry = pool.find((p) => p.player.id === playerId);
+      if (entry && !entry.evaluation.eligible) return;
       lineup.squadIds.push(playerId);
     }
     renderLineupScreen();
@@ -2371,10 +2770,14 @@
     const durationMinutes = CONFIG_BASE.match.durationMinutes;
     const lineup = state.lineup;
     const activeBracket = getActiveBracket();
-    // ROSTER-1 (DESIGN.md 9.16): rango real de convocatoria de la
-    // competición de ESTE equipo (ACB 8-12, Primera FEB 10-12) — nunca el
-    // 8-12 universal de antes de esta entrega.
-    const squadRules = resolveTeamSquadRules(team);
+    // REG-1 (DESIGN.md 9.18): pool REGULADO (senior+propios+vinculados) +
+    // reglas COMPLETAS del próximo partido — nunca el rango 8-12 universal
+    // ni solo `team.roster` de antes de esta entrega (ROSTER-1 ya había
+    // resuelto el rango real de convocatoria; REG-1 añade el pool, las
+    // clasificaciones y los cupos colectivos).
+    const { resolved, pool } = getLineupPool(team);
+    const squadRules = resolved.squadRules;
+    const evaluationsById = new Map(pool.map((entry) => [entry.player.id, entry.evaluation]));
 
     // Mismo criterio que Home para identificar "el próximo partido" — ver
     // getActiveBracket() (Bloque B), reutilizado tal cual.
@@ -2391,9 +2794,9 @@
             : '<p class="gm-muted">Tu equipo descansa esta jornada.</p>';
       })();
 
-    const sortedRoster = [...team.roster].sort((a, b) => {
-      const posDiff = POSITIONS.indexOf(a.primaryPosition) - POSITIONS.indexOf(b.primaryPosition);
-      return posDiff !== 0 ? posDiff : a.fullName.localeCompare(b.fullName, 'es');
+    const sortedPool = [...pool].sort((a, b) => {
+      const posDiff = POSITIONS.indexOf(a.player.primaryPosition) - POSITIONS.indexOf(b.player.primaryPosition);
+      return posDiff !== 0 ? posDiff : a.player.fullName.localeCompare(b.player.fullName, 'es');
     });
 
     // Convocatoria: checkboxes con nombre, posición y valoraciones en
@@ -2421,21 +2824,60 @@
       if (player.dataSource !== BM.FICTIONAL_FALLBACK_DATA_SOURCE) return '';
       return '<span class="gm-badge gm-badge--fictional" title="Jugador ficticio generado por cobertura de datos incompleta">Ficticio (relleno de plantilla)</span>';
     }
+    // REG-1 (DESIGN.md 9.18, sección 11.2 del prompt): badges de acceso
+    // (Senior/Propio/Vinculado), clasificación (Formación/No comunitario),
+    // procedencia simulada y motivo de no-elegibilidad — texto además de
+    // color (sección 13.3: accesibilidad).
+    const ACCESS_CATEGORY_LABELS = {
+      senior: 'Senior', 'own-lower-category': 'Propio', linked: 'Vinculado', 'additional-list': 'Lista adicional',
+    };
+    function accessCategoryBadgeHtml(entry) {
+      const label = ACCESS_CATEGORY_LABELS[entry.accessCategory] || entry.accessCategory;
+      return `<span class="gm-badge gm-badge--access-${entry.accessCategory}">${label}</span>`;
+    }
+    function classificationBadgesHtml(entry) {
+      const c = entry.evaluation.classification;
+      let html = '';
+      if (c.formation.status === 'qualifies') html += '<span class="gm-badge gm-badge--formation">Formación</span>';
+      if (c.formation.status === 'unknown') html += '<span class="gm-badge gm-badge--unknown">Formación: desconocida</span>';
+      if (c.nonCommunitySlot.status === 'counts') html += '<span class="gm-badge gm-badge--noncommunity">No comunitario</span>';
+      return html;
+    }
+    function simulatedRegistrationBadgeHtml() {
+      return '<span class="gm-badge gm-badge--simulated" title="Inscripción y clasificación simuladas para esta partida; no son datos federativos reales.">Simulado</span>';
+    }
+    function eligibilityBadgeHtml(entry) {
+      if (entry.evaluation.eligible) return '';
+      const codes = entry.evaluation.reasons.filter((r) => r.severity === 'blocking').map((r) => r.code);
+      return `<span class="gm-badge gm-badge--ineligible">No elegible: ${describeReasonCodes(codes)}</span>`;
+    }
     // LIFE-4 (DESIGN.md 9.15, sección 45): nombre clicable sin activar el
     // checkbox — ya NO es un único <label> envolviendo todo la fila (eso
     // convertiría el nombre en "botón dentro de label ambiguo"): el
     // checkbox vive en su propio <label> pequeño, y el nombre es un botón
-    // hermano fuera de él.
-    const squadPickerHtml = sortedRoster.map((player) => `
-      <div class="squad-picker__item">
+    // hermano fuera de él. REG-1: un jugador INELEGIBLE se muestra
+    // deshabilitado con sus motivos (sección 11.2), nunca desaparece sin
+    // explicación — solo se deshabilita si NO está ya convocado (para que
+    // el usuario siempre pueda desconvocar a alguien que dejó de ser
+    // elegible tras un cambio de contexto).
+    const squadPickerHtml = sortedPool.map((entry) => {
+      const { player } = entry;
+      const isSelected = lineup.squadIds.includes(player.id);
+      const disableCheckbox = !entry.evaluation.eligible && !isSelected;
+      return `
+      <div class="squad-picker__item ${entry.evaluation.eligible ? '' : 'squad-picker__item--ineligible'}">
         <label class="squad-picker__checkbox-wrap">
           <input type="checkbox" class="squad-checkbox" data-player-id="${player.id}"
-            ${lineup.squadIds.includes(player.id) ? 'checked' : ''}>
+            ${isSelected ? 'checked' : ''} ${disableCheckbox ? 'disabled' : ''}>
         </label>
         ${playerLinkHtml(player, { className: 'squad-picker__name' })}
         <span class="squad-picker__pos">${player.primaryPosition}</span>
+        ${accessCategoryBadgeHtml(entry)}
+        ${classificationBadgesHtml(entry)}
+        ${simulatedRegistrationBadgeHtml()}
         ${medicalBadgeHtml(player)}
         ${fictionalFallbackBadgeHtml(player)}
+        ${eligibilityBadgeHtml(entry)}
         <span class="squad-picker__ratings">
           <span>T ${player.technicalAverage.toFixed(1)}</span>
           <span>F ${player.physicalAverage.toFixed(1)}</span>
@@ -2444,7 +2886,28 @@
           <span>Energía ${Math.round(player.dynamicState.energy)}</span>
           <span class="squad-picker__form">Forma ${competitionRhythmToStars(player.dynamicState.competitionRhythm)}</span>
         </span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
+
+    // REG-1 (sección 11.2 del prompt): contadores en vivo — seleccionados/
+    // mínimo/máximo, formación requerida/actual, no comunitarios actual/
+    // máximo y restricción en pista, si existe.
+    // Misma excepción médica de convocatoria que valida `getLineupValidity`
+    // — los contadores en vivo deben mostrar el mínimo REAL de este
+    // partido, no el normal, si hay escasez médica genuina.
+    const liveCallableCount = pool.filter((entry) => (
+      entry.evaluation.eligible && BM.getAvailability(entry.player, state.calendar.currentGameDateTime, CONFIG_BASE, { team }).status !== 'unavailable'
+    )).length;
+    const liveEffectiveMin = BM.resolveEffectiveSquadMinimum(squadRules.min, CONFIG_BASE, liveCallableCount);
+    const liveCounters = BM.SquadEligibilityService.buildLiveCounters(
+      lineup.squadIds, evaluationsById, resolved, { effectiveMin: liveEffectiveMin },
+    );
+    const liveCountersHtml = `
+      <p class="lineup-live-counters">
+        Formación: ${liveCounters.formationCurrent}${liveCounters.formationRequired !== null ? `/${liveCounters.formationRequired} mínimo` : ''}
+        · No comunitarios: ${liveCounters.nonCommunityCurrent}${liveCounters.nonCommunityMax !== null ? `/${liveCounters.nonCommunityMax} máximo` : ''}
+        ${liveCounters.onCourtConstraint ? ` · Mínimo en pista: ${liveCounters.onCourtConstraint.minFormationOnCourtAtAllTimes} de formación` : ''}
+      </p>`;
 
     const convocated = getConvocatedPlayers(team);
 
@@ -2544,6 +3007,7 @@
 
       <div class="gm-card">
         <h3>Convocatoria (${lineup.squadIds.length}/${squadRules.max}, mínimo ${squadRules.min})</h3>
+        ${liveCountersHtml}
         <div class="squad-picker">${squadPickerHtml}</div>
       </div>
 
@@ -3945,21 +4409,13 @@
   // MatchEngine solo para el LADO del equipo del usuario, reenviando
   // `undefined` para el resto — así el rival (u otros partidos de la
   // jornada/bracket) siguen exactamente igual que hasta ahora.
+  // REG-1 (DESIGN.md 9.18): resuelve la convocatoria desde el POOL
+  // regulado (`getConvocatedPlayers`, senior+propios+vinculados) — nunca
+  // `Team.buildMatchSquad()`, que solo conoce `team.roster` y rechazaría a
+  // un vinculado de otro club. `getLineupValidity()` ya se comprobó ANTES
+  // de llegar aquí (el botón de jugar está deshabilitado si no es válida).
   function buildUserSideOptions(team) {
-    // LIFE-3 (DESIGN.md 9.14, sección 23): mismo mínimo real que ya validó
-    // getLineupValidity() — nunca se llega aquí con una alineación
-    // inválida (el botón de jugar está deshabilitado), pero se recalcula
-    // para no duplicar el número en dos sitios. ROSTER-1 (DESIGN.md 9.16):
-    // el mínimo NORMAL ahora lo resuelve CompetitionRules para la
-    // competición real de `team`, no una cifra universal.
-    const { CONFIG_BASE, countMedicallyCallable, resolveEffectiveSquadMinimum } = BM;
-    const squadRules = resolveTeamSquadRules(team);
-    const effectiveMin = CONFIG_BASE.medical.enabled
-      ? resolveEffectiveSquadMinimum(
-        squadRules.min, CONFIG_BASE, countMedicallyCallable(team.roster, team, state.calendar.currentGameDateTime, CONFIG_BASE),
-      )
-      : squadRules.min;
-    const squad = team.buildMatchSquad(state.lineup.squadIds, effectiveMin, squadRules.max);
+    const squad = getConvocatedPlayers(team);
     const lineup = {
       entries: state.lineup.entries,
       fixedSegments: state.lineup.fixedSegments,
@@ -3982,13 +4438,31 @@
   // `date` (LIFE-3, DESIGN.md 9.14): fecha real del partido — CpuLineup la
   // necesita para Medical.getAvailability() (excluir lesionados, respetar
   // minuteCap).
-  function buildCpuSideOptions(team, opponent, competition, league, date) {
+  // `matchContext` (REG-1, BUG-CONTRACT1-02): `{ phaseId, roundId, matchId }`
+  // del partido REAL — nunca se resuelve por `team.division` + reloj global.
+  function buildCpuSideOptions(team, opponent, competition, league, date, matchContext) {
     const { buildCpuLineup, computeMatchImportance, CONFIG_BASE } = BM;
     const standingsTable = league.getStandingsTable();
     const matchImportance = computeMatchImportance(team, opponent, competition, standingsTable, CONFIG_BASE);
     // ROSTER-1 (DESIGN.md 9.16): la CPU consulta la MISMA fuente de reglas
-    // que el usuario — nunca un rango universal aparte.
-    return buildCpuLineup(team, matchImportance, CONFIG_BASE, date, resolveTeamSquadRules(team));
+    // que el usuario — nunca un rango universal aparte. REG-1: el rango se
+    // resuelve para la FECHA REAL de este partido y su fase, nunca el
+    // reloj global leído dentro del resolver.
+    const context = buildMatchCompetitionContext(team, {
+      date,
+      phaseId: (matchContext && matchContext.phaseId) || competition,
+      roundId: matchContext ? matchContext.roundId : null,
+      matchId: matchContext ? matchContext.matchId : null,
+    });
+    const resolved = BM.resolveRules(context);
+    // REG-1 (sección 11.3 del prompt): la CPU consulta EXACTAMENTE
+    // EligibilityService/SquadEligibilityService sobre el pool REGULADO
+    // (senior+propios+vinculados) — nunca un greedy "los 12 mejores" que
+    // pueda dejar la plantilla sin cupo. `eligibility` es `null` solo si la
+    // partida todavía no construyó `state.registrationRegistry` (defensivo).
+    const pool = buildEligiblePoolForMatch(team, context);
+    const eligibility = pool ? { pool, resolved } : null;
+    return buildCpuLineup(team, matchImportance, CONFIG_BASE, date, resolved.squadRules, eligibility);
   }
 
   // Resolver de opciones de MatchEngine compartido por CUALQUIER partido
@@ -4000,7 +4474,8 @@
   // se omite — la división de fondo, que el usuario no juega) usa
   // `CpuLineup.buildCpuLineup` (DESIGN.md 7.11.7). resolveMatchOptions
   // tiene el shape que espera League.simulateNextRound(match);
-  // resolveBracketOptions, el que espera Bracket.playNextGame(homeEntry, awayEntry).
+  // resolveBracketOptionsFor(bracket, phaseId), que devuelve el resolver
+  // que espera Bracket.playNextGame(homeEntry, awayEntry).
   // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, secciones 9/32 del
   // prompt de esa sesión): procesa Training/PlayerDevelopment/Recovery de
   // AMBOS equipos hasta la fecha del partido — ANTES de construir
@@ -4024,44 +4499,154 @@
     pushMedicalDiffEvents(awayTeam, beforeAway);
   }
 
+  // `matchContext.phaseId` (REG-1, BUG-CONTRACT1-02): fase real del
+  // bracket en curso ('cup'/'title-playoff'/'promotion'), declarada
+  // explícitamente por `resolveBracketOptionsFor(bracket, phaseId)` para
+  // el bracket que realmente se está jugando en cada llamada — nunca
+  // adivinada con el literal genérico 'bracket'.
+  // REG-1 (DESIGN.md 9.18, sección 11.6 del prompt): `MatchActSnapshot`
+  // INMUTABLE de un lado del partido, registrado de forma IDEMPOTENTE
+  // justo antes de entregar la convocatoria a MatchEngine — nunca se
+  // decide normativa dentro del motor. `matchContext.matchId` puede ser
+  // `null` en bracket (fecha real desconocida hasta simular, ver
+  // `resolveBracketOptionsFor` más abajo): se deriva un id estable con
+  // fase+fecha aproximada+equipo, suficiente para idempotencia dentro de
+  // esa misma llamada.
+  function recordMatchActSnapshot(team, squad, date, matchContext) {
+    if (!state.registrationRegistry) return;
+    const context = buildMatchCompetitionContext(team, {
+      date, phaseId: matchContext.phaseId, roundId: matchContext.roundId, matchId: matchContext.matchId,
+    });
+    const resolved = BM.resolveRules(context);
+    const pool = buildEligiblePoolForMatch(team, context) || [];
+    const evaluationsById = new Map(pool.map((entry) => [entry.player.id, entry.evaluation]));
+    // Excepción médica de convocatoria (DESIGN.md, "Excepción médica de
+    // convocatoria"): si la escasez REAL de disponibles cae por debajo del
+    // mínimo normal, el acta no puede exigir un mínimo que la propia
+    // plantilla no puede cumplir — mismo cálculo que usa CpuLineup.
+    const { CONFIG_BASE, getAvailability, resolveEffectiveSquadMinimum } = BM;
+    const callableCount = pool.filter((entry) => (
+      entry.evaluation.eligible && getAvailability(entry.player, context.date, CONFIG_BASE, { team }).status !== 'unavailable'
+    )).length;
+    const effectiveMin = resolveEffectiveSquadMinimum(resolved.squadRules.min, CONFIG_BASE, callableCount);
+    const validation = BM.SquadEligibilityService.validateSquad(
+      squad.map((p) => p.id), evaluationsById, resolved, { effectiveMin },
+    );
+    const matchId = matchContext.matchId || `${context.phaseId}:${BM.LocalDate.fromJsDate(date instanceof Date ? date : new Date(date))}`;
+    const selectedPlayers = squad.map((player) => {
+      const entry = pool.find((p) => p.player.id === player.id);
+      return {
+        playerId: player.id,
+        accessCategory: entry ? entry.accessCategory : 'senior',
+        formation: entry ? entry.evaluation.classification.formation.status : 'unknown',
+        nonCommunity: entry ? entry.evaluation.classification.nonCommunitySlot.status : 'unknown',
+      };
+    });
+    const snapshot = new BM.MatchActSnapshot({
+      id: `act:${matchId}:${team.id}`,
+      matchId,
+      roundId: matchContext.roundId,
+      phaseId: matchContext.phaseId,
+      competitionId: context.competitionId,
+      competitionInstanceId: context.competitionInstanceId,
+      registrationScopeId: resolved.registrationScopeId,
+      seasonKey: context.seasonKey,
+      teamId: team.id,
+      matchDateTime: date instanceof Date ? date.toISOString() : date,
+      selectedPlayers,
+      squadValidation: { valid: validation.valid, counts: validation.counts },
+      configuredAt: state.calendar ? state.calendar.currentGameDateTime.toISOString() : null,
+      warnings: validation.findings.map((f) => f.code),
+    });
+    state.registrationRegistry.registerMatchAct(snapshot);
+  }
+
+  // REG-1 (DESIGN.md 9.18): índice de ronda REAL de un bracket en curso —
+  // NUNCA `null` para actas (`RegistrationRegistry.validateIntegrity()`
+  // agrupa "misma jornada" por `registrationScopeId|roundId`; con `null`
+  // fijo, un mismo club que avanza de ronda -p.ej. cuartos y semis de la
+  // misma Copa- fundía ambas rondas bajo la misma clave y una progresión
+  // legítima se leía como "el mismo jugador en dos actas a la vez"). Se
+  // lee de `bracket.rounds.length` EN EL MOMENTO de construir el acta —
+  // `Bracket.playNextGame()` ya ejecutó `advanceIfPossible()` antes de
+  // invocar este resolver, así que el valor ya refleja la ronda que se va
+  // a jugar. `PromotionPlayoff` (Promotion.js) no expone `rounds` directo
+  // (compone DOS Bracket internos, cuartos + Final Four reordenada) — se
+  // distingue con un prefijo de sub-fase para no confundir "cuartos ronda
+  // 1" con "Final Four ronda 1".
+  // `phaseId` prefija la clave (Copa/Playoff por el título comparten
+  // `registrationScopeId` ACB pero son brackets INDEPENDIENTES — sin el
+  // prefijo, "ronda 1" de Copa y "ronda 1" del Playoff colisionarían en
+  // `RegistrationRegistry.playerAlreadyOnActThisRound()`, marcando a los
+  // mismos jugadores como "ya en otra acta esta jornada" entre dos
+  // competiciones/jornadas reales distintas).
+  function currentBracketRoundKey(phaseId, bracketLike) {
+    if (bracketLike.quarterFinals) {
+      return bracketLike.finalFour
+        ? `${phaseId}:finalfour-${bracketLike.finalFour.rounds.length}`
+        : `${phaseId}:quarterfinals-${bracketLike.quarterFinals.rounds.length}`;
+    }
+    return `${phaseId}:round-${bracketLike.rounds.length}`;
+  }
+
   function buildMatchOptionsResolver(league, userTeam) {
     const userSide = userTeam ? buildUserSideOptions(userTeam) : null;
 
-    function sideOptions(sideTeam, opponentTeam, isHome, competition, date) {
+    function sideOptions(sideTeam, opponentTeam, isHome, competition, date, matchContext) {
       if (userSide && sideTeam.id === userTeam.id) {
+        recordMatchActSnapshot(sideTeam, userSide.squad, date, matchContext);
         return isHome
           ? { homeSquad: userSide.squad, homeLineup: userSide.lineup }
           : { awaySquad: userSide.squad, awayLineup: userSide.lineup };
       }
-      const cpu = buildCpuSideOptions(sideTeam, opponentTeam, competition, league, date);
+      const cpu = buildCpuSideOptions(sideTeam, opponentTeam, competition, league, date, matchContext);
+      recordMatchActSnapshot(sideTeam, cpu.squad, date, matchContext);
       return isHome ? { homeSquad: cpu.squad, homeLineup: cpu.lineup } : { awaySquad: cpu.squad, awayLineup: cpu.lineup };
     }
 
     return {
       resolveMatchOptions(match) {
         prepareBothTeamsForMatch(match.homeTeam, match.awayTeam, match.date);
+        const matchContext = { phaseId: 'league', roundId: match.round, matchId: matchStableId(match) };
         return {
           matchDate: match.date, // LIFE-3 (DESIGN.md 9.14): ver MatchEngine.createMatchState
-          ...sideOptions(match.homeTeam, match.awayTeam, true, 'league', match.date),
-          ...sideOptions(match.awayTeam, match.homeTeam, false, 'league', match.date),
+          ...sideOptions(match.homeTeam, match.awayTeam, true, 'league', match.date, matchContext),
+          ...sideOptions(match.awayTeam, match.homeTeam, false, 'league', match.date, matchContext),
         };
       },
-      resolveBracketOptions(homeEntry, awayEntry) {
-        // Bracket.Series.playNextGame (DESIGN.md 3.3, Bracket.js — no se
-        // toca en esta entrega, §43) solo calcula la fecha real del
-        // partido DESPUÉS de simularlo (`dateResolver(gameIndex)`), así
-        // que aquí no hay una fecha exacta disponible todavía. Se usa el
-        // reloj de mundo actual como referencia — aproximación razonable
-        // (los partidos de una misma Series/ronda están separados solo
-        // unos pocos días, `seriesGameGapDays`/`seriesRoundGapDays`), que
-        // sigue corrigiendo lo importante: la recuperación/entrenamiento
-        // se resuelve ANTES de simular, nunca después.
-        const approxDate = state.calendar.currentGameDateTime;
-        prepareBothTeamsForMatch(homeEntry.team, awayEntry.team, approxDate);
-        return {
-          matchDate: approxDate,
-          ...sideOptions(homeEntry.team, awayEntry.team, true, 'bracket', approxDate),
-          ...sideOptions(awayEntry.team, homeEntry.team, false, 'bracket', approxDate),
+      // `bracket`/`phaseId`: declarados por quien conoce el bracket EN
+      // CURSO en el momento de la llamada (nunca cerrados sobre un único
+      // bracket/fase al construir el resolver) — `drainBackgroundBrackets`
+      // reutiliza el MISMO resolver para Copa/Playoff/Ascenso de la
+      // división de fondo, cada uno con su propio bracket y fase real.
+      resolveBracketOptionsFor(bracket, phaseId) {
+        return (homeEntry, awayEntry) => {
+          // Bracket.Series.playNextGame (DESIGN.md 3.3, Bracket.js — no se
+          // toca en esta entrega, §43) solo calcula la fecha real del
+          // partido DESPUÉS de simularlo (`dateResolver(gameIndex)`), así
+          // que aquí no hay una fecha exacta disponible todavía. Se usa el
+          // reloj de mundo actual como referencia — aproximación razonable
+          // (los partidos de una misma Series/ronda están separados solo
+          // unos pocos días, `seriesGameGapDays`/`seriesRoundGapDays`), que
+          // sigue corrigiendo lo importante: la recuperación/entrenamiento
+          // se resuelve ANTES de simular, nunca después.
+          const approxDate = state.calendar.currentGameDateTime;
+          prepareBothTeamsForMatch(homeEntry.team, awayEntry.team, approxDate);
+          const roundId = currentBracketRoundKey(phaseId, bracket);
+          // Emparejamiento en orden CANÓNICO (ids ordenados), nunca
+          // home/away — una Series a mejor de N (BEST_OF_5_2_2_1) ALTERNA
+          // el equipo local entre partidos; con el orden home/away el
+          // mismo partido cambiaría de `matchId` de un juego al siguiente,
+          // rompiendo la exclusión de "esta misma acta" en
+          // `RegistrationRegistry.playerAlreadyOnActThisRound()` y marcando
+          // a la propia plantilla como si ya estuviera en OTRA acta.
+          const matchId = `${phaseId}:${roundId}:${[homeEntry.team.id, awayEntry.team.id].sort().join('-')}`;
+          const matchContext = { phaseId, roundId, matchId };
+          return {
+            matchDate: approxDate,
+            ...sideOptions(homeEntry.team, awayEntry.team, true, phaseId, approxDate, matchContext),
+            ...sideOptions(awayEntry.team, homeEntry.team, false, phaseId, approxDate, matchContext),
+          };
         };
       },
     };
@@ -4075,13 +4660,19 @@
 
   // Resolver para la división de fondo (simulateBackgroundRound): AMBOS
   // lados de CUALQUIER partido usan CpuLineup — el usuario no juega esta
-  // división, así que no hay ningún `userTeam` que preservar.
+  // división, así que no hay ningún `userTeam` que preservar. SÍ puede
+  // tener brackets propios (Copa/Playoff de 1ª o Ascenso de 2ª, según cuál
+  // de las dos sea la de fondo — `state.brackets` los guarda por división,
+  // no solo para la visible) — `drainBackgroundBrackets` declara el
+  // bracket y la fase real en cada llamada a `resolveBracketOptionsFor`.
   function buildCpuOnlyResolver(league) {
     return buildMatchOptionsResolver(league, null);
   }
 
   function playNextMatchWithLineup(team) {
-    if (!getLineupValidity(team).valid) return; // el botón ya está deshabilitado; defensa extra
+    const v = getLineupValidity(team);
+    console.log('DEBUG playNextMatchWithLineup validity', JSON.stringify(v));
+    if (!v.valid) return; // el botón ya está deshabilitado; defensa extra
     const activeBracket = getActiveBracket();
     const resolvers = buildLineupMatchOptionsResolver(team);
 
@@ -4095,7 +4686,10 @@
       // de liga del usuario (el flujo con más volumen de juego). Ampliar
       // esto a bracket es trabajo pendiente señalado explícitamente
       // (CHANGELOG de esta entrega), no un olvido.
-      playBracketGameWithReveal(activeBracket.bracket, resolvers.resolveBracketOptions, activeBracket.competitionKey);
+      const bracketPhaseId = BRACKET_PHASE_IDS[activeBracket.competitionKey];
+      playBracketGameWithReveal(
+        activeBracket.bracket, resolvers.resolveBracketOptionsFor(activeBracket.bracket, bracketPhaseId), activeBracket.competitionKey,
+      );
       return;
     }
 
@@ -4297,6 +4891,9 @@
     // abrirla NUNCA crea, muta ni renueva un contrato, ni avanza el reloj,
     // ni infiere licencia/elegibilidad (eso es REG-1).
     { id: 'contract', label: 'Contrato' },
+    // REG-1 (DESIGN.md 9.18, sección 13.2 del prompt): licencia, inscripción
+    // y elegibilidad — SOLO LECTURA, sin botones de alta/baja/vinculación.
+    { id: 'registration', label: 'Licencia y elegibilidad' },
   ];
 
   // BUG-LIFE4-03 (ROSTER-1, DESIGN.md 9.16): resuelve la instancia REAL
@@ -4801,6 +5398,19 @@
     'reference-only': 'Solo referencia',
   };
 
+  // REG-1 (DESIGN.md 9.18): vocabulario compartido entre la pantalla
+  // Inscripciones y la pestaña "Licencia y elegibilidad" de la ficha.
+  const ACCESS_CATEGORY_FULL_LABELS = {
+    senior: 'Senior', 'own-lower-category': 'Propio de categoría inferior', linked: 'Vinculado', 'additional-list': 'Lista adicional',
+  };
+  const REGISTRATION_STATUS_LABELS = {
+    submitted: 'Presentada', validated: 'Validada', provisional: 'Autorización provisional', active: 'Activa',
+    suspended: 'Suspendida', deactivated: 'Dada de baja', rejected: 'Rechazada', expired: 'Expirada',
+  };
+  const LICENSE_CLASS_LABELS = {
+    'professional-senior': 'Profesional senior', 'own-lower-category': 'Propio de categoría inferior', 'linked-player': 'Vinculado',
+  };
+
   // Umbral de la etiqueta "expira pronto": es una etiqueta DE INTERFAZ
   // derivada, nunca un estado jurídico persistido en el contrato.
   const CONTRACT_EXPIRING_SOON_SEASONS = 1;
@@ -5007,6 +5617,126 @@
       </div>`;
   }
 
+  // --- Pestaña "Licencia y elegibilidad" de la ficha universal (REG-1,
+  // DESIGN.md 9.18, sección 13.2 del prompt) -----------------------------
+  function simulatedRegistrationNoticeHtml() {
+    return `
+      <p class="contract-notice" role="note">
+        <span class="gm-badge gm-badge--simulated">Simulado</span>
+        ${escapeHtml(BM.RegistrationSeeder.SIMULATED_REGISTRATION_WARNING)}
+      </p>`;
+  }
+
+  function classificationSnapshotBadgesHtml(snapshot) {
+    if (!snapshot) return '—';
+    const parts = [];
+    if (snapshot.formation === 'qualifies') parts.push('<span class="gm-badge gm-badge--formation">Formación</span>');
+    else if (snapshot.formation === 'unknown') parts.push('<span class="gm-badge gm-badge--unknown">Formación: desconocida</span>');
+    if (snapshot.nonCommunity === 'counts') parts.push('<span class="gm-badge gm-badge--noncommunity">No comunitario</span>');
+    return parts.join(' ') || '<span class="gm-muted">Sin marcas</span>';
+  }
+
+  // Jugador libre (sin club) sigue localizable desde PlayerRegistry y puede
+  // mostrar histórico aunque no tenga licencia activa (sección 13.2).
+  function renderPlayerRegistrationTab(player, team) {
+    if (!state.registrationRegistry) {
+      return '<div class="gm-card"><p class="gm-muted">Todavía no hay registro de inscripciones en esta partida.</p></div>';
+    }
+    const registry = state.registrationRegistry;
+    const isoDate = currentGameIsoDate();
+    const licenses = registry.licensesForPlayer(player.id);
+    const currentLicense = registry.currentLicenseForPlayer(player.id, isoDate);
+    const registrations = registry.registrationsForPlayer(player.id);
+
+    const licenseHtml = currentLicense ? `
+      <dl class="contract-facts">
+        <div><dt>Federación</dt><dd>${escapeHtml(currentLicense.federationId)}</dd></div>
+        <div><dt>Temporada</dt><dd>${escapeHtml(currentLicense.seasonKey)}</dd></div>
+        <div><dt>Clase</dt><dd>${escapeHtml(LICENSE_CLASS_LABELS[currentLicense.licenseClass] || currentLicense.licenseClass)}</dd></div>
+        <div><dt>Vigencia</dt><dd>${escapeHtml(formatIsoDateEs(currentLicense.validity.startDate))} → ${escapeHtml(formatIsoDateEs(currentLicense.validity.endDate))}</dd></div>
+        <div><dt>Estado</dt><dd>${escapeHtml(REGISTRATION_STATUS_LABELS[currentLicense.statusOn(isoDate)] || currentLicense.statusOn(isoDate))}</dd></div>
+      </dl>` : '<p class="gm-muted">Sin licencia federativa vigente.</p>';
+
+    const registrationRows = registrations.map((reg) => {
+      const status = reg.statusOn(isoDate);
+      let competitionName = reg.competitionId;
+      try { competitionName = BM.getCompetitionDefinition(reg.competitionId).name; } catch (err) { /* competición desconocida: se muestra el id crudo */ }
+      const club = getAllTeams().find((t) => t.id === reg.teamId);
+      return `
+        <tr>
+          <td>${escapeHtml(competitionName)}</td>
+          <td>${escapeHtml(club ? club.fullName : reg.teamId)}</td>
+          <td>${escapeHtml(reg.seasonKey)}</td>
+          <td>${escapeHtml(ACCESS_CATEGORY_FULL_LABELS[reg.accessCategory] || reg.accessCategory)}</td>
+          <td>${escapeHtml(REGISTRATION_STATUS_LABELS[status] || status)}</td>
+          <td>${classificationSnapshotBadgesHtml(reg.classificationSnapshot)}</td>
+        </tr>`;
+    }).join('');
+
+    // Elegibilidad para el PRÓXIMO partido, con motivos (sección 13.2).
+    let eligibilityHtml = '<p class="gm-muted">Jugador libre: no hay próximo partido que evaluar.</p>';
+    if (team) {
+      const { context, resolved } = resolveNextMatchRegistration(team);
+      const classificationCache = state.registrationClassificationCache
+        || (state.registrationClassificationCache = new Map());
+      const evaluation = BM.EligibilityService.evaluateEligibility(player.id, team.id, context, {
+        playerRegistry: state.playerRegistry,
+        contractRegistry: state.contractRegistry,
+        registrationRegistry: registry,
+        medicalAvailability: getLineupMedicalAvailability(team),
+        classificationCache,
+      });
+      const reasonsHtml = evaluation.reasons.length
+        ? `<ul>${evaluation.reasons.map((r) => `<li>${escapeHtml(describeReasonCodes([r.code]))} <span class="gm-muted">(${escapeHtml(r.severity)})</span></li>`).join('')}</ul>`
+        : '<p class="gm-muted">Sin motivos que señalar.</p>';
+      eligibilityHtml = `
+        <p><strong>${evaluation.eligible ? '✔ Elegible' : '✖ No elegible'}</strong> para el ámbito
+          "${escapeHtml(resolved.registrationScopeId || context.competitionId)}" (${escapeHtml(context.seasonKey)}).</p>
+        ${reasonsHtml}`;
+    }
+
+    return `
+      <div class="gm-card">
+        <h4>Licencia federativa</h4>
+        ${simulatedRegistrationNoticeHtml()}
+        ${licenseHtml}
+      </div>
+
+      <div class="gm-card">
+        <h4>Inscripciones (${registrations.length})</h4>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table">
+            <thead><tr><th>Competición</th><th>Club</th><th>Temporada</th><th>Categoría</th><th>Estado</th><th>Clasificación</th></tr></thead>
+            <tbody>${registrationRows || '<tr><td colspan="6" class="gm-muted">Sin inscripciones.</td></tr>'}</tbody>
+          </table>
+        </div>
+        <p class="gm-muted">La clasificación de formación/no comunitario es CONTEXTUAL: puede variar entre competiciones y no es un atributo universal del jugador.</p>
+      </div>
+
+      <div class="gm-card">
+        <h4>Elegibilidad para el próximo partido</h4>
+        ${eligibilityHtml}
+      </div>
+      ${licenses.length > 1 ? `
+      <div class="gm-card">
+        <h4>Histórico de licencias</h4>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table">
+            <thead><tr><th>Temporada</th><th>Clase</th><th>Vigencia</th><th>Estado</th></tr></thead>
+            <tbody>${licenses.map((lic) => `
+              <tr>
+                <td>${escapeHtml(lic.seasonKey)}</td>
+                <td>${escapeHtml(LICENSE_CLASS_LABELS[lic.licenseClass] || lic.licenseClass)}</td>
+                <td>${escapeHtml(formatIsoDateEs(lic.validity.startDate))} → ${escapeHtml(formatIsoDateEs(lic.validity.endDate))}</td>
+                <td>${escapeHtml(REGISTRATION_STATUS_LABELS[lic.statusOn(isoDate)] || lic.statusOn(isoDate))}</td>
+              </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>` : ''}
+      <p class="gm-muted contract-scope-note">Inscribir, dar de baja, vincular, tantear o solicitar autorización internacional todavía no
+        existen como acciones del juego (MARKET-1 / TRANSFER-1 / LOAN-1 / EUROPE-1): esta pestaña es de consulta.</p>`;
+  }
+
   // --- Pantalla "Contratos" ----------------------------------------------
   function renderContractsScreen() {
     const container = byId('gm-contracts');
@@ -5147,6 +5877,164 @@
         existen como acciones del juego (MARKET-1 / TRANSFER-1 / LOAN-1): esta pantalla es de consulta.</p>`;
   }
 
+  // ---------------------------------------------------------------------
+  // Pantalla "Inscripciones" (REG-1, DESIGN.md 9.18, sección 13.1 del
+  // prompt) — SOLO LECTURA: sin botones de alta/baja/suspensión/
+  // vinculación/fichaje/renovación/cesión/tanteo/transfer.
+  // ---------------------------------------------------------------------
+  function renderRegistrationsScreen() {
+    const container = byId('gm-registrations');
+    const team = getUserTeam();
+    if (!container) return;
+    if (!team || !state.registrationRegistry) { container.innerHTML = ''; return; }
+
+    const registry = state.registrationRegistry;
+    const { context, resolved } = resolveNextMatchRegistration(team);
+    const isoDate = currentGameIsoDate();
+    const seasonKey = buildCareerSeasonKey();
+    const reg = resolved.registration || {};
+
+    const cumulativeCount = reg.cumulativeRegistrationCap
+      ? registry.cumulativeCountForClub(team.id, resolved.registrationScopeId, seasonKey) : null;
+
+    const quotaBandsHtml = (reg.quotaBands || []).map((band) => `
+      <li>${band.rosterMin}-${band.rosterMax} jugadores → mínimo ${band.formationMinimum} de formación</li>`).join('') || '<li class="gm-muted">Sin bandas declaradas.</li>';
+
+    const documentReqHtml = (reg.documentRequirements || []).map((code) => `<li>${escapeHtml(code)}</li>`).join('')
+      || '<li class="gm-muted">Sin documentos declarados.</li>';
+
+    const linkedRules = reg.linkedPlayerRules;
+    const linkAgreements = registry.linkAgreementsForClub(team.id);
+    const linkAgreementsHtml = linkAgreements.length ? `
+      <ul class="contract-modules">${linkAgreements.map((agreement) => {
+        const other = agreement.lowerClubId === team.id ? agreement.upperClubId : agreement.lowerClubId;
+        const otherTeam = getAllTeams().find((t) => t.id === other);
+        const direction = agreement.lowerClubId === team.id ? 'club inferior' : 'club superior';
+        return `<li>Acuerdo con ${escapeHtml(otherTeam ? otherTeam.fullName : other)} (${escapeHtml(direction)}) —
+          lowerToUpper: ${agreement.lists.lowerToUpper.length}/${agreement.limits.lowerToUpper},
+          upperToLower: ${agreement.lists.upperToLower.length}/${agreement.limits.upperToLower}
+          <span class="gm-badge gm-badge--${agreement.status === 'formalized' ? 'verified' : 'provisional'}">${escapeHtml(agreement.status)}</span></li>`;
+      }).join('')}</ul>` : '<p class="gm-muted">Sin acuerdo activo.</p>';
+
+    // Ficha por jugador (afiliación+contrato, licencia, inscripción,
+    // formación/no-comunitario, procedencia, razones) — sección 13.1.
+    const classificationCache = state.registrationClassificationCache
+      || (state.registrationClassificationCache = new Map());
+    const medicalAvailability = getLineupMedicalAvailability(team);
+    const playerRowsHtml = [...team.roster]
+      .sort((a, b) => a.fullName.localeCompare(b.fullName, 'es'))
+      .map((player) => {
+        const license = registry.currentLicenseForPlayer(player.id, isoDate);
+        // `registrationForScopeSeason` (no `currentRegistration`, solo
+        // activas): un jugador suspendido/desactivado debe mostrar su
+        // estado REAL en esta pantalla, nunca confundirse con "sin
+        // inscripción" — mismo motivo que EligibilityService.js.
+        const registration = registry.registrationForScopeSeason(player.id, resolved.registrationScopeId, seasonKey);
+        const contract = state.contractRegistry ? state.contractRegistry.currentForPlayer(player.id, isoDate) : null;
+        const evaluation = BM.EligibilityService.evaluateEligibility(player.id, team.id, context, {
+          playerRegistry: state.playerRegistry,
+          contractRegistry: state.contractRegistry,
+          registrationRegistry: registry,
+          medicalAvailability,
+          classificationCache,
+        });
+        const provenance = license ? (license.provenance.isReal ? 'Real' : 'Simulado') : 'Desconocido';
+        const reasonsText = evaluation.reasons.filter((r) => r.severity === 'blocking').map((r) => r.code);
+        return `
+          <tr>
+            <td data-label="Jugador">${playerLinkHtml(player)}</td>
+            <td data-label="Contrato">${contract ? '✔' : '✖'}</td>
+            <td data-label="Licencia">${license ? escapeHtml(REGISTRATION_STATUS_LABELS[license.statusOn(isoDate)] || license.statusOn(isoDate)) : '—'}</td>
+            <td data-label="Inscripción">${registration ? escapeHtml(ACCESS_CATEGORY_FULL_LABELS[registration.accessCategory]) : '—'}</td>
+            <td data-label="Estado">${registration ? escapeHtml(REGISTRATION_STATUS_LABELS[registration.statusOn(isoDate)] || registration.statusOn(isoDate)) : '—'}</td>
+            <td data-label="Clasificación">${classificationSnapshotBadgesHtml(evaluation.classification)}</td>
+            <td data-label="Procedencia"><span class="gm-badge gm-badge--${provenance === 'Simulado' ? 'simulated' : 'verified'}">${escapeHtml(provenance)}</span></td>
+            <td data-label="Elegible">${evaluation.eligible ? '✔' : `✖ ${escapeHtml(describeReasonCodes(reasonsText))}`}</td>
+          </tr>`;
+      }).join('');
+
+    // Cobertura verificada/simulada/desconocida (sección 13.1).
+    const coverage = team.roster.reduce((acc, player) => {
+      const license = registry.currentLicenseForPlayer(player.id, isoDate);
+      const key = !license ? 'unknown' : (license.provenance.isReal ? 'verified' : 'simulated');
+      acc[key] += 1;
+      return acc;
+    }, { verified: 0, simulated: 0, unknown: 0 });
+
+    const integrity = registry.validateIntegrity({
+      playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, teams: getAllTeams(), date: isoDate,
+    });
+
+    container.innerHTML = `
+      <h2>Inscripciones — ${escapeHtml(team.fullName)}</h2>
+      ${simulatedRegistrationNoticeHtml()}
+
+      <div class="gm-card">
+        <h3>Ámbito y normativa aplicable</h3>
+        <dl class="contract-facts">
+          <div><dt>Competición</dt><dd>${escapeHtml(BM.getCompetitionDefinition(context.competitionId).name)}</dd></div>
+          <div><dt>Ámbito de inscripción</dt><dd>${escapeHtml(resolved.registrationScopeId || '—')}</dd></div>
+          <div><dt>Temporada</dt><dd>${escapeHtml(seasonKey)}</dd></div>
+          <div><dt>Estado normativo</dt><dd>${ruleResolutionBadgeHtml(resolved.resolutionMode)}</dd></div>
+          <div><dt>Rango de plantilla activa</dt><dd>${reg.activeRosterRange ? `${reg.activeRosterRange.min}-${reg.activeRosterRange.max}` : '—'}</dd></div>
+          <div><dt>Rango de acta</dt><dd>${reg.matchActRange ? `${reg.matchActRange.min}-${reg.matchActRange.max}` : '—'}</dd></div>
+          <div><dt>Máximo no comunitarios</dt><dd>${reg.nonCommunityCap ? reg.nonCommunityCap.max : '—'}</dd></div>
+          <div><dt>Regla en pista</dt><dd>${reg.onCourtConstraints ? `Mínimo ${reg.onCourtConstraints.minFormationOnCourtAtAllTimes} de formación en pista` : 'No aplica'}</dd></div>
+        </dl>
+        <h4>Bandas de cupo de formación</h4>
+        <ul>${quotaBandsHtml}</ul>
+        <h4>Documentos exigidos</h4>
+        <ul>${documentReqHtml}</ul>
+        ${ruleModuleListHtml([resolved.bundleId], { [resolved.bundleId]: resolved.version })}
+        ${contractWarningsHtml(resolved.warnings, 'Advertencias normativas')}
+        ${contractWarningsHtml(resolved.knownSourceInconsistencies, 'Inconsistencias conocidas de las fuentes')}
+      </div>
+
+      <div class="gm-card">
+        <h3>Máximo acumulado de la temporada</h3>
+        ${reg.cumulativeRegistrationCap ? `
+          <p><strong>${cumulativeCount}</strong> / ${reg.cumulativeRegistrationCap.max} altas computadas.</p>
+          <p class="gm-muted">No computan: ${(reg.cumulativeRegistrationCap.nonCountingCategories || []).map((c) => escapeHtml(ACCESS_CATEGORY_FULL_LABELS[c] || c)).join(', ') || 'ninguna categoría exenta declarada'}.</p>
+        ` : '<p class="gm-muted">Sin máximo acumulado declarado para este ámbito.</p>'}
+      </div>
+
+      <div class="gm-card">
+        <h3>Propios y vinculados</h3>
+        <h4>Acuerdos de vinculación</h4>
+        ${linkAgreementsHtml}
+        ${linkedRules ? `<p class="gm-muted">Límites declarados: ${linkedRules.maxLinkedSeniorSubU22FromLowerClub || 0} sub-22 senior del club inferior
+          ${linkedRules.maxLinkedJuniorOrCadeteFromUpperClub ? `· ${linkedRules.maxLinkedJuniorOrCadeteFromUpperClub} junior/cadete del club superior` : ''}.</p>` : ''}
+      </div>
+
+      <div class="gm-card">
+        <h3>Jugadores (${team.roster.length})</h3>
+        <div class="gm-table-scroll">
+          <table class="gm-table contract-table">
+            <thead><tr>
+              <th>Jugador</th><th>Contrato</th><th>Licencia</th><th>Inscripción</th><th>Estado</th>
+              <th>Clasificación</th><th>Procedencia</th><th>Elegible próximo partido</th>
+            </tr></thead>
+            <tbody>${playerRowsHtml}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="gm-card">
+        <h3>Cobertura de datos</h3>
+        <p>Verificados: ${coverage.verified} · Simulados: ${coverage.simulated} · Desconocidos: ${coverage.unknown}</p>
+        <p class="gm-muted">Los datos regulatorios simulados nunca se presentan como reales — ver aviso al inicio de esta pantalla.</p>
+      </div>
+
+      ${integrity.valid ? '' : `
+      <div class="gm-card contract-integrity">
+        <h3>Alertas de integridad</h3>
+        <ul>${integrity.errors.slice(0, 20).map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
+      </div>`}
+
+      <p class="gm-muted contract-scope-note">Alta, baja, suspensión, vinculación, fichaje, renovación, cesión, tanteo y transfer
+        todavía no existen como acciones del juego (MARKET-1 / TRANSFER-1 / LOAN-1 / EUROPE-1): esta pantalla es de consulta.</p>`;
+  }
+
   function renderPlayerProfileScreen() {
     const container = byId('gm-player-profile');
     const ctx = state.playerProfile;
@@ -5178,6 +6066,7 @@
     else if (activeTab === 'medical') body = renderPlayerMedicalTab(player, team, CONFIG_BASE);
     else if (activeTab === 'career') body = renderPlayerCareerTab(player, ch);
     else if (activeTab === 'contract') body = renderPlayerContractTab(player, team);
+    else if (activeTab === 'registration') body = renderPlayerRegistrationTab(player, team);
 
     container.innerHTML = `
       <button id="player-profile-back-btn" class="gm-btn player-profile__back" type="button">← Volver</button>
@@ -5206,7 +6095,7 @@
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
   const SCREENS = [
-    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
     'player-profile',
   ];
 
@@ -5226,6 +6115,7 @@
     if (screen === 'training') renderTrainingScreen();
     if (screen === 'medical') renderMedicalScreen();
     if (screen === 'contracts') renderContractsScreen();
+    if (screen === 'registrations') renderRegistrationsScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();

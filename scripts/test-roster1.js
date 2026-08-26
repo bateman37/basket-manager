@@ -7,7 +7,7 @@
 
 const assert = require('assert');
 const { Player } = require('../src/entities/Player.js');
-const { Team } = require('../src/entities/Team.js');
+const { Team, TEST_MATCH_SQUAD_POLICY } = require('../src/entities/Team.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
 const CompetitionRules = require('../src/core/CompetitionRules.js');
@@ -313,10 +313,29 @@ check('Team.buildMatchSquad: Primera FEB exige 10, rechaza 9 con mensaje del ran
   );
 });
 
-check('Team.buildMatchSquad: sin overrides reproduce el default legacy 8-12', () => {
+// REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-03): adaptado — `buildMatchSquad()`
+// YA NO reproduce un default legacy 8-12 sin overrides; un llamador de
+// producción sin política explícita ahora FALLA (nunca hereda ACB en
+// silencio). El rango 8-12 solo se reproduce pasando explícitamente
+// `TEST_MATCH_SQUAD_POLICY`, el fixture de prueba nombrado.
+check('Team.buildMatchSquad: sin overrides explícitos falla (REG-1 retiró el fallback legacy 8-12)', () => {
   const team = makeTeam({ roster: makeRoster(12, 'legacy') });
-  assert.strictEqual(team.buildMatchSquad(team.roster.slice(0, 8).map((p) => p.id)).length, 8);
-  assert.throws(() => team.buildMatchSquad(team.roster.slice(0, 7).map((p) => p.id)), /entre 8 y 12/);
+  assert.throws(
+    () => team.buildMatchSquad(team.roster.slice(0, 8).map((p) => p.id)),
+    /minOverride.*maxOverride|BUG-CONTRACT1-03/,
+  );
+  assert.strictEqual(
+    team.buildMatchSquad(
+      team.roster.slice(0, 8).map((p) => p.id), TEST_MATCH_SQUAD_POLICY.min, TEST_MATCH_SQUAD_POLICY.max,
+    ).length,
+    8,
+  );
+  assert.throws(
+    () => team.buildMatchSquad(
+      team.roster.slice(0, 7).map((p) => p.id), TEST_MATCH_SQUAD_POLICY.min, TEST_MATCH_SQUAD_POLICY.max,
+    ),
+    /entre 8 y 12/,
+  );
 });
 
 check('Medical.resolveEffectiveSquadMinimum: combina mínimo normal de la competición con el absoluto médico', () => {

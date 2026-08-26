@@ -157,13 +157,36 @@ con dos botones:
     (MARKET-1/TRANSFER-1/LOAN-1). `team.finances.expenses.playerSalaries`
     es una PROYECCIÓN refrescada desde el registro
     (`ContractService.refreshTeamSalaryProjection`), no un valor editable.
+  - Inscripción/licencias/elegibilidad (REG-1, DESIGN.md 9.18):
+    `state.registrationRegistry` se construye en `startSeason()`
+    (`RegistrationSeeder.seedRegistrationsForTeams`) y se resiembra en
+    cada cierre de temporada (`bootstrapRegistrationsForSeasonTransition`),
+    ANTES del intake de cantera — la clasificación de formación/no
+    comunitario de los newgens de ese cierre se calcula UNA sola vez por
+    club (`RegistrationSeeder.classifyRosterForClub`) y se pasa como
+    `existingClassification`, nunca recalculada por newgen (BUG-REG1-02).
+    La pantalla **Inscripciones** y la pestaña **Licencia y elegibilidad**
+    de la ficha son de SOLO LECTURA: no pueden incorporar botones de
+    alta/baja/suspensión/vinculación/fichaje/renovación/cesión/tanteo/
+    transfer (MARKET-1/TRANSFER-1/LOAN-1/EUROPE-1). El pool regulado de
+    un partido (`buildEligiblePoolForMatch(team, context)`, sección 11.1
+    del prompt de REG-1) es siempre senior+propios+vinculados evaluados
+    por `EligibilityService` — nunca solo `team.roster`; tanto el usuario
+    (`getConvocatedPlayers`) como la CPU (`CpuLineup.buildCpuLineup` con
+    `eligibility: {pool, resolved}`) consultan el MISMO servicio, nunca
+    reglas paralelas. Para actas de Copa/Playoff/Ascenso,
+    `resolveBracketOptionsFor(bracket, phaseId)` (no un resolver fijo por
+    `bracketPhaseId`) declara el bracket y fase reales en cada llamada, y
+    `currentBracketRoundKey(phaseId, bracket)` deriva el `roundId` real —
+    nunca `null` fijo ni un id de partido dependiente de qué equipo fue
+    local (BUG-REG1-03/04, ver DESIGN.md 9.18).
 
-## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1 y siguientes)
+## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1 y siguientes)
 
-Convenciones permanentes de la EPIC iniciada en ROSTER-1 (DESIGN.md 9.16)
-y ampliada en CONTRACT-1 (DESIGN.md 9.17) — aplican a toda sesión futura
-que toque contratos, licencias, mercado, traspasos, cesiones o transfer
-internacional:
+Convenciones permanentes de la EPIC iniciada en ROSTER-1 (DESIGN.md 9.16),
+ampliada en CONTRACT-1 (DESIGN.md 9.17) y en REG-1 (DESIGN.md 9.18) —
+aplican a toda sesión futura que toque contratos, licencias, inscripción,
+elegibilidad, mercado, traspasos, cesiones o transfer internacional:
 
 - Todo jugador vive en el Player Registry mundial
   (`src/core/PlayerRegistry.js`, `state.playerRegistry`); una plantilla
@@ -251,6 +274,83 @@ internacional:
   nueva repartida por la UI.
 - `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
   cuando cambian la arquitectura normativa o las reglas activas.
+
+### Inscripción, licencias y elegibilidad (REG-1, DESIGN.md 9.18)
+
+- `RegistrationRegistry` (`src/core/RegistrationRegistry.js`,
+  `state.registrationRegistry`) es la fuente CANÓNICA de licencias
+  (`FederationLicense`), inscripciones (`CompetitionRegistration`),
+  acuerdos de vinculación (`ClubLinkAgreement`) y actas de partido
+  (`MatchActSnapshot`). Licencia, inscripción, contrato y afiliación de
+  plantilla son CUATRO conceptos distintos — un contrato no concede
+  licencia ni inscripción, una licencia no sustituye al contrato.
+- `currentRegistration(playerId, scope, seasonKey, date)` devuelve SOLO
+  inscripciones ACTIVAS ("¿puede jugar ahora?") — para diagnosticar o
+  mostrar el motivo real de una no-disponibilidad (suspendida,
+  desactivada, expirada) se usa siempre
+  `registrationForScopeSeason(playerId, scope, seasonKey)` (cualquier
+  estado). Confundir ambas dejó `REGISTRATION_SUSPENDED` como código de
+  motivo inalcanzable (BUG-REG1-05) — cualquier consulta nueva que
+  necesite explicar POR QUÉ un jugador no está disponible debe usar la
+  segunda, nunca la primera.
+- La clasificación de formación/no comunitario es CONTEXTUAL (por
+  competición+temporada+fecha) — nunca un booleano universal del jugador
+  (`player.isHomegrown` y equivalentes están prohibidos y auditados
+  estáticamente). Un propio de categoría inferior no tiene equipo `Team`
+  que lo modele todavía: es un jugador con `teamId === null` (sin
+  afiliación senior), nunca un id de equipo inventado. Un vinculado
+  conserva SIEMPRE su afiliación/contrato reales con su club de origen —
+  la vinculación solo autoriza su convocatoria por el club beneficiario
+  (`accessCategory: 'linked'`), nunca mueve `player.teamId` ni
+  `Team.roster`.
+- El pool regulado de CUALQUIER partido (usuario o CPU) es
+  senior+propios+vinculados evaluados por `EligibilityService` — nunca
+  solo `team.roster`. CPU y usuario consultan EXACTAMENTE el mismo
+  `EligibilityService`/`SquadEligibilityService`; la CPU selecciona
+  convocatoria con `SquadEligibilityService.selectLegalSquad` (reparación
+  determinista por restricciones), nunca un greedy "los N mejores" que
+  ignore un cupo.
+- `roundId`/`matchId` de un acta de bracket (Copa/Playoff/Ascenso) se
+  derivan de `currentBracketRoundKey(phaseId, bracket)` (prefijo de fase +
+  ronda real, o sub-fase cuartos/Final Four para `PromotionPlayoff`) y de
+  los ids de equipo en orden CANÓNICO (ordenados, nunca home/away) — un
+  `roundId: null` fijo o un `matchId` sensible al orden local/visitante
+  rompe la detección de doble acta entre rondas/temporadas/series
+  (BUG-REG1-03). Toda comprobación de "misma jornada" incluye SIEMPRE
+  `seasonKey` en la clave (BUG-REG1-04) — la jornada 1 de una temporada
+  nunca es la misma jornada que la 1 de otra.
+- El cierre de temporada expira licencias/inscripciones recorriendo el
+  REGISTRO por ámbito (`registrationsForScope(scopeId)` filtrado por
+  `seasonKey`), nunca `Team.roster` — un propio/vinculado no vive ahí
+  (BUG-REG1-01). La re-siembra de un nuevo ámbito/temporada se ejecuta
+  ANTES del intake de cantera; la clasificación de los newgens de ese
+  cierre se calcula UNA sola vez por club (sobre el roster senior previo
+  al intake) y se pasa como `existingClassification` a cada newgen —
+  nunca un sorteo independiente por jugador, que podía superar el cupo ya
+  congelado del club (BUG-REG1-02).
+- El cupo acumulado de la temporada (`cumulativeRegistrationCap`) puede
+  agotarse legítimamente sin ningún sistema de baja/retirada todavía
+  (CYCLE-1). `RegistrationService.createRegistration()` sigue siendo una
+  API estricta que rechaza con excepción dura si no se comprueba antes;
+  el seeder de mejor esfuerzo comprueba el cupo y, si está agotado,
+  degrada con gracia (licencia sí, inscripción de competición diferida)
+  en vez de tirar la partida abajo — nunca inventa un cupo mayor.
+- La excepción médica de convocatoria (mínimo reducido hasta el absoluto
+  por escasez médica real) se propaga a
+  `SquadEligibilityService.validateSquad()`/`buildLiveCounters()` vía
+  `options.effectiveMin` — sin ese dato el acta exigía el mínimo normal
+  incluso en una crisis médica genuina.
+- Toda regla real (cupos, ventanas, documentos, vinculación...) incluye
+  `sourceRefs` y, cuando las fuentes oficiales se contradicen entre sí,
+  se declara en `knownSourceInconsistencies` — nunca se resuelve la
+  contradicción por criterio propio sin señalarlo. Los cuatro módulos
+  `reference-only` (acta máxima 9, máximo 1 no comunitario, U22, ámbito
+  internacional) nunca se autoseleccionan sin fijarlos explícitamente —
+  demuestran extensibilidad, no se activan en ninguna partida real.
+- No hay alta, baja, suspensión, vinculación, fichaje, renovación, cesión,
+  tanteo ni transfer como ACCIONES de usuario antes de sus entregas
+  (MARKET-1/TRANSFER-1/LOAN-1/EUROPE-1); la pantalla Inscripciones y la
+  pestaña de la ficha son de solo lectura.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 

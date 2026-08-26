@@ -294,14 +294,35 @@
   }
 
   // ---------------------------------------------------------------------
-  // 4. RuleModuleCatalog — dominio `registration` (ROSTER-1).
+  // 4. RuleModuleCatalog — dominio `registration` (ROSTER-1 + REG-1,
+  //    DESIGN.md 9.18).
+  //
+  //    REG-1 amplía el módulo de inscripción con los campos de la sección 9
+  //    del prompt de REG-1 (quotaTables, nonCommunityCap,
+  //    cumulativeRegistrationCap, onCourtConstraints, submissionWindows,
+  //    documentRequirements, provisionalAuthorizationPolicy,
+  //    registrationEffectiveWhen, ownLowerCategoryRules,
+  //    additionalListRules, linkedPlayerRules,
+  //    sameRoundMultiClubRestrictions, statusRestrictions). No todos los
+  //    módulos declaran todos los campos — las capacidades se DERIVAN de
+  //    qué campos están de verdad presentes (ver
+  //    deriveRegistrationCapabilities más abajo), nunca de una lista
+  //    aparte que pueda desincronizarse.
+  //
+  //    `matchSquad` sigue siendo el rango del ACTA de partido (lo que ya
+  //    consumía `Team.buildMatchSquad()` desde ROSTER-1) — REG-1 NO lo
+  //    renombra para no romper compatibilidad. `activeRosterRange` es un
+  //    campo NUEVO y DISTINTO: el rango de plantilla ACTIVA de temporada
+  //    (Primera FEB los declara con anchura distinta al acta: 8-12 de
+  //    plantilla activa vs. 10-12 de acta — ver sección 5.2 del prompt de
+  //    REG-1).
   // ---------------------------------------------------------------------
   const REGISTRATION_MODULES = {
     'acb-registration-2025-26-v1': {
       id: 'acb-registration-2025-26-v1',
       domain: 'registration',
       familyId: 'acb-registration',
-      version: 1,
+      version: 2,
       status: 'verified',
       competitionId: COMPETITION_IDS.ACB,
       // CONTRACT-1 (BUG-ROSTER1-01): vigencia explícita. La temporada
@@ -311,55 +332,251 @@
       validity: buildValidity({
         seasonFrom: '2025-26', seasonTo: '2025-26', carryForwardUntilSuperseded: true,
       }),
+      // Acta de partido (8-12) y plantilla activa de temporada: en ACB son
+      // el MISMO rango (a diferencia de Primera FEB) — Normas Internas
+      // 2025-26, art. 15/17: "en cada jornada hay entre 8 y 12 jugadores
+      // activos".
       matchSquad: { min: 8, max: 12 },
-      // Corrección documental de ROSTER-1 (sección 2 del prompt de
-      // CONTRACT-1): estas partes del reglamento quedan para **REG-1**
-      // (cupos, altas, acta y jugadores VINCULADOS) — la vinculación NO
-      // pertenece a CONTRACT-1, como decía el comentario anterior; cuando
-      // exista una relación laboral temporal detrás, será LOAN-1.
+      activeRosterRange: { min: 8, max: 12 },
+      // Bandas de cupo de formación (REG-1, art. 15/17 Normas Internas):
+      // aplican TANTO a la plantilla activa como al acta, porque ambas
+      // comparten el mismo rango 8-12 en ACB.
+      quotaBands: [
+        { rosterMin: 8, rosterMax: 9, formationMinimum: 3 },
+        { rosterMin: 10, rosterMax: 12, formationMinimum: 4 },
+      ],
+      nonCommunityCap: { max: 2, scope: ['activeRoster', 'matchAct'] },
+      // Máximo acumulado de inscripciones de la temporada — los jugadores
+      // propios de categorías inferiores y los vinculados NO computan aquí
+      // (sección 4 del prompt de REG-1, "deuda de integración").
+      cumulativeRegistrationCap: {
+        max: 20,
+        nonCountingCategories: ['own-lower-category', 'linked'],
+      },
+      // ACB no tiene regla de formación EN PISTA (a diferencia de Primera
+      // FEB) — capacidad ausente a propósito, nunca `null` engañoso.
+      onCourtConstraints: null,
+      // Franjas ordinarias de alta (art. 17): desde el 1 de septiembre,
+      // corte a las 14:00 del mismo día si es laborable, o 14:00 del día
+      // hábil anterior si el partido cae en festivo/sábado/domingo. Hora
+      // PENINSULAR explícita (Europe/Madrid) — nunca medianoche UTC
+      // implícita (sección 6.5 del prompt de REG-1).
+      submissionWindows: [{
+        id: 'acb-ordinary-window',
+        appliesFromDate: '2026-09-01',
+        cutoff: { time: '14:00', timeZone: 'Europe/Madrid', businessDayRule: 'sameDayIfBusiness-elsePriorBusinessDay' },
+        note: 'Corte a las 14:00 del mismo día si el partido es laborable; 14:00 del día hábil anterior si es festivo/sábado/domingo.',
+      }, {
+        id: 'acb-playoff-window',
+        // Ventana especial declarada como DATO (sección 5.1 del prompt de
+        // REG-1): entre el fin de la liga regular y el primer partido de
+        // playoff se permite UNA nueva inscripción si el club no ha
+        // llegado a las 20 — RegistrationService la evalúa por fase
+        // (`phaseId`), nunca por fecha calendario suelta.
+        appliesToPhaseId: 'title-playoff',
+        allowsOneAdditionalRegistrationIfBelowCap: true,
+      }],
+      // El acta se configura entre 2h y 1h antes; los activos de la
+      // jornada, hasta 2h antes (art. 17).
+      matchDaySelectionWindow: { activeRosterCutoffMinutesBeforeTipOff: 120 },
+      matchActConfigurationWindow: { fromMinutesBeforeTipOff: 120, toMinutesBeforeTipOff: 60 },
+      documentRequirements: [
+        'identity-document', 'medical-clearance', 'player-federation-request',
+        'club-federation-request', 'contract-copy', 'photograph',
+      ],
+      provisionalAuthorizationPolicy: {
+        requiresFederationValidation: true,
+        // Art. 15.5: documentos imprescindibles — nunca se omiten para la
+        // autorización provisional, aunque el resto de trámite quede
+        // pendiente.
+        mandatoryDocumentCodes: ['identity-document', 'medical-clearance', 'contract-copy'],
+        newPlayerMatchDayException: true,
+      },
+      // Una inscripción surte efecto cuando ACB valida la documentación
+      // (excepción reglada de nuevos jugadores incorporados al acta, ver
+      // `provisionalAuthorizationPolicy.newPlayerMatchDayException`).
+      registrationEffectiveWhen: 'onFederationValidation',
+      ownLowerCategoryRules: {
+        allowed: true,
+        countsTowardCumulativeCap: false,
+        note: 'Jugadores propios de categorías inferiores: artefacto regulatorio distinto de la plantilla senior.',
+      },
+      additionalListRules: {
+        allowed: true,
+        note: 'Nuevos jugadores presentados y validados en plazo (excepción del art. 15.5), además de los inscritos ordinarios.',
+      },
+      // Vinculación (REG-1, sección 5.4 del prompt): hasta 4 vinculados
+      // senior sub-22 del club vinculado, bajo relación/lista autorizadas
+      // de la temporada. La especialidad ACB puede actualizar su relación
+      // de elegibles dentro de su ventana — declarado como OVERLAY
+      // explícito (`allowsWindowUpdate`), nunca "el último objeto gana".
+      linkedPlayerRules: {
+        maxLinkedSeniorSubU22FromLowerClub: 4,
+        ageCategory: 'sub-22',
+        citizenshipRequirement: 'community-or-equal-treatment',
+        allowsWindowUpdateOverlay: true,
+        ineffectiveIfSameCompetitionAsLinkedClub: true,
+        notCountingTowardCumulativeCap: true,
+      },
+      sameRoundMultiClubRestrictions: {
+        enabled: true,
+        // ACB, Copa y Playoff por el título COMPARTEN ámbito de inscripción
+        // porque las Normas Internas ACB se aplican a las tres — DATO
+        // declarado en el bundle (`registrationScopeId`), nunca deducido
+        // por ser el equipo de Primera División (BUG-CONTRACT1-02).
+        note: 'Un jugador no puede figurar en el acta de dos clubes ACB en la misma jornada.',
+      },
+      statusRestrictions: {
+        // Bajas por lesión/enfermedad, contrato suspendido o sanción de
+        // suspensión: no ocupan el máximo simultáneo y permiten
+        // sustitución, pero la baja/sustitución es SIEMPRE un evento
+        // regulatorio explícito (nunca derivado automáticamente de
+        // Medical.js — sección 5.1 del prompt de REG-1).
+        nonSimultaneousStatuses: ['injury-or-illness', 'contract-suspended', 'disciplinary-suspension'],
+        requiresExplicitEvent: true,
+      },
+      matchActRange: { min: 8, max: 12 },
       sourceRefs: [{
         title: 'ACB — Normas Internas 2025-26 (artículos 15 y 17)',
         url: 'https://www.acb.com/docs/descarga/pdf/transparencia/normas_internas_25-26_180825.pdf',
-        retrievedAt: '2026-08-24',
+        retrievedAt: '2026-08-26',
+      }, {
+        title: 'CSD — Resolución de 16 de julio de 2014 (cupos, BOE-A-2014-7597)',
+        url: 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2014-7597',
+        retrievedAt: '2026-08-26',
       }],
       notImplemented: [
-        'trainingPlayerQuota', // mínimo 3 (8-9 inscritos) / 4 (10-12) de formación
-        'nonEuUnionForeignerCap', // máximo 2 extranjeros no comunitarios
-        'seasonRegistrationCap', // máximo acumulado de 20 inscripciones/temporada
-        'nonCountingSubstitutions', // sustituciones de jugadores no computables
+        'realTimeFederationValidationWorkflow', // el trámite real de validación FEB/ACB queda fuera de alcance
       ],
     },
     'primera-feb-registration-2026-27-v1': {
       id: 'primera-feb-registration-2026-27-v1',
       domain: 'registration',
       familyId: 'primera-feb-registration',
-      version: 1,
+      version: 2,
       status: 'verified',
       competitionId: COMPETITION_IDS.PRIMERA_FEB,
       validity: buildValidity({
         seasonFrom: '2026-27', seasonTo: '2026-27', carryForwardUntilSuperseded: true,
       }),
+      // Acta de partido: mínimo 10, máximo 12 (distinto de la plantilla
+      // activa 8-12 — sección 5.2 del prompt de REG-1).
       matchSquad: { min: 10, max: 12 },
+      matchActRange: { min: 10, max: 12 },
+      activeRosterRange: { min: 8, max: 12 },
+      quotaBands: [
+        { rosterMin: 8, rosterMax: 9, formationMinimum: 3 },
+        { rosterMin: 10, rosterMax: 12, formationMinimum: 4 },
+      ],
+      nonCommunityCap: { max: 2, scope: ['activeRoster', 'matchAct'] },
+      cumulativeRegistrationCap: {
+        max: 20,
+        nonCountingCategories: ['own-lower-category', 'linked'],
+      },
+      // Manual de Licencias 2026-27 (regla que NO existe en ACB): al menos
+      // dos jugadores de formación en pista durante TODO el tiempo de
+      // juego — llega a Rotation.js como política por competición, nunca
+      // como un `if (Primera FEB)` (sección 5.2/11.4 del prompt de REG-1).
+      onCourtConstraints: { minFormationOnCourtAtAllTimes: 2 },
+      submissionWindows: [{
+        id: 'primera-feb-ordinary-window',
+        cutoff: {
+          time: '18:00', timeZone: 'Europe/Madrid', businessDayRule: 'priorBusinessDay',
+        },
+        weekendCutoff: {
+          time: '14:00', timeZone: 'Europe/Madrid', businessDayRule: 'fridayForWeekend',
+        },
+        note: '18:00 del día hábil anterior; viernes 14:00 para partidos de sábado/domingo; reglas especiales si '
+          + 'el viernes es inhábil; determinados festivos locales/regionales de la sede FEB cortan a las 13:00.',
+      }],
+      finalRegistrationDeadlines: [{
+        id: 'primera-feb-february-general-limit',
+        cutoff: { time: '14:00', timeZone: 'Europe/Madrid', businessDayRule: 'lastBusinessDayOfMonth', month: 2 },
+        note: 'Límite general: 14:00 del último día hábil de febrero.',
+      }, {
+        id: 'primera-feb-march-restricted-window',
+        cutoff: { time: '14:00', timeZone: 'Europe/Madrid', businessDayRule: 'lastBusinessDayOfMonth', month: 3 },
+        // Sección 5.5 del prompt: el "31 de marzo de 2026" del Manual es un
+        // error de fecha (imposible dentro de la temporada 2026-27); se
+        // deriva de la formulación correcta de las Bases (último día hábil
+        // de marzo), nunca del literal del Manual.
+        restrictedToCategories: ['from-higher-category', 'requires-international-transfer', 'no-feb-license-this-season'],
+        note: 'Hasta el último día hábil de marzo SOLO tres categorías: procedencia de categoría superior, '
+          + 'operación que exige transfer internacional, o jugador sin licencia FEB esa temporada.',
+      }],
+      documentRequirements: [
+        'identity-document', 'residence-or-work-permit-if-applicable', 'medical-request', 'player-request',
+        'release-or-transfer-document', 'contract-copy', 'dues-or-canon-if-applicable', 'photograph',
+      ],
+      provisionalAuthorizationPolicy: {
+        requiresFederationValidation: true,
+        mandatoryDocumentCodes: ['identity-document', 'medical-request', 'contract-copy'],
+        newPlayerMatchDayException: false,
+      },
+      registrationEffectiveWhen: 'onFederationValidation',
+      ownLowerCategoryRules: { allowed: true, countsTowardCumulativeCap: false },
+      additionalListRules: { allowed: false },
+      linkedPlayerRules: {
+        // RGyC FEB art. 18: hasta 4 comunitarios sub-22 con licencia senior
+        // del club INFERIOR hacia el superior, y hasta 5 junior/cadete del
+        // club SUPERIOR hacia el inferior — direcciones DISTINTAS, nunca un
+        // único número.
+        maxLinkedSeniorSubU22FromLowerClub: 4,
+        maxLinkedJuniorOrCadeteFromUpperClub: 5,
+        ageCategory: 'sub-22-or-junior-cadete',
+        citizenshipRequirement: 'community-for-senior-link',
+        listsFrozenDuringSeason: true,
+        ineffectiveIfSameCompetitionAsLinkedClub: true,
+        notCountingTowardCumulativeCap: true,
+      },
+      sameRoundMultiClubRestrictions: { enabled: true },
+      statusRestrictions: {
+        nonSimultaneousStatuses: ['injury-or-illness', 'contract-suspended', 'disciplinary-suspension'],
+        requiresExplicitEvent: true,
+        // Sección 5.2: una nueva alta de un jugador previamente dado de
+        // baja por lesión NO exime de recomputar salvo que la relación
+        // contractual no se haya interrumpido durante TODO el periodo
+        // exigido — se demuestra con el ledger + ContractRegistry, nunca
+        // con un booleano manual.
+        reactivationExemptionRequiresUninterruptedContract: true,
+      },
+      // Discrepancias REALES del propio documento oficial (sección 5.5 del
+      // prompt de REG-1) — se registran, NUNCA se resuelven por
+      // interpretación propia ni se activan.
+      knownSourceInconsistencies: [
+        'Las Bases de Primera FEB fijan máximo 12 en el texto, pero su propia tabla de 2.2/2.3 incluye una fila '
+        + '"13-15 jugadores". No habilitado — se conserva el máximo inequívoco (12).',
+        'El Manual de Licencias 2026-27 declara para Primera FEB máximo 15 (con cinco movimientos tras '
+        + 'alcanzarlo), mientras las Bases específicas fijan máximo 12 y el acumulado sigue en 20. Gobierna la '
+        + 'fuente ESPECÍFICA de competición (Bases): plantilla 8-12, acta 10-12, acumulado 20.',
+        'El Manual contiene la fecha "31 de marzo de 2026" dentro de la temporada 2026-27 (imposible: marzo de '
+        + '2026 no pertenece a la temporada 2026-27). El límite se deriva de la formulación de las Bases '
+        + '("último día hábil de marzo"), nunca de ese literal.',
+      ],
+      resolutionRationale: 'La fuente ESPECÍFICA de la competición (Bases de Competición Primera FEB 2026-27) '
+        + 'gobierna el comportamiento activo sobre el Manual general de Licencias cuando ambas discrepan: '
+        + 'plantilla 8-12, acta 10-12, acumulado 20. La fila 13-15 y el máximo 15 del Manual quedan sin activar.',
+      matchDaySelectionWindow: { activeRosterCutoffMinutesBeforeTipOff: 120 },
+      matchActConfigurationWindow: { fromMinutesBeforeTipOff: 120, toMinutesBeforeTipOff: 60 },
       sourceRefs: [{
         title: 'FEB — Bases de Competición Primera FEB 2026-27 (apartados 2.2 y 2.3)',
         url: 'https://www.feb.es/Documentos/Enlaces/%5B6537%5DBBCC%20Primera%20FEB%2026-27%20-%20Versi%C3%B3n%20Web.pdf',
-        retrievedAt: '2026-08-24',
+        retrievedAt: '2026-08-26',
+      }, {
+        title: 'FEB — Reglamento General y de Competiciones (versión CSD)',
+        url: 'https://www.feb.es/Documentos/Enlaces/%5B6692%5DReglamento%20General%20y%20de%20Competiciones%20FEB.%20Version%20CSD%20%28limpio%29.pdf',
+        retrievedAt: '2026-08-26',
+      }, {
+        title: 'FEB — Manual de Expedición de Licencias 2026-27',
+        url: 'https://www.feb.es/Documentos/Enlaces/%5B6697%5DMANUAL%20LICENCIAS%202026-2027%20Revisado.pdf',
+        retrievedAt: '2026-08-26',
+      }, {
+        title: 'FEB — Modelo oficial de vinculación',
+        url: 'https://www.feb.es/Documentos/Enlaces/%5B5649%5DMODELO%20DE%20VINCULACION.pdf',
+        retrievedAt: '2026-08-26',
       }],
-      // Discrepancia REAL del propio documento oficial (ROSTER-1): la tabla
-      // de 2.2/2.3 incluye una fila "13-15 jugadores" que contradice el
-      // máximo de 12 del texto inmediatamente anterior. Se registra en vez
-      // de resolverla por interpretación propia.
-      knownSourceInconsistencies: [
-        'La tabla de 2.2/2.3 del PDF de Bases 26-27 incluye una fila "13-15 jugadores" que contradice el '
-        + 'máximo de 12 fijado en el texto inmediatamente anterior. No habilitado hasta aclaración oficial '
-        + '— se conserva el máximo inequívoco (12).',
-      ],
       notImplemented: [
-        'trainingPlayerQuota',
-        'nonEuUnionForeignerCap',
-        'seasonRegistrationCap',
-        'matchActMinimumTen',
-        'registrationDeadlines',
+        'realTimeFederationValidationWorkflow',
       ],
     },
     // Perfil SOLO DE TEST (ver COMPETITION_IDS.TEST_FICTIONAL arriba).
@@ -372,8 +589,111 @@
       competitionId: COMPETITION_IDS.TEST_FICTIONAL,
       validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null, carryForwardUntilSuperseded: true }),
       matchSquad: { min: 6, max: 9 },
+      activeRosterRange: { min: 6, max: 9 },
+      quotaBands: [{ rosterMin: 6, rosterMax: 9, formationMinimum: 1 }],
+      nonCommunityCap: { max: 1, scope: ['matchAct'] },
+      cumulativeRegistrationCap: { max: 15, nonCountingCategories: [] },
+      onCourtConstraints: null,
       sourceRefs: [],
       notImplemented: [],
+    },
+    // --- Perfiles de referencia (REG-1, sección 5.6 del prompt) — NUNCA
+    // activados en una partida real, NUNCA competiciones jugables. Sirven
+    // solo para demostrar en tests que el motor admite combinaciones de
+    // reglas distintas de ACB/FEB sin tocar Team/Player/EligibilityService/
+    // Rotation/CPU/UI: añadir una liga nueva es dato de catálogo.
+    'reference-only-max-act-9-v1': {
+      id: 'reference-only-max-act-9-v1',
+      domain: 'registration',
+      familyId: 'reference-only-max-act-9',
+      version: 1,
+      status: 'reference-only',
+      competitionId: COMPETITION_IDS.TEST_FICTIONAL,
+      validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null }),
+      matchSquad: { min: 7, max: 9 },
+      activeRosterRange: { min: 7, max: 9 },
+      quotaBands: [{ rosterMin: 7, rosterMax: 9, formationMinimum: 2 }],
+      nonCommunityCap: { max: 2, scope: ['matchAct'] },
+      cumulativeRegistrationCap: { max: 18, nonCountingCategories: [] },
+      onCourtConstraints: null,
+      sourceRefs: [],
+      notImplemented: ['everything'],
+      derivedInterpretations: ['reference-only: demuestra un acta máxima de 9, nunca activado en una partida real.'],
+    },
+    'reference-only-max-1-noncommunity-v1': {
+      id: 'reference-only-max-1-noncommunity-v1',
+      domain: 'registration',
+      familyId: 'reference-only-max-1-noncommunity',
+      version: 1,
+      status: 'reference-only',
+      competitionId: COMPETITION_IDS.TEST_FICTIONAL,
+      validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null }),
+      matchSquad: { min: 8, max: 12 },
+      activeRosterRange: { min: 8, max: 12 },
+      quotaBands: [{ rosterMin: 8, rosterMax: 12, formationMinimum: 3 }],
+      nonCommunityCap: { max: 1, scope: ['activeRoster', 'matchAct'] },
+      cumulativeRegistrationCap: { max: 20, nonCountingCategories: [] },
+      onCourtConstraints: null,
+      sourceRefs: [],
+      notImplemented: ['everything'],
+      derivedInterpretations: ['reference-only: demuestra un máximo de 1 no comunitario, nunca activado en una partida real.'],
+    },
+    'reference-only-u22-development-v1': {
+      id: 'reference-only-u22-development-v1',
+      domain: 'registration',
+      familyId: 'reference-only-u22-development',
+      version: 1,
+      status: 'reference-only',
+      competitionId: COMPETITION_IDS.TEST_FICTIONAL,
+      validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null }),
+      // Competición de formación/U22 con plantilla simultánea 12-20, cupo
+      // de formación distinto y máximo acumulado 25 — inspirada en las
+      // referencias inactivas de Segunda/Tercera FEB y Liga U22 del Manual
+      // FEB 2026-27 (sección 5.6 del prompt), NUNCA jugable en esta partida.
+      matchSquad: { min: 10, max: 15 },
+      activeRosterRange: { min: 12, max: 20 },
+      quotaBands: [{ rosterMin: 12, rosterMax: 20, formationMinimum: 8 }],
+      nonCommunityCap: { max: 3, scope: ['activeRoster'] },
+      cumulativeRegistrationCap: { max: 25, nonCountingCategories: ['own-lower-category'] },
+      onCourtConstraints: null,
+      sourceRefs: [{
+        title: 'FEB — Manual de Expedición de Licencias 2026-27 (referencias Segunda/Tercera FEB y Liga U22)',
+        url: 'https://www.feb.es/Documentos/Enlaces/%5B6697%5DMANUAL%20LICENCIAS%202026-2027%20Revisado.pdf',
+        retrievedAt: '2026-08-26',
+      }],
+      notImplemented: ['everything'],
+      derivedInterpretations: ['reference-only: plantilla 12-20/cupo 25, nunca activado en una partida real.'],
+    },
+    'reference-only-international-scope-v1': {
+      id: 'reference-only-international-scope-v1',
+      domain: 'registration',
+      familyId: 'reference-only-international-scope',
+      version: 1,
+      status: 'reference-only',
+      competitionId: COMPETITION_IDS.TEST_FICTIONAL,
+      validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null }),
+      // Ámbito de inscripción y fecha límite PROPIOS de una competición
+      // internacional — el calendario público ELPA/EuroLeague 2025-26 fija
+      // el 25 de febrero como límite de altas (sección 5.6 del prompt).
+      // NUNCA se activa EuroLeague ni ninguna liga extranjera (EUROPE-1).
+      matchSquad: { min: 10, max: 12 },
+      activeRosterRange: { min: 10, max: 14 },
+      quotaBands: [],
+      nonCommunityCap: null,
+      cumulativeRegistrationCap: null,
+      onCourtConstraints: null,
+      finalRegistrationDeadlines: [{
+        id: 'reference-only-euroleague-style-deadline',
+        cutoff: { date: '2027-02-25', time: '23:59', timeZone: 'Europe/Madrid' },
+        note: 'Inspirado en el límite de altas del calendario público ELPA/EuroLeague 2025-26 (25 de febrero).',
+      }],
+      sourceRefs: [{
+        title: 'ELPA — Calendario EuroLeague 2025-26 (referencia pública de fecha límite de altas)',
+        url: 'https://elpa.basketball/calendar/',
+        retrievedAt: '2026-08-26',
+      }],
+      notImplemented: ['everything'],
+      derivedInterpretations: ['reference-only: ámbito internacional con fecha límite propia, nunca activado en una partida real.'],
     },
   };
 
@@ -1010,6 +1330,12 @@
       organizerCountry: 'ES',
       federationId: 'feb-general',
       collectiveAgreementId: 'acb-abp',
+      // REG-1 (BUG-CONTRACT1-02): ámbito de inscripción DECLARADO como dato
+      // — Liga, Copa y Playoff por el título comparten este mismo
+      // `registrationScopeId` porque las Normas Internas ACB se aplican a
+      // las tres competiciones organizadas por ACB (nunca deducido por ser
+      // "el equipo de Primera División").
+      registrationScopeId: 'acb-domestic-registration-2025-26',
       modules: {
         registration: 'acb-registration-2025-26-v1',
         // Capa de convenio de la COMPETICIÓN (no la ley del empleador).
@@ -1036,6 +1362,10 @@
       // Primera FEB NO tiene convenio ACB: no hereda su mínimo ni sus diez
       // mensualidades por ser "baloncesto español".
       collectiveAgreementId: null,
+      // REG-1: Primera FEB (liga regular + Playoff de ascenso) tiene su
+      // PROPIO ámbito de inscripción — nunca el mismo que ACB por ser
+      // "la otra división".
+      registrationScopeId: 'primera-feb-domestic-registration-2026-27',
       modules: {
         registration: 'primera-feb-registration-2026-27-v1',
         employmentMembershipOverlay: null,
@@ -1058,6 +1388,7 @@
       organizerCountry: 'XX',
       federationId: null,
       collectiveAgreementId: null,
+      registrationScopeId: 'bm-test-fictional-registration-scope',
       modules: {
         registration: 'bm-test-fictional-registration-v1',
         employmentMembershipOverlay: null,
@@ -1148,8 +1479,28 @@
   // ---------------------------------------------------------------------
   function deriveRegistrationCapabilities(registrationModule) {
     const capabilities = new Set();
-    if (registrationModule && registrationModule.matchSquad) {
-      capabilities.add('matchSquadSizeLimit');
+    if (!registrationModule) return capabilities;
+    if (registrationModule.matchSquad) capabilities.add('matchSquadSizeLimit');
+    if (registrationModule.activeRosterRange) capabilities.add('federationLicense');
+    if (registrationModule.activeRosterRange || registrationModule.matchSquad) capabilities.add('competitionRegistration');
+    if (registrationModule.cumulativeRegistrationCap) capabilities.add('seasonRegistrationLedger');
+    if (registrationModule.matchActRange || registrationModule.matchSquad) capabilities.add('matchAct');
+    if (registrationModule.quotaBands && registrationModule.quotaBands.length) capabilities.add('formationQuota');
+    if (registrationModule.nonCommunityCap) capabilities.add('nonCommunityCap');
+    if (registrationModule.onCourtConstraints && registrationModule.onCourtConstraints.minFormationOnCourtAtAllTimes) {
+      capabilities.add('onCourtFormationQuota');
+    }
+    if ((registrationModule.submissionWindows && registrationModule.submissionWindows.length)
+      || (registrationModule.finalRegistrationDeadlines && registrationModule.finalRegistrationDeadlines.length)) {
+      capabilities.add('registrationDeadlines');
+    }
+    if (registrationModule.provisionalAuthorizationPolicy) capabilities.add('provisionalAuthorization');
+    if (registrationModule.ownLowerCategoryRules && registrationModule.ownLowerCategoryRules.allowed) {
+      capabilities.add('ownLowerCategoryPlayers');
+    }
+    if (registrationModule.linkedPlayerRules) capabilities.add('linkedPlayers');
+    if (registrationModule.additionalListRules && registrationModule.additionalListRules.allowed) {
+      capabilities.add('additionalPlayerLists');
     }
     return capabilities;
   }
@@ -1593,10 +1944,41 @@
       ? RESOLUTION_MODES.PROVISIONAL_CARRY_FORWARD
       : bundleResolution.resolutionMode;
 
+    // REG-1 (sección 9 del prompt): campos normativos completos del
+    // dominio `registration`, expuestos bajo `resolved.registration` con
+    // el MISMO criterio que `resolved.employment` en el dominio laboral —
+    // ningún campo ausente en el módulo se inventa aquí; se propaga tal
+    // cual (`null`/`undefined` explícito) para que quien consuma decida.
+    const registration = registrationModule ? {
+      activeRosterRange: registrationModule.activeRosterRange || null,
+      matchActRange: registrationModule.matchActRange || registrationModule.matchSquad || null,
+      quotaBands: registrationModule.quotaBands || [],
+      nonCommunityCap: registrationModule.nonCommunityCap || null,
+      cumulativeRegistrationCap: registrationModule.cumulativeRegistrationCap || null,
+      onCourtConstraints: registrationModule.onCourtConstraints || null,
+      submissionWindows: registrationModule.submissionWindows || [],
+      finalRegistrationDeadlines: registrationModule.finalRegistrationDeadlines || [],
+      matchDaySelectionWindow: registrationModule.matchDaySelectionWindow || null,
+      matchActConfigurationWindow: registrationModule.matchActConfigurationWindow || null,
+      documentRequirements: registrationModule.documentRequirements || [],
+      provisionalAuthorizationPolicy: registrationModule.provisionalAuthorizationPolicy || null,
+      registrationEffectiveWhen: registrationModule.registrationEffectiveWhen || null,
+      ownLowerCategoryRules: registrationModule.ownLowerCategoryRules || null,
+      additionalListRules: registrationModule.additionalListRules || null,
+      linkedPlayerRules: registrationModule.linkedPlayerRules || null,
+      sameRoundMultiClubRestrictions: registrationModule.sameRoundMultiClubRestrictions || null,
+      statusRestrictions: registrationModule.statusRestrictions || null,
+      resolutionRationale: registrationModule.resolutionRationale || null,
+    } : null;
+
     return {
       domain: 'registration',
       competitionId,
       bundleId: bundle.id,
+      // REG-1 (BUG-CONTRACT1-02): ámbito de inscripción DECLARADO en el
+      // bundle — nunca deducido de `team.division` ni del nombre visible.
+      registrationScopeId: bundle.registrationScopeId || null,
+      phaseId: ctx.phaseId || null,
       version: bundle.version,
       // Compatibilidad de lectura con ROSTER-1: primera temporada de
       // vigencia declarada del bundle resuelto.
@@ -1609,12 +1991,14 @@
       warnings,
       knownSourceInconsistencies,
       squadRules,
+      registration,
       capabilities: deriveRegistrationCapabilities(registrationModule),
       notImplemented,
       sourceRefs: registrationModule ? registrationModule.sourceRefs : [],
       trace: {
         sourceRuleIds,
         bundleId: bundle.id,
+        registrationScopeId: bundle.registrationScopeId || null,
         version: bundle.version,
         moduleVersions: registrationModule ? { [registrationModule.id]: registrationModule.version } : {},
         resolutionMode,

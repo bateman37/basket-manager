@@ -23,7 +23,11 @@
   }
 
   const { POSITIONS } = PlayerCore;
-  const { MATCH_SQUAD_MIN, MATCH_SQUAD_MAX } = TeamCore;
+  // REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-03): fixture de prueba NOMBRADO
+  // (nunca un "12 regulatorio" oculto) — solo lo usan llamadores legacy de
+  // LIFE-1..4 que todavía no pasan `squadRules` explícito; cualquier
+  // llamador multi-liga real (game.js) SIEMPRE pasa el rango ya resuelto.
+  const { TEST_MATCH_SQUAD_POLICY } = TeamCore;
 
   // Penalización SUAVE (no exclusión) de un jugador `limited` al elegir
   // TITULAR — sección 24: "no fuerza a un limitado como titular si hay
@@ -163,23 +167,75 @@
   // — nunca decidido aquí. Sin indicar (llamadores legacy de LIFE-1/2/3/4,
   // sin multi-liga), reproduce el default legacy 8-12 de `Team.js`,
   // comportamiento idéntico al de antes de esta entrega.
-  function buildCpuLineup(team, matchImportance, config, date, squadRules) {
+  //
+  // `eligibility` (REG-1, DESIGN.md 9.18, sección 11.3 del prompt) — OPCIONAL,
+  // por compatibilidad con llamadores de modo prueba: `{ pool, resolved }`.
+  // `pool`: [{ player, accessCategory, evaluation }] — el pool REGULADO del
+  // partido (senior + propios + vinculados, ya evaluados por
+  // `EligibilityService`), NUNCA solo `team.roster`. `resolved`: salida de
+  // `CompetitionRules.resolveRules({domain:'registration', ...})`. Cuando se
+  // aporta, la CPU consulta EXACTAMENTE `SquadEligibilityService.
+  // selectLegalSquad()` — el MISMO servicio que valida al usuario — en vez
+  // del `pickMatchSquadIds` puramente posicional de abajo. Un pool infeasible
+  // (nunca debería ocurrir con el seeder determinista, sección 11.3: "el
+  // smoke no debe dejar a ninguno de los 36 clubes en softlock") cae de
+  // vuelta al selector legacy sobre `team.roster` con warning explícito —
+  // red de seguridad para no interrumpir una partida en curso.
+  function buildCpuLineup(team, matchImportance, config, date, squadRules, eligibility) {
     const matchDate = date || new Date();
-    const limits = squadRules || { min: MATCH_SQUAD_MIN, max: MATCH_SQUAD_MAX };
+    const limits = squadRules || TEST_MATCH_SQUAD_POLICY;
     const Medical = MedicalCore();
+
+    let availablePlayers;
+    let squadIds;
+    let squad;
+    let squadWarnings = [];
+    let effectiveMinUsed = limits.min;
+
+    if (eligibility && eligibility.pool && eligibility.pool.length) {
+      const SquadEligibility = (typeof module !== 'undefined' && module.exports)
+        ? require('./SquadEligibilityService.js') : global.BasketManager;
+      const { pool, resolved } = eligibility;
+      const availabilityMap = new Map(
+        pool.map((entry) => [entry.player.id, Medical.getAvailability(entry.player, matchDate, config, { team })]),
+      );
+      const eligibleAndAvailable = pool.filter((entry) => (
+        entry.evaluation.eligible && availabilityMap.get(entry.player.id).status !== 'unavailable'
+      ));
+      const callableCount = eligibleAndAvailable.length;
+      const effectiveMin = Medical.resolveEffectiveSquadMinimum(limits.min, config, callableCount);
+      effectiveMinUsed = effectiveMin;
+      const desiredSize = Math.max(effectiveMin, Math.min(limits.max, eligibleAndAvailable.length));
+      const candidates = eligibleAndAvailable.map((entry) => ({
+        playerId: entry.player.id, qualityScore: playerQualityScore(entry.player), evaluation: entry.evaluation,
+      }));
+      const selection = SquadEligibility.SquadEligibilityService.selectLegalSquad(candidates, desiredSize, resolved);
+      if (selection.ok) {
+        squadIds = selection.playerIds;
+        squad = squadIds.map((id) => pool.find((entry) => entry.player.id === id).player);
+        availablePlayers = eligibleAndAvailable.map((entry) => entry.player);
+      } else {
+        squadWarnings.push(
+          `CpuLineup: convocatoria regulada INFEASIBLE para "${team.fullName || team.id}" `
+          + `(${selection.diagnostic.code}) — se aplica el selector legacy sobre team.roster como red de seguridad.`,
+        );
+      }
+    }
+
+    if (!squad) {
+      availablePlayers = team.roster.filter((player) => (
+        Medical.getAvailability(player, matchDate, config, { team }).status !== 'unavailable'
+      ));
+      const callableCount = availablePlayers.length;
+      const effectiveMin = Medical.resolveEffectiveSquadMinimum(limits.min, config, callableCount);
+      effectiveMinUsed = effectiveMin;
+      squadIds = pickMatchSquadIds(availablePlayers, effectiveMin, limits.max);
+      squad = team.buildMatchSquad(squadIds, effectiveMin, limits.max);
+    }
+
     const availabilityMap = new Map(
-      team.roster.map((player) => [player.id, Medical.getAvailability(player, matchDate, config, { team })]),
+      squad.map((player) => [player.id, Medical.getAvailability(player, matchDate, config, { team })]),
     );
-    const availablePlayers = team.roster.filter((player) => availabilityMap.get(player.id).status !== 'unavailable');
-    const callableCount = availablePlayers.length;
-    // Sección 23 (LIFE-3): mínimo real de convocatoria para ESTA fecha —
-    // el normal de la competición (`limits.min`) salvo escasez médica real
-    // (nunca por elección de la CPU), nunca por debajo del mínimo absoluto
-    // (protegido además por Medical.wouldDropBelowMinimum al generar la
-    // lesión en sí).
-    const effectiveMin = Medical.resolveEffectiveSquadMinimum(limits.min, config, callableCount);
-    const squadIds = pickMatchSquadIds(availablePlayers, effectiveMin, limits.max);
-    const squad = team.buildMatchSquad(squadIds, effectiveMin, limits.max);
     const cfg = config.cpuLineup;
     const totalMinutes = config.match.durationMinutes;
 
@@ -256,7 +312,56 @@
       };
     });
 
-    return { squad, lineup: { entries, fixedSegments: [], garbageTime: { enabled: false } } };
+    // REG-1 (sección 11.4 del prompt): Primera FEB exige AL MENOS dos
+    // jugadores de formación en pista durante todo el tiempo de juego — se
+    // repara cada "quinteto" declarado (titular/sub1/sub2, uno por slot,
+    // cruzando las 5 posiciones) para cumplirlo. Solo se aplica cuando el
+    // módulo resuelto declara la capacidad (ACB no la tiene).
+    if (eligibility && eligibility.pool && eligibility.resolved) {
+      const minOnCourt = eligibility.resolved.registration
+        && eligibility.resolved.registration.onCourtConstraints
+        && eligibility.resolved.registration.onCourtConstraints.minFormationOnCourtAtAllTimes;
+      if (minOnCourt) enforceOnCourtFormationQuota(entries, squad, eligibility.pool, minOnCourt);
+    }
+
+    return {
+      squad, lineup: { entries, fixedSegments: [], garbageTime: { enabled: false } }, warnings: squadWarnings, effectiveMin: effectiveMinUsed,
+    };
+  }
+
+  // Repara UN slot (titular/sub1/sub2) cruzando las 5 posiciones para que
+  // contenga al menos `minRequired` jugadores de formación — sustituye a
+  // los NO formación de peor calidad por candidatos de formación del
+  // mismo `squad` que todavía no ocupen ese slot. Deterministo (desempate
+  // por `playerQualityScore` y luego por id).
+  function enforceOnCourtFormationQuota(entries, squad, pool, minRequired) {
+    const isFormationQualifying = (playerId) => {
+      const entry = pool.find((p) => p.player.id === playerId);
+      return Boolean(entry && entry.evaluation && entry.evaluation.classification
+        && entry.evaluation.classification.formation.status === 'qualifies');
+    };
+    ['starter', 'sub1', 'sub2'].forEach((slotKey) => {
+      const idsInSlot = POSITIONS.map((pos) => entries[pos][slotKey].playerId).filter(Boolean);
+      let formationCount = idsInSlot.filter(isFormationQualifying).length;
+      if (formationCount >= minRequired) return;
+      const inSlotSet = new Set(idsInSlot);
+      const replacements = squad
+        .filter((player) => isFormationQualifying(player.id) && !inSlotSet.has(player.id))
+        .sort((a, b) => (playerQualityScore(b) - playerQualityScore(a)) || (a.id < b.id ? -1 : 1));
+      const removablePositions = POSITIONS
+        .filter((pos) => entries[pos][slotKey].playerId && !isFormationQualifying(entries[pos][slotKey].playerId))
+        .sort((a, b) => {
+          const playerA = squad.find((p) => p.id === entries[a][slotKey].playerId);
+          const playerB = squad.find((p) => p.id === entries[b][slotKey].playerId);
+          return (playerQualityScore(playerA) - playerQualityScore(playerB)) || (a < b ? -1 : 1);
+        });
+      let r = 0;
+      while (formationCount < minRequired && r < replacements.length && r < removablePositions.length) {
+        entries[removablePositions[r]][slotKey].playerId = replacements[r].id;
+        formationCount += 1;
+        r += 1;
+      }
+    });
   }
 
   // --- Importancia del partido (DESIGN.md 7.11.7, apartado 2.2) ---
@@ -322,6 +427,8 @@
     buildCpuLineup,
     computeMatchImportance,
     playerQualityScore,
+    enforceOnCourtFormationQuota,
+    pickMatchSquadIds,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
