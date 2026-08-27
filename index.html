@@ -412,6 +412,22 @@
   <script src="src/core/MarketSeeder.js"></script>
   <script src="src/core/RightOfFirstRefusalService.js"></script>
 
+  <!-- TRANSFER-1 (DESIGN.md 9.20): fichajes, traspasos, cláusulas,
+       rescisiones y compensaciones — quinta pieza canónica de la EPIC.
+       TransferEventTypes.js primero (ledger propio, no acopla `transfer` a
+       los internos de MarketEventTypes.js), luego la entidad (Transfer.js,
+       que consume Money.js/LocalDate.js ya cargados), luego el registro
+       canónico y por último los servicios que consumen CompetitionRules.js/
+       ContractService.js/RegistrationService.js/MarketService.js (todos ya
+       cargados arriba). RosterMutationService.js no depende de ningún
+       módulo de esta EPIC — es la única frontera de movimiento de roster. -->
+  <script src="src/core/TransferEventTypes.js"></script>
+  <script src="src/entities/Transfer.js"></script>
+  <script src="src/core/TransferRegistry.js"></script>
+  <script src="src/core/RosterMutationService.js"></script>
+  <script src="src/core/TransferExecutionService.js"></script>
+  <script src="src/core/TransferService.js"></script>
+
   <script src="src/core/Bracket.js"></script>
   <script src="src/core/Playoffs.js"></script>
   <script src="src/core/Cup.js"></script>

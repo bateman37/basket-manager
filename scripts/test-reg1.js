@@ -1153,7 +1153,12 @@ check('data/real no contiene ningún dato de inscripción/licencia generado', ()
 
 check('la interfaz no añade acciones de mercado fuera de alcance en Inscripciones/ficha de licencia', () => {
   const ui = readSource('src/ui/game.js');
-  const registrationsSection = ui.slice(ui.indexOf('Pantalla "Inscripciones" (REG-1'));
+  // TRANSFER-1 (DESIGN.md 9.20) añade pantallas/acciones DE MERCADO más
+  // adelante en el mismo archivo (Mercado > Operaciones, formalización de
+  // AIP) — el límite superior de esta sección debe acotarse a la propia
+  // pantalla de Inscripciones (hasta que empieza la siguiente pantalla,
+  // Mercado) para no barrer código de otra pantalla legítima.
+  const registrationsSection = ui.slice(ui.indexOf('Pantalla "Inscripciones" (REG-1'), ui.indexOf('function renderMarketScreen'));
   const ficherSection = ui.slice(ui.indexOf('Pestaña "Licencia y elegibilidad"'), ui.indexOf('Pantalla "Contratos"'));
   [registrationsSection, ficherSection].forEach((section) => {
     const buttonMatches = section.match(/<button[^>]*>[^<]*<\/button>/g) || [];

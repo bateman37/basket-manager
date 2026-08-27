@@ -194,6 +194,41 @@
     return { plan, result };
   }
 
+  // Avanza el ciclo de vida del EXPEDIENTE (TransferCase) tras planificar/
+  // comprometer — sección 9.1/20.3 del prompt: Mercado > Operaciones
+  // necesita un estado REAL (readyToPlan/planned/readyToExecute/completed
+  // /blocked), nunca "draft" para siempre. Un plan bloqueado se detiene en
+  // `blocked` con los motivos anotados para mostrarlos en la pantalla de
+  // solo lectura; un commit exitoso recorre las transiciones intermedias
+  // hasta `completed` (nunca salta directo, la máquina de estados exige el
+  // orden). `result === undefined` (en vez de null explícito) significa
+  // "no se intentó comprometer" (commit:false) — el expediente queda en
+  // readyToPlan, ni bloqueado ni completado.
+  function advanceTransferCaseLifecycle(transferCase, plan, result, committed, date) {
+    const iso = toIso(date);
+    if (plan.blockers.length) {
+      transferCase.addEvent({ id: `${transferCase.id}:blocked`, type: 'blocked', date: iso });
+      transferCase.lastBlockers = plan.blockers;
+      return transferCase;
+    }
+    // Sin `time` explícito: comparte la MISMA clave de orden por defecto
+    // (23:59:59, mismo criterio que el evento implícito `case-opened`) —
+    // igual patrón ya usado por NegotiationThread/ContractOffer de
+    // MARKET-1 (varios eventos el mismo día civil, ninguno con hora
+    // explícita). La cronología solo exige "no anterior", nunca "hora
+    // estrictamente distinta".
+    transferCase.addEvent({ id: `${transferCase.id}:rtp`, type: 'ready-to-plan', date: iso });
+    if (!committed) return transferCase; // solo se planificó (commit:false)
+    transferCase.addEvent({ id: `${transferCase.id}:planned`, type: 'planned', date: iso });
+    if (result && result.notYetDue) {
+      transferCase.addEvent({ id: `${transferCase.id}:scheduled`, type: 'scheduled', date: iso });
+      return transferCase;
+    }
+    transferCase.addEvent({ id: `${transferCase.id}:rte`, type: 'ready-to-execute', date: iso });
+    transferCase.addEvent({ id: `${transferCase.id}:completed`, type: 'completed', date: iso });
+    return transferCase;
+  }
+
   function formalizeFreeAgentSigning(params) {
     const {
       transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams,
@@ -226,6 +261,7 @@
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
     return { transferCase, plan, result };
   }
 
@@ -300,6 +336,7 @@
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
     return {
       transferCase, agreementRecord, plan, result,
     };
@@ -364,6 +401,7 @@
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
     return {
       transferCase, exercise, plan, result,
     };
@@ -430,12 +468,14 @@
         playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
       }, resolvedRules, commit);
       if (result && result.record) transferCase.transactionId = result.record.id;
+      advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
       return { transferCase, plan, result };
     }
     const { plan, result } = planAndMaybeCommit(command, {
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
     return { transferCase, plan, result };
   }
 

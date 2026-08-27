@@ -113,7 +113,7 @@
 
   const TRANSFER_CASE_ALLOWED_TRANSITIONS = {
     null: ['case-opened'],
-    draft: ['awaiting-origin-club', 'awaiting-player-consent', 'awaiting-conditions', 'ready-to-plan', 'rejected', 'withdrawn'],
+    draft: ['awaiting-origin-club', 'awaiting-player-consent', 'awaiting-conditions', 'ready-to-plan', 'blocked', 'rejected', 'withdrawn'],
     awaitingOriginClub: ['awaiting-player-consent', 'awaiting-conditions', 'ready-to-plan', 'rejected', 'withdrawn', 'expired'],
     awaitingPlayerConsent: ['awaiting-origin-club', 'awaiting-conditions', 'ready-to-plan', 'rejected', 'withdrawn', 'expired'],
     awaitingConditions: ['ready-to-plan', 'blocked', 'rejected', 'withdrawn', 'expired'],
