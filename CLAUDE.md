@@ -205,14 +205,27 @@ con dos botones:
     Inscripciones siguen de solo lectura tal cual se documentó en REG-1/
     CONTRACT-1 más arriba — ninguna de las dos gana botones de acción con
     esta entrega.
+  - Cesiones (LOAN-1, DESIGN.md 9.21): Mercado gana la pestaña
+    **Cesiones** (`renderMarketLoansTab()`) — formulario "Ceder un jugador
+    propio" que negocia y activa en un único envío
+    (`runLoanNegotiation()`/`wireMarketLoansTabActions()`), siempre vía
+    `LoanService`/`LoanExecutionService`, nunca escribiendo en
+    `LoanRegistry`/`ContractRegistry`/`RegistrationRegistry`/`Team.roster`
+    directamente. Contratos gana el badge "Cedido fuera" en la fila del
+    propietario mientras la cesión está activa, y una tarjeta "Jugadores
+    cedidos que refuerzan tu plantilla" para las cesiones entrantes —
+    ambas resueltas siempre desde `state.loanRegistry`, nunca desde
+    `Team.roster` de los equipos actuales. Contratos e Inscripciones
+    siguen sin ganar ningún botón de acción con esta entrega.
 
-## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1, MARKET-1, TRANSFER-1 y siguientes)
+## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1, MARKET-1, TRANSFER-1, LOAN-1 y siguientes)
 
 Convenciones permanentes de la EPIC iniciada en ROSTER-1 (DESIGN.md 9.16),
 ampliada en CONTRACT-1 (DESIGN.md 9.17), en REG-1 (DESIGN.md 9.18), en
-MARKET-1 (DESIGN.md 9.19) y en TRANSFER-1 (DESIGN.md 9.20) — aplican a
-toda sesión futura que toque contratos, licencias, inscripción,
-elegibilidad, mercado, traspasos, cesiones o transfer internacional:
+MARKET-1 (DESIGN.md 9.19), en TRANSFER-1 (DESIGN.md 9.20) y en LOAN-1
+(DESIGN.md 9.21) — aplican a toda sesión futura que toque contratos,
+licencias, inscripción, elegibilidad, mercado, traspasos, cesiones o
+transfer internacional:
 
 - Todo jugador vive en el Player Registry mundial
   (`src/core/PlayerRegistry.js`, `state.playerRegistry`); una plantilla
@@ -552,6 +565,128 @@ sobre esta entrega:
   verificable.
 - `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
   cuando cambian la arquitectura de traspasos o las reglas activas.
+- **Corrección (BUG-TRANSFER1-20, detectada durante LOAN-1)**: la licencia
+  de DESTINO en `TransferExecutionService.js`'s `commitTransaction()` usaba
+  el id determinista por defecto de `RegistrationService.issueLicense()`
+  (`playerId+clubId+seasonKey`) en vez de un id explícito por transacción
+  — igual fallo que ya se había corregido para la inscripción de destino
+  (comentario ya presente en el código), pero nunca replicado a la
+  licencia. Choca en cuanto el mismo jugador se re-licencia en el MISMO
+  club dentro de la misma temporada (p.ej. cedido y devuelto, y ACTO
+  SEGUIDO comprado en firme por su propio excesionario). Corregido con
+  `id: \`license:${transactionId}\`` — cualquier código nuevo que emita
+  una licencia debe seguir fijando su id explícito por transacción, nunca
+  confiar en el default determinista cuando el mismo club+temporada puede
+  repetirse.
+- **Corrección**: `scripts/smoke-transfer1.js` llevaba roto desde
+  BUG-TRANSFER1-16 (contexto operacional obligatorio) — sus fixtures nunca
+  pasaban `operationalContext`, así que la prueba de humo de 3 temporadas
+  nunca se había vuelto a ejecutar completa desde esa entrega. Cualquier
+  script de prueba de humo nuevo que llame a `TransferService`/
+  `LoanService` debe declarar `operationalContext` explícito (mismo
+  criterio que `game.js`), nunca asumir que el motor lo hace opcional.
+
+### Cesiones, retorno, recall y opción de compra (LOAN-1, DESIGN.md 9.21)
+
+Convenciones permanentes de LOAN-1 — aplican a toda sesión futura que
+toque cesiones domésticas, retorno, recall, terminación anticipada u
+opción/obligación de compra sobre un jugador cedido, y a CYCLE-1/EUROPE-1
+cuando construyan sobre esta entrega:
+
+- `LoanRegistry` (`src/core/LoanRegistry.js`, `state.loanRegistry`) es la
+  fuente CANÓNICA de `LoanCase`/`LoanProposal`/`LoanPartyConsent`/
+  `LoanAgreement`/`PurchaseOptionExercise` — instancia EXPLÍCITA por
+  carrera (creada en `bootstrapMarketForNewCareer()`, limpiada al volver a
+  selección de equipo), nunca un singleton.
+- Una cesión NUNCA mueve el contrato matriz — solo afiliación de plantilla
+  (`Team.roster`/`player.teamId`, vía `RosterMutationService`, la MISMA
+  frontera de TRANSFER-1) y licencia/inscripción de competición. Código
+  nuevo nunca asume que "cedido" implica un contrato nuevo con el
+  cesionario.
+- El modelo de fechas es SIEMPRE semiabierto:
+  `serviceStartDate <= date < returnEffectiveDate`
+  (`LoanAgreement.isActiveOn(date)`) — el día del retorno cuenta como ya
+  devuelto. `currentStatus()` se DERIVA siempre de las referencias reales
+  (`outboundTransactionId`/`returnTransactionId`/
+  `earlyTerminationRecordId`/`convertedTransferCaseId`) — nunca un campo
+  de estado mutable libre.
+- Lógica de cesión nueva usa `resolveLoanRules()`/módulos de
+  `CompetitionRules.js` (dominio `loan`) — nunca `division` (`1ª`/`2ª`),
+  el nombre visible de una liga, ni ACB como comportamiento por defecto de
+  una jurisdicción/competición desconocida (lanza explícito). El empleador
+  andorrano (MoraBanc Andorra) NUNCA hereda el régimen español del RD 1006
+  art. 11 — sigue siendo el test transfronterizo obligatorio de la EPIC,
+  bloqueado con `AD_NO_LOAN_REGIME_SOURCED` explícito.
+- `LoanExecutionService.js` reutiliza el MISMO patrón
+  `planTransaction()`/`commitTransaction()` de TRANSFER-1 (replan-at-commit,
+  `registerUndo()` que solo almacena el cierre, saga revertida en orden
+  inverso) — nunca un segundo motor de saga duplicado. La licencia +
+  inscripción de destino en la ACTIVACIÓN son obligatorias dentro del
+  bloque atómico; en RETORNO/terminación anticipada, la re-inscripción del
+  propietario es una fase administrativa NO atómica aparte
+  (`registrationOutcome: 'active'|'pending-registration'`), mismo criterio
+  que TRANSFER-1 sección 14.2.
+- Toda emisión de licencia/inscripción nueva (activación Y retorno) fija
+  su `id` EXPLÍCITO por transacción (`license:${transactionId}`,
+  `license:return:${transactionId}`, `registration:${transactionId}`,
+  `registration:return:${transactionId}`) — nunca el id determinista por
+  defecto (BUG-TRANSFER1-20): el mismo jugador puede re-licenciarse en el
+  MISMO club dentro de la misma temporada más de una vez a lo largo de una
+  cesión (activación → retorno → nueva cesión, o activación → retorno →
+  compra en firme por el propio excesionario).
+- La re-inscripción de RETORNO siempre referencia el contrato matriz
+  (`agreement.masterContractId`) — nunca `contractId: null`: el contrato
+  nunca se movió durante la cesión, sigue siendo el vigente del
+  propietario al volver, y una inscripción senior activa exige contrato
+  (BUG-REG1-07).
+- `CompetitionRegistration.employmentBasis` (`{type:
+  'direct-contract'|'temporary-assignment'|'regulatory-exception',
+  contractId, employerClubId, serviceClubId}`, por defecto
+  `'direct-contract'`) es el ÚNICO mecanismo que explica que el contrato
+  de una inscripción pertenezca a un club distinto de `registration.teamId`
+  — tanto en `RegistrationService.createRegistration()` como en
+  `RegistrationRegistry.validateIntegrity()` y
+  `ContractRegistry.validateIntegrity()` (esta última vía
+  `loanRegistry.activeAgreementForPlayer()`). Nunca una excepción genérica
+  "cualquier discordancia vale" — solo cuando `employmentBasis` declara
+  exactamente ese reparto y coincide con un `LoanAgreement` real.
+- El pool regulado de un partido sigue evaluándose SIEMPRE por
+  `EligibilityService` (REG-1) — la cláusula `parent-club-match-eligibility`
+  se comprueba ahí (motivo `PARENT_CLUB_MATCH_RESTRICTED`), nunca en una
+  regla paralela de UI o de la CPU.
+- **Opción de compra ejercida por el propio cesionario** (caso habitual):
+  `TransferService.formalizeNegotiatedTransfer()` asume que el club de
+  ORIGEN tiene físicamente al jugador — como la instancia real está en el
+  roster del CESIONARIO durante la cesión, el handoff definitivo se
+  compone SIEMPRE de dos pasos atómicos encadenados
+  (`LoanService.returnLoan()` primero, después el traspaso definitivo
+  normal propietario→cesionario de TRANSFER-1) — nunca un tercer motor de
+  ejecución nuevo. Ejercer la opción NUNCA mueve roster ni crea contrato
+  por sí solo — solo el consentimiento real del jugador dispara el
+  handoff.
+- `advanceGameClockTo()` sigue siendo el ÚNICO punto que avanza
+  `state.calendar` — el retorno automático de una cesión al alcanzar su
+  `returnEffectiveDate` se dispara ahí
+  (`processDueLoanReturnsToDate()`), nunca repartido por los call-sites de
+  Liga/Copa/Playoffs/Ascenso. Ninguna noticia de cesión se construye
+  dentro del dominio de cesión — game.js la publica SOLO tras un commit
+  real (`pushLoanNews()`), auditado estáticamente.
+- Dinero SIEMPRE en unidad mínima entera (`...Minor`) + moneda ISO 4217;
+  fechas SIEMPRE civiles ISO vía `LocalDate`, nunca `Date.now()`/reloj de
+  sistema dentro del motor de cesiones. El reparto salarial
+  propietario/cesionario (`Money.allocateByWeights`) siempre suma EXACTO
+  10000 puntos básicos.
+- Todo dato simulado de cesión (canon, participación, cláusulas de
+  fixture) lleva `dataSource`/`isReal: false` visibles — nunca se presenta
+  como un dato real, y `data/real/` no se toca nunca desde este dominio.
+- No se ejecuta cesión/subrogación con transfer internacional real ni
+  licencia FIBA para la operación (EUROPE-1, hoy solo bloquea, nunca
+  concede completado), ni expiración orgánica de contrato/apertura
+  orgánica de tanteo (CYCLE-1, sigue bloqueada por el suelo de 3
+  temporadas de CONTRACT-1) antes de sus entregas — LOAN-1 se detiene en
+  el ámbito doméstico verificable.
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambian la arquitectura de cesiones o las reglas activas.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 
