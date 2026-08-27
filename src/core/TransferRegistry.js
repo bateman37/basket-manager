@@ -250,7 +250,13 @@
         if (teams && tCase.originClubId && !teamIds.has(tCase.originClubId)) {
           errors.push(`El expediente "${tCase.id}" referencia el club de origen "${tCase.originClubId}", inexistente.`);
         }
-        if (marketRegistry && tCase.agreementInPrincipleId && !marketRegistry.getAgreement(tCase.agreementInPrincipleId)) {
+        // `agreementInPrincipleId` empieza por "self:" cuando un mutuo
+        // acuerdo/liberación pura no tiene AIP real (TransferService.js,
+        // formalizeMutualAgreement sin `agreement`) — marcador propio
+        // exigido por `TransferCase` como campo obligatorio, NUNCA un id
+        // real de MarketRegistry, así que no se busca ahí.
+        const hasSyntheticSelfMarker = typeof tCase.agreementInPrincipleId === 'string' && tCase.agreementInPrincipleId.startsWith('self:');
+        if (marketRegistry && tCase.agreementInPrincipleId && !hasSyntheticSelfMarker && !marketRegistry.getAgreement(tCase.agreementInPrincipleId)) {
           errors.push(`El expediente "${tCase.id}" referencia el AIP "${tCase.agreementInPrincipleId}", inexistente en MarketRegistry.`);
         }
         if (tCase.clubOfferId && !this._clubOffers.has(tCase.clubOfferId)) {

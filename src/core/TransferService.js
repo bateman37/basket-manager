@@ -113,10 +113,14 @@
 
   function evaluateSellingClub(params) {
     const {
-      originTeam, player, originContract, offer, careerSeed, date, deadlinePassed,
+      originTeam, player, originContract, offer, careerSeed, date, seasonKey, deadlinePassed,
     } = params;
     const fingerprint = `${careerSeed}|seller-eval|${originTeam.id}|${player.id}|${offer.id}|${toIso(date)}`;
-    const remainingSeasons = originContract ? originContract.remainingSeasonKeys(toIso(date)).length : 0;
+    // `remainingSeasonKeys()` compara CLAVES de temporada ("2026-27"), nunca
+    // una fecha civil ISO — `seasonKey` llega SIEMPRE explícito desde el
+    // llamador (mismo criterio que el resto de la EPIC: nunca se deriva un
+    // dato de calendario de juego adivinando a partir de una fecha suelta).
+    const remainingSeasons = originContract ? originContract.remainingSeasonKeys(seasonKey).length : 0;
     const hasReleaseClause = Boolean(originContract && originContract.clauses.some((c) => c.type === 'player-release'));
     const feeQualityRatio = Math.min(2, offer.fee.amountMinor / Math.max(1, (originContract ? originContract.breakdownForSeason(originContract.coveredSeasonKeys[0]).guaranteedTotalMinor : 1) * Math.max(1, remainingSeasons)));
     const squadDepthAtPosition = (originTeam.roster || []).filter((p) => p.primaryPosition === player.primaryPosition).length;
@@ -189,6 +193,23 @@
     };
   }
 
+  // Resuelve el `registrationScopeId` del club de ORIGEN — se calcula
+  // SIEMPRE aquí (nunca queda a que el llamador se acuerde de pasarlo):
+  // sin esto, `TransferExecutionService.commitTransaction()` nunca
+  // desactiva la inscripción de origen, y un traspaso DENTRO de la misma
+  // competición/temporada dejaría al jugador con dos inscripciones activas
+  // a la vez. `params.originRegistrationScopeId`/`originSeasonKey`
+  // explícitos (si el llamador los pasa, p.ej. un origen recién
+  // ascendido/descendido con ámbito de temporada anterior) tienen
+  // prioridad sobre este valor por defecto.
+  function resolveOriginRegistrationScope(originTeam, seasonKey, date) {
+    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(originTeam.division);
+    const resolved = RegSvc().resolveRegistrationRules({
+      competitionId, seasonKey, date: toIso(date), phaseId: 'league', operation: 'transfer',
+    });
+    return resolved.registrationScopeId;
+  }
+
   // ---------------------------------------------------------------------
   // Fachadas de alto nivel por mecanismo — construyen el `command` completo
   // y delegan en TransferExecutionService (plan + commit). Devuelven
@@ -254,7 +275,15 @@
   // ---------------------------------------------------------------------
   function retryScheduledTransferCase(transferCase, deps, date) {
     const iso = toIso(date);
-    if (transferCase.statusOn(iso) !== 'scheduled') return { transferCase, plan: null, result: null };
+    // Estado REAL actual (sin filtrar por `iso`), no "estado a fecha
+    // `iso`": dos divisiones/ligas pueden llamar a este reintento con
+    // fechas de ronda que no avanzan en el mismo orden estricto (el
+    // calendario de 2ª puede procesar un día anterior al que ya procesó
+    // 1ª en la misma vuelta) — si se usara `statusOn(iso)` filtrado, un
+    // expediente YA completado con fecha posterior podría parecer
+    // "scheduled" otra vez ante una `iso` anterior y reintentarse,
+    // generando un evento con fecha incoherente respecto al ya registrado.
+    if (transferCase.statusOn(null) !== 'scheduled') return { transferCase, plan: null, result: null };
     const command = transferCase.pendingCommand;
     const plan = ExecutionSvc().planTransaction(command, deps);
     if (!plan.isExecutable) {
@@ -321,6 +350,24 @@
     const transferCase = openCaseFromAgreement({
       transferRegistry, marketRegistry, agreement, operationType: 'negotiated-transfer', originClubId: originTeam.id, initiatingClubId: destinationTeam.id, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
+    // Sección 9.2 del prompt: la oferta club-club ACEPTADA es una entidad
+    // CANÓNICA propia (`ClubTransferOffer`, nunca el objeto suelto
+    // `{id, fee}` de la negociación previa) — se registra aquí, no se deja
+    // a que el llamador (UI/negociación) recuerde registrarla, para que
+    // `transferCase.clubOfferId` resuelva SIEMPRE (invariante 8: "oferta
+    // jugador-club y oferta club-club son entidades distintas").
+    const clubOfferRecord = new TransferEntities.ClubTransferOffer({
+      id: clubOffer.id,
+      transferCaseId: transferCase.id,
+      version: 1,
+      offeredByClubId: destinationTeam.id,
+      addressedToClubId: originTeam.id,
+      createdAt: effectiveDate,
+      expiresAt: effectiveDate,
+      fee: clubOffer.fee,
+    });
+    clubOfferRecord.addEvent({ id: `${clubOfferRecord.id}:accepted`, type: 'offer-accepted', date: effectiveDate });
+    transferRegistry.registerClubOffer(clubOfferRecord);
     const agreementRecord = new TransferEntities.TransferAgreement({
       id: `transfer-agreement:${transferCase.id}`,
       transferCaseId: transferCase.id,
@@ -368,7 +415,7 @@
         playerConsent: agreementRecord.playerConsent,
         playerParticipationPercentBasisPoints: params.playerParticipationPercentBasisPoints,
       },
-      originRegistrationScopeId: params.originRegistrationScopeId,
+      originRegistrationScopeId: params.originRegistrationScopeId || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate),
       originSeasonKey: params.originSeasonKey || seasonKey,
       destinationRegistration,
       rightsOutcomeId: params.rightsOutcomeId || null,
@@ -434,7 +481,7 @@
       releaseClauseAmount: clause.amount,
       releaseClauseExercisedBy: exercisedBy || 'player',
       registrationRestrictionAfterMonthDay: resolvedRules.releaseClauseRules ? resolvedRules.releaseClauseRules.registrationRestrictionAfterMonthDay : null,
-      originRegistrationScopeId: params.originRegistrationScopeId,
+      originRegistrationScopeId: params.originRegistrationScopeId || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate),
       originSeasonKey: params.originSeasonKey || seasonKey,
       destinationRegistration,
     };
@@ -498,7 +545,7 @@
       destinationCompetitionId: destinationTeam ? rulesCtx.destinationCompetitionId : null,
       federationId: rulesCtx.federationId,
       mutualSettlement,
-      originRegistrationScopeId: params.originRegistrationScopeId,
+      originRegistrationScopeId: params.originRegistrationScopeId || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate),
       originSeasonKey: params.originSeasonKey || seasonKey,
       destinationRegistration,
     };

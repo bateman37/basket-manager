@@ -588,6 +588,14 @@
 
         const registration = RegSvc().createRegistration({
           registry: registrationRegistry,
+          // El id determinista por defecto (playerId+scope+season) asume
+          // UNA inscripción por jugador/ámbito/temporada — cierto antes de
+          // TRANSFER-1, roto en cuanto un traspaso mueve al jugador DENTRO
+          // del mismo ámbito/temporada (origen y destino en la misma
+          // competición): la inscripción de origen queda desactivada, no
+          // borrada, así que su id sigue ocupado. Se fija explícito por
+          // transacción para que nunca choque con ella.
+          id: `registration:${plan.transactionId}`,
           playerId: cmd.playerId,
           licenseId: license.id,
           teamId: cmd.destinationClubId,

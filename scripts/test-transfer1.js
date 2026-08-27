@@ -865,5 +865,35 @@ check('retryScheduledTransferCase sobre un expediente ya completado no reintenta
   assert.strictEqual(result, null);
 });
 
+check('retryScheduledTransferCase con fechas fuera de orden (dos divisiones/ligas) nunca reintenta un expediente ya completado', () => {
+  // Reproduce el bug real encontrado por smoke-transfer1.js: 1ª y 2ª
+  // procesan sus rondas en fechas de calendario DISTINTAS (ninguna
+  // garantía de orden estricto entre ligas) — un expediente completado
+  // con fecha efectiva "futureDate" no debe parecer "scheduled" otra vez
+  // si se le vuelve a preguntar con una fecha ANTERIOR a `futureDate`
+  // procedente de la otra división en la misma vuelta.
+  const world = makeWorld();
+  const team = realTeam('team-real-madrid');
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  world.playerRegistry.register(player);
+  const agreement = makeLiveAgreement(world, team, player, 'seed-t14-5', GAME_DATE);
+  const futureDate = LocalDate.addDays(GAME_DATE, 10);
+  TransferService.formalizeFreeAgentSigning({
+    ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
+  });
+  const transferCase = world.transferRegistry.casesForPlayer(player.id)[0];
+  // 1ª procesa primero, en `futureDate` — el expediente se completa.
+  const first = TransferService.retryScheduledTransferCase(transferCase, { ...world, teams: [team], now: futureDate }, futureDate);
+  assert.ok(first.result && first.result.record);
+  assert.strictEqual(transferCase.statusOn(null), 'completed');
+  // 2ª procesa su propia ronda con una fecha ANTERIOR a `futureDate` —
+  // nunca debe reintentar ni lanzar por cronología incoherente.
+  const earlierDate = LocalDate.addDays(GAME_DATE, 3);
+  const second = TransferService.retryScheduledTransferCase(transferCase, { ...world, teams: [team], now: earlierDate }, earlierDate);
+  assert.strictEqual(second.plan, null);
+  assert.strictEqual(second.result, null);
+  assert.strictEqual(transferCase.statusOn(null), 'completed', 'debe seguir completado, sin eventos nuevos añadidos');
+});
+
 console.log(`\n${passed} OK, ${failed} FAIL`);
 process.exit(failed > 0 ? 1 : 0);

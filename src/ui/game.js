@@ -1176,7 +1176,7 @@
       marketRegistry: state.marketRegistry, transferRegistry: state.transferRegistry, teams: getAllTeams(), now: isoDate,
     };
     state.transferRegistry.allCases()
-      .filter((tCase) => tCase.statusOn(isoDate) === 'scheduled' && tCase.effectiveDate && tCase.effectiveDate <= isoDate)
+      .filter((tCase) => tCase.statusOn(null) === 'scheduled' && tCase.effectiveDate && tCase.effectiveDate <= isoDate)
       .forEach((tCase) => {
         const { result } = BM.TransferService.retryScheduledTransferCase(tCase, deps, isoDate);
         if (result && result.record) {
@@ -7016,7 +7016,7 @@
         const feeMinor = Math.round(feeEuros * 100);
         const proposedOffer = { id: `ui-offer:${agreement.id}:${Date.now()}`, fee: { amountMinor: feeMinor, currency: 'EUR' } };
         const evaluation = BM.TransferService.evaluateSellingClub({
-          originTeam, player, originContract, offer: proposedOffer, careerSeed, date: isoDate,
+          originTeam, player, originContract, offer: proposedOffer, careerSeed, date: isoDate, seasonKey: buildCareerSeasonKey(),
         });
         if (evaluation.decision === 'reject') {
           resultEl.textContent = `${escapeHtml(originTeam.fullName)} rechaza la propuesta: ${evaluation.reasons.join(' ')}`;
