@@ -436,6 +436,12 @@
   const OBLIGATION_CONCEPTS = [
     'transfer-fee', 'player-transfer-participation', 'release-clause-amount', 'mutual-termination-settlement',
     'employer-termination-compensation', 'rights-waiver-compensation', 'agent-fee',
+    // LOAN-1 (DESIGN.md 9.21, sección 16 del prompt) — conceptos SEPARADOS
+    // de la economía de una cesión, nunca sumados entre sí ni con los de
+    // arriba: se reutiliza `FinancialObligation` (misma invariante "nunca
+    // pagado, solo comprometido") en vez de duplicar la clase.
+    'loan-fee', 'player-loan-participation', 'salary-reimbursement', 'reciprocal-loan-player-minimum',
+    'early-return-settlement', 'purchase-option-price', 'purchase-obligation-price',
   ];
   const OBLIGATION_STATUSES = ['committed', 'waived', 'superseded'];
 

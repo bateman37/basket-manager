@@ -19,6 +19,19 @@
   function Classification() { return ClassificationModule.RegulatoryClassificationService; }
   function LD() { return LocalDateModule.LocalDate; }
 
+  // LOAN-1 (DESIGN.md 9.21, sección 12 del prompt) — ÚNICA excepción válida
+  // a "el contrato debe ser del club que inscribe": una base laboral
+  // "temporary-assignment" verificada contra la PROPIA inscripción (nunca
+  // se acepta un `employmentBasis` que no cuadre con el contrato/club real).
+  function isValidTemporaryAssignment(registration, contract) {
+    const basis = registration.employmentBasis;
+    if (!basis || basis.type !== 'temporary-assignment') return false;
+    return basis.contractId === contract.id
+      && basis.employerClubId === contract.clubId
+      && basis.serviceClubId === registration.teamId
+      && Boolean(basis.loanAgreementId);
+  }
+
   // Códigos de razón ESTABLES (sección 8.4 del prompt de REG-1) — nunca
   // texto en español como clave de lógica.
   const REASON_CODES = {
@@ -47,6 +60,10 @@
     MEDICALLY_UNAVAILABLE: 'MEDICALLY_UNAVAILABLE',
     DISCIPLINARY_SUSPENSION: 'DISCIPLINARY_SUSPENSION',
     CLASSIFICATION_UNKNOWN: 'CLASSIFICATION_UNKNOWN',
+    // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt): cláusula pactada
+    // que prohíbe al cedido jugar contra su club propietario — nunca se
+    // presenta como lesión o sanción.
+    PARENT_CLUB_MATCH_RESTRICTED: 'PARENT_CLUB_MATCH_RESTRICTED',
   };
 
   function reason(code, severity, params, sourceRuleIds) {
@@ -62,7 +79,8 @@
   // `deps`: { playerRegistry, contractRegistry, registrationRegistry,
   //   medicalAvailability (Map opcional playerId->{status,minuteCap}),
   //   disciplinarySuspensions (Map opcional playerId->boolean),
-  //   classificationCache (Map opcional) }
+  //   classificationCache (Map opcional),
+  //   loanRegistry (opcional, LOAN-1: habilita parent-club-match-eligibility) }
   function evaluateEligibility(playerId, teamId, context, deps) {
     const warnings = [];
     const reasons = [];
@@ -126,10 +144,13 @@
           // BUG-REG1-07: el contrato existe pero es de OTRO jugador —
           // nunca se acepta como si acreditara relación laboral de este.
           reasons.push(reason(REASON_CODES.CONTRACT_PLAYER_MISMATCH, 'blocking'));
-        } else if (contract.clubId !== registration.teamId) {
+        } else if (contract.clubId !== registration.teamId && !isValidTemporaryAssignment(registration, contract)) {
           // BUG-REG1-07: el contrato existe, es del jugador correcto, pero
           // con OTRO club — tampoco acredita relación laboral con el club
-          // que está inscribiéndolo.
+          // que está inscribiéndolo. LOAN-1 (DESIGN.md 9.21, sección 12 del
+          // prompt): la ÚNICA excepción válida es una base laboral
+          // "temporary-assignment" verificada (`isValidTemporaryAssignment`)
+          // — nunca se acepta cualquier contrato de otro club en silencio.
           reasons.push(reason(REASON_CODES.CONTRACT_CLUB_MISMATCH, 'blocking'));
         } else if (!contract.isActiveOn(context.date)) {
           // BUG-REG1-08: elegibilidad de PARTIDO exige relación laboral
@@ -176,6 +197,24 @@
     // regulatorias, médicas y disciplinarias por categoría".
     if (deps.disciplinarySuspensions && deps.disciplinarySuspensions.get(playerId)) {
       reasons.push(reason(REASON_CODES.DISCIPLINARY_SUSPENSION, 'blocking'));
+    }
+
+    // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt) — cláusula
+    // "parent-club-match-eligibility": una cesión puede prohibir jugar
+    // contra el club propietario. Nunca un valor universal — exige
+    // cláusula EXPLÍCITA en el acuerdo activo, y el rival del contexto
+    // (`context.opponentClubId`); usuario y CPU consultan EXACTAMENTE el
+    // mismo servicio, nunca reglas paralelas.
+    if (context.opponentClubId && deps.loanRegistry) {
+      let activeLoan = null;
+      try { activeLoan = deps.loanRegistry.activeAgreementForPlayer(playerId, context.date); } catch (err) { activeLoan = null; }
+      if (activeLoan && activeLoan.borrowerClubId === teamId && activeLoan.ownerClubId === context.opponentClubId) {
+        const restriction = activeLoan.clauses.find((c) => c.type === 'parent-club-match-eligibility' && c.prohibited
+          && (c.scope === 'competition' || (c.scope === 'match' && context.matchId)));
+        if (restriction) {
+          reasons.push(reason(REASON_CODES.PARENT_CLUB_MATCH_RESTRICTED, 'blocking', { reason: restriction.reason || null }, [restriction.id]));
+        }
+      }
     }
 
     // Vinculados: comprobaciones específicas cuando accessCategory==='linked'.

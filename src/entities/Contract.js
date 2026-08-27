@@ -582,6 +582,17 @@
       return normalized;
     }
 
+    // BUG-TRANSFER1-13 (DESIGN.md 9.21): reversión EXACTA de un
+    // addLifecycleEvent — un rollback de TRANSFER-1/LOAN-1 nunca debe tocar
+    // `this.lifecycleEvents` desde fuera (array privado del agregado); esta
+    // es la única API reversible. Devuelve el evento eliminado, o `null` si
+    // no existía (idempotente).
+    removeLifecycleEvent(id) {
+      const index = this.lifecycleEvents.findIndex((e) => e.id === id);
+      if (index === -1) return null;
+      return this.lifecycleEvents.splice(index, 1)[0];
+    }
+
     // --- DTO comparable para MARKET-1 (proyección PURA, nunca otra fuente
     // de verdad: siempre se deriva del contrato).
     toComparableOffer(seasonKey) {
