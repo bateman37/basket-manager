@@ -11,6 +11,7 @@
 (function (global) {
   const isNode = (typeof module !== 'undefined' && module.exports);
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
+  const RegistryIndexAuditModule = isNode ? require('../utils/RegistryIndexAudit.js') : global.BasketManager;
 
   function LD() { return LocalDateModule.LocalDate; }
 
@@ -87,6 +88,17 @@
       return offer;
     }
 
+    // BUG-TRANSFER1-14 (DESIGN.md 9.21): reversión SIMÉTRICA — primario +
+    // `_clubOffersByCase` juntos, nunca por separado desde fuera.
+    unregisterClubOffer(id) {
+      const offer = this._clubOffers.get(id);
+      if (!offer) return false;
+      this._clubOffers.delete(id);
+      const byCase = this._clubOffersByCase.get(offer.transferCaseId) || [];
+      this._clubOffersByCase.set(offer.transferCaseId, byCase.filter((x) => x !== id));
+      return true;
+    }
+
     getClubOffer(id) { return this._clubOffers.get(id) || null; }
 
     requireClubOffer(id) {
@@ -142,6 +154,11 @@
       return record;
     }
 
+    // BUG-TRANSFER1-14 (DESIGN.md 9.21): reversión — sin índice secundario
+    // propio, pero centraliza el borrado para que ningún servicio toque
+    // `_terminationRecords` directamente.
+    unregisterTerminationRecord(id) { return this._terminationRecords.delete(id); }
+
     getTerminationRecord(id) { return this._terminationRecords.get(id) || null; }
 
     allTerminationRecords() { return byId([...this._terminationRecords.values()]); }
@@ -153,6 +170,17 @@
       this._obligations.set(obligation.id, obligation);
       pushIndex(this._obligationsByTransaction, obligation.transactionId, obligation.id);
       return obligation;
+    }
+
+    // BUG-TRANSFER1-14 (DESIGN.md 9.21): reversión SIMÉTRICA — primario +
+    // `_obligationsByTransaction` juntos, nunca por separado desde fuera.
+    unregisterObligation(id) {
+      const obligation = this._obligations.get(id);
+      if (!obligation) return false;
+      this._obligations.delete(id);
+      const byTx = this._obligationsByTransaction.get(obligation.transactionId) || [];
+      this._obligationsByTransaction.set(obligation.transactionId, byTx.filter((x) => x !== id));
+      return true;
     }
 
     getObligation(id) { return this._obligations.get(id) || null; }
@@ -173,6 +201,22 @@
       pushIndex(this._transactionRecordsByPlayer, record.playerId, record.id);
       this._completedByTransactionId.set(record.id, record);
       return record;
+    }
+
+    // BUG-TRANSFER1-13/14 (DESIGN.md 9.21): reversión SIMÉTRICA — primario,
+    // `_transactionRecordsByPlayer` Y el índice de idempotencia
+    // (`_completedByTransactionId`) juntos. Antes, un fallo DESPUÉS de
+    // registrar el recibo (p.ej. al refrescar la proyección salarial) no
+    // tenía undo — el recibo quedaba completado y el índice de
+    // idempotencia ocupado aunque el resto del mundo se revirtiera.
+    unregisterTransactionRecord(id) {
+      const record = this._transactionRecords.get(id);
+      if (!record) return false;
+      this._transactionRecords.delete(id);
+      const byPlayer = this._transactionRecordsByPlayer.get(record.playerId) || [];
+      this._transactionRecordsByPlayer.set(record.playerId, byPlayer.filter((x) => x !== id));
+      this._completedByTransactionId.delete(id);
+      return true;
     }
 
     getTransactionRecord(id) { return this._transactionRecords.get(id) || null; }
@@ -234,11 +278,12 @@
     validateIntegrity(options) {
       const opts = options || {};
       const {
-        playerRegistry, teams, contractRegistry, registrationRegistry, marketRegistry,
+        playerRegistry, teams, contractRegistry, registrationRegistry, marketRegistry, loanRegistry, date,
       } = opts;
       const errors = [];
       const warnings = [];
       const teamIds = new Set((teams || []).map((t) => t.id));
+      const iso = date ? toIso(date) : null;
 
       this.allCases().forEach((tCase) => {
         if (playerRegistry && !playerRegistry.has(tCase.playerId)) {
@@ -276,16 +321,8 @@
       });
 
       this.allTransactionRecords().forEach((record) => {
-        if (playerRegistry) {
-          const player = playerRegistry.get(record.playerId);
-          if (!player) {
-            errors.push(`El TransactionRecord "${record.id}" referencia al jugador "${record.playerId}", ausente de PlayerRegistry.`);
-          } else if (record.mechanism !== 'mutual-release' && player.teamId !== record.destinationClubId) {
-            errors.push(
-              `El TransactionRecord "${record.id}" completó un movimiento a "${record.destinationClubId}" pero `
-              + `player.teamId es "${player.teamId}".`,
-            );
-          }
+        if (playerRegistry && !playerRegistry.has(record.playerId)) {
+          errors.push(`El TransactionRecord "${record.id}" referencia al jugador "${record.playerId}", ausente de PlayerRegistry.`);
         }
         if (contractRegistry && record.newContractId && !contractRegistry.get(record.newContractId)) {
           errors.push(`El TransactionRecord "${record.id}" referencia el contrato nuevo "${record.newContractId}", inexistente.`);
@@ -300,9 +337,24 @@
         });
       });
 
-      // Ningún jugador con dos TransactionRecords completados el MISMO día
-      // con destinos distintos sin terminación intermedia coherente — chequeo
-      // ligero de coherencia temporal (no sustituye ContractRegistry).
+      // BUG-TRANSFER1-19 (DESIGN.md 9.21): cadena histórica de movimientos —
+      // orden estable explícito (fecha efectiva, luego `completedAt`, luego
+      // id, NUNCA orden de inserción del Map) y comprobación de continuidad
+      // (el destino de un movimiento debe coincidir con el origen del
+      // siguiente del MISMO jugador). Solo el ÚLTIMO movimiento efectivo —
+      // el que ningún otro sucede — se contrasta con `player.teamId`: un
+      // recibo histórico correcto no deja de serlo porque el jugador se
+      // haya movido de nuevo después (antes, CADA recibo se comparaba con
+      // el presente, así que el primer recibo de un segundo movimiento
+      // "corrompía" retroactivamente al primero). Una liberación
+      // (`mutual-release`, sin destino) termina legítimamente en `null`.
+      const stableTransactionOrder = (a, b) => {
+        const cmp = LD().compare(a.effectiveDate, b.effectiveDate);
+        if (cmp !== 0) return cmp;
+        const completedCmp = LD().compare(a.completedAt, b.completedAt);
+        if (completedCmp !== 0) return completedCmp;
+        return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+      };
       const byPlayer = new Map();
       this.allTransactionRecords().forEach((r) => {
         const list = byPlayer.get(r.playerId) || [];
@@ -310,13 +362,50 @@
         byPlayer.set(r.playerId, list);
       });
       byPlayer.forEach((records, playerId) => {
-        const sorted = [...records].sort((a, b) => LD().compare(a.effectiveDate, b.effectiveDate));
+        const sorted = [...records].sort(stableTransactionOrder);
         for (let i = 1; i < sorted.length; i += 1) {
-          if (sorted[i].effectiveDate === sorted[i - 1].effectiveDate && sorted[i].destinationClubId !== sorted[i - 1].destinationClubId) {
+          const prev = sorted[i - 1];
+          const curr = sorted[i];
+          if (prev.effectiveDate === curr.effectiveDate && prev.destinationClubId !== curr.destinationClubId) {
             warnings.push(`El jugador "${playerId}" tiene dos TransactionRecords con la MISMA fecha efectiva y destinos distintos — revisar orden real.`);
+          }
+          const prevDestination = prev.mechanism === 'mutual-release' ? null : prev.destinationClubId;
+          if (curr.originClubId && prevDestination && curr.originClubId !== prevDestination) {
+            errors.push(
+              `El jugador "${playerId}" tiene una cadena de movimientos incoherente: "${prev.id}" termina en `
+              + `"${prevDestination}" pero "${curr.id}" declara origen "${curr.originClubId}".`,
+            );
+          }
+        }
+        const last = sorted[sorted.length - 1];
+        if (playerRegistry && last) {
+          const player = playerRegistry.get(last.playerId);
+          if (player) {
+            const expectedTeamId = last.mechanism === 'mutual-release' ? null : last.destinationClubId;
+            // Un jugador puede estar cedido (LOAN-1: club de servicio
+            // distinto del propietario contractual) sin que ningún
+            // TransactionRecord de ESTE registro lo refleje — LoanRegistry
+            // es quien valida `player.teamId` durante una cesión activa.
+            const explainedByActiveLoan = Boolean(
+              loanRegistry && typeof loanRegistry.hasActiveLoanForPlayer === 'function'
+              && loanRegistry.hasActiveLoanForPlayer(playerId, iso || last.effectiveDate),
+            );
+            if (!explainedByActiveLoan && player.teamId !== expectedTeamId) {
+              errors.push(
+                `El TransactionRecord "${last.id}" (el más reciente de "${playerId}") completó un movimiento a `
+                + `"${expectedTeamId}" pero player.teamId es "${player.teamId}".`,
+              );
+            }
           }
         }
       });
+
+      // BUG-TRANSFER1-14 (DESIGN.md 9.21): índices secundarios simétricos.
+      errors.push(...RegistryIndexAuditModule.RegistryIndexAudit.auditIndexSymmetry('_casesByPlayer', this._casesByPlayer, this._cases));
+      errors.push(...RegistryIndexAuditModule.RegistryIndexAudit.auditIndexSymmetry('_casesByClub', this._casesByClub, this._cases));
+      errors.push(...RegistryIndexAuditModule.RegistryIndexAudit.auditIndexSymmetry('_clubOffersByCase', this._clubOffersByCase, this._clubOffers));
+      errors.push(...RegistryIndexAuditModule.RegistryIndexAudit.auditIndexSymmetry('_obligationsByTransaction', this._obligationsByTransaction, this._obligations));
+      errors.push(...RegistryIndexAuditModule.RegistryIndexAudit.auditIndexSymmetry('_transactionRecordsByPlayer', this._transactionRecordsByPlayer, this._transactionRecords));
 
       return { valid: errors.length === 0, errors, warnings };
     }

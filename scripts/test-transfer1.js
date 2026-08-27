@@ -76,6 +76,11 @@ function makeWorld() {
   const transferRegistry = new TransferRegistry();
   return {
     playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry,
+    // BUG-TRANSFER1-16 (DESIGN.md 9.21): contexto operacional explícito y
+    // obligatorio — por defecto "sin partido pendiente"; los tests que
+    // necesiten el bloqueo lo sobreescriben explícito con
+    // `{ ...world, operationalContext: { pendingUserMatchBlocks: true } }`.
+    operationalContext: { pendingUserMatchBlocks: false },
   };
 }
 
@@ -893,6 +898,254 @@ check('retryScheduledTransferCase con fechas fuera de orden (dos divisiones/liga
   assert.strictEqual(second.plan, null);
   assert.strictEqual(second.result, null);
   assert.strictEqual(transferCase.statusOn(null), 'completed', 'debe seguir completado, sin eventos nuevos añadidos');
+});
+
+// =========================================================================
+// 15. BUG-TRANSFER1-13..19 (DESIGN.md 9.21) — reproducción dirigida y
+//     corrección de los 7 defectos detectados antes de construir LOAN-1
+//     encima de este motor (mandato explícito del prompt de LOAN-1).
+// =========================================================================
+group('15. BUG-TRANSFER1-13..19 (DESIGN.md 9.21)');
+
+function minimalContract(overrides) {
+  const opts = overrides || {};
+  return new Contract({
+    id: opts.id || 'c-min',
+    playerId: opts.playerId || 'p-min',
+    clubId: opts.clubId || 'team-min',
+    contractType: 'professional-player',
+    signedDate: '2025-07-01',
+    startDate: '2025-07-01',
+    endDate: '2026-06-30',
+    guaranteeType: 'fully-guaranteed',
+    compensation: { currency: 'EUR', declaredBasis: 'gross', seasons: [{ seasonKey: '2025-26', guaranteedBaseSalaryMinor: 1000000 }] },
+    clauses: [],
+    declaredDocuments: ['written-contract'],
+  });
+}
+
+check('BUG-TRANSFER1-13: ContractRegistry.unregister() revierte _byPlayer/_byClub simétricamente', () => {
+  const registry = new ContractRegistry();
+  registry.register(minimalContract({ id: 'c-bug13', playerId: 'p-bug13', clubId: 'team-bug13' }));
+  assert.strictEqual(registry.forPlayer('p-bug13').length, 1);
+  registry.unregister('c-bug13');
+  assert.strictEqual(registry.forPlayer('p-bug13').length, 0, '_byPlayer debe quedar limpio, no solo el mapa primario');
+  assert.strictEqual(registry.forClub('team-bug13').length, 0, '_byClub debe quedar limpio, no solo el mapa primario');
+  assert.strictEqual(registry.get('c-bug13'), null);
+  assert.strictEqual(registry.validateIntegrity().valid, true);
+});
+
+check('BUG-TRANSFER1-13: Contract.removeLifecycleEvent() revierte un addLifecycleEvent exacto e idempotente', () => {
+  const contract = minimalContract({ id: 'c-bug13-life' });
+  const before = contract.lifecycleEvents.length;
+  const event = contract.addLifecycleEvent({ type: 'terminated', date: '2025-08-01' });
+  assert.strictEqual(contract.lifecycleEvents.length, before + 1);
+  const removed = contract.removeLifecycleEvent(event.id);
+  assert.strictEqual(removed.id, event.id);
+  assert.strictEqual(contract.lifecycleEvents.length, before);
+  assert.strictEqual(contract.removeLifecycleEvent(event.id), null, 'una segunda llamada es idempotente, nunca lanza');
+});
+
+check('BUG-TRANSFER1-13: TransferRegistry.unregisterTransactionRecord() libera también el índice de idempotencia', () => {
+  const world = makeWorld();
+  const record = new TransferEntities.TransactionRecord({
+    id: 'tx-bug13', transferCaseId: 'case-bug13', playerId: 'p-bug13-tx', operationType: 'free-agent-signing', mechanism: 'free-agent-signing', effectiveDate: GAME_DATE, completedAt: GAME_DATE, destinationClubId: 'team-x',
+  });
+  world.transferRegistry.registerTransactionRecord(record);
+  assert.ok(world.transferRegistry.completedTransaction('tx-bug13'));
+  world.transferRegistry.unregisterTransactionRecord('tx-bug13');
+  assert.strictEqual(world.transferRegistry.completedTransaction('tx-bug13'), null, 'el índice de idempotencia debe liberarse, no solo el mapa primario');
+  assert.strictEqual(world.transferRegistry.getTransactionRecord('tx-bug13'), null);
+});
+
+check('BUG-TRANSFER1-13: fallo tras emitir la licencia de destino revierte la licencia y sus índices (unregisterLicense)', () => {
+  const fx = buildFreeAgentFixture('seed-bug13-license');
+  const originalCreate = RegistrationService.createRegistration;
+  RegistrationService.createRegistration = () => { throw new Error('INJECTED after issueLicense'); };
+  try {
+    assert.throws(() => TransferService.formalizeFreeAgentSigning({
+      ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
+    }));
+  } finally {
+    RegistrationService.createRegistration = originalCreate;
+  }
+  assert.strictEqual(fx.registrationRegistry.allLicenses().length, 0, 'la licencia emitida debe revertirse por completo');
+  assert.strictEqual(fx.registrationRegistry.licensesForPlayer(fx.player.id).length, 0, 'el índice _licensesByPlayer debe quedar limpio también');
+  assert.strictEqual(fx.registrationRegistry.validateIntegrity().valid, true);
+});
+
+check('BUG-TRANSFER1-14: un fallo AL REGISTRAR el recibo revierte también la proyección de nómina ya refrescada', () => {
+  const fx = buildFreeAgentFixture('seed-bug14');
+  const before = fx.team.finances.expenses.playerSalaries;
+  const originalRegisterTx = fx.transferRegistry.registerTransactionRecord.bind(fx.transferRegistry);
+  fx.transferRegistry.registerTransactionRecord = () => { throw new Error('INJECTED after salary projection refresh'); };
+  try {
+    assert.throws(() => TransferService.formalizeFreeAgentSigning({
+      ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
+    }));
+  } finally {
+    fx.transferRegistry.registerTransactionRecord = originalRegisterTx;
+  }
+  assert.strictEqual(fx.team.finances.expenses.playerSalaries, before, 'la nómina debe revertirse exactamente si el commit falla DESPUÉS de refrescarla');
+});
+
+check('BUG-TRANSFER1-15: matchupOverrides (objeto, no array) y foco/rol individual se limpian del club de origen', () => {
+  const world = makeWorld();
+  const originTeam = realTeam('team-real-madrid');
+  const destinationTeam = realTeam('team-barca');
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  const otherPlayer = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  makeOriginContract(world, originTeam, player, { id: 'origin:bug15' });
+  originTeam.roster.push(otherPlayer);
+  otherPlayer.teamId = originTeam.id;
+  world.playerRegistry.register(otherPlayer);
+  originTeam.trainingPlan.individualFocuses[player.id] = { focus: 'shooting' };
+  originTeam.tacticalProfile.roleAssignments[player.id] = 'primary-ballhandler';
+  originTeam.tacticalProfile.matchupOverrides[player.id] = otherPlayer.id; // saliente como DEFENSOR
+  originTeam.tacticalProfile.matchupOverrides[otherPlayer.id] = player.id; // saliente como OBJETIVO de otro
+  const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-bug15');
+  const { plan, result } = TransferService.formalizeNegotiatedTransfer({
+    ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
+    clubOffer: { id: 'co-bug15', fee: { amountMinor: 100000, currency: 'EUR' } }, playerConsentGrantedAt: GAME_DATE,
+  });
+  assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
+  assert.ok(result.record);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(originTeam.trainingPlan.individualFocuses, player.id), false);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(originTeam.tacticalProfile.roleAssignments, player.id), false);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(originTeam.tacticalProfile.matchupOverrides, player.id), false, 'el saliente como DEFENSOR debe desaparecer (era un objeto, no un array)');
+  assert.strictEqual(originTeam.tacticalProfile.matchupOverrides[otherPlayer.id], undefined, 'el saliente como OBJETIVO de otro defensor debe desaparecer también');
+});
+
+check('BUG-TRANSFER1-15: un fallo inyectado tras mover el roster restaura EXACTO el foco/rol/matchup del club de origen', () => {
+  const world = makeWorld();
+  const originTeam = realTeam('team-real-madrid');
+  const destinationTeam = realTeam('team-barca');
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  makeOriginContract(world, originTeam, player, { id: 'origin:bug15b' });
+  originTeam.trainingPlan.individualFocuses[player.id] = { focus: 'defense' };
+  originTeam.tacticalProfile.roleAssignments[player.id] = 'rim-protector';
+  originTeam.tacticalProfile.matchupOverrides[player.id] = 'some-rival-id';
+  const beforeFocus = JSON.parse(JSON.stringify(originTeam.trainingPlan.individualFocuses));
+  const beforeRoles = JSON.parse(JSON.stringify(originTeam.tacticalProfile.roleAssignments));
+  const beforeMatchups = JSON.parse(JSON.stringify(originTeam.tacticalProfile.matchupOverrides));
+  const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-bug15b');
+  const originalIssue = RegistrationService.issueLicense;
+  RegistrationService.issueLicense = () => { throw new Error('INJECTED bug15 rollback after roster move'); };
+  try {
+    assert.throws(() => TransferService.formalizeNegotiatedTransfer({
+      ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
+      clubOffer: { id: 'co-bug15b', fee: { amountMinor: 100000, currency: 'EUR' } }, playerConsentGrantedAt: GAME_DATE,
+    }));
+  } finally {
+    RegistrationService.issueLicense = originalIssue;
+  }
+  assert.deepStrictEqual(originTeam.trainingPlan.individualFocuses, beforeFocus);
+  assert.deepStrictEqual(originTeam.tacticalProfile.roleAssignments, beforeRoles);
+  assert.deepStrictEqual(originTeam.tacticalProfile.matchupOverrides, beforeMatchups);
+  assert.strictEqual(originTeam.roster.some((p) => p.id === player.id), true, 'el roster de origen también debe revertirse');
+});
+
+check('BUG-TRANSFER1-16: planTransaction bloquea explícito sin "operationalContext", y con partido pendiente', () => {
+  const fx = buildFreeAgentFixture('seed-bug16');
+  const command = {
+    transactionId: 'tx-bug16', operationType: 'free-agent-signing', playerId: fx.player.id, destinationClubId: fx.team.id, effectiveDate: GAME_DATE, agreementInPrincipleId: fx.agreement.id,
+  };
+  const depsNoContext = {
+    playerRegistry: fx.playerRegistry, contractRegistry: fx.contractRegistry, registrationRegistry: fx.registrationRegistry, marketRegistry: fx.marketRegistry, transferRegistry: fx.transferRegistry, teams: [fx.team],
+  };
+  const planNoContext = TransferExecutionService.planTransaction(command, depsNoContext);
+  assert.ok(planNoContext.blockers.some((b) => b.code === 'MISSING_OPERATIONAL_CONTEXT'));
+  assert.strictEqual(planNoContext.isExecutable, false);
+
+  const planBlocked = TransferExecutionService.planTransaction(command, { ...depsNoContext, operationalContext: { pendingUserMatchBlocks: true } });
+  assert.ok(planBlocked.blockers.some((b) => b.code === 'PENDING_USER_MATCH'));
+
+  const planOk = TransferExecutionService.planTransaction(command, { ...depsNoContext, operationalContext: { pendingUserMatchBlocks: false } });
+  assert.strictEqual(planOk.blockers.length, 0, JSON.stringify(planOk.blockers));
+  // Defensa en profundidad: commitTransaction TAMBIÉN exige operationalContext
+  // por su cuenta, aunque el plan ya se planificara correctamente con él.
+  assert.throws(
+    () => TransferExecutionService.commitTransaction(planOk, depsNoContext),
+    (err) => err.code === 'MISSING_OPERATIONAL_CONTEXT',
+  );
+});
+
+check('BUG-TRANSFER1-17: un plan queda obsoleto por CONTENIDO aunque el roster de destino conserve el mismo tamaño', () => {
+  const fx = buildFreeAgentFixture('seed-bug17');
+  const stayingPlayer = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  fx.team.roster.push(stayingPlayer);
+  stayingPlayer.teamId = fx.team.id;
+  fx.playerRegistry.register(stayingPlayer);
+  const { plan } = TransferService.formalizeFreeAgentSigning({
+    ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: false,
+  });
+  assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
+  // Sustituye, AL MISMO TAMAÑO, un jugador del roster de destino por otro —
+  // el fingerprint SUPERFICIAL anterior (solo longitud) nunca lo detectaba.
+  const replacement = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  fx.team.roster = fx.team.roster.filter((p) => p.id !== stayingPlayer.id);
+  fx.team.roster.push(replacement);
+  replacement.teamId = fx.team.id;
+  fx.playerRegistry.register(replacement);
+  assert.throws(
+    () => TransferExecutionService.commitTransaction(plan, {
+      ...fx, teams: [fx.team], now: GAME_DATE, operationalContext: { pendingUserMatchBlocks: false },
+    }),
+    (err) => err.code === 'PLAN_STALE_CONTENT' && err.message.includes('destinationRosterPlayerIds'),
+  );
+});
+
+check('BUG-TRANSFER1-18: la UI ya no fabrica el id de una oferta de negociación con Date.now()', () => {
+  const gameJsSource = readSource('src/ui/game.js');
+  assert.ok(!/id:\s*`ui-offer:\$\{agreement\.id\}:\$\{Date\.now\(\)\}`/.test(gameJsSource), 'no debe quedar Date.now() fabricando el id de la oferta');
+  assert.ok(/transferNegotiationOfferSequence/.test(gameJsSource), 'debe existir un contador determinista de rondas de negociación');
+});
+
+check('BUG-TRANSFER1-19: la cadena histórica solo contrasta el ÚLTIMO movimiento contra player.teamId', () => {
+  const world = makeWorld();
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  world.playerRegistry.register(player);
+  player.teamId = 'team-c';
+  world.transferRegistry.registerTransactionRecord(new TransferEntities.TransactionRecord({
+    id: 'tx-bug19-1', transferCaseId: 'case-bug19-1', playerId: player.id, operationType: 'free-agent-signing', mechanism: 'free-agent-signing', effectiveDate: '2026-07-01', completedAt: '2026-07-01', destinationClubId: 'team-a',
+  }));
+  world.transferRegistry.registerTransactionRecord(new TransferEntities.TransactionRecord({
+    id: 'tx-bug19-2', transferCaseId: 'case-bug19-2', playerId: player.id, operationType: 'negotiated-transfer', mechanism: 'mutual-transfer', effectiveDate: '2026-08-01', completedAt: '2026-08-01', originClubId: 'team-a', destinationClubId: 'team-c',
+  }));
+  const report = world.transferRegistry.validateIntegrity({ playerRegistry: world.playerRegistry, teams: [] });
+  assert.strictEqual(report.valid, true, JSON.stringify(report.errors));
+});
+
+check('BUG-TRANSFER1-19: una cadena de movimientos con continuidad ROTA sí se marca como error', () => {
+  const world = makeWorld();
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  world.playerRegistry.register(player);
+  player.teamId = 'team-c';
+  world.transferRegistry.registerTransactionRecord(new TransferEntities.TransactionRecord({
+    id: 'tx-bug19b-1', transferCaseId: 'case-bug19b-1', playerId: player.id, operationType: 'free-agent-signing', mechanism: 'free-agent-signing', effectiveDate: '2026-07-01', completedAt: '2026-07-01', destinationClubId: 'team-a',
+  }));
+  world.transferRegistry.registerTransactionRecord(new TransferEntities.TransactionRecord({
+    // Origen incoherente: "team-b" en vez de "team-a" (el destino del movimiento anterior).
+    id: 'tx-bug19b-2', transferCaseId: 'case-bug19b-2', playerId: player.id, operationType: 'negotiated-transfer', mechanism: 'mutual-transfer', effectiveDate: '2026-08-01', completedAt: '2026-08-01', originClubId: 'team-b', destinationClubId: 'team-c',
+  }));
+  const report = world.transferRegistry.validateIntegrity({ playerRegistry: world.playerRegistry, teams: [] });
+  assert.strictEqual(report.valid, false);
+  assert.ok(report.errors.some((e) => e.includes('cadena de movimientos incoherente')));
+});
+
+check('BUG-TRANSFER1-19: un LoanRegistry con cesión activa explica un player.teamId distinto del último TransactionRecord', () => {
+  const world = makeWorld();
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 20, maxAge: 23 });
+  world.playerRegistry.register(player);
+  player.teamId = 'team-service-club'; // cedido: el club de servicio real diverge del propietario del último recibo
+  world.transferRegistry.registerTransactionRecord(new TransferEntities.TransactionRecord({
+    id: 'tx-bug19c-1', transferCaseId: 'case-bug19c-1', playerId: player.id, operationType: 'free-agent-signing', mechanism: 'free-agent-signing', effectiveDate: '2026-07-01', completedAt: '2026-07-01', destinationClubId: 'team-owner',
+  }));
+  const fakeLoanRegistry = { hasActiveLoanForPlayer: (playerId) => playerId === player.id };
+  const report = world.transferRegistry.validateIntegrity({
+    playerRegistry: world.playerRegistry, teams: [], loanRegistry: fakeLoanRegistry, date: '2026-08-01',
+  });
+  assert.strictEqual(report.valid, true, JSON.stringify(report.errors));
 });
 
 console.log(`\n${passed} OK, ${failed} FAIL`);

@@ -25,6 +25,11 @@
 // olvide.
 
 (function (global) {
+  const isNode = (typeof module !== 'undefined' && module.exports);
+  const OperationalReferenceServiceModule = isNode ? require('./OperationalReferenceService.js') : global.BasketManager;
+
+  function OpRefSvc() { return OperationalReferenceServiceModule.OperationalReferenceService; }
+
   class RosterMutationServiceError extends Error {}
 
   function findTeamContaining(teams, playerId) {
@@ -41,38 +46,13 @@
     }
   }
 
-  // Limpia lo que SÍ vive en el propio Team (sección 15.3): foco de
-  // entrenamiento individual y asignaciones tácticas de rol/matchup —
-  // nunca borra histórico (actas, box scores, carrera), solo estado
-  // OPERATIVO factual que dejaría de ser válido para este club.
-  function cleanupTeamOperationalReferences(team, playerId) {
-    const cleaned = [];
-    if (team.trainingPlan && team.trainingPlan.individualFocuses && Object.prototype.hasOwnProperty.call(team.trainingPlan.individualFocuses, playerId)) {
-      delete team.trainingPlan.individualFocuses[playerId];
-      cleaned.push('trainingPlan.individualFocuses');
-    }
-    const tactical = team.tacticalProfile;
-    if (tactical && tactical.roleAssignments && Object.prototype.hasOwnProperty.call(tactical.roleAssignments, playerId)) {
-      delete tactical.roleAssignments[playerId];
-      cleaned.push('tacticalProfile.roleAssignments');
-    }
-    if (tactical && Array.isArray(tactical.matchupOverrides)) {
-      const before = tactical.matchupOverrides.length;
-      tactical.matchupOverrides = tactical.matchupOverrides.filter(
-        (entry) => entry && entry.defenderId !== playerId && entry.targetId !== playerId,
-      );
-      if (tactical.matchupOverrides.length !== before) cleaned.push('tacticalProfile.matchupOverrides');
-    }
-    return cleaned;
-  }
-
   // ---------------------------------------------------------------------
   // transferPlayer — mueve la MISMA instancia de un roster a otro (o
   // incorpora a un libre, `fromTeamId: null`).
   // ---------------------------------------------------------------------
   function transferPlayer(params) {
     const {
-      playerRegistry, teams, playerId, fromTeamId, toTeamId,
+      playerRegistry, teams, playerId, fromTeamId, toTeamId, lineup,
     } = params || {};
     if (!playerRegistry) throw new RosterMutationServiceError('RosterMutationService.transferPlayer: falta "playerRegistry".');
     if (!toTeamId) throw new RosterMutationServiceError('RosterMutationService.transferPlayer: falta "toTeamId".');
@@ -102,17 +82,19 @@
       throw new RosterMutationServiceError(`RosterMutationService.transferPlayer: "${playerId}" ya está en la plantilla de destino "${toTeamId}".`);
     }
 
-    const cleanedTeamFields = [];
+    // BUG-TRANSFER1-15 (DESIGN.md 9.21): la captura SIEMPRE ocurre ANTES de
+    // `Team.removePlayer()` — este último ya borra `trainingPlan.
+    // individualFocuses[playerId]` por su cuenta (LIFE-2), así que capturar
+    // DESPUÉS nunca vería ese campo y el rollback no podría restaurarlo.
+    const opSnapshot = fromTeam ? OpRefSvc().captureAndCleanTeamState(fromTeam, playerId) : null;
+    const lineupSnapshot = lineup ? OpRefSvc().captureAndCleanLineupState(lineup, playerId) : null;
     if (fromTeam) {
-      // Misma instancia (`player`, la del registro) — se retira SIN
-      // clonar; `Team.removePlayer` ya limpia `trainingPlan.
-      // individualFocuses` propio, se reutiliza para no duplicar lógica.
+      // Misma instancia (`player`, la del registro) — se retira SIN clonar.
       fromTeam.removePlayer(playerId);
-      cleanedTeamFields.push(...cleanupTeamOperationalReferences(fromTeam, playerId).map((f) => `origin:${f}`));
     }
     // `Team.addPlayer` añade la MISMA instancia y sincroniza `teamId` —
-    // frontera única (sección 15.2): ningún otro código de TRANSFER-1
-    // debe llamar a `team.roster.push`/`player.teamId =` directamente.
+    // frontera única (sección 15.2): ningún otro código de TRANSFER-1/
+    // LOAN-1 debe llamar a `team.roster.push`/`player.teamId =` directamente.
     toTeam.addPlayer(player);
     playerRegistry.setAffiliation(playerId, toTeamId);
 
@@ -121,17 +103,15 @@
       fromTeamId: fromTeamId || null,
       toTeamId,
       instance: player,
-      cleanedTeamFields,
-      // Referencias que SOLO viven en `state` de sesión (game.js) — el
-      // llamador (TransferExecutionService/game.js) es responsable de
-      // limpiarlas tras el commit (sección 15.3): lineup.squadIds, slots/
-      // entries de rotación, fixedSegments, game plans/situations,
-      // candidatos seleccionados en formularios, eventos pendientes de
-      // ese roster, cachés de elegibilidad/convocatoria.
-      requiresSessionCleanup: [
-        'state.lineup.squadIds', 'rotation.entries/fixedSegments', 'gamePlans/situations',
-        'formSelections', 'eligibilityCaches',
-      ],
+      // Cierre reversible EXACTO (sección 15 del prompt de LOAN-1: "el
+      // rollback restaura byte a byte la forma previa") — el llamador lo
+      // registra en su propio `registerUndo()`, dentro del MISMO batch
+      // atómico que movió el roster, nunca fuera de él ni después del
+      // commit.
+      restoreOperationalReferences() {
+        if (fromTeam) OpRefSvc().restoreTeamState(fromTeam, opSnapshot);
+        if (lineup) OpRefSvc().restoreLineupState(lineup, lineupSnapshot);
+      },
     };
   }
 
@@ -140,7 +120,9 @@
   // accesible en el Player Registry con `teamId: null`.
   // ---------------------------------------------------------------------
   function releasePlayer(params) {
-    const { playerRegistry, teams, playerId, fromTeamId } = params || {};
+    const {
+      playerRegistry, teams, playerId, fromTeamId, lineup,
+    } = params || {};
     if (!playerRegistry) throw new RosterMutationServiceError('RosterMutationService.releasePlayer: falta "playerRegistry".');
     const player = playerRegistry.require(playerId);
     const currentTeams = findTeamContaining(teams, playerId);
@@ -153,14 +135,13 @@
     if (fromTeamId && !fromTeam) {
       throw new RosterMutationServiceError(`RosterMutationService.releasePlayer: no existe el club de origen "${fromTeamId}" entre los equipos vivos.`);
     }
-    const cleanedTeamFields = [];
+    // BUG-TRANSFER1-15 (DESIGN.md 9.21): captura SIEMPRE antes de
+    // `Team.removePlayer()` — ver el mismo comentario en `transferPlayer`.
+    const opSnapshot = fromTeam ? OpRefSvc().captureAndCleanTeamState(fromTeam, playerId) : null;
+    const lineupSnapshot = lineup ? OpRefSvc().captureAndCleanLineupState(lineup, playerId) : null;
     if (fromTeam) {
       assertNoDuplicateReference(fromTeam, playerId);
       fromTeam.removePlayer(playerId);
-      cleanedTeamFields.push(...cleanupTeamOperationalReferences(fromTeam, playerId).map((f) => `origin:${f}`));
-    } else {
-      // Ya era libre: idempotente, solo aseguramos teamId null.
-      playerRegistry.setAffiliation(playerId, null);
     }
     playerRegistry.setAffiliation(playerId, null);
     return {
@@ -168,11 +149,10 @@
       fromTeamId: fromTeam ? fromTeam.id : null,
       toTeamId: null,
       instance: player,
-      cleanedTeamFields,
-      requiresSessionCleanup: [
-        'state.lineup.squadIds', 'rotation.entries/fixedSegments', 'gamePlans/situations',
-        'formSelections', 'eligibilityCaches',
-      ],
+      restoreOperationalReferences() {
+        if (fromTeam) OpRefSvc().restoreTeamState(fromTeam, opSnapshot);
+        if (lineup) OpRefSvc().restoreLineupState(lineup, lineupSnapshot);
+      },
     };
   }
 
@@ -202,7 +182,6 @@
       RosterMutationServiceError,
       transferPlayer,
       releasePlayer,
-      cleanupTeamOperationalReferences,
       auditRosterUniqueness,
     },
   };
