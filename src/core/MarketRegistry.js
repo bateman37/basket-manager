@@ -40,7 +40,12 @@
       this._debtChallenges = new Map();
       this._debtChallengesByCase = new Map();
       this._compensationClaims = new Map();
-      this._budgetReservations = new Map(); // id -> { clubId, seasonKey, amountMinor, currency, sourceType, sourceId, status }
+      this._budgetReservations = new Map(); // id -> { clubId, seasonKey, amountMinor, currency, sourceType, sourceId, groupId, status }
+      // BUG-MARKET1-05 (DESIGN.md 9.20): grupo de reserva plurianual —
+      // groupId -> [reservationId] (una línea por temporada+moneda), para
+      // que una oferta de varias temporadas reserve/libere TODAS sus
+      // líneas de una sola vez, nunca solo la de `coveredSeasonKeys[0]`.
+      this._budgetReservationGroups = new Map();
       this._scheduledEvents = new Map(); // id -> { id, type, dueDate, clubId, playerId, threadId, requiresAttention, processed, payload }
     }
 
@@ -157,15 +162,17 @@
 
     allAgreements() { return byId([...this._agreements.values()]); }
 
-    // Invariante 8: "no hay dos acuerdos incompatibles vivos para el mismo
-    // jugador" — un acuerdo se considera VIVO si aún no expiró
-    // (`validUntil`) en la fecha dada; MARKET-1 no anula acuerdos, así que
-    // dos acuerdos simultáneos sin expirar SIEMPRE es un conflicto.
+    // Invariante 8/19 (BUG-MARKET1-06, DESIGN.md 9.20): "no hay dos
+    // acuerdos incompatibles vivos para el mismo jugador" — un acuerdo es
+    // VIVO si su ciclo de vida (AgreementEvents) no alcanzó un estado
+    // TERMINAL (completed/expired/withdrawn/failed) y tampoco venció su
+    // `validUntil`. Antes de esta corrección, un acuerdo consumido/fallido
+    // seguía bloqueando el mercado para siempre.
     hasLiveAgreementForPlayer(playerId, date, excludeAgreementId) {
       const iso = toIso(date);
       return this.agreementsForPlayer(playerId).some((a) => {
         if (a.id === excludeAgreementId) return false;
-        return !a.validUntil || !LD().isAfter(iso, a.validUntil);
+        return a.isLiveOn(iso);
       });
     }
 
@@ -259,6 +266,41 @@
     }
 
     getBudgetReservation(id) { return this._budgetReservations.get(id) || null; }
+
+    // BUG-MARKET1-05: reserva un GRUPO de líneas (una por temporada+moneda)
+    // bajo un único `groupId` — idempotente igual que `reserveBudget()`.
+    // `lines`: [{ id?, clubId, seasonKey, amountMinor, currency, sourceType, sourceId }].
+    reserveBudgetGroup(groupId, lines) {
+      if (!groupId) throw new Error('MarketRegistry.reserveBudgetGroup: falta "groupId".');
+      if (this._budgetReservationGroups.has(groupId)) {
+        return this._budgetReservationGroups.get(groupId).map((id) => this._budgetReservations.get(id));
+      }
+      const ids = (lines || []).map((line) => {
+        const id = line.id || `${groupId}:${line.seasonKey}`;
+        this.reserveBudget({ ...line, id, groupId });
+        return id;
+      });
+      this._budgetReservationGroups.set(groupId, ids);
+      return ids.map((id) => this._budgetReservations.get(id));
+    }
+
+    // Libera TODAS las líneas de un grupo de una sola vez — idempotente:
+    // una segunda llamada no vuelve a liberar nada ni lanza (mismo criterio
+    // que `releaseBudget()`).
+    releaseBudgetGroup(groupId) {
+      const ids = this._budgetReservationGroups.get(groupId) || [];
+      let releasedAny = false;
+      ids.forEach((id) => { if (this.releaseBudget(id)) releasedAny = true; });
+      return releasedAny;
+    }
+
+    getBudgetReservationGroup(groupId) {
+      const ids = this._budgetReservationGroups.get(groupId);
+      if (!ids) return null;
+      return ids.map((id) => this._budgetReservations.get(id));
+    }
+
+    hasBudgetReservationGroup(groupId) { return this._budgetReservationGroups.has(groupId); }
 
     // Total RESERVADO (no comprometido por contrato, eso es
     // ContractService/ContractRegistry) para un club+temporada — solo
@@ -361,16 +403,37 @@
       this.allAgreements().forEach((agreement) => {
         if (!this._offers.has(agreement.acceptedOfferId)) {
           errors.push(`El acuerdo "${agreement.id}" referencia la oferta "${agreement.acceptedOfferId}", inexistente.`);
+        } else {
+          // BUG-MARKET1-06: la oferta referenciada debe SER la aceptada del
+          // MISMO hilo — nunca la de otro hilo/operación.
+          const acceptedOffer = this._offers.get(agreement.acceptedOfferId);
+          if (acceptedOffer.threadId !== agreement.threadId) {
+            errors.push(
+              `El acuerdo "${agreement.id}" referencia la oferta "${agreement.acceptedOfferId}", que pertenece `
+              + `al hilo "${acceptedOffer.threadId}", no a "${agreement.threadId}".`,
+            );
+          }
+          if (acceptedOffer.playerId !== agreement.playerId || acceptedOffer.clubId !== agreement.clubId) {
+            errors.push(`El acuerdo "${agreement.id}" no coincide en jugador/club con su oferta aceptada "${agreement.acceptedOfferId}".`);
+          }
         }
-        if (!this._budgetReservations.has(agreement.budgetReservationId)) {
-          errors.push(`El acuerdo "${agreement.id}" referencia la reserva "${agreement.budgetReservationId}", inexistente.`);
+        if (!this.hasBudgetReservationGroup(agreement.budgetReservationGroupId)) {
+          errors.push(`El acuerdo "${agreement.id}" referencia el grupo de reserva "${agreement.budgetReservationGroupId}", inexistente.`);
+        }
+        if (agreement.rightsOutcomeId && !this._rightsCases.has(agreement.rightsOutcomeId)) {
+          errors.push(`El acuerdo "${agreement.id}" referencia el caso de derechos "${agreement.rightsOutcomeId}", inexistente.`);
+        } else if (agreement.rightsOutcomeId) {
+          const rightsCase = this._rightsCases.get(agreement.rightsOutcomeId);
+          if (rightsCase.playerId !== agreement.playerId) {
+            errors.push(`El acuerdo "${agreement.id}" referencia el caso de derechos "${agreement.rightsOutcomeId}", de otro jugador.`);
+          }
         }
         if (date) {
           const dup = this.agreementsForPlayer(agreement.playerId).filter((a) => {
             if (a.id === agreement.id) return false;
-            return !a.validUntil || !LD().isAfter(toIso(date), a.validUntil);
+            return a.isLiveOn(toIso(date));
           });
-          if (dup.length) {
+          if (dup.length && agreement.isLiveOn(toIso(date))) {
             errors.push(`El jugador "${agreement.playerId}" tiene más de un AgreementInPrinciple vivo a la vez (invariante 8).`);
           }
         }

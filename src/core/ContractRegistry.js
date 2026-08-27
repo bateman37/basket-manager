@@ -228,12 +228,22 @@
 
   // Un contrato TERMINADO o ANULADO antes del inicio del siguiente ya no
   // ocupa esas fechas: el solapamiento se mide contra la vigencia REAL.
+  //
+  // TRANSFER-1 (DESIGN.md 9.20, sección 14.1 del prompt): la comparación es
+  // INCLUSIVA (`closing.date <= incoming.startDate`), no estrictamente
+  // anterior — un traspaso/rescisión/mutuo acuerdo con fecha de efecto
+  // civil única extingue el contrato de origen y arranca el nuevo el MISMO
+  // día (ACB Normas Internas art. 14.7: "documento extintivo y acuerdo de
+  // traspaso en la misma fecha de efecto"). Con la comparación estricta
+  // anterior, ningún traspaso con handoff el mismo día podía registrar su
+  // contrato nuevo: `ContractRegistry.register()` lo rechazaba como
+  // solapado contra un contrato que en realidad ya estaba cerrado.
   function isClosedBefore(existing, incoming) {
     const closing = existing.lifecycleEvents
       .filter((e) => e.type === 'terminated' || e.type === 'voided')
       .sort((a, b) => (a.date < b.date ? -1 : 1))[0];
     if (!closing) return false;
-    return LD().isBefore(closing.date, incoming.startDate);
+    return !LD().isAfter(closing.date, incoming.startDate);
   }
 
   const exportsObj = { ContractRegistry };

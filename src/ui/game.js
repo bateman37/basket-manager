@@ -662,9 +662,15 @@
   }
 
   function bootstrapMarketForNewCareer() {
-    const { AgentRegistry, MarketRegistry, MarketSeeder, CONFIG_BASE } = BM;
+    const {
+      AgentRegistry, MarketRegistry, MarketSeeder, TransferRegistry, CONFIG_BASE,
+    } = BM;
     state.agentRegistry = new AgentRegistry();
     state.marketRegistry = new MarketRegistry();
+    // TRANSFER-1 (DESIGN.md 9.20): instancia EXPLÍCITA por carrera, mismo
+    // criterio que el resto de registros canónicos — nunca un singleton,
+    // se limpia al volver a selección de equipo (ver más abajo).
+    state.transferRegistry = new TransferRegistry();
     state.marketBootstrapWarnings = [];
     state.marketAgendaLog = [];
 
@@ -1031,10 +1037,13 @@
       const attention = BM.MarketService.computeMarketAttentionForClub({
         marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: targetIso,
       });
-      if (attention && LocalDate.isAfter(targetIso, attention.dueDate)) {
+      // BUG-MARKET1-07 (DESIGN.md 9.20): regla INCLUSIVA compartida con
+      // Home (getMarketAttentionForUser) — antes usaba `isAfter` (EXCLUSIVA),
+      // así que una atención que vencía el MISMO día del salto no bloqueaba.
+      if (BM.MarketService.attentionBlocksThrough(attention, targetIso)) {
         throw new Error(
           `advanceGameClockTo: hay una atención de mercado pendiente ("${attention.type}", jugador `
-          + `"${attention.playerId}") con plazo ${attention.dueDate}, anterior a la fecha objetivo ${targetIso} `
+          + `"${attention.playerId}") con plazo ${attention.dueDate}, en o antes de la fecha objetivo ${targetIso} `
           + '— "Continuar" debe detenerse en Mercado antes de avanzar (DESIGN.md 9.19, invariante 20).',
         );
       }
@@ -1051,17 +1060,38 @@
     // del lado jugador-CPU, expiración de ofertas) — mismo punto único que
     // el resto del desarrollo de carrera.
     processDueMarketEventsToDate(date);
+    // TRANSFER-1 (DESIGN.md 9.20, sección 11.2 del prompt): "advanceGameClockTo()
+    // procesa esa fecha mediante el punto único del reloj" — reintenta
+    // cualquier expediente `scheduled` (fichaje futuro tras expiración) que
+    // ya haya alcanzado su fecha efectiva real, mismo punto único que el
+    // resto del desarrollo de carrera.
+    processDueScheduledTransfersToDate(date);
   }
 
   // MARKET-1 (DESIGN.md 9.19, sección 15.4 del prompt): primer punto que
   // exige una decisión REAL del usuario para su club — wrapper fino sobre
   // MarketService, usado tanto por el gating de "Continuar" como por la
   // aserción de advanceGameClockTo() de arriba.
+  //
+  // BUG-MARKET1-07 (DESIGN.md 9.20): antes, sin `throughDate` explícito,
+  // caía en `state.calendar.currentGameDateTime` (HOY) — Home sustituía
+  // "Continuar" por CUALQUIER atención viva, aunque venciera mucho después
+  // del próximo partido. Ahora, sin `throughDate` explícito, se calcula la
+  // fecha objetivo REAL de la siguiente acción con
+  // `resolveNextMatchContextForTeam()` (la MISMA función que ya usa la
+  // pantalla de Alineación) y solo devuelve la atención si de verdad
+  // BLOQUEA esa fecha (`attentionBlocksThrough`, regla inclusiva
+  // compartida con `advanceGameClockTo()`) — una atención posterior sigue
+  // existiendo (Agenda/Mercado pueden mostrarla), pero deja de sustituir
+  // el botón principal de Home antes de tiempo.
   function getMarketAttentionForUser(throughDate) {
     if (!state.userTeamId || !state.marketRegistry) return null;
-    return BM.MarketService.computeMarketAttentionForClub({
-      marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: throughDate || state.calendar.currentGameDateTime,
+    const team = getUserTeam();
+    const resolvedThroughDate = throughDate || (team ? resolveNextMatchContextForTeam(team).date : state.calendar.currentGameDateTime);
+    const attention = BM.MarketService.computeMarketAttentionForClub({
+      marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: resolvedThroughDate,
     });
+    return BM.MarketService.attentionBlocksThrough(attention, resolvedThroughDate) ? attention : null;
   }
 
   // Procesa, para TODOS los clubes (usuario y CPU), los eventos de
@@ -1102,6 +1132,58 @@
       }
     });
     BM.MarketService.expireDueOffers(state.marketRegistry, isoDate);
+  }
+
+  // TRANSFER-1 (DESIGN.md 9.20) — noticia de mercado tras un COMMIT real
+  // (nunca antes: la auditoría estática de test-transfer1.js exige que
+  // ningún archivo del dominio de transferencia construya noticias) de un
+  // expediente de traspaso/fichaje. Reutilizada tanto por la formalización
+  // interactiva (Mercado > Negociaciones) como por el reintento automático
+  // de un fichaje futuro en advanceGameClockTo().
+  function pushTransferCompletionNews(transferCase) {
+    const player = state.playerRegistry.get(transferCase.playerId);
+    const destinationTeam = getAllTeams().find((t) => t.id === transferCase.destinationClubId);
+    const originTeam = transferCase.originClubId ? getAllTeams().find((t) => t.id === transferCase.originClubId) : null;
+    if (!player || !destinationTeam) return;
+    const isPureRelease = originTeam && originTeam.id === destinationTeam.id;
+    const title = isPureRelease
+      ? `${player.fullName} queda libre tras la rescisión de su contrato con ${originTeam.fullName}`
+      : (originTeam
+        ? `${player.fullName} ficha por ${destinationTeam.fullName}, procedente de ${originTeam.fullName}`
+        : `${player.fullName} ficha por ${destinationTeam.fullName}`);
+    const involvesUser = destinationTeam.id === state.userTeamId || (originTeam && originTeam.id === state.userTeamId);
+    pushNews(BM.buildMarketNewsEvent({
+      dateTime: state.calendar.currentGameDateTime,
+      title,
+      relatedTeam: isPureRelease ? originTeam : destinationTeam,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      priority: involvesUser ? 'alta' : 'media',
+    }));
+  }
+
+  // TRANSFER-1 (DESIGN.md 9.20, sección 11.2 del prompt) — "fichaje futuro
+  // tras expiración": reintenta cada expediente `scheduled` (contrato con
+  // inicio posterior a la fecha en que se formalizó) cuya fecha efectiva ya
+  // se ha alcanzado. Revalida SIEMPRE desde cero (TransferService.
+  // retryScheduledTransferCase re-planifica, nunca ejecuta a ciegas un plan
+  // viejo) — si algo dejó de ser cierto entretanto, el expediente queda
+  // `blocked` con el motivo, nunca a medias.
+  function processDueScheduledTransfersToDate(date) {
+    if (!state.transferRegistry) return;
+    const isoDate = currentGameIsoDate();
+    const deps = {
+      playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry,
+      marketRegistry: state.marketRegistry, transferRegistry: state.transferRegistry, teams: getAllTeams(), now: isoDate,
+    };
+    state.transferRegistry.allCases()
+      .filter((tCase) => tCase.statusOn(null) === 'scheduled' && tCase.effectiveDate && tCase.effectiveDate <= isoDate)
+      .forEach((tCase) => {
+        const { result } = BM.TransferService.retryScheduledTransferCase(tCase, deps, isoDate);
+        if (result && result.record) {
+          cleanupSessionReferencesForPlayer(tCase.playerId);
+          pushTransferCompletionNews(tCase);
+        }
+      });
   }
 
   function getAllTeams() {
@@ -6262,7 +6344,16 @@
     { id: 'negotiations', label: 'Negociaciones' },
     { id: 'agents', label: 'Agentes' },
     { id: 'rights', label: 'Derechos' },
+    { id: 'operations', label: 'Operaciones' },
   ];
+
+  // TRANSFER-1 (DESIGN.md 9.20) — etiquetas de estado de TransferCase para
+  // Mercado > Operaciones (sección 20.3 del prompt).
+  const TRANSFER_CASE_STATUS_LABELS = {
+    draft: 'Borrador', awaitingOriginClub: 'Esperando club de origen', awaitingPlayerConsent: 'Esperando consentimiento',
+    awaitingConditions: 'Esperando condiciones', readyToPlan: 'Lista para planificar', planned: 'Planificada', scheduled: 'Programada',
+    readyToExecute: 'Lista para ejecutar', completed: 'Completada', rejected: 'Rechazada', withdrawn: 'Retirada', expired: 'Expirada', blocked: 'Bloqueada', failed: 'Fallida',
+  };
 
   const MARKET_AVAILABILITY_LABELS = {
     free: 'Libre sin derechos conocidos',
@@ -6309,6 +6400,7 @@
     else if (activeTab === 'negotiations') body = renderMarketNegotiationsTab(team, marketContext);
     else if (activeTab === 'agents') body = renderMarketAgentsTab();
     else if (activeTab === 'rights') body = renderMarketRightsTab(team, marketContext);
+    else if (activeTab === 'operations') body = renderMarketOperationsTab(team);
 
     container.innerHTML = `
       <h2>Mercado — ${escapeHtml(team.fullName)}</h2>
@@ -6518,6 +6610,67 @@
       </form>`;
   }
 
+  // ---------------------------------------------------------------------
+  // TRANSFER-1 (DESIGN.md 9.20, sección 20.1/20.2 del prompt) — asistente
+  // de formalización COMPACTO: vía derivada, resumen previo, confirmar.
+  // Nunca una barra de "probabilidad de fichaje" — solo razones
+  // cualitativas y el mecanismo real que aplica a ESTE AIP. La UI solo
+  // llama a TransferService/TransferExecutionService; nunca escribe en
+  // ContractRegistry/RegistrationRegistry/Team.roster/player.teamId.
+  // ---------------------------------------------------------------------
+  function determineTransferMechanism(team, agreement, isoDate) {
+    const originContract = state.contractRegistry.currentForPlayer(agreement.playerId, isoDate);
+    if (!originContract) return { mechanism: 'free-agent-signing', originContract: null, clause: null };
+    if (originContract.clubId === team.id) return { mechanism: 'free-agent-signing', originContract, clause: null };
+    const clause = originContract.clauses.find((c) => c.type === 'player-release' && c.amount);
+    if (clause) return { mechanism: 'release-clause-exercise', originContract, clause };
+    return { mechanism: 'negotiated-transfer', originContract, clause: null };
+  }
+
+  function renderAgreementFormalizationHtml(team, agreement, isoDate, threadId) {
+    if (!agreement.isLiveOn(isoDate)) {
+      return `<p class="gm-muted">Este acuerdo en principio ya no está vivo (estado: ${escapeHtml(agreement.statusOn(isoDate))}).</p>`;
+    }
+    const player = state.playerRegistry.get(agreement.playerId);
+    const { mechanism, originContract, clause } = determineTransferMechanism(team, agreement, isoDate);
+    const pendingCase = state.transferRegistry.casesForPlayer(agreement.playerId).find((c) => !c.isTerminal(isoDate) && c.agreementInPrincipleId === agreement.id);
+    const blockedInfo = pendingCase && pendingCase.statusOn(isoDate) === 'blocked' ? '<p class="gm-market-formalize-error gm-muted" role="alert">Expediente bloqueado — revisa los motivos abajo.</p>' : '';
+
+    let mechanismLabel;
+    let body;
+    if (mechanism === 'free-agent-signing') {
+      mechanismLabel = 'Fichaje de agente libre';
+      body = `
+        <p>Contrato nuevo con <strong>${escapeHtml(team.fullName)}</strong>, inscripción y licencia se crean juntos al confirmar.</p>
+        <button type="button" class="gm-btn gm-btn--primary gm-transfer-formalize-btn" data-mechanism="free-agent-signing" data-agreement-id="${agreement.id}">Formalizar operación</button>`;
+    } else if (mechanism === 'release-clause-exercise') {
+      mechanismLabel = 'Ejercicio de cláusula de rescisión';
+      body = `
+        <p>Cláusula congelada del contrato con <strong>${escapeHtml((getAllTeams().find((t) => t.id === originContract.clubId) || {}).fullName || originContract.clubId)}</strong>:
+          <strong>${formatMoneyMinor(clause.amount.amountMinor, clause.amount.currency)}</strong>. No exige aceptación del club de origen.</p>
+        <button type="button" class="gm-btn gm-btn--primary gm-transfer-formalize-btn" data-mechanism="release-clause-exercise" data-agreement-id="${agreement.id}" data-clause-id="${clause.id}">Ejercitar cláusula y formalizar</button>`;
+    } else {
+      mechanismLabel = 'Traspaso definitivo negociado';
+      const originTeam = getAllTeams().find((t) => t.id === originContract.clubId);
+      body = `
+        <p>${escapeHtml(player ? player.fullName : agreement.playerId)} sigue bajo contrato con <strong>${escapeHtml(originTeam ? originTeam.fullName : originContract.clubId)}</strong>
+          sin cláusula de rescisión ejecutable — negocia un traspaso club-club antes de poder formalizar.</p>
+        <form class="gm-transfer-offer-form" data-agreement-id="${agreement.id}">
+          <label>Importe del traspaso (€) <input type="number" name="feeEuros" min="0" step="1000" required></label>
+          <label><input type="checkbox" name="playerConsent" required> El jugador consiente el traspaso y la extinción de su contrato actual</label>
+          <button type="submit" class="gm-btn gm-btn--primary">Proponer al club de origen</button>
+        </form>
+        <div class="gm-transfer-offer-result gm-muted" role="status"></div>`;
+    }
+    return `
+      <div class="gm-transfer-formalize">
+        <p class="gm-muted">Mecanismo: <strong>${escapeHtml(mechanismLabel)}</strong>${clause ? ' · restricción de inscripción ACB tras el 15-09 si aplica' : ''}</p>
+        ${blockedInfo}
+        ${body}
+        <div class="gm-transfer-formalize-error gm-muted" role="alert"></div>
+      </div>`;
+  }
+
   function renderMarketNegotiationsTab(team, marketContext) {
     const isoDate = currentGameIsoDate();
     const threads = state.marketRegistry.threadsForClub(team.id);
@@ -6535,8 +6688,7 @@
       if (status === 'thread-closed') {
         actionsHtml = '<p class="gm-muted">Hilo cerrado.</p>';
       } else if (agreement) {
-        actionsHtml = `<p><strong>Acuerdo en principio alcanzado.</strong> La formalización del contrato, el movimiento de plantilla, la posible
-          compensación/traspaso y la inscripción se ejecutarán en TRANSFER-1.</p>`;
+        actionsHtml = renderAgreementFormalizationHtml(team, agreement, isoDate, thread.id);
       } else if (liveOffer && liveOffer.offeredBy === 'player-side') {
         actionsHtml = `
           <p>Contraoferta del jugador — vence ${escapeHtml(formatIsoDateEs(liveOffer.expiresAt))}.</p>
@@ -6599,6 +6751,46 @@
             <tbody>${rows || '<tr><td colspan="4" class="gm-muted">Sin agentes registrados.</td></tr>'}</tbody>
           </table>
         </div>
+      </div>`;
+  }
+
+  // TRANSFER-1 (DESIGN.md 9.20, sección 20.3 del prompt) — expedientes
+  // activos/programados/completados/fallidos-bloqueados de este club
+  // (como origen o destino), con motivo cuando aplica. Solo LECTURA —
+  // ninguna acción de esta pestaña muta nada directamente.
+  function renderMarketOperationsTab(team) {
+    if (!state.transferRegistry) return '<div class="gm-card"><p class="gm-muted">Sin expedientes todavía.</p></div>';
+    const isoDate = currentGameIsoDate();
+    const cases = state.transferRegistry.casesForClub(team.id);
+    if (!cases.length) {
+      return '<div class="gm-card"><p class="gm-muted">Sin expedientes de traspaso/fichaje para este club — se crean al formalizar un Acuerdo en Principio desde Negociaciones.</p></div>';
+    }
+    const rows = cases.map((tCase) => {
+      const player = state.playerRegistry.get(tCase.playerId);
+      const status = tCase.statusOn(isoDate);
+      const originTeam = tCase.originClubId ? getAllTeams().find((t) => t.id === tCase.originClubId) : null;
+      const destinationTeam = getAllTeams().find((t) => t.id === tCase.destinationClubId);
+      const record = tCase.transactionId ? state.transferRegistry.getTransactionRecord(tCase.transactionId) : null;
+      const blockersText = status === 'blocked' && tCase.lastBlockers ? tCase.lastBlockers.map((b) => b.message).join(' · ') : '';
+      return `
+        <tr>
+          <td data-label="Jugador">${player ? playerLinkHtml(player) : escapeHtml(tCase.playerId)}</td>
+          <td data-label="Mecanismo">${escapeHtml(tCase.operationType)}</td>
+          <td data-label="Origen">${originTeam ? escapeHtml(originTeam.fullName) : '—'}</td>
+          <td data-label="Destino">${destinationTeam ? escapeHtml(destinationTeam.fullName) : '—'}</td>
+          <td data-label="Estado">${escapeHtml(TRANSFER_CASE_STATUS_LABELS[status] || status)}${blockersText ? ` <span class="gm-muted">(${escapeHtml(blockersText)})</span>` : ''}</td>
+          <td data-label="Fecha efectiva">${tCase.effectiveDate ? escapeHtml(formatIsoDateEs(tCase.effectiveDate)) : (record ? escapeHtml(formatIsoDateEs(record.effectiveDate)) : '—')}</td>
+        </tr>`;
+    }).join('');
+    return `
+      <div class="gm-card">
+        <div class="gm-table-wrapper">
+          <table class="gm-table">
+            <thead><tr><th>Jugador</th><th>Mecanismo</th><th>Origen</th><th>Destino</th><th>Estado</th><th>Fecha efectiva</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <p class="gm-muted">${cases.length} expediente(s) — completados/fallidos se conservan como historial, nunca se borran.</p>
       </div>`;
   }
 
@@ -6700,19 +6892,24 @@
           errorEl.textContent = validation.errors.join(' · ');
           return;
         }
+        // BUG-MARKET1-03 (DESIGN.md 9.20): `createAndSendOffer()` valida
+        // SIEMPRE internamente — la UI ya no puede pasar un `validation`
+        // ajeno para saltarse la comprobación; se pasan las dependencias
+        // completas (team/player/playerRegistry/contractRegistry) para que
+        // el comando revalide él mismo el borrador exacto.
+        const commonOfferParams = {
+          marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
+          marketContext, team, player, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, seasonKey: buildCareerSeasonKey(),
+        };
         if (form.dataset.mode === 'counter') {
           const liveOffer = state.marketRegistry.liveOfferForThread(threadId, isoDate);
           liveOffer.addEvent({ id: `${liveOffer.id}:club-countered`, type: 'offer-countered', date: isoDate });
-          state.marketRegistry.releaseBudget(`res:${liveOffer.id}`);
+          state.marketRegistry.releaseBudgetGroup(`res:${liveOffer.id}`);
           BM.MarketService.createAndSendOffer({
-            marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
-            employmentValidation: validation.employmentValidation, marketContext, validation, parentOfferId: liveOffer.id, version: liveOffer.version + 1,
+            ...commonOfferParams, parentOfferId: liveOffer.id, version: liveOffer.version + 1,
           });
         } else {
-          BM.MarketService.createAndSendOffer({
-            marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
-            employmentValidation: validation.employmentValidation, marketContext, validation,
-          });
+          BM.MarketService.createAndSendOffer(commonOfferParams);
         }
         renderMarketScreen();
       });
@@ -6758,6 +6955,132 @@
         renderMarketScreen();
       });
     });
+
+    // -----------------------------------------------------------------
+    // TRANSFER-1 (DESIGN.md 9.20) — formalización desde un AIP vivo.
+    // Siempre pasa por TransferService/TransferExecutionService; nunca
+    // escribe en ContractRegistry/RegistrationRegistry/Team.roster/
+    // player.teamId directamente. Un blocker se muestra tal cual, sin
+    // "arreglar" nada por su cuenta.
+    // -----------------------------------------------------------------
+    container.querySelectorAll('.gm-transfer-formalize-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const agreement = state.marketRegistry.getAgreement(btn.dataset.agreementId);
+        if (!agreement) return;
+        const errorEl = btn.closest('.gm-transfer-formalize').querySelector('.gm-transfer-formalize-error');
+        const deps = {
+          transferRegistry: state.transferRegistry, marketRegistry: state.marketRegistry, registrationRegistry: state.registrationRegistry,
+          contractRegistry: state.contractRegistry, playerRegistry: state.playerRegistry, teams: getAllTeams(),
+        };
+        const seasonKey = buildCareerSeasonKey();
+        try {
+          let outcome;
+          if (btn.dataset.mechanism === 'free-agent-signing') {
+            outcome = BM.TransferService.formalizeFreeAgentSigning({
+              ...deps, agreement, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+            });
+          } else if (btn.dataset.mechanism === 'release-clause-exercise') {
+            const originContract = state.contractRegistry.currentForPlayer(agreement.playerId, isoDate);
+            const originTeam = getAllTeams().find((t) => t.id === originContract.clubId);
+            outcome = BM.TransferService.formalizeReleaseClauseExercise({
+              ...deps, agreement, originTeam, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+              clauseId: btn.dataset.clauseId, exercisedBy: 'player',
+            });
+          }
+          if (outcome.plan.blockers.length) {
+            errorEl.textContent = outcome.plan.blockers.map((b) => b.message).join(' · ');
+            return;
+          }
+          cleanupSessionReferencesForPlayer(agreement.playerId);
+          if (outcome.result && outcome.result.record) pushTransferCompletionNews(outcome.transferCase);
+          renderMarketScreen();
+        } catch (err) {
+          errorEl.textContent = err.message;
+        }
+      });
+    });
+
+    container.querySelectorAll('.gm-transfer-offer-form').forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const agreement = state.marketRegistry.getAgreement(form.dataset.agreementId);
+        if (!agreement) return;
+        const resultEl = form.parentElement.querySelector('.gm-transfer-offer-result');
+        const data = new FormData(form);
+        const feeEuros = Number(data.get('feeEuros'));
+        const playerConsent = Boolean(data.get('playerConsent'));
+        if (!feeEuros || feeEuros <= 0) { resultEl.textContent = 'Introduce un importe válido.'; return; }
+        const originContract = state.contractRegistry.currentForPlayer(agreement.playerId, isoDate);
+        const originTeam = getAllTeams().find((t) => t.id === originContract.clubId);
+        const player = state.playerRegistry.get(agreement.playerId);
+        const feeMinor = Math.round(feeEuros * 100);
+        const proposedOffer = { id: `ui-offer:${agreement.id}:${Date.now()}`, fee: { amountMinor: feeMinor, currency: 'EUR' } };
+        const evaluation = BM.TransferService.evaluateSellingClub({
+          originTeam, player, originContract, offer: proposedOffer, careerSeed, date: isoDate, seasonKey: buildCareerSeasonKey(),
+        });
+        if (evaluation.decision === 'reject') {
+          resultEl.textContent = `${escapeHtml(originTeam.fullName)} rechaza la propuesta: ${evaluation.reasons.join(' ')}`;
+          return;
+        }
+        if (evaluation.decision === 'counter') {
+          const counterFeeMinor = BM.TransferService.generateCounterFee({ originalFeeMinor: feeMinor, careerSeed, offerId: proposedOffer.id, roundIndex: 0 });
+          resultEl.textContent = `${escapeHtml(originTeam.fullName)} contraoferta: ${formatMoneyMinor(counterFeeMinor, 'EUR')} (${evaluation.reasons.join(' ')})`;
+          // El campo declara step="1000" (renderAgreementFormalizationHtml)
+          // — un importe sugerido que no cayera en un múltiplo de 1000
+          // bloquearía en silencio el siguiente envío (validación nativa
+          // del formulario, sin disparar 'submit' ni mostrar error propio)
+          // si el usuario reenvía tal cual el valor sugerido.
+          form.querySelector('input[name=feeEuros]').value = Math.round(counterFeeMinor / 100 / 1000) * 1000;
+          return;
+        }
+        if (!playerConsent) {
+          resultEl.textContent = `${escapeHtml(originTeam.fullName)} acepta ${formatMoneyMinor(feeMinor, 'EUR')} — falta el consentimiento del jugador para formalizar.`;
+          return;
+        }
+        try {
+          const outcome = BM.TransferService.formalizeNegotiatedTransfer({
+            transferRegistry: state.transferRegistry, marketRegistry: state.marketRegistry, registrationRegistry: state.registrationRegistry,
+            contractRegistry: state.contractRegistry, playerRegistry: state.playerRegistry, teams: getAllTeams(),
+            agreement, originTeam, destinationTeam: team, seasonKey: buildCareerSeasonKey(), effectiveDate: isoDate, now: isoDate, commit: true,
+            clubOffer: proposedOffer, playerConsentGrantedAt: isoDate,
+          });
+          if (outcome.plan.blockers.length) {
+            resultEl.textContent = outcome.plan.blockers.map((b) => b.message).join(' · ');
+            return;
+          }
+          cleanupSessionReferencesForPlayer(agreement.playerId);
+          if (outcome.result && outcome.result.record) pushTransferCompletionNews(outcome.transferCase);
+          renderMarketScreen();
+        } catch (err) {
+          resultEl.textContent = err.message;
+        }
+      });
+    });
+  }
+
+  // TRANSFER-1 (DESIGN.md 9.20, sección 15.3 del prompt) — limpieza de
+  // referencias operativas de SESIÓN que solo viven en `state` (nunca en
+  // Team, que ya limpia RosterMutationService): un jugador que acaba de
+  // salir de la plantilla del usuario no debe seguir "convocado" en la
+  // alineación en curso ni con un foco de entrenamiento/rol táctico
+  // fantasma. Se llama SIEMPRE después de un commit de TRANSFER-1 que
+  // haya podido mover a un jugador dentro o fuera del roster del usuario.
+  function cleanupSessionReferencesForPlayer(playerId) {
+    if (state.lineup) {
+      state.lineup.squadIds = (state.lineup.squadIds || []).filter((id) => id !== playerId);
+      if (state.lineup.entries) {
+        Object.keys(state.lineup.entries).forEach((positionKey) => {
+          const row = state.lineup.entries[positionKey] || {};
+          Object.keys(row).forEach((slotKey) => {
+            const slot = row[slotKey];
+            if (slot && slot.playerId === playerId) slot.playerId = null;
+          });
+        });
+      }
+      if (Array.isArray(state.lineup.fixedSegments)) {
+        state.lineup.fixedSegments = state.lineup.fixedSegments.filter((seg) => seg.playerId !== playerId);
+      }
+    }
   }
 
   function renderPlayerMarketTab(player, team) {
@@ -6789,7 +7112,53 @@
         ${threads.length ? `<ul>${threads.map((t) => `<li>${escapeHtml(t.statusOn(isoDate))} (abierto ${escapeHtml(formatIsoDateEs(t.openedAt))})</li>`).join('')}</ul>` : '<p class="gm-muted">Sin negociaciones abiertas.</p>'}
       </div>
       ${rightsCases.length ? `<div class="gm-card"><h3>Derechos</h3><ul>${rightsCases.map((c) => `<li>${escapeHtml(c.procedureType)}: ${escapeHtml(c.statusOn(isoDate))}</li>`).join('')}</ul></div>` : ''}
+      ${renderPlayerTransferHistoryHtml(player, isoDate)}
       <p class="gm-muted contract-scope-note">Esta pestaña sigue la ficha universal (Player Registry), incluso libre y sin club.</p>`;
+  }
+
+  // TRANSFER-1 (DESIGN.md 9.20, sección 20.5 del prompt) — "AIP y
+  // expediente activo; mecanismo y fecha efectiva; traspasos/liberaciones
+  // históricos; derechos y compensaciones" de la ficha universal. Resuelve
+  // SIEMPRE desde `state.transferRegistry` (Player Registry como ancla),
+  // nunca desde `Team.roster` — un jugador libre en pleno expediente sigue
+  // mostrando su historial. Solo lectura: no hay ninguna acción aquí.
+  function renderPlayerTransferHistoryHtml(player, isoDate) {
+    if (!state.transferRegistry) return '';
+    const cases = state.transferRegistry.casesForPlayer(player.id);
+    if (!cases.length) return '';
+    const activeCase = cases.find((c) => !c.isTerminal(isoDate));
+    const completed = cases.filter((c) => c.statusOn(isoDate) === 'completed').sort((a, b) => (a.effectiveDate < b.effectiveDate ? 1 : -1));
+
+    let activeHtml = '';
+    if (activeCase) {
+      const status = activeCase.statusOn(isoDate);
+      const blockersText = status === 'blocked' && activeCase.lastBlockers ? activeCase.lastBlockers.map((b) => b.message).join(' · ') : '';
+      activeHtml = `
+        <div class="gm-card">
+          <h3>Expediente activo</h3>
+          <p>Mecanismo: <strong>${escapeHtml(activeCase.mechanism)}</strong> · Estado: ${escapeHtml(TRANSFER_CASE_STATUS_LABELS[status] || status)}
+            ${activeCase.effectiveDate ? ` · Fecha efectiva: ${escapeHtml(formatIsoDateEs(activeCase.effectiveDate))}` : ''}</p>
+          ${blockersText ? `<p class="gm-muted">${escapeHtml(blockersText)}</p>` : ''}
+        </div>`;
+    }
+
+    let historyHtml = '';
+    if (completed.length) {
+      const rows = completed.map((tCase) => {
+        const record = tCase.transactionId ? state.transferRegistry.getTransactionRecord(tCase.transactionId) : null;
+        const originTeam = tCase.originClubId ? getAllTeams().find((t) => t.id === tCase.originClubId) : null;
+        const destinationTeam = getAllTeams().find((t) => t.id === tCase.destinationClubId);
+        const obligations = record ? state.transferRegistry.obligationsForTransaction(record.id) : [];
+        const compensationText = obligations.length
+          ? obligations.map((o) => `${escapeHtml(o.concept)}: ${formatMoneyMinor(o.amountMinor, o.currency)}`).join(' · ')
+          : 'sin compensación registrada';
+        return `<li>${escapeHtml(formatIsoDateEs(tCase.effectiveDate))} — ${escapeHtml(tCase.mechanism)}:
+          ${originTeam ? escapeHtml(originTeam.fullName) : 'agente libre'} → ${destinationTeam ? escapeHtml(destinationTeam.fullName) : '—'}
+          <span class="gm-muted">(${compensationText})</span></li>`;
+      }).join('');
+      historyHtml = `<div class="gm-card"><h3>Traspasos y liberaciones históricos</h3><ul>${rows}</ul></div>`;
+    }
+    return activeHtml + historyHtml;
   }
 
   function renderPlayerProfileScreen() {
@@ -6928,6 +7297,10 @@
       state.marketRegistry = null;
       state.marketBootstrapWarnings = [];
       state.marketAgendaLog = [];
+      // TRANSFER-1 (DESIGN.md 9.20): mismo criterio — expedientes/
+      // ofertas club-club/obligaciones/TransactionRecords pertenecen a
+      // UNA partida, nunca sobreviven a "Volver a selección de equipo".
+      state.transferRegistry = null;
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado

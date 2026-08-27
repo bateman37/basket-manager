@@ -1,19 +1,18 @@
 #!/usr/bin/env node
-// scripts/smoke-market1.js
-// Prueba de humo MARKET-1 (DESIGN.md 9.19) contra la Liga real de 36
+// scripts/smoke-transfer1.js
+// Prueba de humo TRANSFER-1 (DESIGN.md 9.20) contra la Liga real de 36
 // equipos — reutiliza el MISMO motor de simulación de temporadas completas
-// que smoke-reg1.js (Liga+Copa+Playoffs+Ascenso+cantera, Player/Contract/
-// Registration Registry) y añade encima la vertical de mercado: pool de
-// libres/agentes por carrera, un flujo completo libre (inquiry -> counter
-// -> AIP), un rechazo, una oferta a jugador bajo contrato (condicionada a
-// TRANSFER-1), y fixtures dirigidos de derecho de tanteo (igualado, no
-// igualado, origen = "usuario"), inscripción preferente y retorno.
+// que smoke-market1.js/smoke-reg1.js (Liga+Copa+Playoffs+Ascenso+cantera,
+// Player/Contract/Registration/Agent/Market Registry) y añade encima la
+// vertical de traspasos: fichaje de agente libre, traspaso negociado (dos
+// patas + consentimiento), ejercicio de cláusula de rescisión, mutuo
+// acuerdo/liberación pura y un fichaje futuro programado (sección 11.2,
+// reintentado por el mismo punto único del reloj que usa game.js).
 //
 // Ejecutar con:
-//   node scripts/smoke-market1.js [temporadas]
+//   node scripts/smoke-transfer1.js [temporadas]
 
 const assert = require('assert');
-const Medical = require('../src/core/Medical.js');
 const { Player } = require('../src/entities/Player.js');
 const { Team } = require('../src/entities/Team.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
@@ -21,6 +20,7 @@ const PD = require('../src/core/PlayerDevelopment.js');
 const PC = require('../src/core/PlayerCareer.js');
 const Training = require('../src/core/Training.js');
 const TrainingAI = require('../src/core/TrainingAI.js');
+const Medical = require('../src/core/Medical.js');
 const { League } = require('../src/core/League.js');
 const { Calendar } = require('../src/core/Calendar.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
@@ -34,27 +34,26 @@ const { RegistrationService } = require('../src/core/RegistrationService.js');
 const { RegistrationSeeder } = require('../src/core/RegistrationSeeder.js');
 const { EligibilityService } = require('../src/core/EligibilityService.js');
 const { SquadEligibilityService } = require('../src/core/SquadEligibilityService.js');
-const Rotation = require('../src/core/Rotation.js');
 const { LocalDate } = require('../src/utils/LocalDate.js');
-const { buildPaymentSchedule } = require('../src/entities/Contract.js');
+const { Contract, buildPaymentSchedule } = require('../src/entities/Contract.js');
 const { buildCpuLineup, computeMatchImportance } = require('../src/core/CpuLineup.js');
 const { createCup, CUP_TRIGGER_ROUND } = require('../src/core/Cup.js');
 const { createTitlePlayoff } = require('../src/core/Playoffs.js');
 const { PromotionPlayoff } = require('../src/core/Promotion.js');
 const { recalculateSportingGoalsForDivision } = require('../src/core/SeasonGoals.js');
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
-const { padRosterToMinimum, generateFictionalPlayer } = require('../src/utils/playerGenerator.js');
+const { padRosterToMinimum } = require('../src/utils/playerGenerator.js');
 
 const { AgentRegistry } = require('../src/core/AgentRegistry.js');
 const { MarketRegistry } = require('../src/core/MarketRegistry.js');
 const { MarketService } = require('../src/core/MarketService.js');
-const { NegotiationService } = require('../src/core/NegotiationService.js');
 const { MarketSeeder } = require('../src/core/MarketSeeder.js');
-const { RightOfFirstRefusalService } = require('../src/core/RightOfFirstRefusalService.js');
-const { NegotiationThread } = require('../src/entities/Market.js');
+
+const { TransferRegistry } = require('../src/core/TransferRegistry.js');
+const { TransferService } = require('../src/core/TransferService.js');
 
 const SEASONS_TO_SIMULATE = Number(process.argv[2] || 3);
-const CAREER_SEED = 'smoke-market1-career-seed-v1';
+const CAREER_SEED = 'smoke-transfer1-career-seed-v1';
 const startedAt = Date.now();
 
 function resolveRegistrationRulesForDivision(division, seasonKey, date, phaseId) {
@@ -173,7 +172,7 @@ function recordMatchActSnapshot(team, squad, context, resolved, pool, registrati
 // =====================================================================
 // 1. Arranque
 // =====================================================================
-console.log('Construyendo 36 equipos reales (1ª+2ª), Player/Contract/Registration Registry...');
+console.log('Construyendo 36 equipos reales (1ª+2ª), Player/Contract/Registration/Agent/Market/Transfer Registry...');
 let seasonStartYear = 2026;
 let calendar = new Calendar(seasonStartYear, CONFIG_BASE);
 const calendarCtx = { seasonStartDate: calendar.seasonStartDate };
@@ -198,15 +197,15 @@ ContractSeeder.seedContractsForTeams({ teams: allTeams, seasonKey, date: bootstr
 const registrationRegistry = new RegistrationRegistry();
 RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE });
 
-// --- MARKET-1: registros y bootstrap de mercado, por CARRERA -----------
 let agentRegistry = new AgentRegistry();
 let marketRegistry = new MarketRegistry();
 const initialFreeAgents = MarketSeeder.seedFreeAgentPool({ playerRegistry, careerSeed: CAREER_SEED, referenceDate, config: CONFIG_BASE });
-const agentBootstrap = MarketSeeder.seedAgentsAndMandates({
-  playerRegistry, agentRegistry, careerSeed: CAREER_SEED, referenceDate, players: initialFreeAgents,
-});
-console.log(`OK: pool de mercado sembrado — ${initialFreeAgents.length} libres ficticios, ${agentBootstrap.agents.length} agentes, `
-  + `${agentBootstrap.playersWithAgent}/${agentBootstrap.eligiblePlayers} con representación.`);
+MarketSeeder.seedAgentsAndMandates({ playerRegistry, agentRegistry, careerSeed: CAREER_SEED, referenceDate, players: initialFreeAgents });
+console.log(`OK: pool de mercado sembrado — ${initialFreeAgents.length} libres ficticios.`);
+
+// TRANSFER-1: registro EXPLÍCITO por carrera (nunca singleton) — mismo
+// criterio que agentRegistry/marketRegistry.
+let transferRegistry = new TransferRegistry();
 
 function validateAll(label, date) {
   const isoDate = LocalDate.fromJsDate(date);
@@ -220,15 +219,21 @@ function validateAll(label, date) {
   assert.ok(agentCheck.valid, `[${label}] Agent Registry roto: ${JSON.stringify(agentCheck.errors.slice(0, 5))}`);
   const marketCheck = marketRegistry.validateIntegrity({ playerRegistry, teams: allTeams, date: isoDate });
   assert.ok(marketCheck.valid, `[${label}] Market Registry roto: ${JSON.stringify(marketCheck.errors.slice(0, 5))}`);
+  const transferCheck = transferRegistry.validateIntegrity({
+    playerRegistry, teams: allTeams, contractRegistry, registrationRegistry, marketRegistry, date: isoDate,
+  });
+  assert.ok(transferCheck.valid, `[${label}] Transfer Registry roto: ${JSON.stringify(transferCheck.errors.slice(0, 5))}`);
   return {
-    playerCheck, contractCheck, registrationCheck, agentCheck, marketCheck,
+    playerCheck, contractCheck, registrationCheck, agentCheck, marketCheck, transferCheck,
   };
 }
 validateAll('arranque', referenceDate);
-console.log('OK: Player/Contract/Registration/Agent/Market Registry íntegros al arranque.');
+console.log('OK: Player/Contract/Registration/Agent/Market/Transfer Registry íntegros al arranque.');
 
 // =====================================================================
-// Fixtures dirigidos de mercado (sección 19.2 del prompt)
+// Fixtures dirigidos TRANSFER-1 (sección 23.1 del prompt: "smoke con
+// fixtures reales sobre los 36 equipos") — se ejecutan ANTES de la
+// simulación de temporadas, sobre el mundo real recién sembrado.
 // =====================================================================
 function buildValidOfferDraft(team, player, isoDate, salaryMinor, seasons) {
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' });
@@ -237,14 +242,29 @@ function buildValidOfferDraft(team, player, isoDate, salaryMinor, seasons) {
   const seasonKeys = [];
   let year = LocalDate.seasonStartYear(seasonKey);
   for (let i = 0; i < (seasons || 1); i += 1) seasonKeys.push(LocalDate.seasonKeyFromStartYear(year + i));
-  const startDate = LocalDate.seasonWindow(seasonKeys[0]).startDate;
+  // Mismo criterio que game.js (buildContractDraftFromOfferForm): un
+  // acuerdo mid-season (habitual en TRANSFER-1: `isoDate` es la fecha real
+  // de la operación, casi nunca el 1 de julio) arranca su vigencia en la
+  // fecha real de la firma, NUNCA retrocedida al inicio de temporada —
+  // Contract.js rechaza toda firma retroactiva, y un contrato de origen
+  // que sigue vigente hasta esa misma fecha real solaparía con uno nuevo
+  // fechado antes.
+  const firstSeasonStart = LocalDate.seasonWindow(seasonKeys[0]).startDate;
+  const startDate = LocalDate.isAfter(isoDate, firstSeasonStart) ? isoDate : firstSeasonStart;
   const endDate = LocalDate.seasonWindow(seasonKeys[seasonKeys.length - 1]).endDate;
   const installmentCount = employment.payments.defaultInstallmentCount;
+  const frequency = employment.payments.frequency || 'monthly';
+  const monthStep = frequency === 'quarterly' ? 3 : 1;
   const schedule = [];
-  seasonKeys.forEach((sk) => {
+  seasonKeys.forEach((sk, index) => {
     const window = LocalDate.seasonWindow(sk);
+    const anchorStartDate = index === 0 ? startDate : window.startDate;
+    const [anchorYear, anchorMonth] = anchorStartDate.split('-').map(Number);
+    const [endYear, endMonth] = window.endDate.split('-').map(Number);
+    const periodsAvailable = Math.floor(((endYear - anchorYear) * 12 + (endMonth - anchorMonth)) / monthStep) + 1;
+    const seasonInstallmentCount = Math.max(1, Math.min(installmentCount, periodsAvailable));
     buildPaymentSchedule({
-      totalMinor: salaryMinor, installmentCount, firstDueDate: LocalDate.endOfMonth(window.startDate), frequency: employment.payments.frequency || 'monthly', currency, seasonKey: sk,
+      totalMinor: salaryMinor, installmentCount: seasonInstallmentCount, firstDueDate: LocalDate.endOfMonth(anchorStartDate), frequency, currency, seasonKey: sk,
     }).forEach((installment) => schedule.push(installment));
   });
   return {
@@ -262,216 +282,229 @@ function buildValidOfferDraft(team, player, isoDate, salaryMinor, seasons) {
   };
 }
 
-let freeAgentFlowChecked = false;
-function runFreeAgentInquiryToAgreementFixture() {
-  const team = allTeamsById.get('team-real-madrid');
-  const player = initialFreeAgents[0];
-  const isoDate = bootstrapIsoDate;
-  const marketContext = MarketService.resolveMarketContext({ domesticCompetitionId: 'acb', seasonKey, date: isoDate, operation: 'openInquiry' });
+// Construye un AIP jugador-club vivo desde cero (inquiry -> oferta ->
+// aceptación -> AIP), reutilizando MarketService real — mismo motor que
+// game.js/test-transfer1.js, nunca un objeto simulado a mano.
+function buildLiveAgreementForPlayer(team, player, isoDate, seed) {
+  const marketContext = MarketService.resolveMarketContext({ domesticCompetitionId: 'acb', seasonKey, date: isoDate });
   const thread = MarketService.openInquiry({
-    marketRegistry, agentRegistry, playerId: player.id, actingClubId: team.id, prospectiveCompetitionIds: ['acb'], date: isoDate, marketContext, careerSeed: CAREER_SEED,
+    marketRegistry, agentRegistry, playerId: player.id, actingClubId: team.id, prospectiveCompetitionIds: ['acb'], date: isoDate, marketContext, careerSeed: seed,
   });
-  const dueEvent = marketRegistry.eventsDueThrough(LocalDate.addDays(isoDate, 5))[0];
-  assert.ok(dueEvent, 'debe haber una respuesta de interés programada');
-  MarketService.processInterestResponseEvent({ marketRegistry, playerRegistry, event: dueEvent, date: dueEvent.dueDate, careerSeed: CAREER_SEED });
-  if (thread.statusOn(dueEvent.dueDate) !== 'interest-confirmed') {
-    console.log(`(fixture libre: "${player.fullName}" declinó el interés inicial — determinista para esta semilla, se documenta sin forzar.)`);
-    freeAgentFlowChecked = true;
-    return;
-  }
-  const target = NegotiationService.targetGuaranteedMinor(player);
-  const draft = buildValidOfferDraft(team, player, dueEvent.dueDate, Math.round(target * 0.75), 2);
-  const validation = MarketService.validateOfferBeforeSend({
-    draft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey, date: dueEvent.dueDate, marketContext,
-  });
-  assert.ok(validation.valid, `oferta inicial inválida: ${validation.errors.join(' | ')}`);
-  let offer = MarketService.createAndSendOffer({
-    marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: 'core' }, date: dueEvent.dueDate, careerSeed: CAREER_SEED, marketContext,
+  thread.addEvent({ id: `${thread.id}:confirmed`, type: 'interest-confirmed', date: isoDate });
+  // openInquiry() programa una respuesta de interés futura
+  // (`${thread.id}:interest-response`) — como aquí se confirma el interés
+  // a mano de forma determinista (sin esperar esa fecha), ese evento
+  // programado debe marcarse procesado explícitamente: si no, sigue
+  // "vencido" y el bucle de temporada (processDueMarketEventsToDate,
+  // mismo criterio que game.js) lo reprocesaría más tarde contra un hilo
+  // que ya avanzó de estado, rompiendo su máquina de eventos.
+  marketRegistry.markEventProcessed(`${thread.id}:interest-response`);
+  // 4 temporadas — el máximo real permitido (FIBA book3, 4 años), y por
+  // encima del suelo de 3 que CONTRACT-1 aplica a todo contrato sembrado
+  // (`MINIMUM_PLAYABLE_REMAINING_SEASONS`, puente de staging documentado
+  // en CLAUDE.md): un contrato firmado en la temporada 1 de este smoke
+  // test (que recorre 3 temporadas) sigue cubriendo la 4ª al cierre, sin
+  // caer en el borde "no verificable" que CLAUDE.md reserva a CYCLE-1 (no
+  // construido todavía).
+  const draft = buildValidOfferDraft(team, player, isoDate, 12000000, 4);
+  const offer = MarketService.createAndSendOffer({
+    marketRegistry, thread, draft, offeredBy: 'club', date: isoDate, careerSeed: seed, marketContext,
     team, player, playerRegistry, contractRegistry, seasonKey,
   });
+  offer.addEvent({ id: `${offer.id}:accept`, type: 'player-accepted', date: isoDate });
+  return MarketService.createAgreementInPrinciple({ marketRegistry, thread, offer, date: isoDate, employmentSnapshot: { profileId: marketContext.bundleId } });
+}
+
+let freeAgentSigningChecked = false;
+function runFreeAgentSigningFixture() {
+  const team = allTeamsById.get('team-real-madrid');
+  const player = initialFreeAgents[2];
+  const isoDate = bootstrapIsoDate;
+  const agreement = buildLiveAgreementForPlayer(team, player, isoDate, `${CAREER_SEED}|t1-free-agent`);
+  const { plan, result } = TransferService.formalizeFreeAgentSigning({
+    transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
+    agreement, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+  });
+  assert.strictEqual(plan.blockers.length, 0, `fichaje de libre bloqueado: ${JSON.stringify(plan.blockers)}`);
+  assert.ok(result.record, 'debe producir un TransactionRecord');
+  assert.strictEqual(team.roster.find((p) => p.id === player.id), player);
+  assert.strictEqual(player.teamId, team.id);
+  assert.ok(contractRegistry.currentForPlayer(player.id, isoDate));
+  freeAgentSigningChecked = true;
+  console.log(`OK: fichaje de agente libre — "${player.fullName}" ficha por ${team.fullName} (contrato+roster+inscripción atómicos).`);
+}
+runFreeAgentSigningFixture();
+
+let negotiatedTransferChecked = false;
+function runNegotiatedTransferFixture() {
+  const destinationTeam = allTeamsById.get('team-asisa-joventut');
+  const originTeam = allTeams.find((t) => t.id !== destinationTeam.id && contractRegistry.forClub(t.id).length > 0);
+  const originContract = contractRegistry.forClub(originTeam.id)[0];
+  const player = playerRegistry.get(originContract.playerId);
+  const isoDate = bootstrapIsoDate;
+  const agreement = buildLiveAgreementForPlayer(destinationTeam, player, isoDate, `${CAREER_SEED}|t1-negotiated`);
+
+  // Negociación club-club determinista — sube el importe hasta que el
+  // vendedor CPU acepta (mismo patrón que la pantalla de Mercado >
+  // Operaciones en game.js), acotado a un número razonable de rondas.
+  let feeMinor = 30000000;
   let round = 0;
-  let outcome = null;
-  while (round < 6) {
-    const responseDate = LocalDate.addDays(offer.createdAt, 1);
-    const result = MarketService.processOfferResponse({
-      marketRegistry, playerRegistry, thread, offer, date: responseDate, careerSeed: CAREER_SEED, marketContext,
-      team, contractRegistry, seasonKey,
+  let clubOffer = null;
+  while (round < 12) {
+    const proposedOffer = { id: `smoke-club-offer:${player.id}:${round}`, fee: { amountMinor: feeMinor, currency: 'EUR' } };
+    const evaluation = TransferService.evaluateSellingClub({
+      originTeam, player, originContract, offer: proposedOffer, careerSeed: CAREER_SEED, date: isoDate, seasonKey,
     });
-    if (result.outcome !== 'countered') { outcome = result; break; }
-    offer = result.counterOffer;
+    if (evaluation.decision === 'accept') { clubOffer = proposedOffer; break; }
+    if (evaluation.decision === 'reject') { feeMinor = Math.round(feeMinor * 1.5); round += 1; continue; }
+    feeMinor = TransferService.generateCounterFee({ originalFeeMinor: feeMinor, careerSeed: CAREER_SEED, offerId: proposedOffer.id, roundIndex: round });
     round += 1;
   }
-  if (outcome && outcome.outcome === 'accepted') {
-    const agreement = MarketService.createAgreementInPrinciple({
-      marketRegistry, thread, offer: outcome.offer, date: LocalDate.addDays(offer.createdAt, 1), employmentSnapshot: { profileId: marketContext.bundleId },
-    });
-    assert.strictEqual(agreement.statusOn(LocalDate.addDays(offer.createdAt, 1)), 'pendingExecution');
-    assert.strictEqual(contractRegistry.currentForPlayer(player.id, LocalDate.addDays(offer.createdAt, 1)), null, 'un AIP nunca registra contrato');
-    assert.strictEqual(player.teamId, null, 'un AIP nunca mueve teamId');
-    console.log(`OK: fixture libre completo — inquiry -> counter (${round} rondas) -> AIP con "${player.fullName}" (${team.fullName}).`);
-  } else {
-    console.log(`OK: fixture libre completo — inquiry -> negociación resuelta sin acuerdo (${outcome ? outcome.outcome : 'sin resolver'}) con "${player.fullName}".`);
-  }
-  freeAgentFlowChecked = true;
-}
-runFreeAgentInquiryToAgreementFixture();
+  assert.ok(clubOffer, `el club vendedor "${originTeam.fullName}" nunca acepta un traspaso negociado tras ${round} rondas`);
 
-let rejectionFlowChecked = false;
-function runLowballRejectionFixture() {
-  const team = allTeamsById.get('team-real-madrid');
-  const player = initialFreeAgents[1];
+  const { plan, result } = TransferService.formalizeNegotiatedTransfer({
+    transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
+    agreement, originTeam, destinationTeam, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+    clubOffer, playerConsentGrantedAt: isoDate,
+  });
+  assert.strictEqual(plan.blockers.length, 0, `traspaso negociado bloqueado: ${JSON.stringify(plan.blockers)}`);
+  assert.ok(result.record, 'debe producir un TransactionRecord');
+  assert.strictEqual(originTeam.roster.find((p) => p.id === player.id), undefined, 'el origen debe perder al jugador');
+  assert.strictEqual(destinationTeam.roster.find((p) => p.id === player.id), player, 'el destino debe ganar al jugador');
+  assert.strictEqual(player.teamId, destinationTeam.id);
+  const obligations = transferRegistry.obligationsForTransaction(result.record.id);
+  assert.ok(obligations.some((o) => o.concept === 'transfer-fee'), 'debe registrar el fee como obligación');
+  negotiatedTransferChecked = true;
+  console.log(`OK: traspaso negociado — "${player.fullName}" de ${originTeam.fullName} a ${destinationTeam.fullName} por ${(feeMinor / 100).toFixed(2)}€ (${round} rondas de negociación).`);
+}
+runNegotiatedTransferFixture();
+
+// Añade un jugador SINTÉTICO con contrato+cláusula de rescisión a un club
+// real (mismo patrón que test-transfer1.js: un contrato/cláusula real no
+// existe todavía en los datos sembrados por ContractSeeder — CONTRACT-1
+// nunca inventa cláusulas por defecto — así que se declara explícita para
+// poder ejercitar el mecanismo de forma reproducible).
+function attachSyntheticPlayerWithClause(team, id, releaseClauseAmountMinor) {
+  const { generateFictionalPlayer } = require('../src/utils/playerGenerator.js');
+  const player = generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  player.id = id;
+  player.dataSource = 'simulated-smoke-fixture-v1';
+  PD.ensureDevelopmentState(player, CONFIG_BASE, referenceDate);
+  PC.ensureCareerHistory(player, CONFIG_BASE, referenceDate, { historyCompleteness: 'complete', seasonKey });
+  const contractSeasonKeys = [seasonKey, PC.seasonKeyFromStartYear(seasonStartYear + 1), PC.seasonKeyFromStartYear(seasonStartYear + 2)];
+  const contractStartDate = LocalDate.seasonWindow(seasonKey).startDate;
+  const contractSalaryMinor = 15000000;
+  const schedule = [];
+  contractSeasonKeys.forEach((sk) => {
+    const window = LocalDate.seasonWindow(sk);
+    buildPaymentSchedule({
+      totalMinor: contractSalaryMinor, installmentCount: 8, firstDueDate: LocalDate.endOfMonth(window.startDate), frequency: 'monthly', currency: 'EUR', seasonKey: sk,
+    }).forEach((installment) => schedule.push(installment));
+  });
+  const contract = new Contract({
+    id: `${id}:origin-contract`,
+    playerId: player.id,
+    clubId: team.id,
+    contractType: 'professional-player',
+    signedDate: contractStartDate,
+    startDate: contractStartDate,
+    endDate: LocalDate.seasonWindow(contractSeasonKeys[contractSeasonKeys.length - 1]).endDate,
+    guaranteeType: 'fully-guaranteed',
+    compensation: {
+      currency: 'EUR', declaredBasis: 'gross',
+      seasons: contractSeasonKeys.map((sk) => ({ seasonKey: sk, guaranteedBaseSalaryMinor: contractSalaryMinor })),
+    },
+    paymentPolicy: { installmentCount: 8, frequency: 'monthly', scheduledComponents: ['guaranteedBaseSalary'], schedule },
+    clauses: [{
+      id: `${id}:release-clause`, type: 'player-release', holder: 'player', amount: { amountMinor: releaseClauseAmountMinor, currency: 'EUR' }, status: 'active',
+    }],
+    declaredDocuments: ['written-contract'],
+  });
+  contractRegistry.register(contract);
+  team.roster.push(player);
+  player.teamId = team.id;
+  playerRegistry.register(player);
+  return { player, contract };
+}
+
+let releaseClauseChecked = false;
+function runReleaseClauseExerciseFixture() {
+  const originTeam = allTeamsById.get('team-kosner-baskonia');
+  const destinationTeam = allTeamsById.get('team-unicaja');
+  const { player, contract } = attachSyntheticPlayerWithClause(originTeam, 'smoke-t1-clause-player', 40000000);
+  // ANTES del 15 de septiembre (restricción de inscripción ACB, art.
+  // 17.4.5) — `bootstrapIsoDate` (inicio del calendario de partidos) cae
+  // en octubre, después de esa restricción, así que este fixture concreto
+  // exige una fecha temprana propia (mismo criterio que EARLY_DATE en
+  // test-transfer1.js).
+  const isoDate = LocalDate.addDays(LocalDate.seasonWindow(seasonKey).startDate, 50);
+  const agreement = buildLiveAgreementForPlayer(destinationTeam, player, isoDate, `${CAREER_SEED}|t1-release-clause`);
+  const clause = contract.clauses[0];
+  const { plan, result } = TransferService.formalizeReleaseClauseExercise({
+    transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
+    agreement, originTeam, destinationTeam, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+    clauseId: clause.id, exercisedBy: 'player',
+  });
+  assert.strictEqual(plan.blockers.length, 0, `ejercicio de cláusula bloqueado: ${JSON.stringify(plan.blockers)}`);
+  assert.ok(result.record, 'debe producir un TransactionRecord');
+  assert.strictEqual(destinationTeam.roster.find((p) => p.id === player.id), player);
+  assert.strictEqual(originTeam.roster.find((p) => p.id === player.id), undefined);
+  const obligations = transferRegistry.obligationsForTransaction(result.record.id);
+  assert.ok(obligations.some((o) => o.concept === 'release-clause-amount' && o.amountMinor === 40000000), 'el importe ejecutado debe coincidir EXACTO con la cláusula');
+  assert.ok(!obligations.some((o) => o.concept === 'transfer-fee'), 'una cláusula ejercida nunca es un transfer-fee');
+  releaseClauseChecked = true;
+  console.log(`OK: ejercicio de cláusula de rescisión — "${player.fullName}" de ${originTeam.fullName} a ${destinationTeam.fullName} por 40.000,00€ (sin aceptación del vendedor).`);
+}
+runReleaseClauseExerciseFixture();
+
+let mutualReleaseChecked = false;
+function runMutualReleaseFixture() {
+  const originTeam = allTeamsById.get('team-gran-canaria');
+  const { player } = attachSyntheticPlayerWithClause(originTeam, 'smoke-t1-mutual-release-player', 1);
   const isoDate = bootstrapIsoDate;
-  const thread = new NegotiationThread({ id: 'smoke-rejection-thread', playerId: player.id, actingClubId: team.id, openedAt: isoDate });
-  marketRegistry.registerThread(thread);
-  thread.addEvent({ id: 'smoke-rejection:contacted', type: 'player-side-contacted', date: isoDate });
-  thread.addEvent({ id: 'smoke-rejection:scheduled', type: 'interest-response-scheduled', date: isoDate });
-  thread.addEvent({ id: 'smoke-rejection:confirmed', type: 'interest-confirmed', date: isoDate });
-  // BUG-MARKET1-03 (DESIGN.md 9.20): createAndSendOffer valida SIEMPRE
-  // internamente contra el mínimo legal/convenio real — un importe por
-  // debajo de ese mínimo (100.000 minor/1.000€, el valor original de este
-  // fixture) ya no llega a enviarse: es inválido de por sí, no solo
-  // "lowball". Se sube al mínimo ACB exacto (28.000€/año) para que la
-  // oferta SÍ sea legal-válida pero siga siendo económicamente
-  // insultante frente al objetivo simulado del jugador (evaluado por
-  // NegotiationService, nunca por el mínimo legal).
-  const draft = buildValidOfferDraft(team, player, isoDate, 2800000, 1); // 28.000 € — mínimo legal, insultante para el jugador
-  const marketContext = MarketService.resolveMarketContext({ domesticCompetitionId: 'acb', seasonKey, date: isoDate });
-  const offer = MarketService.createAndSendOffer({
-    marketRegistry, thread, draft, offeredBy: 'club', date: isoDate, careerSeed: CAREER_SEED, marketContext,
-    team, player, playerRegistry, contractRegistry, seasonKey,
+  const rosterSizeBefore = originTeam.roster.length;
+  const { plan, result } = TransferService.formalizeMutualAgreement({
+    transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
+    originTeam, destinationTeam: null, playerId: player.id, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+    mutualSettlement: { partiesConsent: ['club', 'player'], amount: { amountMinor: 2000000, currency: 'EUR' } },
   });
-  const result = MarketService.processOfferResponse({
-    marketRegistry, playerRegistry, thread, offer, date: LocalDate.addDays(isoDate, 1), careerSeed: CAREER_SEED, marketContext,
-    team, contractRegistry, seasonKey,
-  });
-  assert.strictEqual(result.outcome, 'rejected', 'una oferta insultantemente baja debe rechazarse');
-  assert.ok(marketRegistry.getBudgetReservationGroup(`res:${offer.id}`).every((line) => line.status === 'released'));
-  rejectionFlowChecked = true;
-  console.log(`OK: fixture de rechazo — oferta insuficiente a "${player.fullName}" rechazada, reserva liberada.`);
+  assert.strictEqual(plan.blockers.length, 0, `liberación por mutuo acuerdo bloqueada: ${JSON.stringify(plan.blockers)}`);
+  assert.ok(result.record, 'debe producir un TransactionRecord');
+  assert.strictEqual(originTeam.roster.length, rosterSizeBefore - 1, 'el jugador debe salir del roster');
+  assert.strictEqual(player.teamId, null, 'un jugador liberado nunca queda con teamId huérfano');
+  assert.strictEqual(playerRegistry.get(player.id), player, 'sigue accesible en el Player Registry aunque esté libre');
+  mutualReleaseChecked = true;
+  console.log(`OK: liberación por mutuo acuerdo — "${player.fullName}" queda libre de ${originTeam.fullName}, accesible en el Player Registry.`);
 }
-runLowballRejectionFixture();
+runMutualReleaseFixture();
 
-let contractedPlayerFlowChecked = false;
-function runContractedPlayerTransferConditionFixture() {
-  const team = allTeamsById.get('team-real-madrid');
-  const otherTeam = allTeams.find((t) => t.id !== team.id && contractRegistry.forClub(t.id).length > 0);
-  const targetContract = contractRegistry.forClub(otherTeam.id)[0];
-  const player = playerRegistry.get(targetContract.playerId);
+let scheduledFutureSigningChecked = false;
+let scheduledCaseForRetry = null;
+function runScheduledFutureSigningFixture() {
+  const team = allTeamsById.get('team-kids-and-us-manresa');
+  const player = initialFreeAgents[3];
   const isoDate = bootstrapIsoDate;
-  const draft = buildValidOfferDraft(team, player, isoDate, 10000000, 1);
-  const validation = ContractService.validateDraft({
-    draft, team, player, playerRegistry, contractRegistry, seasonKey, date: isoDate,
+  const futureDate = LocalDate.addDays(isoDate, 12); // dentro de la vigencia del AIP (30 días por defecto)
+  const agreement = buildLiveAgreementForPlayer(team, player, isoDate, `${CAREER_SEED}|t1-scheduled`);
+  const { plan, result, transferCase } = TransferService.formalizeFreeAgentSigning({
+    transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
+    agreement, destinationTeam: team, seasonKey, effectiveDate: futureDate, now: isoDate, commit: true,
   });
-  assert.strictEqual(validation.requiresTransferResolution, true, 'una oferta a jugador bajo contrato de OTRO club debe marcar requiresTransferResolution');
-  assert.strictEqual(contractRegistry.currentForPlayer(player.id, isoDate).clubId, otherTeam.id, 'el contrato original no se toca');
-  contractedPlayerFlowChecked = true;
-  console.log(`OK: fixture de jugador bajo contrato — oferta a "${player.fullName}" (bajo contrato con ${otherTeam.fullName}) condicionada a TRANSFER-1, contrato original intacto.`);
+  assert.strictEqual(plan.blockers.length, 0, `fichaje futuro bloqueado: ${JSON.stringify(plan.blockers)}`);
+  assert.strictEqual(result.notYetDue, true);
+  assert.strictEqual(transferCase.statusOn(isoDate), 'scheduled', 'debe ser visible como "scheduled" HOY, no en el futuro');
+  assert.strictEqual(team.roster.find((p) => p.id === player.id), undefined, 'no debe entrar hoy en el roster');
+  scheduledCaseForRetry = { transferCase, futureDate };
+  scheduledFutureSigningChecked = true;
+  console.log(`OK: fichaje futuro programado — "${player.fullName}" ficha por ${team.fullName} con efecto el ${futureDate} (expediente "scheduled" hoy).`);
 }
-runContractedPlayerTransferConditionFixture();
+runScheduledFutureSigningFixture();
 
-let acbTanteoMatchedChecked = false;
-let acbTanteoUnmatchedChecked = false;
-let acbUserOriginChecked = false;
-function runAcbTanteoFixtures() {
-  const originTeam = allTeamsById.get('team-real-madrid');
-  const player = originTeam.roster[0];
-  const lastMatchDate = LocalDate.fromJsDate(referenceDate);
-  const marketContext = MarketService.resolveMarketContext({ domesticCompetitionId: 'acb', seasonKey, date: lastMatchDate });
-
-  // Caso 1: origen (CPU) IGUALA.
-  const rcMatched = RightOfFirstRefusalService.openCase({
-    marketRegistry, playerId: player.id, originClubId: originTeam.id, lastOfficialMatchDate: lastMatchDate, marketContext, id: 'smoke-rights-matched',
-  });
-  RightOfFirstRefusalService.fileQualifyingOffer({
-    rightsCase: rcMatched, filedByClubId: originTeam.id, filedAt: rcMatched.deadlines.qualifyingOfferWindow.opens,
-    monetizedAnnualValueMinor: 5000000, currency: 'EUR', lastContract: { coveredSeasonKeys: [seasonKey], breakdownForSeason: () => ({ guaranteedTotalMinor: 4000000 }) }, ageOnJuly1: 26, consecutiveExerciseCount: 0,
-  });
-  const summary = {
-    duration: '2 years', grossAnnualRemunerationPerSeason: 6000000, fixedComponents: 6000000, inKindValuation: 0, imageRights: 0, unilateralTerminationClause: 0, agentFees: 0,
-    economicTotalMinor: 12000000, inKindValuationMinor: 0, agentFeesMinor: 0, terminationClauseMinor: 0, durationSeasons: 2, installmentCount: 12, currency: 'EUR', seasonKey,
-  };
-  const sheetM = RightOfFirstRefusalService.fileOfferSheet({
-    rightsCase: rcMatched, marketRegistry, filedByClubId: 'team-morabanc-andorra', filedAt: rcMatched.deadlines.thirdPartyOfferWindow.opens, contractDraftSummary: summary, playerSignedMarker: true, clubSignedMarker: true,
-  });
-  const costPlan = MarketService.computeSquadCostPlan({ team: originTeam, contractRegistry, marketRegistry, seasonKey });
-  const decisionM = RightOfFirstRefusalService.decideMatchingDeterministic({
-    rightsCase: rcMatched, costPlan, matchProposalSummary: { ...summary, installmentCount: 10 }, fingerprint: `${CAREER_SEED}|matched-forced`,
-  });
-  RightOfFirstRefusalService.decideMatching({
-    rightsCase: rcMatched, decision: 'match', decidedBy: 'cpu', decidedAt: sheetM.matchingWindow.opens, matchProposalSummary: { ...summary, installmentCount: 10 },
-  });
-  assert.strictEqual(rcMatched.statusOn(sheetM.matchingWindow.opens), 'contract-deposit-pending');
-  RightOfFirstRefusalService.resolveProcedure(rcMatched, rcMatched.deadlines.depositDeadline);
-  assert.strictEqual(rcMatched.statusOn(rcMatched.deadlines.depositDeadline), 'procedure-resolved');
-  assert.strictEqual(contractRegistry.currentForPlayer(player.id, rcMatched.deadlines.depositDeadline).clubId, originTeam.id, 'MARKET-1 nunca ejecuta el traspaso — el contrato original sigue con el origen');
-  acbTanteoMatchedChecked = true;
-
-  // Caso 2: origen NO iguala (deuda/insuficiencia económica forzada por fixture).
-  const player2 = originTeam.roster[1];
-  const rcUnmatched = RightOfFirstRefusalService.openCase({
-    marketRegistry, playerId: player2.id, originClubId: originTeam.id, lastOfficialMatchDate: lastMatchDate, marketContext, id: 'smoke-rights-unmatched',
-  });
-  RightOfFirstRefusalService.fileQualifyingOffer({
-    rightsCase: rcUnmatched, filedByClubId: originTeam.id, filedAt: rcUnmatched.deadlines.qualifyingOfferWindow.opens,
-    monetizedAnnualValueMinor: 5000000, currency: 'EUR', lastContract: { coveredSeasonKeys: [seasonKey], breakdownForSeason: () => ({ guaranteedTotalMinor: 4000000 }) }, ageOnJuly1: 26, consecutiveExerciseCount: 0,
-  });
-  const sheetU = RightOfFirstRefusalService.fileOfferSheet({
-    rightsCase: rcUnmatched, marketRegistry, filedByClubId: 'team-morabanc-andorra', filedAt: rcUnmatched.deadlines.thirdPartyOfferWindow.opens, contractDraftSummary: summary, playerSignedMarker: true, clubSignedMarker: true,
-  });
-  RightOfFirstRefusalService.decideMatching({ rightsCase: rcUnmatched, decision: 'waive', decidedBy: 'cpu', decidedAt: sheetU.matchingWindow.opens });
-  assert.strictEqual(rcUnmatched.deadlines.depositDeadline, LocalDate.addDays(sheetU.matchingWindow.opens, 10));
-  RightOfFirstRefusalService.resolveProcedure(rcUnmatched, rcUnmatched.deadlines.depositDeadline);
-  assert.strictEqual(rcUnmatched.statusOn(rcUnmatched.deadlines.depositDeadline), 'procedure-resolved');
-  acbTanteoUnmatchedChecked = true;
-
-  // Caso 3: "usuario" (decidedBy: 'user') como club de origen.
-  const player3 = originTeam.roster[2];
-  const rcUser = RightOfFirstRefusalService.openCase({
-    marketRegistry, playerId: player3.id, originClubId: originTeam.id, lastOfficialMatchDate: lastMatchDate, marketContext, id: 'smoke-rights-user-origin',
-  });
-  RightOfFirstRefusalService.fileQualifyingOffer({
-    rightsCase: rcUser, filedByClubId: originTeam.id, filedAt: rcUser.deadlines.qualifyingOfferWindow.opens,
-    monetizedAnnualValueMinor: 5000000, currency: 'EUR', lastContract: { coveredSeasonKeys: [seasonKey], breakdownForSeason: () => ({ guaranteedTotalMinor: 4000000 }) }, ageOnJuly1: 26, consecutiveExerciseCount: 0,
-  });
-  const sheetUser = RightOfFirstRefusalService.fileOfferSheet({
-    rightsCase: rcUser, marketRegistry, filedByClubId: 'team-morabanc-andorra', filedAt: rcUser.deadlines.thirdPartyOfferWindow.opens, contractDraftSummary: summary, playerSignedMarker: true, clubSignedMarker: true,
-  });
-  const attention = MarketService.computeMarketAttentionForClub({ marketRegistry, clubId: originTeam.id, date: sheetUser.matchingWindow.opens });
-  assert.ok(attention && attention.type === 'matching-decision-needed', 'el club de origen (simulando al usuario) debe recibir una atención de mercado');
-  RightOfFirstRefusalService.decideMatching({
-    rightsCase: rcUser, decision: 'match', decidedBy: 'user', decidedAt: sheetUser.matchingWindow.opens, matchProposalSummary: { ...summary, installmentCount: 10 },
-  });
-  assert.strictEqual(rcUser.matchingDecision.decidedBy, 'user');
-  acbUserOriginChecked = true;
-  console.log('OK: fixtures dirigidos de tanteo ACB — igualado (CPU), no igualado (CPU), y origen tratado como usuario (decisión propia).');
-}
-runAcbTanteoFixtures();
-
-let preferredRegistrationChecked = false;
-let returnRightsChecked = false;
-function runPreferredRegistrationAndReturnFixtures() {
-  const originTeam = allTeamsById.get('team-real-madrid');
-  const lastMatchDate = LocalDate.fromJsDate(referenceDate);
-  const marketContext = MarketService.resolveMarketContext({ domesticCompetitionId: 'acb', seasonKey, date: lastMatchDate });
-  const rc = RightOfFirstRefusalService.openCase({
-    marketRegistry, playerId: 'smoke-preferred-reg-player', originClubId: originTeam.id, lastOfficialMatchDate: lastMatchDate, procedureType: 'preferred-registration', marketContext, id: 'smoke-preferred-registration',
-  });
-  assert.strictEqual(rc.procedureRules.thirdPartyOfferSheetDaysOverride, 12);
-  assert.strictEqual(rc.procedureRules.maxAgeInclusive, 21);
-  preferredRegistrationChecked = true;
-
-  const rr = RightOfFirstRefusalService.openReturnRightsCase({
-    marketRegistry, playerId: 'smoke-return-player', originClubId: originTeam.id, lastOfficialMatchDate: lastMatchDate, id: 'smoke-return-case',
-  });
-  RightOfFirstRefusalService.decideReturnRightsOption(rr, 'wait-for-third-party-offer', LocalDate.addDays(lastMatchDate, 1), 10);
-  assert.strictEqual(rr.matchingSurchargePercent, 10);
-  returnRightsChecked = true;
-  console.log('OK: fixtures dirigidos de inscripción preferente (12 días, edad<=21) y retorno (opción 3, recargo 10%).');
-}
-runPreferredRegistrationAndReturnFixtures();
+validateAll('tras fixtures de arranque TRANSFER-1', referenceDate);
+console.log('OK: Registros íntegros tras los 5 fixtures dirigidos de TRANSFER-1.');
 
 // =====================================================================
-// Simulación de temporadas completas (motor idéntico a smoke-reg1.js)
+// Simulación de temporadas completas (motor idéntico a smoke-market1.js)
 // =====================================================================
 const classificationCache = new Map();
 let totalMatchActs = 0;
@@ -542,9 +575,23 @@ function bracketResolver(bracketDate, phaseId, bracket) {
 function processDevelopmentToDateForTeams(teams, date) { teams.forEach((team) => Training.processTeamDevelopmentToDate(team, date, CONFIG_BASE, calendarCtx)); }
 function reviewCpu(teams, date) { teams.forEach((team) => TrainingAI.reviewTeamIfDue(team, date, { matchesInNext7Days: 1 }, CONFIG_BASE, calendarCtx)); }
 
+// TRANSFER-1 (DESIGN.md 9.20, sección 11.2 del prompt): "advanceGameClockTo()
+// procesa esa fecha mediante el punto único del reloj" — reintenta
+// cualquier expediente `scheduled` cuya fecha efectiva ya se ha alcanzado.
+// Mismo criterio EXACTO que processDueScheduledTransfersToDate() en
+// game.js, contra el mundo real de 36 equipos.
+function processDueScheduledTransfers(date) {
+  const isoDate = LocalDate.fromJsDate(date);
+  const deps = {
+    playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams: allTeams, now: isoDate,
+  };
+  transferRegistry.allCases()
+    .filter((tCase) => tCase.statusOn(null) === 'scheduled' && tCase.effectiveDate && tCase.effectiveDate <= isoDate)
+    .forEach((tCase) => TransferService.retryScheduledTransferCase(tCase, deps, isoDate));
+}
+
 let totalNewgens = 0;
 let totalDeferredNewgenRegistrations = 0;
-let ascendedFebNeverInheritsAcbChecked = false;
 
 for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   console.log(`\n=== Temporada ${seasonIndex + 1}/${SEASONS_TO_SIMULATE} (${seasonKey}) ===`);
@@ -567,9 +614,6 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
         calendar.advanceTo(lastDate);
         processDevelopmentToDateForTeams(teamsByDivision[div], lastDate);
         reviewCpu(teamsByDivision[div], lastDate);
-        // MARKET-1: procesa eventos de mercado no interactivos vencidos en
-        // el mismo punto que development/CPU training — mismo criterio que
-        // advanceGameClockTo() en game.js.
         marketRegistry.eventsDueThrough(LocalDate.fromJsDate(lastDate)).forEach((event) => {
           if (event.type === 'interest-response') {
             MarketService.processInterestResponseEvent({ marketRegistry, playerRegistry, event, date: event.dueDate, careerSeed: CAREER_SEED });
@@ -578,6 +622,9 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
           }
         });
         MarketService.expireDueOffers(marketRegistry, LocalDate.fromJsDate(lastDate));
+        // Punto único del reloj para TRANSFER-1 — mismo criterio que
+        // advanceGameClockTo() en game.js.
+        processDueScheduledTransfers(lastDate);
       }
       if (div === '1ª' && league.currentRound === CUP_TRIGGER_ROUND + 1 && !cup) cup = createCup(league, calendar.cupRoundDates());
     });
@@ -593,6 +640,24 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   { const date = calendar.currentGameDateTime; while (!titlePlayoff.isComplete) titlePlayoff.playNextGame(CONFIG_BASE, bracketResolver(date, 'title-playoff', titlePlayoff)); }
   { const date = calendar.currentGameDateTime; while (!promotionPlayoff.isComplete) promotionPlayoff.playNextGame(CONFIG_BASE, bracketResolver(date, 'promotion', promotionPlayoff)); }
   console.log(`Playoffs completados. Campeón: ${titlePlayoff.champion ? titlePlayoff.champion.team.fullName : '(sin resolver)'}`);
+
+  if (seasonIndex === 0) {
+    // El fichaje futuro programado en el arranque (efecto 12 días después)
+    // debe haberse completado durante la liga regular de la primera
+    // temporada — lo confirmamos aquí, con el mundo real ya avanzado.
+    assert.ok(scheduledCaseForRetry, 'fixture de fichaje futuro no se preparó');
+    const { transferCase, futureDate } = scheduledCaseForRetry;
+    // Estado REAL actual (sin filtrar por fecha): el reintento se dispara
+    // en la primera ronda de calendario EN O DESPUÉS de `futureDate`, casi
+    // nunca exactamente ESE día — `statusOn(futureDate)` filtrado
+    // excluiría el evento "completed", fechado en la ronda real que lo
+    // ejecutó.
+    assert.strictEqual(transferCase.statusOn(null), 'completed', 'el fichaje futuro debe haberse ejecutado al alcanzar su fecha efectiva vía el reloj único');
+    const team = allTeamsById.get('team-kids-and-us-manresa');
+    const player = initialFreeAgents[3];
+    assert.strictEqual(team.roster.find((p) => p.id === player.id), player, 'el jugador programado debe estar en el roster tras su fecha efectiva');
+    console.log('OK: el fichaje futuro programado se completó automáticamente al llegar su fecha efectiva (punto único del reloj).');
+  }
 
   validateAll(`fin de temporada ${seasonKey}`, calendar.currentGameDateTime);
 
@@ -610,18 +675,6 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   relegatedTeams.forEach((team) => { team.division = '2ª'; });
   const promotedTeams = [promotionPlayoff.directPromotion.team, promotionPlayoff.secondPromotedEntry.team];
   promotedTeams.forEach((team) => { team.division = '1ª'; });
-
-  // --- MARKET-1: ascenso/descenso nunca activa ACB sobre un club FEB que
-  // acaba de subir NI reescribe casos ya congelados (sección invariante 21).
-  if (promotedTeams.length) {
-    const promoted = promotedTeams[0];
-    const promotedResolved = MarketService.resolveMarketContext({
-      domesticCompetitionId: CompetitionRules.competitionIdFromLegacyDivision('2ª'), seasonKey: prevSeasonKey, date: seasonEndIso,
-    });
-    assert.strictEqual(promotedResolved.market.domesticProcedure, null, 'un club en Primera FEB (antes de ascender) nunca resuelve tanteo ACB');
-  }
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(marketRegistry.getRightsCase('smoke-rights-matched').procedureRules)), marketRegistry.getRightsCase('smoke-rights-matched').procedureRules, 'las reglas congeladas de un caso no cambian');
-  ascendedFebNeverInheritsAcbChecked = true;
 
   allTeams = [...leagueA.teams, ...leagueB.teams];
   teamsByDivision = { '1ª': allTeams.filter((t) => t.division === '1ª'), '2ª': allTeams.filter((t) => t.division === '2ª') };
@@ -659,9 +712,6 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
     });
   });
 
-  // --- MARKET-1: offseason mínima — expira ofertas vivas que no llegaron a
-  // resolverse durante la temporada (sección 15.5: "resuelve o conserva
-  // como pendiente todo caso antes de sustituir temporada/bundle").
   MarketService.expireDueOffers(marketRegistry, seasonEndIso);
 
   seasonStartYear += 1;
@@ -673,21 +723,10 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
 
   validateAll(`tras cierre + cantera (${seasonKey})`, referenceDate);
   console.log(`Temporada cerrada. Ascendidos: ${promotedTeams.map((t) => t.fullName).join(', ')}. Descendidos: ${relegatedTeams.map((t) => t.fullName).join(', ')}.`);
-  console.log(`Player Registry: ${playerRegistry.all().length} · Contratos: ${contractRegistry.size} · Licencias: ${registrationRegistry.allLicenses().length} · `
-    + `Inscripciones: ${registrationRegistry.allRegistrations().length} (altas transición: ${registrationTransition.results.length}) · `
-    + `Agentes: ${agentRegistry.allAgents().length} · Mandatos: ${agentRegistry.allMandates().length} · `
-    + `Hilos: ${marketRegistry.allThreads().length} · Acuerdos: ${marketRegistry.allAgreements().length} · Casos de derechos: ${marketRegistry.allRightsCases().length}.`);
+  console.log(`Player Registry: ${playerRegistry.all().length} · Contratos: ${contractRegistry.size} · `
+    + `Expedientes de traspaso: ${transferRegistry.allCases().length} · Transacciones: ${transferRegistry.allTransactionRecords().length} · `
+    + `Obligaciones: ${transferRegistry.allObligations().length} (altas transición: ${registrationTransition.results.length}).`);
 }
-
-// =====================================================================
-// Determinismo — misma semilla debe reproducir el MISMO pool de mercado.
-// =====================================================================
-const detPr = new PlayerRegistry();
-const detA = MarketSeeder.seedFreeAgentPool({ playerRegistry: detPr, careerSeed: CAREER_SEED, referenceDate: calendar.seasonStartDate, config: CONFIG_BASE });
-const detPr2 = new PlayerRegistry();
-const detB = MarketSeeder.seedFreeAgentPool({ playerRegistry: detPr2, careerSeed: CAREER_SEED, referenceDate: calendar.seasonStartDate, config: CONFIG_BASE });
-const deterministic = detA.every((p, i) => p.id === detB[i].id && p.fullName === detB[i].fullName);
-assert.ok(deterministic, 'la misma semilla debe reproducir el mismo pool de mercado tras varias temporadas de desarrollo');
 
 // =====================================================================
 // Resumen final
@@ -695,42 +734,31 @@ assert.ok(deterministic, 'la misma semilla debe reproducir el mismo pool de merc
 const finalIso = LocalDate.fromJsDate(referenceDate);
 const finalChecks = validateAll('final', referenceDate);
 
-let totalMarketEvents = 0;
-marketRegistry.allThreads().forEach((t) => { totalMarketEvents += t.events.length; });
-marketRegistry.allRightsCases().forEach((c) => { totalMarketEvents += c.events.length; });
-let totalOfferVersions = 0;
-marketRegistry.allThreads().forEach((t) => { totalOfferVersions += marketRegistry.offersForThread(t.id).length; });
+const completedCases = transferRegistry.allCases().filter((c) => c.statusOn(finalIso) === 'completed');
+const mechanismCounts = {};
+completedCases.forEach((c) => { mechanismCounts[c.mechanism] = (mechanismCounts[c.mechanism] || 0) + 1; });
 
-console.log('\n=== RESUMEN MARKET-1 ===');
-console.log(`Temporadas simuladas:                ${SEASONS_TO_SIMULATE}`);
-console.log(`Jugadores mundiales:                  ${playerRegistry.all().length} (libres ficticios del pool: ${initialFreeAgents.length})`);
-console.log(`Contratos:                            ${contractRegistry.size}`);
-console.log(`Licencias/Inscripciones:              ${registrationRegistry.allLicenses().length} / ${registrationRegistry.allRegistrations().length}`);
-console.log(`Agentes / Mandatos:                    ${agentRegistry.allAgents().length} / ${agentRegistry.allMandates().length}`);
-console.log(`Hilos de negociación:                  ${marketRegistry.allThreads().length}`);
-console.log(`Ofertas (todas las versiones):         ${totalOfferVersions}`);
-console.log(`Acuerdos en principio:                 ${marketRegistry.allAgreements().length}`);
-console.log(`Reservas de presupuesto:               ${marketRegistry.allBudgetReservations().length}`);
-console.log(`Casos de derecho preferente:            ${marketRegistry.allRightsCases().length}`);
-console.log(`Casos de retorno:                       ${marketRegistry.allReturnRightsCases().length}`);
-console.log(`Eventos de mercado totales:             ${totalMarketEvents}`);
-console.log(`Newgens contratados/inscritos:          ${totalNewgens} (inscripción diferida: ${totalDeferredNewgenRegistrations})`);
-console.log(`Actas de partido registradas:           ${totalMatchActs} (infeasibilidad médica conocida: ${totalToleratedInfeasibleActs})`);
-console.log(`Determinismo (misma semilla):           ${deterministic}`);
-console.log(`Fixture libre completo (inquiry->AIP):  ${freeAgentFlowChecked ? 'OK' : 'NO EJECUTADO'}`);
-console.log(`Fixture de rechazo:                     ${rejectionFlowChecked ? 'OK' : 'NO EJECUTADO'}`);
-console.log(`Fixture bajo contrato (transferCond.):   ${contractedPlayerFlowChecked ? 'OK' : 'NO EJECUTADO'}`);
-console.log(`Fixtures tanteo ACB (igualado/no/user):  ${acbTanteoMatchedChecked && acbTanteoUnmatchedChecked && acbUserOriginChecked ? 'OK' : 'NO EJECUTADO'}`);
-console.log(`Fixtures preferente/retorno:             ${preferredRegistrationChecked && returnRightsChecked ? 'OK' : 'NO EJECUTADO'}`);
-console.log(`Ascenso/descenso no hereda ACB en FEB:    ${ascendedFebNeverInheritsAcbChecked ? 'OK' : 'NO EJECUTADO'}`);
+console.log('\n=== RESUMEN TRANSFER-1 ===');
+console.log(`Temporadas simuladas:                 ${SEASONS_TO_SIMULATE}`);
+console.log(`Jugadores mundiales:                   ${playerRegistry.all().length}`);
+console.log(`Contratos:                             ${contractRegistry.size}`);
+console.log(`Expedientes de traspaso (total):        ${transferRegistry.allCases().length}`);
+console.log(`  · completados por mecanismo:          ${JSON.stringify(mechanismCounts)}`);
+console.log(`TransactionRecords:                     ${transferRegistry.allTransactionRecords().length}`);
+console.log(`Obligaciones financieras:                ${transferRegistry.allObligations().length}`);
+console.log(`Terminaciones de contrato:               ${transferRegistry.allTerminationRecords().length}`);
+console.log(`Newgens contratados/inscritos:           ${totalNewgens} (inscripción diferida: ${totalDeferredNewgenRegistrations})`);
+console.log(`Actas de partido registradas:            ${totalMatchActs} (infeasibilidad médica conocida: ${totalToleratedInfeasibleActs})`);
+console.log(`Fichaje de agente libre:                 ${freeAgentSigningChecked ? 'OK' : 'NO EJECUTADO'}`);
+console.log(`Traspaso negociado:                      ${negotiatedTransferChecked ? 'OK' : 'NO EJECUTADO'}`);
+console.log(`Ejercicio de cláusula de rescisión:       ${releaseClauseChecked ? 'OK' : 'NO EJECUTADO'}`);
+console.log(`Liberación por mutuo acuerdo:             ${mutualReleaseChecked ? 'OK' : 'NO EJECUTADO'}`);
+console.log(`Fichaje futuro programado (scheduled):    ${scheduledFutureSigningChecked ? 'OK' : 'NO EJECUTADO'}`);
 console.log(`Registros conjuntos íntegros:             ${Object.values(finalChecks).every((c) => c.valid)}`);
 console.log(`Tiempo total: ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
 
 assert.strictEqual(totalSquadValidationFailures, totalToleratedInfeasibleActs, 'toda acta inválida debe ser una infeasibilidad médica conocida y avisada');
-assert.ok(freeAgentFlowChecked && rejectionFlowChecked && contractedPlayerFlowChecked, 'los fixtures de negociación deben ejecutarse');
-assert.ok(acbTanteoMatchedChecked && acbTanteoUnmatchedChecked && acbUserOriginChecked, 'los fixtures de tanteo deben ejecutarse');
-assert.ok(preferredRegistrationChecked && returnRightsChecked, 'los fixtures de preferente/retorno deben ejecutarse');
-assert.ok(deterministic, 'el pool de mercado debe ser reproducible con la misma semilla');
+assert.ok(freeAgentSigningChecked && negotiatedTransferChecked && releaseClauseChecked && mutualReleaseChecked && scheduledFutureSigningChecked, 'los 5 fixtures dirigidos de TRANSFER-1 deben ejecutarse');
 assert.ok(Object.values(finalChecks).every((c) => c.valid), 'todos los registros deben quedar íntegros al final');
 
-console.log(`\nSMOKE TEST MARKET-1: OK (36 equipos, ${SEASONS_TO_SIMULATE} temporadas completas con Liga+Copa+Playoffs+Ascenso+cantera+mercado)`);
+console.log(`\nSMOKE TEST TRANSFER-1: OK (36 equipos, ${SEASONS_TO_SIMULATE} temporadas completas con Liga+Copa+Playoffs+Ascenso+cantera+mercado+traspasos)`);

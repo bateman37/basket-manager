@@ -187,14 +187,32 @@ con dos botones:
     `currentBracketRoundKey(phaseId, bracket)` deriva el `roundId` real —
     nunca `null` fijo ni un id de partido dependiente de qué equipo fue
     local (BUG-REG1-03/04, ver DESIGN.md 9.18).
+  - Traspasos y fichajes (TRANSFER-1, DESIGN.md 9.20): `state.transferRegistry`
+    se construye en `bootstrapMarketForNewCareer()` y se limpia al volver
+    a selección de equipo, igual criterio que `agentRegistry`/
+    `marketRegistry`. Un AIP vivo en Mercado > Negociaciones muestra el
+    asistente de formalización real (`renderAgreementFormalizationHtml()`,
+    `determineTransferMechanism()`) en vez del texto estático anterior —
+    llama SIEMPRE a `TransferService`/`TransferExecutionService`, nunca
+    escribe en `ContractRegistry`/`RegistrationRegistry`/`Team.roster`/
+    `player.teamId` directamente. Mercado > Operaciones
+    (`renderMarketOperationsTab()`) es de SOLO LECTURA — expedientes del
+    club por estado, sin ninguna acción propia. La ficha universal
+    (pestaña "Mercado y representación") añade expediente activo y
+    traspasos/liberaciones históricos (`renderPlayerTransferHistoryHtml()`),
+    resueltos siempre desde `state.transferRegistry`/Player Registry,
+    nunca desde `Team.roster` de los equipos actuales. Contratos e
+    Inscripciones siguen de solo lectura tal cual se documentó en REG-1/
+    CONTRACT-1 más arriba — ninguna de las dos gana botones de acción con
+    esta entrega.
 
-## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1, MARKET-1 y siguientes)
+## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1, MARKET-1, TRANSFER-1 y siguientes)
 
 Convenciones permanentes de la EPIC iniciada en ROSTER-1 (DESIGN.md 9.16),
-ampliada en CONTRACT-1 (DESIGN.md 9.17), en REG-1 (DESIGN.md 9.18) y en
-MARKET-1 (DESIGN.md 9.19) — aplican a toda sesión futura que toque
-contratos, licencias, inscripción, elegibilidad, mercado, traspasos,
-cesiones o transfer internacional:
+ampliada en CONTRACT-1 (DESIGN.md 9.17), en REG-1 (DESIGN.md 9.18), en
+MARKET-1 (DESIGN.md 9.19) y en TRANSFER-1 (DESIGN.md 9.20) — aplican a
+toda sesión futura que toque contratos, licencias, inscripción,
+elegibilidad, mercado, traspasos, cesiones o transfer internacional:
 
 - Todo jugador vive en el Player Registry mundial
   (`src/core/PlayerRegistry.js`, `state.playerRegistry`); una plantilla
@@ -448,6 +466,92 @@ EUROPE-1 cuando construyan sobre esta entrega:
   verificable. El gancho de apertura orgánica en cierre de temporada queda
   para CYCLE-1 (cuando exista expiración/renovación real) — no lo
   construyas antes, sería código inalcanzable e imposible de verificar.
+
+### Traspasos, fichajes y ejecución (TRANSFER-1, DESIGN.md 9.20)
+
+Convenciones permanentes de TRANSFER-1 — aplican a toda sesión futura que
+toque fichajes, traspasos, cláusulas de rescisión, terminación de
+contrato, compensaciones, y a LOAN-1/CYCLE-1/EUROPE-1 cuando construyan
+sobre esta entrega:
+
+- `TransferRegistry` (`src/core/TransferRegistry.js`,
+  `state.transferRegistry`) es la fuente CANÓNICA de `TransferCase`/
+  `ClubTransferOffer`/`TransferAgreement`/`ReleaseClauseExercise`/
+  `ContractTerminationRecord`/`FinancialObligation`/`TransactionRecord` —
+  instancia EXPLÍCITA por carrera (creada en `bootstrapMarketForNewCareer()`,
+  limpiada al volver a selección de equipo), nunca un singleton.
+- La UI SOLO llama a `TransferService`/`TransferExecutionService` — nunca
+  escribe directamente en `TransferRegistry`/`ContractRegistry`/
+  `RegistrationRegistry`/`Team.roster`/`player.teamId`. `Team.roster`/
+  `player.teamId` tienen una única frontera autorizada,
+  `RosterMutationService.js` — ninguna otra parte del dominio de
+  transferencia los toca (auditado estáticamente en
+  `scripts/test-transfer1.js`).
+- Toda operación pasa por `planTransaction()` (puro, nunca muta ni
+  reserva) antes de `commitTransaction()` (revalida los fingerprints del
+  plan contra el estado REAL antes de tocar nada — un plan obsoleto se
+  rechaza con `PLAN_STALE_*`, nunca se ejecuta a ciegas). El commit es una
+  saga: cada paso muta y ACTO SEGUIDO **almacena** su cierre de reversión
+  (nunca lo ejecuta ahí mismo) — si un paso posterior falla, se deshace en
+  orden inverso y el mundo queda EXACTAMENTE como estaba. Idempotente por
+  `transactionId`.
+- AIP (MARKET-1), `TransferAgreement`/`ClubTransferOffer` (oferta
+  club-club), contrato definitivo (`ContractRegistry`) y afiliación de
+  plantilla (`Team.roster`) son CUATRO conceptos distintos — formalizar
+  nunca colapsa dos en uno.
+- `TransferCase` (y `ClubTransferOffer`/`ReleaseClauseExercise`/
+  `ContractTerminationRecord`) son máquinas de estados por EVENTOS
+  validados y ordenados (mismo patrón que `MarketEventTypes.js`/
+  `RegistrationEventTypes.js`) — nunca un campo de estado mutable libre.
+  Un terminal (`completed`/`rejected`/`withdrawn`/`expired`/`failed`)
+  nunca vuelve a un estado vivo. Los eventos ADMINISTRATIVOS del
+  expediente (`case-opened`/`ready-to-plan`/`planned`/`scheduled`/
+  `blocked`) se fechan en el momento REAL de la acción (`now`) — nunca en
+  `effectiveDate` (la fecha en que la operación surte efecto, que puede
+  ser posterior en un fichaje futuro); confundir ambas deja un expediente
+  `scheduled` invisible hasta su propia fecha efectiva.
+- Un reintento de expediente `scheduled` (`retryScheduledTransferCase()`)
+  SIEMPRE replanifica y revalida desde cero contra el estado real del
+  momento del reintento — nunca ejecuta a ciegas el plan antiguo. Decide
+  si un expediente sigue `scheduled` con `statusOn(null)` (estado real,
+  sin filtrar por fecha) — nunca `statusOn(fechaDeLlamada)`: dos
+  divisiones/ligas pueden procesar sus rondas en fechas que no avanzan en
+  el mismo orden estricto, y un expediente ya completado con fecha
+  posterior podría parecer `scheduled` otra vez ante una fecha anterior.
+- Lógica de traspaso nueva usa `resolveTransferRules()`/módulos de
+  `CompetitionRules.js` (dominio `transfer`) — nunca `division`
+  (`1ª`/`2ª`), el nombre visible de una liga, ni ACB como comportamiento
+  por defecto de una jurisdicción/competición desconocida (lanza
+  explícito). El empleador andorrano (MoraBanc Andorra) NUNCA hereda el
+  15 % español del RD 1006 art. 13.a ni su procedimiento — sigue siendo el
+  test transfronterizo obligatorio de toda la EPIC.
+- Fee, participación del jugador (RD 1006 art. 13.a), buyout de cláusula,
+  settlement de mutuo acuerdo, compensación de terminación, compensación
+  ACB por renuncia de derechos (art. 16) y comisión de agente son
+  conceptos SEPARADOS — nunca colapsados en un único importe ni sumados
+  entre sí. La compensación ACB por renuncia NUNCA concede participación
+  al jugador (invariante 13 del prompt de TRANSFER-1).
+- El consentimiento del jugador a un traspaso NUNCA se deduce de haber
+  aceptado una oferta salarial — sin `playerConsentGrantedAt` explícito,
+  no hay consentimiento y el plan bloquea.
+- Dinero SIEMPRE en unidad mínima entera (`...Minor`) + moneda ISO 4217;
+  fechas SIEMPRE civiles ISO vía `LocalDate`, nunca `Date.now()`/reloj de
+  sistema dentro del motor de traspasos.
+- `advanceGameClockTo()` sigue siendo el ÚNICO punto que avanza
+  `state.calendar` — el reintento de un fichaje futuro
+  (`processDueScheduledTransfersToDate()`) se dispara ahí, nunca repartido
+  por los call-sites de Liga/Copa/Playoffs/Ascenso. Ninguna noticia de
+  mercado se construye dentro del dominio de transferencia — game.js la
+  publica SOLO tras un commit real, nunca antes (auditado estáticamente).
+- No se ejecuta cesión/subrogación (LOAN-1), renovación/expiración
+  orgánica de contrato ni apertura orgánica de tanteo (CYCLE-1, sigue
+  bloqueada por el suelo de `MINIMUM_PLAYABLE_REMAINING_SEASONS = 3` de
+  CONTRACT-1) ni transfer internacional real/licencia FIBA para la
+  operación (EUROPE-1, hoy solo bloquea, nunca concede completado) antes
+  de sus entregas — TRANSFER-1 se detiene en el ámbito doméstico
+  verificable.
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambian la arquitectura de traspasos o las reglas activas.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 

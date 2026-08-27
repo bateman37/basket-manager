@@ -529,16 +529,19 @@ check('dos renders (dos llamadas) no cambian la respuesta de interés', () => {
 });
 
 check('oferta/contraoferta inmutables: contractDraft congelado, contraoferta = id+versión nuevos', () => {
-  const { team, player, mr } = setupNegotiationFixture('seed-nego-3');
+  const {
+    team, player, pr, cr, mr,
+  } = setupNegotiationFixture('seed-nego-3');
   const thread = new NegotiationThread({ id: 'imm-thread', playerId: player.id, actingClubId: team.id, openedAt: GAME_DATE });
   mr.registerThread(thread);
   thread.addEvent({ id: 'imm:e2', type: 'player-side-contacted', date: GAME_DATE });
   thread.addEvent({ id: 'imm:e3', type: 'interest-response-scheduled', date: GAME_DATE });
   thread.addEvent({ id: 'imm:e4', type: 'interest-confirmed', date: GAME_DATE });
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE, operation: 'signContract' });
-  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 30000000 });
+  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 25000000 });
   const offer1 = MarketService.createAndSendOffer({
     marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-nego-3',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
   });
   // Object.freeze en módulos no-strict no lanza al reasignar — se
   // comprueba que la asignación NO surte efecto (single source of truth).
@@ -546,8 +549,10 @@ check('oferta/contraoferta inmutables: contractDraft congelado, contraoferta = i
   offer1.contractDraft.compensation = null;
   assert.strictEqual(offer1.contractDraft.compensation, before, 'contractDraft debe estar congelado (Object.freeze) — la asignación no debe surtir efecto');
   offer1.addEvent({ id: `${offer1.id}:cnt`, type: 'offer-countered', date: '2026-10-04' });
+  mr.releaseBudgetGroup(`res:${offer1.id}`);
   const offer2 = MarketService.createAndSendOffer({
     marketRegistry: mr, thread, draft, offeredBy: 'player-side', date: '2026-10-04', careerSeed: 'seed-nego-3', parentOfferId: offer1.id, version: offer1.version + 1,
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
   });
   assert.notStrictEqual(offer1.id, offer2.id);
   assert.strictEqual(offer2.version, offer1.version + 1);
@@ -560,12 +565,17 @@ check('transición inválida rechazada (no se puede aceptar un hilo recién abie
 });
 
 check('retirada/expiración liberan reserva una sola vez (idempotente)', () => {
-  const { team, player, mr } = setupNegotiationFixture('seed-nego-4');
+  const {
+    team, player, pr, cr, mr,
+  } = setupNegotiationFixture('seed-nego-4');
   const thread = new NegotiationThread({ id: 'wd-thread', playerId: player.id, actingClubId: team.id, openedAt: GAME_DATE });
   mr.registerThread(thread);
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE, operation: 'signContract' });
   const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 20000000 });
-  const offer = MarketService.createAndSendOffer({ marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-nego-4' });
+  const offer = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-nego-4',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   assert.ok(mr.reservedTotalForClubSeason(team.id, SEASON) > 0);
   MarketService.withdrawOffer(mr, offer.id, GAME_DATE);
   assert.strictEqual(mr.reservedTotalForClubSeason(team.id, SEASON), 0);
@@ -574,30 +584,44 @@ check('retirada/expiración liberan reserva una sola vez (idempotente)', () => {
 });
 
 check('aceptación conserva la reserva (no se libera al crear el acuerdo)', () => {
-  const { team, player, mr } = setupNegotiationFixture('seed-nego-5');
+  const {
+    team, player, pr, cr, mr,
+  } = setupNegotiationFixture('seed-nego-5');
   const thread = new NegotiationThread({ id: 'acc-thread', playerId: player.id, actingClubId: team.id, openedAt: GAME_DATE });
   mr.registerThread(thread);
   advanceThreadToConfirmed(thread, GAME_DATE);
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE, operation: 'signContract' });
-  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 40000000 });
-  const offer = MarketService.createAndSendOffer({ marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-nego-5' });
+  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 25000000 });
+  const offer = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-nego-5',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   const reservedBefore = mr.reservedTotalForClubSeason(team.id, SEASON);
   offer.addEvent({ id: `${offer.id}:acc`, type: 'player-accepted', date: '2026-10-04' });
   const agreement = MarketService.createAgreementInPrinciple({
     marketRegistry: mr, thread, offer, date: '2026-10-04', employmentSnapshot: {},
   });
   assert.strictEqual(mr.reservedTotalForClubSeason(team.id, SEASON), reservedBefore, 'la reserva de la oferta aceptada se conserva');
-  assert.strictEqual(agreement.executionState, 'pending-transfer-1');
+  // BUG-MARKET1-06: ya no es una constante fija — se DERIVA del ciclo de
+  // vida (AgreementEvents). Recién creado, el estado es 'pendingExecution'.
+  assert.strictEqual(agreement.statusOn('2026-10-04'), 'pendingExecution');
+  assert.ok(agreement.isLiveOn('2026-10-04'));
+  assert.ok(LocalDate.isAfter(agreement.validUntil, '2026-10-04'), 'validUntil obligatorio y nunca null (BUG-MARKET1-06)');
 });
 
 check('segundo acuerdo incompatible para el mismo jugador se rechaza (invariante 8)', () => {
-  const { team, player, mr } = setupNegotiationFixture('seed-nego-6');
+  const {
+    team, player, pr, cr, mr,
+  } = setupNegotiationFixture('seed-nego-6');
   const thread = new NegotiationThread({ id: 'dup-thread', playerId: player.id, actingClubId: team.id, openedAt: GAME_DATE });
   mr.registerThread(thread);
   advanceThreadToConfirmed(thread, GAME_DATE);
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE, operation: 'signContract' });
-  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 40000000 });
-  const offer1 = MarketService.createAndSendOffer({ marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-nego-6' });
+  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 25000000 });
+  const offer1 = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-nego-6',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   offer1.addEvent({ id: `${offer1.id}:acc`, type: 'player-accepted', date: '2026-10-04' });
   MarketService.createAgreementInPrinciple({ marketRegistry: mr, thread, offer: offer1, date: '2026-10-04', employmentSnapshot: {} });
 
@@ -605,8 +629,12 @@ check('segundo acuerdo incompatible para el mismo jugador se rechaza (invariante
   const thread2 = new NegotiationThread({ id: 'dup-thread-2', playerId: player.id, actingClubId: otherTeam.id, openedAt: '2026-10-05' });
   mr.registerThread(thread2);
   advanceThreadToConfirmed(thread2, '2026-10-05');
-  const draft2 = buildValidDraft(otherTeam, player, ContractService.resolveRulesForClub(otherTeam, { seasonKey: SEASON, date: '2026-10-05', operation: 'signContract' }), { baseSalaryMinor: 40000000 });
-  const offer2 = MarketService.createAndSendOffer({ marketRegistry: mr, thread: thread2, draft: draft2, offeredBy: 'club', date: '2026-10-05', careerSeed: 'seed-nego-6' });
+  const otherResolved = ContractService.resolveRulesForClub(otherTeam, { seasonKey: SEASON, date: '2026-10-05', operation: 'signContract' });
+  const draft2 = buildValidDraft(otherTeam, player, otherResolved, { baseSalaryMinor: 25000000 });
+  const offer2 = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread: thread2, draft: draft2, offeredBy: 'club', date: '2026-10-05', careerSeed: 'seed-nego-6',
+    team: otherTeam, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   offer2.addEvent({ id: `${offer2.id}:acc`, type: 'player-accepted', date: '2026-10-06' });
   assert.throws(() => MarketService.createAgreementInPrinciple({ marketRegistry: mr, thread: thread2, offer: offer2, date: '2026-10-06', employmentSnapshot: {} }), /invariante 8/);
 });
@@ -738,19 +766,25 @@ check('límite interno de presupuesto por temporada bloquea una oferta excesiva'
 });
 
 check('no hay doble reserva al contraofertar (solo la versión viva relevante cuenta)', () => {
-  const { team, player, mr } = setupNegotiationFixture('seed-budget-1');
+  const {
+    team, player, pr, cr, mr,
+  } = setupNegotiationFixture('seed-budget-1');
   const thread = new NegotiationThread({ id: 'nb-thread', playerId: player.id, actingClubId: team.id, openedAt: GAME_DATE });
   mr.registerThread(thread);
   advanceThreadToConfirmed(thread, GAME_DATE);
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE, operation: 'signContract' });
   const draft1 = buildValidDraft(team, player, resolved, { baseSalaryMinor: 20000000 });
-  const offer1 = MarketService.createAndSendOffer({ marketRegistry: mr, thread, draft: draft1, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-budget-1' });
+  const offer1 = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread, draft: draft1, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-budget-1',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   const reserved1 = mr.reservedTotalForClubSeason(team.id, SEASON);
   offer1.addEvent({ id: `${offer1.id}:cnt`, type: 'offer-countered', date: '2026-10-04' });
-  mr.releaseBudget(`res:${offer1.id}`);
+  mr.releaseBudgetGroup(`res:${offer1.id}`);
   const draft2 = buildValidDraft(team, player, resolved, { baseSalaryMinor: 25000000 });
   MarketService.createAndSendOffer({
     marketRegistry: mr, thread, draft: draft2, offeredBy: 'player-side', date: '2026-10-04', careerSeed: 'seed-budget-1', parentOfferId: offer1.id, version: 2,
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
   });
   const reserved2 = mr.reservedTotalForClubSeason(team.id, SEASON);
   assert.strictEqual(reserved2, 25000000, 'solo la versión viva (25M minor) cuenta, no 20M+25M');
@@ -773,8 +807,11 @@ check('ContractRegistry.size, roster y RegistrationRegistry sin cambios tras un 
   MarketService.processInterestResponseEvent({ marketRegistry: mr, playerRegistry: pr, event: dueEvent, date: dueEvent.dueDate, careerSeed: 'seed-untouched' });
   const offerDate = dueEvent.dueDate;
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: offerDate, operation: 'signContract' });
-  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 40000000 });
-  const offer = MarketService.createAndSendOffer({ marketRegistry: mr, thread, draft, offeredBy: 'club', date: offerDate, careerSeed: 'seed-untouched' });
+  const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 25000000 });
+  const offer = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread, draft, offeredBy: 'club', date: offerDate, careerSeed: 'seed-untouched',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   const acceptDate = LocalDate.addDays(offerDate, 1);
   offer.addEvent({ id: `${offer.id}:acc`, type: 'player-accepted', date: acceptDate });
   MarketService.createAgreementInPrinciple({ marketRegistry: mr, thread, offer, date: acceptDate, employmentSnapshot: {} });
@@ -1096,16 +1133,26 @@ check('respuesta no interactiva (interés inicial) se procesa determinísticamen
 });
 
 check('atención detiene antes del partido: computeMarketAttentionForClub detecta una contraoferta viva del lado jugador', () => {
-  const { team, player, mr } = setupNegotiationFixture('seed-clock-2');
+  const {
+    team, player, pr, cr, mr,
+  } = setupNegotiationFixture('seed-clock-2');
   const thread = new NegotiationThread({ id: 'attn-thread', playerId: player.id, actingClubId: team.id, openedAt: GAME_DATE });
   mr.registerThread(thread);
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE, operation: 'signContract' });
   const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 20000000 });
-  const offer1 = MarketService.createAndSendOffer({ marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-clock-2' });
+  const offer1 = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-clock-2',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   assert.strictEqual(MarketService.computeMarketAttentionForClub({ marketRegistry: mr, clubId: team.id, date: GAME_DATE }), null, 'una oferta del CLUB esperando respuesta CPU no exige atención');
   offer1.addEvent({ id: `${offer1.id}:cnt`, type: 'offer-countered', date: '2026-10-04' });
+  // Mismo criterio que MarketService.processOfferResponse(): contraofertar
+  // libera la reserva de la versión superada ANTES de reservar la nueva
+  // (BUG-MARKET1-03 ahora valida presupuesto de verdad en createAndSendOffer).
+  mr.releaseBudgetGroup(`res:${offer1.id}`);
   const counter = MarketService.createAndSendOffer({
     marketRegistry: mr, thread, draft, offeredBy: 'player-side', date: '2026-10-04', careerSeed: 'seed-clock-2', parentOfferId: offer1.id, version: 2,
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
   });
   const attention = MarketService.computeMarketAttentionForClub({ marketRegistry: mr, clubId: team.id, date: '2026-10-04' });
   assert.ok(attention, 'una contraoferta viva del lado jugador SÍ exige atención');
@@ -1113,12 +1160,17 @@ check('atención detiene antes del partido: computeMarketAttentionForClub detect
 });
 
 check('no se resuelven partidos posteriores a la parada (no se libera/expira una oferta más allá de la fecha objetivo)', () => {
-  const { team, player, mr } = setupNegotiationFixture('seed-clock-3');
+  const {
+    team, player, pr, cr, mr,
+  } = setupNegotiationFixture('seed-clock-3');
   const thread = new NegotiationThread({ id: 'stop-thread', playerId: player.id, actingClubId: team.id, openedAt: GAME_DATE });
   mr.registerThread(thread);
   const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE, operation: 'signContract' });
   const draft = buildValidDraft(team, player, resolved, { baseSalaryMinor: 20000000 });
-  const offer = MarketService.createAndSendOffer({ marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-clock-3' });
+  const offer = MarketService.createAndSendOffer({
+    marketRegistry: mr, thread, draft, offeredBy: 'club', date: GAME_DATE, careerSeed: 'seed-clock-3',
+    team, player, playerRegistry: pr, contractRegistry: cr, seasonKey: SEASON,
+  });
   const expiredBeforeDue = MarketService.expireDueOffers(mr, GAME_DATE);
   assert.strictEqual(expiredBeforeDue.length, 0, 'no debe expirar antes de su fecha');
   assert.strictEqual(offer.statusOn(GAME_DATE), 'sent');

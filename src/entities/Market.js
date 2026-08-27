@@ -208,11 +208,25 @@
 
   // ---------------------------------------------------------------------
   // AgreementInPrinciple (sección 8.6) — artefacto FINAL de MARKET-1.
+  //
+  // BUG-MARKET1-06 (DESIGN.md 9.20, TRANSFER-1): `executionState` ya NO es
+  // una constante fija `pending-transfer-1` — es un ciclo de vida EXPLÍCITO
+  // derivado de eventos (`AgreementEvents`, MarketEventTypes.js):
+  // pendingExecution -> scheduled -> completed | expired | withdrawn |
+  // failed. `validUntil` es OBLIGATORIO (nunca null vivo eternamente): si
+  // no se declara explícito, se deriva de una política versionada
+  // (`AIP_DEFAULT_VALIDITY_POLICY`, ver MarketService). `budgetReservationGroupId`
+  // (antes `budgetReservationId`) referencia el GRUPO de reserva plurianual
+  // creado por `createAndSendOffer()` (BUG-MARKET1-05) — nunca una única
+  // línea suelta.
   // ---------------------------------------------------------------------
   class AgreementInPrinciple {
     constructor(data = {}) {
-      ['id', 'threadId', 'acceptedOfferId', 'playerId', 'clubId', 'acceptedAt', 'employmentSnapshot', 'budgetReservationId'].forEach((field) => {
-        if (!data[field]) throw new Error(`AgreementInPrinciple: falta "${field}".`);
+      [
+        'id', 'threadId', 'acceptedOfferId', 'playerId', 'clubId', 'acceptedAt', 'employmentSnapshot',
+        'budgetReservationGroupId', 'validUntil', 'validityPolicyVersion',
+      ].forEach((field) => {
+        if (!data[field]) throw new Error(`AgreementInPrinciple: falta "${field}" (BUG-MARKET1-06: validUntil ya no puede ser null).`);
       });
       this.id = data.id;
       this.threadId = data.threadId;
@@ -220,20 +234,56 @@
       this.playerId = data.playerId;
       this.clubId = data.clubId;
       this.acceptedAt = toIso(data.acceptedAt);
-      this.validUntil = data.validUntil ? toIso(data.validUntil) : null;
+      this.validUntil = toIso(data.validUntil);
+      if (LD().isBefore(this.validUntil, this.acceptedAt)) {
+        throw new Error('AgreementInPrinciple: "validUntil" no puede ser anterior a "acceptedAt".');
+      }
+      // Política versionada que derivó `validUntil` cuando no se declaró
+      // explícito — traza obligatoria (nunca un plazo mágico sin fuente).
+      this.validityPolicyVersion = data.validityPolicyVersion;
       this.conditionsPrecedent = Object.freeze([...(data.conditionsPrecedent || [])]);
       // Cuando el acuerdo procede de un derecho preferente ACB resuelto
       // (sección 13): id del caso que lo condicionó/resolvió.
       this.rightsOutcomeId = data.rightsOutcomeId || null;
       this.employmentSnapshot = Object.freeze({ ...data.employmentSnapshot });
       this.marketRulesSnapshot = data.marketRulesSnapshot ? Object.freeze({ ...data.marketRulesSnapshot }) : null;
-      this.budgetReservationId = data.budgetReservationId;
-      // SIEMPRE esta constante — MARKET-1 nunca ejecuta la formalización.
-      this.executionState = 'pending-transfer-1';
+      this.budgetReservationGroupId = data.budgetReservationGroupId;
+      // Vínculo con la transacción completada (TRANSFER-1) — null hasta que
+      // exista un `TransactionRecord`. Un consumo idempotente devuelve
+      // siempre este mismo id; nunca se reescribe una vez fijado.
+      this.completedTransactionId = data.completedTransactionId || null;
+      this.events = [];
+      this.addEvent({ id: `${this.id}:agreement-created`, type: 'agreement-created', date: this.acceptedAt });
+      (data.events || []).filter((e) => e.type !== 'agreement-created').forEach((event) => this.addEvent(event));
       this.provenance = {
         dataSource: data.provenance ? data.provenance.dataSource : null,
         isReal: data.provenance ? Boolean(data.provenance.isReal) : false,
       };
+    }
+
+    addEvent(event) {
+      this.events = appendValidatedEvent(Events().AgreementEvents, this.events, event, `AgreementInPrinciple "${this.id}"`);
+      return this;
+    }
+
+    // Estado DERIVADO en una fecha — nunca sobrescrito directamente. Un
+    // acuerdo vencido por `validUntil` sin haberse ejecutado se considera
+    // `expired` aunque nadie haya registrado el evento explícito todavía
+    // (mismo criterio que Contract.statusOn con `endDate`).
+    statusOn(date) {
+      const iso = date ? toIso(date) : null;
+      const eventStatus = Events().AgreementEvents.deriveStatus(this.events, iso);
+      if (Events().AGREEMENT_TERMINAL_STATUSES.has(eventStatus)) return eventStatus;
+      if (iso && LD().isAfter(iso, this.validUntil)) return 'expired';
+      return eventStatus;
+    }
+
+    // ¿Sigue BLOQUEANDO el mercado para este jugador en esta fecha? — un
+    // estado terminal (completed/expired/withdrawn/failed) nunca bloquea
+    // (BUG-MARKET1-06: antes `validUntil: null` lo trataba como vivo para
+    // siempre).
+    isLiveOn(date) {
+      return !Events().AGREEMENT_TERMINAL_STATUSES.has(this.statusOn(date));
     }
 
     toJSON() {
@@ -245,12 +295,15 @@
         clubId: this.clubId,
         acceptedAt: this.acceptedAt,
         validUntil: this.validUntil,
+        validityPolicyVersion: this.validityPolicyVersion,
         conditionsPrecedent: this.conditionsPrecedent,
         rightsOutcomeId: this.rightsOutcomeId,
         employmentSnapshot: this.employmentSnapshot,
         marketRulesSnapshot: this.marketRulesSnapshot,
-        budgetReservationId: this.budgetReservationId,
-        executionState: this.executionState,
+        budgetReservationGroupId: this.budgetReservationGroupId,
+        completedTransactionId: this.completedTransactionId,
+        events: this.events,
+        executionState: this.statusOn(null),
         provenance: this.provenance,
       };
     }
