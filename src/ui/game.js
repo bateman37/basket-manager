@@ -139,6 +139,25 @@
     lastRoundMatches: null, // partidos de la última jornada simulada (para pantalla de inicio)
     pendingUserMatch: null, // { match } — partido del usuario de la jornada recién simulada, pendiente de revelar en pantalla de partido
     matchReveal: null, // estado de revelado progresivo por cuartos de la pantalla de partido
+    // LOAN-1 (DESIGN.md 9.21): registro canónico de cesiones — instancia
+    // EXPLÍCITA por carrera, igual criterio que el resto de registries
+    // (nunca un singleton), inicializada en bootstrapMarketForNewCareer() y
+    // limpiada al volver a selección de equipo.
+    loanRegistry: null,
+    // BUG-TRANSFER1-18 (DESIGN.md 9.21): contador determinista por AIP para
+    // el id de cada ronda de negociación club-club — nunca `Date.now()`
+    // (rompía la determinación de `TransferService.generateCounterFee()`,
+    // que usa `offerId` como parte de su semilla: la misma secuencia de
+    // acciones del usuario podía producir una contraoferta DISTINTA en cada
+    // partida, aunque el resto del estado fuera idéntico).
+    transferNegotiationOfferSequence: {},
+    // LOAN-1 (DESIGN.md 9.21) — mismo criterio: contador determinista por
+    // (jugador, propietario, cesionario, fecha) para el id de cada intento
+    // de negociación de cesión — un rechazo/contraoferta dentro de la MISMA
+    // fecha de carrera no puede reutilizar el id del `LoanCase` anterior
+    // (LoanRegistry.registerCase rechaza una segunda instancia con el mismo
+    // id, aunque el expediente previo ya sea terminal).
+    loanNegotiationAttemptSequence: {},
     statsCompetition: 'league', // 'league' | 'cup' | 'playoffs' — selector de la pantalla de estadísticas
     statsSortKey: 'points', // columna activa de ordenación en la tabla de medias (retoques de estadísticas)
     // DESIGN.md 7.12.25/7.12.32 (TAC-7): equipo elegido manualmente en el
@@ -267,6 +286,8 @@
       roundId: opts.roundId || null,
       matchId: opts.matchId || null,
       operation: opts.operation || 'buildMatchSquad',
+      // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt).
+      opponentClubId: opts.opponentClubId || null,
     };
   }
 
@@ -305,6 +326,10 @@
         registrationRegistry: registry,
         medicalAvailability,
         classificationCache,
+        // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt): habilita
+        // "parent-club-match-eligibility" — usuario y CPU consultan el
+        // MISMO servicio con el MISMO registro.
+        loanRegistry: state.loanRegistry,
         ...extraDeps,
       };
       return { player, accessCategory, evaluation: EligibilityService.evaluateEligibility(player.id, team.id, context, deps) };
@@ -364,6 +389,10 @@
       phaseId: 'league',
       roundId: nextMatch ? nextMatch.round : null,
       matchId: nextMatch ? matchStableId(nextMatch) : null,
+      // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt): rival real del
+      // próximo partido — habilita "parent-club-match-eligibility" en
+      // EligibilityService (usuario y CPU consultan el mismo servicio).
+      opponentClubId: nextMatch ? (nextMatch.homeTeam.id === team.id ? nextMatch.awayTeam.id : nextMatch.homeTeam.id) : null,
     };
   }
 
@@ -663,7 +692,7 @@
 
   function bootstrapMarketForNewCareer() {
     const {
-      AgentRegistry, MarketRegistry, MarketSeeder, TransferRegistry, CONFIG_BASE,
+      AgentRegistry, MarketRegistry, MarketSeeder, TransferRegistry, LoanRegistry, CONFIG_BASE,
     } = BM;
     state.agentRegistry = new AgentRegistry();
     state.marketRegistry = new MarketRegistry();
@@ -671,6 +700,10 @@
     // criterio que el resto de registros canónicos — nunca un singleton,
     // se limpia al volver a selección de equipo (ver más abajo).
     state.transferRegistry = new TransferRegistry();
+    state.transferNegotiationOfferSequence = {};
+    // LOAN-1 (DESIGN.md 9.21): mismo criterio.
+    state.loanRegistry = new LoanRegistry();
+    state.loanNegotiationAttemptSequence = {};
     state.marketBootstrapWarnings = [];
     state.marketAgendaLog = [];
 
@@ -1066,6 +1099,11 @@
     // ya haya alcanzado su fecha efectiva real, mismo punto único que el
     // resto del desarrollo de carrera.
     processDueScheduledTransfersToDate(date);
+    // LOAN-1 (DESIGN.md 9.21, sección 18 del prompt): mismo punto único del
+    // reloj — un retorno de cesión efectivo antes del próximo partido se
+    // procesa aquí, nunca repartido por los call-sites de Liga/Copa/
+    // Playoffs/Ascenso.
+    processDueLoanReturnsToDate(date);
   }
 
   // MARKET-1 (DESIGN.md 9.19, sección 15.4 del prompt): primer punto que
@@ -1161,6 +1199,75 @@
     }));
   }
 
+  // LOAN-1 (DESIGN.md 9.21, sección 19 del prompt) — noticia SOLO tras
+  // commit real (nunca al proponer/negociar): "opción ejercida" nunca se
+  // presenta como "fichado", un retorno pendiente de inscripción se explica
+  // como tal, nunca como una cesión completada sin matices.
+  function pushLoanNews(agreement, kind, extra) {
+    const player = state.playerRegistry.get(agreement.playerId);
+    const ownerTeam = getAllTeams().find((t) => t.id === agreement.ownerClubId);
+    const borrowerTeam = getAllTeams().find((t) => t.id === agreement.borrowerClubId);
+    if (!player || !ownerTeam || !borrowerTeam) return;
+    const involvesUser = ownerTeam.id === state.userTeamId || borrowerTeam.id === state.userTeamId;
+    let title;
+    let relatedTeam;
+    if (kind === 'activated') {
+      title = `${player.fullName} sale cedido a ${borrowerTeam.fullName} procedente de ${ownerTeam.fullName}`;
+      relatedTeam = borrowerTeam;
+    } else if (kind === 'returned') {
+      title = (extra && extra.registrationOutcome === 'pending-registration')
+        ? `${player.fullName} regresa de su cesión en ${borrowerTeam.fullName} — pendiente de inscripción en ${ownerTeam.fullName}`
+        : `${player.fullName} regresa de su cesión en ${borrowerTeam.fullName} a ${ownerTeam.fullName}`;
+      relatedTeam = ownerTeam;
+    } else if (kind === 'early-termination') {
+      title = `La cesión de ${player.fullName} en ${borrowerTeam.fullName} termina anticipadamente — vuelve a ${ownerTeam.fullName}`;
+      relatedTeam = ownerTeam;
+    } else if (kind === 'option-exercised') {
+      // Nunca "fichado" — la opción solo ABRE la vía de TRANSFER-1, el
+      // jugador sigue cedido hasta que exista consentimiento/contrato real.
+      title = `${extra && extra.beneficiaryTeamName} ejerce su opción de compra sobre ${player.fullName} — pendiente de acuerdo del jugador`;
+      relatedTeam = borrowerTeam;
+    } else {
+      return;
+    }
+    pushNews(BM.buildMarketNewsEvent({
+      dateTime: state.calendar.currentGameDateTime,
+      title,
+      relatedTeam,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      priority: involvesUser ? 'alta' : 'media',
+    }));
+  }
+
+  // LOAN-1 (DESIGN.md 9.21, sección 18 del prompt) — "un retorno efectivo
+  // antes de un partido se procesa antes de construir convocatoria/acta":
+  // mismo punto único del reloj que `processDueScheduledTransfersToDate()`,
+  // revalida SIEMPRE desde cero (LoanExecutionService replanifica, nunca
+  // ejecuta a ciegas un plan viejo).
+  function processDueLoanReturnsToDate(date) {
+    if (!state.loanRegistry) return;
+    const isoDate = currentGameIsoDate();
+    const deps = {
+      playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry,
+      transferRegistry: state.transferRegistry, loanRegistry: state.loanRegistry, teams: getAllTeams(), now: isoDate,
+      operationalContext: currentTransferOperationalContext(), lineup: state.lineup,
+    };
+    state.loanRegistry.allAgreements()
+      .filter((agreement) => agreement.currentStatus() === 'active' && !BM.LocalDate.isAfter(agreement.returnEffectiveDate, isoDate))
+      .forEach((agreement) => {
+        const ownerTeam = deps.teams.find((t) => t.id === agreement.ownerClubId);
+        const borrowerTeam = deps.teams.find((t) => t.id === agreement.borrowerClubId);
+        if (!ownerTeam || !borrowerTeam) return;
+        const { result } = BM.LoanService.returnLoan({
+          ...deps, agreement, ownerTeam, borrowerTeam, effectiveDate: agreement.returnEffectiveDate, seasonKey: buildCareerSeasonKey(), commit: true,
+        });
+        if (result && result.record) {
+          cleanupSessionReferencesForPlayer(agreement.playerId);
+          pushLoanNews(agreement, 'returned', { registrationOutcome: result.registrationOutcome });
+        }
+      });
+  }
+
   // TRANSFER-1 (DESIGN.md 9.20, sección 11.2 del prompt) — "fichaje futuro
   // tras expiración": reintenta cada expediente `scheduled` (contrato con
   // inicio posterior a la fecha en que se formalizó) cuya fecha efectiva ya
@@ -1174,6 +1281,7 @@
     const deps = {
       playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry,
       marketRegistry: state.marketRegistry, transferRegistry: state.transferRegistry, teams: getAllTeams(), now: isoDate,
+      operationalContext: currentTransferOperationalContext(), lineup: state.lineup,
     };
     state.transferRegistry.allCases()
       .filter((tCase) => tCase.statusOn(null) === 'scheduled' && tCase.effectiveDate && tCase.effectiveDate <= isoDate)
@@ -4744,6 +4852,7 @@
       phaseId: (matchContext && matchContext.phaseId) || competition,
       roundId: matchContext ? matchContext.roundId : null,
       matchId: matchContext ? matchContext.matchId : null,
+      opponentClubId: opponent.id,
     });
     const resolved = BM.resolveRules(context);
     // REG-1 (sección 11.3 del prompt): la CPU consulta EXACTAMENTE
@@ -6053,7 +6162,9 @@
     const benefits = ContractService.benefitsValueForClub(registry, team.id, seasonKey);
     const agentCosts = ContractService.agentCostsForClub(registry, team.id, seasonKey);
     const commitments = ContractService.futureCommitmentsForClub(registry, team.id, seasonKey);
-    const integrity = registry.validateIntegrity({ playerRegistry: state.playerRegistry, teams: getAllTeams(), date: isoDate });
+    const integrity = registry.validateIntegrity({
+      playerRegistry: state.playerRegistry, teams: getAllTeams(), date: isoDate, loanRegistry: state.loanRegistry,
+    });
 
     const maxCommitment = commitments.reduce((acc, c) => Math.max(acc, c.guaranteed.amountMinor), 0) || 1;
     const commitmentRows = commitments.map((commitment) => `
@@ -6082,10 +6193,24 @@
       })
       .sort((a, b) => b.breakdown.guaranteedTotalMinor - a.breakdown.guaranteedTotalMinor);
 
-    const rosterRows = contracts.map((row) => `
+    // LOAN-1 (DESIGN.md 9.21, sección 20.3 del prompt) — un cedido FUERA
+    // conserva su contrato aquí (Contract.clubId sigue siendo este club),
+    // pero NUNCA se reinserta en el roster operativo: se marca con badge,
+    // nunca se oculta ni se confunde con la plantilla activa.
+    const outboundLoansByPlayer = new Map();
+    if (state.loanRegistry) {
+      state.loanRegistry.agreementsForOwner(team.id).filter((a) => a.currentStatus() === 'active').forEach((a) => {
+        outboundLoansByPlayer.set(a.playerId, a);
+      });
+    }
+    const rosterRows = contracts.map((row) => {
+      const outboundLoan = outboundLoansByPlayer.get(row.contract.playerId);
+      const borrowerTeam = outboundLoan ? getAllTeams().find((t) => t.id === outboundLoan.borrowerClubId) : null;
+      return `
       <tr>
         <td data-label="Jugador">${row.player ? playerLinkHtml(row.player) : escapeHtml(row.contract.playerId)}
-          <span class="gm-badge gm-badge--simulated" title="${escapeHtml(BM.ContractSeeder.SIMULATED_CONTRACT_WARNING)}">Simulado</span></td>
+          <span class="gm-badge gm-badge--simulated" title="${escapeHtml(BM.ContractSeeder.SIMULATED_CONTRACT_WARNING)}">Simulado</span>
+          ${outboundLoan ? ` <span class="gm-badge" title="Cedido a ${escapeHtml(borrowerTeam ? borrowerTeam.fullName : outboundLoan.borrowerClubId)} hasta ${escapeHtml(formatIsoDateEs(outboundLoan.returnEffectiveDate))}">Cedido fuera</span>` : ''}</td>
         <td data-label="Estado">${escapeHtml(CONTRACT_STATUS_LABELS[row.status])}</td>
         <td data-label="Inicio">${escapeHtml(formatIsoDateEs(row.contract.startDate))}</td>
         <td data-label="Final">${escapeHtml(formatIsoDateEs(row.contract.endDate))}</td>
@@ -6095,7 +6220,35 @@
         <td data-label="Imagen/especie">${formatMoneyMinor(row.breakdown.guaranteedImageRightsMinor + row.breakdown.guaranteedSalaryInKindMinor, row.breakdown.currency)}</td>
         <td data-label="Cuotas">${row.contract.paymentPolicy.installmentCount}</td>
         <td data-label="Cláusulas">${row.clauseLabels.length ? escapeHtml(row.clauseLabels.join(', ')) : '—'}</td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
+
+    // LOAN-1 (DESIGN.md 9.21, sección 20.3 del prompt) — cesionario: badge
+    // "Cedido", propietario, retorno, coste asumido; el contrato de un
+    // cedido IN nunca aparece en la tabla de arriba (Contract.clubId sigue
+    // siendo del propietario), así que necesita su propia sección.
+    const inboundLoans = state.loanRegistry ? state.loanRegistry.agreementsForBorrower(team.id).filter((a) => a.currentStatus() === 'active') : [];
+    const inboundLoansHtml = inboundLoans.length ? `
+      <div class="gm-card">
+        <h3>Jugadores cedidos que refuerzan tu plantilla (${inboundLoans.length})</h3>
+        <div class="gm-table-scroll">
+          <table class="gm-table">
+            <thead><tr><th>Jugador</th><th>Propietario</th><th>Retorno</th><th>Coste asumido (${seasonKey})</th></tr></thead>
+            <tbody>${inboundLoans.map((a) => {
+    const p = state.playerRegistry.get(a.playerId);
+    const owner = getAllTeams().find((t) => t.id === a.ownerClubId);
+    const masterContract = registry.get(a.masterContractId);
+    const exposure = BM.LoanCostService.loanExposureForAgreement({ agreement: a, masterContract, seasonKey });
+    return `<tr>
+              <td data-label="Jugador">${p ? playerLinkHtml(p) : escapeHtml(a.playerId)} <span class="gm-badge">Cedido</span></td>
+              <td data-label="Propietario">${owner ? escapeHtml(owner.fullName) : '—'}</td>
+              <td data-label="Retorno">${escapeHtml(formatIsoDateEs(a.returnEffectiveDate))}</td>
+              <td data-label="Coste asumido">${formatMoneyMinor(exposure.salary.borrowerAssumedMinor, exposure.currency)}</td>
+            </tr>`;
+  }).join('')}</tbody>
+          </table>
+        </div>
+      </div>` : '';
 
     const minimum = resolved.employment.effectiveMinimumAnnual;
 
@@ -6162,6 +6315,8 @@
           </table>
         </div>
       </div>
+
+      ${inboundLoansHtml}
 
       ${integrity.valid ? '' : `
       <div class="gm-card contract-integrity">
@@ -6345,7 +6500,17 @@
     { id: 'agents', label: 'Agentes' },
     { id: 'rights', label: 'Derechos' },
     { id: 'operations', label: 'Operaciones' },
+    // LOAN-1 (DESIGN.md 9.21, sección 20.1 del prompt).
+    { id: 'loans', label: 'Cesiones' },
   ];
+
+  const LOAN_CASE_STATUS_LABELS = {
+    draft: 'Borrador', proposed: 'Propuesta enviada', countered: 'Contraoferta', awaitingOwnerConsent: 'Esperando consentimiento del propietario',
+    awaitingBorrowerConsent: 'Esperando consentimiento del cesionario', awaitingPlayerConsent: 'Esperando consentimiento del jugador',
+    agreed: 'Acordada', pendingDocuments: 'Pendiente de documentos', pendingRegistration: 'Pendiente de inscripción', scheduled: 'Programada',
+    active: 'Activa', returnScheduled: 'Retorno programado', returned: 'Finalizada (retorno)', rejected: 'Rechazada', withdrawn: 'Retirada',
+    expired: 'Expirada', blocked: 'Bloqueada', failed: 'Fallida', terminatedEarly: 'Terminada anticipadamente', convertedToPermanentTransfer: 'Convertida en traspaso definitivo',
+  };
 
   // TRANSFER-1 (DESIGN.md 9.20) — etiquetas de estado de TransferCase para
   // Mercado > Operaciones (sección 20.3 del prompt).
@@ -6401,6 +6566,7 @@
     else if (activeTab === 'agents') body = renderMarketAgentsTab();
     else if (activeTab === 'rights') body = renderMarketRightsTab(team, marketContext);
     else if (activeTab === 'operations') body = renderMarketOperationsTab(team);
+    else if (activeTab === 'loans') body = renderMarketLoansTab(team);
 
     container.innerHTML = `
       <h2>Mercado — ${escapeHtml(team.fullName)}</h2>
@@ -6794,6 +6960,123 @@
       </div>`;
   }
 
+  // ---------------------------------------------------------------------
+  // LOAN-1 (DESIGN.md 9.21, sección 20.1 del prompt) — Mercado > Cesiones.
+  // Capa de presentación pura sobre LoanService/LoanExecutionService/
+  // LoanCostService — ninguna regla de cesión vive aquí.
+  // ---------------------------------------------------------------------
+  function loanCedibleCandidates(excludeTeamId, includeTeamId) {
+    const isoDate = currentGameIsoDate();
+    const out = [];
+    getAllTeams().forEach((t) => {
+      if (excludeTeamId && t.id === excludeTeamId) return;
+      if (includeTeamId && t.id !== includeTeamId) return;
+      t.roster.forEach((player) => {
+        const contract = state.contractRegistry.currentForPlayer(player.id, isoDate);
+        if (!contract || contract.clubId !== t.id || !contract.isActiveOn(isoDate)) return;
+        if (state.loanRegistry.activeAgreementForPlayer(player.id, isoDate)) return;
+        if (state.loanRegistry.liveCasesForPlayer(player.id, isoDate).length) return;
+        out.push({
+          player, team: t, contract,
+        });
+      });
+    });
+    return out.sort((a, b) => a.player.fullName.localeCompare(b.player.fullName, 'es')).slice(0, 300);
+  }
+
+  function loanCaseRowHtml(loanCase, team) {
+    const isoDate = currentGameIsoDate();
+    const player = state.playerRegistry.get(loanCase.playerId);
+    const ownerTeam = getAllTeams().find((t) => t.id === loanCase.ownerClubId);
+    const borrowerTeam = getAllTeams().find((t) => t.id === loanCase.borrowerClubId);
+    const status = loanCase.statusOn(isoDate);
+    const agreement = loanCase.agreementId ? state.loanRegistry.getAgreement(loanCase.agreementId) : null;
+    const counterpart = loanCase.ownerClubId === team.id ? borrowerTeam : ownerTeam;
+    const role = loanCase.ownerClubId === team.id ? 'Cedes' : 'Recibes';
+    let actionsHtml = '';
+    if (agreement && agreement.currentStatus() === 'active') {
+      const recallClause = agreement.clauses.find((c) => c.type === 'recall-right' && c.holderClubId === 'owner');
+      const canRecall = loanCase.ownerClubId === team.id && recallClause
+        && recallClause.windows.some((w) => !BM.LocalDate.isBefore(isoDate, w.startDate) && !BM.LocalDate.isAfter(isoDate, w.endDate));
+      const earlyTerminationClause = agreement.clauses.find((c) => c.type === 'early-termination');
+      if (canRecall) actionsHtml += `<button type="button" class="gm-btn gm-loan-recall-btn" data-agreement-id="${agreement.id}" data-recall-clause-id="${recallClause.id}">Ejercer recall</button> `;
+      if (earlyTerminationClause) actionsHtml += `<button type="button" class="gm-btn gm-loan-early-term-btn" data-agreement-id="${agreement.id}" data-clause-id="${earlyTerminationClause.id}">Terminar anticipadamente</button>`;
+      const purchaseClause = agreement.clauses.find((c) => (c.type === 'purchase-option' || c.type === 'purchase-obligation')
+        && (c.beneficiaryClubId === 'owner' ? loanCase.ownerClubId : loanCase.borrowerClubId) === team.id);
+      if (purchaseClause && !BM.LocalDate.isBefore(isoDate, purchaseClause.windowStart) && !BM.LocalDate.isAfter(isoDate, purchaseClause.windowEnd)) {
+        actionsHtml += ` <button type="button" class="gm-btn gm-loan-exercise-option-btn" data-agreement-id="${agreement.id}" data-clause-id="${purchaseClause.id}">Ejercer ${escapeHtml(formatMoneyMinor(purchaseClause.price.amountMinor, purchaseClause.price.currency))}</button>`;
+      }
+    }
+    const blockersText = loanCase.lastBlockers && loanCase.lastBlockers.length ? loanCase.lastBlockers.map((b) => b.message).join(' · ') : '';
+    return `
+      <tr>
+        <td data-label="Jugador">${player ? playerLinkHtml(player) : escapeHtml(loanCase.playerId)}</td>
+        <td data-label="Rol">${role}</td>
+        <td data-label="Contraparte">${counterpart ? escapeHtml(counterpart.fullName) : '—'}</td>
+        <td data-label="Estado">${escapeHtml(LOAN_CASE_STATUS_LABELS[status] || status)}${blockersText ? ` <span class="gm-muted">(${escapeHtml(blockersText)})</span>` : ''}</td>
+        <td data-label="Retorno">${agreement ? escapeHtml(formatIsoDateEs(agreement.returnEffectiveDate)) : '—'}</td>
+        <td data-label="Acciones">${actionsHtml || '—'}</td>
+      </tr>`;
+  }
+
+  function renderMarketLoansTab(team) {
+    if (!state.loanRegistry) return '<div class="gm-card"><p class="gm-muted">Cesiones no disponibles todavía.</p></div>';
+    const isoDate = currentGameIsoDate();
+    const ownCases = state.loanRegistry.casesForOwner(team.id);
+    const inCases = state.loanRegistry.casesForBorrower(team.id);
+    const allCases = [...ownCases, ...inCases].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    const casesHtml = allCases.length
+      ? `<div class="gm-table-scroll"><table class="gm-table">
+          <thead><tr><th>Jugador</th><th>Rol</th><th>Contraparte</th><th>Estado</th><th>Retorno</th><th>Acciones</th></tr></thead>
+          <tbody>${allCases.map((c) => loanCaseRowHtml(c, team)).join('')}</tbody>
+        </table></div>`
+      : '<p class="gm-muted">Sin expedientes de cesión para este club por ahora.</p>';
+
+    const ownCandidates = loanCedibleCandidates(null, team.id);
+    const otherCandidates = loanCedibleCandidates(team.id, null);
+    const otherTeams = getAllTeams().filter((t) => t.id !== team.id).sort((a, b) => a.fullName.localeCompare(b.fullName, 'es'));
+
+    const ownPlayerOptions = ownCandidates.map(({ player }) => `<option value="${player.id}">${escapeHtml(player.fullName)}</option>`).join('');
+    const otherTeamOptions = otherTeams.map((t) => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join('');
+    const otherPlayerOptions = otherCandidates.map(({ player, team: t }) => `<option value="${player.id}">${escapeHtml(player.fullName)} — ${escapeHtml(t.fullName)}</option>`).join('');
+
+    return `
+      <div class="gm-card">
+        <h3>Cesiones activas y pendientes</h3>
+        ${casesHtml}
+      </div>
+      <div class="gm-card">
+        <h3>Ceder un jugador propio</h3>
+        ${ownPlayerOptions ? `
+        <form id="gm-loan-out-form" class="gm-loan-form">
+          <label>Jugador <select name="playerId" required>${ownPlayerOptions}</select></label>
+          <label>Club cesionario <select name="counterpartTeamId" required>${otherTeamOptions}</select></label>
+          <label>Inicio de servicio <input type="date" name="serviceStartDate" value="${isoDate}" required></label>
+          <label>Fecha de retorno <input type="date" name="returnEffectiveDate" required></label>
+          <label>Canon (€) <input type="number" name="loanFeeEuros" min="0" step="1000" value="0"></label>
+          <label>% de salario que retiene tu club <input type="number" name="ownerSharePercent" min="0" max="100" value="50"></label>
+          <label><input type="checkbox" name="recallRight"> Reservar cláusula de recall (con preaviso de 7 días)</label>
+          <label><input type="checkbox" name="purchaseOption"> Ofrecer opción de compra al cesionario</label>
+          <label>Precio de la opción (€) <input type="number" name="purchaseOptionPriceEuros" min="0" step="1000" value="0"></label>
+          <button type="submit" class="gm-btn gm-btn--primary">Proponer cesión</button>
+        </form>
+        <div class="gm-loan-out-result gm-muted"></div>` : '<p class="gm-muted">Ningún jugador propio cedible ahora mismo.</p>'}
+      </div>
+      <div class="gm-card">
+        <h3>Solicitar la cesión de un jugador de otro club</h3>
+        ${otherPlayerOptions ? `
+        <form id="gm-loan-in-form" class="gm-loan-form">
+          <label>Jugador <select name="playerId" required>${otherPlayerOptions}</select></label>
+          <label>Inicio de servicio <input type="date" name="serviceStartDate" value="${isoDate}" required></label>
+          <label>Fecha de retorno <input type="date" name="returnEffectiveDate" required></label>
+          <label>Canon (€) <input type="number" name="loanFeeEuros" min="0" step="1000" value="0"></label>
+          <label>% de salario que asumes <input type="number" name="borrowerSharePercent" min="0" max="100" value="50"></label>
+          <button type="submit" class="gm-btn gm-btn--primary">Solicitar cesión</button>
+        </form>
+        <div class="gm-loan-in-result gm-muted"></div>` : '<p class="gm-muted">Ningún jugador cedible disponible en otros clubes ahora mismo.</p>'}
+      </div>`;
+  }
+
   function renderMarketRightsTab(team, marketContext) {
     if (!marketContext.capabilities.has('supportsRightOfFirstRefusal')) {
       return '<div class="gm-card"><p class="gm-muted">Esta competición no tiene procedimiento doméstico de derecho preferente codificado.</p></div>';
@@ -6971,6 +7254,7 @@
         const deps = {
           transferRegistry: state.transferRegistry, marketRegistry: state.marketRegistry, registrationRegistry: state.registrationRegistry,
           contractRegistry: state.contractRegistry, playerRegistry: state.playerRegistry, teams: getAllTeams(),
+          operationalContext: currentTransferOperationalContext(), lineup: state.lineup,
         };
         const seasonKey = buildCareerSeasonKey();
         try {
@@ -7014,7 +7298,12 @@
         const originTeam = getAllTeams().find((t) => t.id === originContract.clubId);
         const player = state.playerRegistry.get(agreement.playerId);
         const feeMinor = Math.round(feeEuros * 100);
-        const proposedOffer = { id: `ui-offer:${agreement.id}:${Date.now()}`, fee: { amountMinor: feeMinor, currency: 'EUR' } };
+        // BUG-TRANSFER1-18 (DESIGN.md 9.21): id determinista por ronda de
+        // negociación (nunca `Date.now()` — ver comentario de
+        // `state.transferNegotiationOfferSequence` más arriba).
+        state.transferNegotiationOfferSequence[agreement.id] = (state.transferNegotiationOfferSequence[agreement.id] || 0) + 1;
+        const offerRound = state.transferNegotiationOfferSequence[agreement.id];
+        const proposedOffer = { id: `ui-offer:${agreement.id}:${offerRound}`, fee: { amountMinor: feeMinor, currency: 'EUR' } };
         const evaluation = BM.TransferService.evaluateSellingClub({
           originTeam, player, originContract, offer: proposedOffer, careerSeed, date: isoDate, seasonKey: buildCareerSeasonKey(),
         });
@@ -7043,6 +7332,7 @@
             contractRegistry: state.contractRegistry, playerRegistry: state.playerRegistry, teams: getAllTeams(),
             agreement, originTeam, destinationTeam: team, seasonKey: buildCareerSeasonKey(), effectiveDate: isoDate, now: isoDate, commit: true,
             clubOffer: proposedOffer, playerConsentGrantedAt: isoDate,
+            operationalContext: currentTransferOperationalContext(), lineup: state.lineup,
           });
           if (outcome.plan.blockers.length) {
             resultEl.textContent = outcome.plan.blockers.map((b) => b.message).join(' · ');
@@ -7056,6 +7346,231 @@
         }
       });
     });
+
+    wireMarketLoansTabActions(container, team, isoDate, careerSeed);
+  }
+
+  // ---------------------------------------------------------------------
+  // LOAN-1 (DESIGN.md 9.21, sección 20.1/20.2 del prompt) — negociación
+  // tripartita resuelta en un único envío (mismo patrón UX que el
+  // formulario de oferta club-club de TRANSFER-1): propone -> el club CPU
+  // evalúa determinísticamente -> si acepta, el jugador reacciona -> si las
+  // tres partes consienten sobre la MISMA versión, se forma el acuerdo y se
+  // activa de inmediato (la UI solo admite cesiones que empiezan HOY —
+  // simplificación de producto explícita, documentada en DESIGN.md 9.21;
+  // una cesión programada para el futuro queda fuera de esta entrega).
+  // ---------------------------------------------------------------------
+  function buildLoanClausesFromForm(data) {
+    const clauses = [];
+    if (data.get('recallRight')) {
+      clauses.push({
+        type: 'recall-right', holderClubId: 'owner', noticeDays: 7,
+        windows: [{ startDate: data.get('serviceStartDate'), endDate: data.get('returnEffectiveDate') }],
+      });
+    }
+    if (data.get('purchaseOption')) {
+      const priceEuros = Number(data.get('purchaseOptionPriceEuros'));
+      if (priceEuros > 0) {
+        clauses.push({
+          type: 'purchase-option', beneficiaryClubId: 'borrower', price: { amountMinor: Math.round(priceEuros * 100), currency: 'EUR' },
+          windowStart: data.get('serviceStartDate'), windowEnd: data.get('returnEffectiveDate'),
+        });
+      }
+    }
+    return clauses;
+  }
+
+  function runLoanNegotiation(params) {
+    const {
+      loanRegistry, contractRegistry, teams, ownerTeam, borrowerTeam, playerId, initiatingClubId, now, seasonKey,
+      serviceStartDate, returnEffectiveDate, loanFee, salaryAllocation, clauses, careerSeed, operationalContext, resultEl,
+    } = params;
+    // BUG-TRANSFER1-18 (DESIGN.md 9.21, mismo criterio aplicado a LOAN-1):
+    // id determinista por intento — nunca `Date.now()`, y nunca reutiliza
+    // el id de un expediente anterior (aunque ya sea terminal) para la
+    // MISMA combinación jugador/propietario/cesionario/fecha.
+    const attemptKey = `${playerId}:${ownerTeam.id}:${borrowerTeam.id}:${serviceStartDate}`;
+    state.loanNegotiationAttemptSequence[attemptKey] = (state.loanNegotiationAttemptSequence[attemptKey] || 0) + 1;
+    const attempt = state.loanNegotiationAttemptSequence[attemptKey];
+    const { loanCase, proposal, resolvedRules } = BM.LoanService.openCaseAndPropose({
+      loanRegistry, contractRegistry, ownerTeam, borrowerTeam, playerId, initiatingClubId, now, seasonKey,
+      serviceStartDate, returnEffectiveDate, loanFee, salaryAllocation, clauses,
+      medicalResponsibility: { responsibleParty: 'borrower' }, insuranceResponsibility: { responsibleParty: 'shared' },
+      documentsRequired: [], expiresAt: now,
+      id: `loan-case:${attemptKey}:${attempt}`,
+    });
+    if (resolvedRules.blockers.length) {
+      loanCase.addEvent({ id: `${loanCase.id}:blocked`, type: 'blocked', date: now });
+      resultEl.textContent = resolvedRules.blockers.map((b) => b.message).join(' · ');
+      return;
+    }
+    const initiatingIsOwner = initiatingClubId === ownerTeam.id;
+    BM.LoanService.grantConsent({
+      loanRegistry, loanCase, partyType: initiatingIsOwner ? 'ownerClub' : 'borrowerClub', partyId: initiatingClubId, now, grantedBy: 'gm',
+    });
+    const player = state.playerRegistry.get(playerId);
+    const masterContract = contractRegistry.get(loanCase.masterContractId);
+    const counterpartEvaluation = initiatingIsOwner
+      ? BM.LoanService.evaluateBorrowerClub({
+        borrowerTeam, player, proposal, careerSeed, date: now,
+      })
+      : BM.LoanService.evaluateOwnerClub({
+        ownerTeam, player, masterContract, proposal, careerSeed, date: now,
+      });
+    if (counterpartEvaluation.decision !== 'accept') {
+      loanCase.addEvent({ id: `${loanCase.id}:${counterpartEvaluation.decision === 'counter' ? 'countered' : 'rejected'}`, type: counterpartEvaluation.decision === 'counter' ? 'countered' : 'rejected', date: now });
+      resultEl.textContent = `${initiatingIsOwner ? borrowerTeam.fullName : ownerTeam.fullName} ${counterpartEvaluation.decision === 'counter' ? 'pide mejorar las condiciones' : 'rechaza la propuesta'}: ${counterpartEvaluation.reasons.join(' ')}`;
+      return;
+    }
+    BM.LoanService.grantConsent({
+      loanRegistry, loanCase, partyType: initiatingIsOwner ? 'borrowerClub' : 'ownerClub', partyId: initiatingIsOwner ? borrowerTeam.id : ownerTeam.id, now, grantedBy: 'gm',
+    });
+    const playerEvaluation = BM.LoanService.evaluatePlayerReaction({
+      player, proposal, borrowerTeam, careerSeed, date: now,
+    });
+    if (playerEvaluation.decision !== 'accept') {
+      loanCase.addEvent({ id: `${loanCase.id}:rejected`, type: 'rejected', date: now });
+      resultEl.textContent = `${player.fullName} no acepta la cesión: ${playerEvaluation.reasons.join(' ')}`;
+      return;
+    }
+    BM.LoanService.grantConsent({
+      loanRegistry, loanCase, partyType: 'player', partyId: playerId, now, grantedBy: playerId,
+    });
+    const agreement = BM.LoanService.formAgreement({
+      loanRegistry, contractRegistry, loanCase, now, resolvedRules,
+    });
+    const { plan, result } = BM.LoanService.activateLoan({
+      loanRegistry,
+      playerRegistry: state.playerRegistry,
+      contractRegistry,
+      registrationRegistry: state.registrationRegistry,
+      transferRegistry: state.transferRegistry,
+      teams,
+      agreement,
+      ownerTeam,
+      borrowerTeam,
+      now,
+      effectiveDate: serviceStartDate,
+      seasonKey,
+      operationalContext,
+      lineup: state.lineup,
+      commit: true,
+    });
+    if (plan.blockers.length) {
+      resultEl.textContent = plan.blockers.map((b) => b.message).join(' · ');
+      return;
+    }
+    if (result && result.record) {
+      cleanupSessionReferencesForPlayer(playerId);
+      pushLoanNews(agreement, 'activated');
+    }
+    renderMarketScreen();
+  }
+
+  function wireMarketLoansTabActions(container, team, isoDate, careerSeed) {
+    const outForm = byId('gm-loan-out-form');
+    if (outForm) {
+      outForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const resultEl = container.querySelector('.gm-loan-out-result');
+        const data = new FormData(outForm);
+        const counterpartTeam = getAllTeams().find((t) => t.id === data.get('counterpartTeamId'));
+        if (!counterpartTeam) return;
+        const feeEuros = Number(data.get('loanFeeEuros')) || 0;
+        const ownerShare = Math.round(Number(data.get('ownerSharePercent')) * 100);
+        try {
+          runLoanNegotiation({
+            loanRegistry: state.loanRegistry, contractRegistry: state.contractRegistry, teams: getAllTeams(),
+            ownerTeam: team, borrowerTeam: counterpartTeam, playerId: data.get('playerId'), initiatingClubId: team.id,
+            now: isoDate, seasonKey: buildCareerSeasonKey(), serviceStartDate: data.get('serviceStartDate'), returnEffectiveDate: data.get('returnEffectiveDate'),
+            loanFee: feeEuros > 0 ? { amountMinor: Math.round(feeEuros * 100), currency: 'EUR' } : null,
+            salaryAllocation: { ownerShareBasisPoints: ownerShare, borrowerShareBasisPoints: 10000 - ownerShare },
+            clauses: buildLoanClausesFromForm(data), careerSeed, operationalContext: currentTransferOperationalContext(), resultEl,
+          });
+        } catch (err) {
+          resultEl.textContent = err.message;
+        }
+      });
+    }
+
+    const inForm = byId('gm-loan-in-form');
+    if (inForm) {
+      inForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const resultEl = container.querySelector('.gm-loan-in-result');
+        const data = new FormData(inForm);
+        const playerId = data.get('playerId');
+        const sourceContract = state.contractRegistry.currentForPlayer(playerId, isoDate);
+        const ownerTeam = sourceContract ? getAllTeams().find((t) => t.id === sourceContract.clubId) : null;
+        if (!ownerTeam) { resultEl.textContent = 'El jugador seleccionado ya no está disponible.'; return; }
+        const feeEuros = Number(data.get('loanFeeEuros')) || 0;
+        const borrowerShare = Math.round(Number(data.get('borrowerSharePercent')) * 100);
+        try {
+          runLoanNegotiation({
+            loanRegistry: state.loanRegistry, contractRegistry: state.contractRegistry, teams: getAllTeams(),
+            ownerTeam, borrowerTeam: team, playerId, initiatingClubId: team.id,
+            now: isoDate, seasonKey: buildCareerSeasonKey(), serviceStartDate: data.get('serviceStartDate'), returnEffectiveDate: data.get('returnEffectiveDate'),
+            loanFee: feeEuros > 0 ? { amountMinor: Math.round(feeEuros * 100), currency: 'EUR' } : null,
+            salaryAllocation: { ownerShareBasisPoints: 10000 - borrowerShare, borrowerShareBasisPoints: borrowerShare },
+            clauses: [], careerSeed, operationalContext: currentTransferOperationalContext(), resultEl,
+          });
+        } catch (err) {
+          resultEl.textContent = err.message;
+        }
+      });
+    }
+
+    container.querySelectorAll('.gm-loan-recall-btn, .gm-loan-early-term-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const agreement = state.loanRegistry.getAgreement(btn.dataset.agreementId);
+        if (!agreement) return;
+        const ownerTeam = getAllTeams().find((t) => t.id === agreement.ownerClubId);
+        const borrowerTeam = getAllTeams().find((t) => t.id === agreement.borrowerClubId);
+        const isRecall = btn.classList.contains('gm-loan-recall-btn');
+        try {
+          const { plan, result } = isRecall
+            ? BM.LoanService.recallLoan({
+              loanRegistry: state.loanRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
+              registrationRegistry: state.registrationRegistry, transferRegistry: state.transferRegistry, teams: getAllTeams(),
+              agreement, ownerTeam, borrowerTeam, now: isoDate, effectiveDate: isoDate, seasonKey: buildCareerSeasonKey(),
+              operationalContext: currentTransferOperationalContext(), lineup: state.lineup, commit: true, recallClauseId: btn.dataset.recallClauseId,
+            })
+            : BM.LoanService.earlyTerminateLoan({
+              loanRegistry: state.loanRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
+              registrationRegistry: state.registrationRegistry, transferRegistry: state.transferRegistry, teams: getAllTeams(),
+              agreement, ownerTeam, borrowerTeam, now: isoDate, effectiveDate: isoDate, seasonKey: buildCareerSeasonKey(),
+              operationalContext: currentTransferOperationalContext(), lineup: state.lineup, commit: true,
+              earlyTerminationClauseId: btn.dataset.clauseId, earlyTerminationConsents: ['ownerClub', 'borrowerClub', 'player'],
+            });
+          if (plan.blockers.length) { window.alert(plan.blockers.map((b) => b.message).join(' · ')); return; }
+          if (result && result.record) {
+            cleanupSessionReferencesForPlayer(agreement.playerId);
+            pushLoanNews(agreement, isRecall ? 'returned' : 'early-termination', { registrationOutcome: result.registrationOutcome });
+          }
+          renderMarketScreen();
+        } catch (err) {
+          window.alert(err.message);
+        }
+      });
+    });
+
+    container.querySelectorAll('.gm-loan-exercise-option-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const agreement = state.loanRegistry.getAgreement(btn.dataset.agreementId);
+        if (!agreement) return;
+        try {
+          const exercise = BM.LoanService.exercisePurchaseOption({
+            loanRegistry: state.loanRegistry, agreement, clauseId: btn.dataset.clauseId, exercisedAt: isoDate,
+          });
+          const beneficiaryTeam = getAllTeams().find((t) => t.id === exercise.beneficiaryClubId);
+          pushLoanNews(agreement, 'option-exercised', { beneficiaryTeamName: beneficiaryTeam ? beneficiaryTeam.fullName : '' });
+          window.alert('Opción ejercida — el propietario queda obligado a vender según los términos pactados. La operación definitiva se formaliza como un traspaso normal en Mercado > Buscar jugadores / Negociaciones una vez el jugador dé su consentimiento.');
+          renderMarketScreen();
+        } catch (err) {
+          window.alert(err.message);
+        }
+      });
+    });
   }
 
   // TRANSFER-1 (DESIGN.md 9.20, sección 15.3 del prompt) — limpieza de
@@ -7065,6 +7580,19 @@
   // alineación en curso ni con un foco de entrenamiento/rol táctico
   // fantasma. Se llama SIEMPRE después de un commit de TRANSFER-1 que
   // haya podido mover a un jugador dentro o fuera del roster del usuario.
+  // BUG-TRANSFER1-16 (DESIGN.md 9.21): contexto operacional EXPLÍCITO que
+  // `TransferExecutionService.planTransaction()`/`commitTransaction()`
+  // exigen desde ahora como dependencia obligatoria — antes ningún llamador
+  // real de la UI lo pasaba nunca (el parámetro opcional
+  // `pendingUserMatchBlocks` se leía siempre como "falso" por ausencia), así
+  // que la protección de "hay un partido del usuario en curso o pendiente
+  // de revelar" solo funcionaba en fixtures de test. `state.matchReveal`
+  // (revelado progresivo por cuartos, sección "Interfaz de juego" de
+  // CLAUDE.md) es no-null exactamente mientras esa pantalla está activa.
+  function currentTransferOperationalContext() {
+    return { pendingUserMatchBlocks: Boolean(state.matchReveal) };
+  }
+
   function cleanupSessionReferencesForPlayer(playerId) {
     if (state.lineup) {
       state.lineup.squadIds = (state.lineup.squadIds || []).filter((id) => id !== playerId);
@@ -7301,6 +7829,12 @@
       // ofertas club-club/obligaciones/TransactionRecords pertenecen a
       // UNA partida, nunca sobreviven a "Volver a selección de equipo".
       state.transferRegistry = null;
+      state.transferNegotiationOfferSequence = {};
+      // LOAN-1 (DESIGN.md 9.21): mismo criterio — expedientes/propuestas/
+      // consentimientos/acuerdos de cesión pertenecen a UNA partida, nunca
+      // sobreviven a "Volver a selección de equipo".
+      state.loanRegistry = null;
+      state.loanNegotiationAttemptSequence = {};
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado
