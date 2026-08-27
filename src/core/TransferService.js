@@ -329,6 +329,12 @@
     };
     const { plan, result } = planAndMaybeCommit(command, {
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
+      // BUG-TRANSFER1-16 (DESIGN.md 9.21): estas fachadas RECONSTRUÍAN sus
+      // propias `deps` a mano en vez de reenviar `params` completo — así
+      // que `operationalContext`/`lineup` del llamador real (game.js) se
+      // perdían silenciosamente aquí, nunca llegaban a `planTransaction`/
+      // `commitTransaction`.
+      operationalContext: params.operationalContext, lineup: params.lineup,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
     advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
@@ -422,6 +428,12 @@
     };
     const { plan, result } = planAndMaybeCommit(command, {
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
+      // BUG-TRANSFER1-16 (DESIGN.md 9.21): estas fachadas RECONSTRUÍAN sus
+      // propias `deps` a mano en vez de reenviar `params` completo — así
+      // que `operationalContext`/`lineup` del llamador real (game.js) se
+      // perdían silenciosamente aquí, nunca llegaban a `planTransaction`/
+      // `commitTransaction`.
+      operationalContext: params.operationalContext, lineup: params.lineup,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
     advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
@@ -487,6 +499,12 @@
     };
     const { plan, result } = planAndMaybeCommit(command, {
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
+      // BUG-TRANSFER1-16 (DESIGN.md 9.21): estas fachadas RECONSTRUÍAN sus
+      // propias `deps` a mano en vez de reenviar `params` completo — así
+      // que `operationalContext`/`lineup` del llamador real (game.js) se
+      // perdían silenciosamente aquí, nunca llegaban a `planTransaction`/
+      // `commitTransaction`.
+      operationalContext: params.operationalContext, lineup: params.lineup,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
     advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
@@ -555,6 +573,7 @@
       // referencia — se valida por separado aquí, fuera del motor de AIP.
       const { plan, result } = planReleaseWithoutAgreement(command, {
         playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
+        operationalContext: params.operationalContext, lineup: params.lineup,
       }, resolvedRules, commit);
       if (result && result.record) transferCase.transactionId = result.record.id;
       advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
@@ -562,6 +581,12 @@
     }
     const { plan, result } = planAndMaybeCommit(command, {
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
+      // BUG-TRANSFER1-16 (DESIGN.md 9.21): estas fachadas RECONSTRUÍAN sus
+      // propias `deps` a mano en vez de reenviar `params` completo — así
+      // que `operationalContext`/`lineup` del llamador real (game.js) se
+      // perdían silenciosamente aquí, nunca llegaban a `planTransaction`/
+      // `commitTransaction`.
+      operationalContext: params.operationalContext, lineup: params.lineup,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
     advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
@@ -571,11 +596,21 @@
   // Variante de plan/commit para una liberación SIN AIP (mutuo acuerdo sin
   // destino nuevo) — reutiliza el mismo motor atómico saltándose solo la
   // comprobación de AIP vivo (no aplica cuando no hay destino nuevo).
-  function planReleaseWithoutAgreement(command, deps, resolvedRules, commit) {
-    const TransferExecutionServiceCore = ExecutionSvc();
-    // Se construye un plan MANUALMENTE (mismo criterio que planTransaction,
-    // reducido: sin AIP, sin nuevo contrato) para no forzar un AIP
-    // artificial en el registro de mercado.
+  //
+  // BUG-TRANSFER1-13/16/17 (DESIGN.md 9.21): esta era una SEGUNDA saga
+  // divergente de `TransferExecutionService.commitTransaction()`, con los
+  // MISMOS tres defectos por duplicación de código en vez de reutilización:
+  // tocaba mapas privados de los registros directamente en vez de sus APIs
+  // reversibles (`unregister...`), leía `deps.pendingUserMatchBlocks`
+  // opcional en vez de un `operationalContext` obligatorio, y ejecutaba a
+  // ciegas el `plan` recibido por parámetro sin revalidar contra el estado
+  // REAL en el momento del commit. `buildReleaseWithoutAgreementPlan()` es
+  // ahora la ÚNICA función que calcula blockers/fingerprint — tanto
+  // `planReleaseWithoutAgreement()` como `commitMutualReleaseWithoutAgreement()`
+  // la invocan (el commit la vuelve a invocar como "replan-at-commit", igual
+  // criterio que el motor principal), en vez de mantener dos copias del
+  // cálculo de blockers.
+  function buildReleaseWithoutAgreementPlan(command, deps, resolvedRules) {
     const effectiveDate = toIso(command.effectiveDate);
     const player = deps.playerRegistry.get(command.playerId);
     const originContract = deps.contractRegistry.currentForPlayer(command.playerId, effectiveDate);
@@ -585,14 +620,26 @@
     if (!command.mutualSettlement || !command.mutualSettlement.partiesConsent) {
       blockers.push({ code: 'MISSING_MUTUAL_SETTLEMENT', message: 'Falta el acuerdo explícito de mutuo acuerdo (partes/fecha/importe o fuente).' });
     }
-    if (deps.pendingUserMatchBlocks) blockers.push({ code: 'PENDING_USER_MATCH', message: 'Partido del usuario en curso/pendiente de revelar.' });
+    const hasOperationalContext = Boolean(deps.operationalContext) && typeof deps.operationalContext.pendingUserMatchBlocks === 'boolean';
+    if (!hasOperationalContext) {
+      blockers.push({ code: 'MISSING_OPERATIONAL_CONTEXT', message: 'Falta un contexto operacional explícito (¿hay un partido del usuario iniciado o pendiente de revelar?).' });
+    } else if (deps.operationalContext.pendingUserMatchBlocks) {
+      blockers.push({ code: 'PENDING_USER_MATCH', message: 'Partido del usuario en curso/pendiente de revelar.' });
+    }
 
-    const TransferEntitiesLocal = TransferEntities;
-    const plan = new TransferEntitiesLocal.TransferExecutionPlan({
+    // Fingerprint de CONTENIDO (BUG-TRANSFER1-17) — nunca solo un conteo.
+    const fingerprints = {
+      originContractId: originContract ? originContract.id : null,
+      originContractLifecycleHash: originContract ? JSON.stringify(originContract.lifecycleEvents) : null,
+      contractRegistryPlayerContractIds: deps.contractRegistry.forPlayer(command.playerId).map((c) => c.id),
+      pendingUserMatchBlocks: hasOperationalContext ? deps.operationalContext.pendingUserMatchBlocks : null,
+    };
+
+    return new TransferEntities.TransferExecutionPlan({
       transactionId: command.transactionId,
       command,
       preconditions: [],
-      fingerprints: { contractRegistrySizeForPlayer: deps.contractRegistry.forPlayer(command.playerId).length },
+      fingerprints,
       operations: ['register-termination-and-obligations', 'move-roster', 'apply-origin-deregistration', 'register-transaction-record'],
       newObjects: { terminationPlan: { mechanism: command.releaseOnly ? 'mutual-release' : 'mutual-transfer' }, resolvedTransferRules: resolvedRules },
       obligations: command.mutualSettlement && command.mutualSettlement.amount ? [{
@@ -604,15 +651,19 @@
       hash: `mutual:${command.playerId}:${effectiveDate}`,
       builtAt: effectiveDate,
     });
+  }
+
+  function planReleaseWithoutAgreement(command, deps, resolvedRules, commit) {
+    const plan = buildReleaseWithoutAgreementPlan(command, deps, resolvedRules);
     if (!plan.isExecutable || !commit) return { plan, result: null };
-    const result = commitMutualReleaseWithoutAgreement(plan, deps);
+    const result = commitMutualReleaseWithoutAgreement(plan, deps, resolvedRules);
     return { plan, result };
   }
 
   // Commit reducido para mutuo acuerdo SIN AIP — reutiliza
   // RosterMutationService/RegistrationService/ContractRegistry igual que
   // TransferExecutionService, pero sin tocar MarketRegistry (no hay AIP).
-  function commitMutualReleaseWithoutAgreement(plan, deps) {
+  function commitMutualReleaseWithoutAgreement(plan, deps, resolvedRules) {
     const {
       playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams,
     } = deps;
@@ -622,6 +673,27 @@
     const effectiveDate = toIso(cmd.effectiveDate);
     const RosterMutationServiceModule2 = isNode ? require('./RosterMutationService.js') : global.BasketManager;
     const RosterSvc = RosterMutationServiceModule2.RosterMutationService;
+
+    // Replan-at-commit (BUG-TRANSFER1-17) — se revalida contra el estado
+    // REAL de ahora mismo, nunca se ejecuta a ciegas el `plan` recibido.
+    const freshPlan = buildReleaseWithoutAgreementPlan(cmd, deps, resolvedRules);
+    if (!freshPlan.isExecutable) {
+      throw new (ExecutionSvc().TransferDomainError)(
+        `El plan "${plan.transactionId}" ya no es ejecutable al revalidar contra el estado actual: `
+        + freshPlan.blockers.map((b) => b.message).join(' | '),
+        'PLAN_STALE_BLOCKED', freshPlan.blockers,
+      );
+    }
+    const staleFields = Object.keys(plan.fingerprints).filter(
+      (key) => JSON.stringify(plan.fingerprints[key]) !== JSON.stringify(freshPlan.fingerprints[key]),
+    );
+    if (staleFields.length) {
+      throw new (ExecutionSvc().TransferDomainError)(
+        `El plan "${plan.transactionId}" quedó obsoleto desde que se planificó — cambió: ${staleFields.join(', ')}. Replanifica.`,
+        'PLAN_STALE_CONTENT',
+      );
+    }
+
     const undoStack = [];
     // Igual criterio que TransferExecutionService.commitTransaction: cada
     // paso muta primero y ACTO SEGUIDO registra su propio cierre de
@@ -642,13 +714,14 @@
         documentation: cmd.documentation || [],
       });
       transferRegistry.registerTerminationRecord(terminationRecord);
-      runStep(() => { transferRegistry._terminationRecords.delete(terminationRecord.id); });
-      originContract.addLifecycleEvent({ type: 'terminated', date: effectiveDate, note: `TRANSFER-1:${plan.newObjects.terminationPlan.mechanism}` });
+      runStep(() => { transferRegistry.unregisterTerminationRecord(terminationRecord.id); });
+      const terminatedEvent = originContract.addLifecycleEvent({ type: 'terminated', date: effectiveDate, note: `TRANSFER-1:${plan.newObjects.terminationPlan.mechanism}` });
+      runStep(() => { originContract.removeLifecycleEvent(terminatedEvent.id); });
 
       const registeredObligations = plan.obligations.map((line, idx) => {
         const obligation = new TransferEntities.FinancialObligation({ id: `obligation:${plan.transactionId}:${idx}`, transactionId: plan.transactionId, ...line });
         transferRegistry.registerObligation(obligation);
-        runStep(() => { transferRegistry._obligations.delete(obligation.id); });
+        runStep(() => { transferRegistry.unregisterObligation(obligation.id); });
         return obligation;
       });
 
@@ -656,18 +729,27 @@
       if (registrationRegistry && cmd.originRegistrationScopeId) {
         const currentReg = registrationRegistry.currentRegistration(cmd.playerId, cmd.originRegistrationScopeId, cmd.originSeasonKey, effectiveDate);
         if (currentReg) {
-          const before = currentReg.events.slice();
+          const deactivationEventId = `${currentReg.id}:deactivated:${currentReg.events.length}`;
+          const previousReasonCode = currentReg.trace.deactivationReasonCode;
           RegSvc().deactivateRegistration(currentReg, effectiveDate, `TRANSFER-1:${plan.newObjects.terminationPlan.mechanism}`);
           deactivatedRegistrationId = currentReg.id;
-          runStep(() => { currentReg.events = before; });
+          runStep(() => {
+            currentReg.removeEvent(deactivationEventId);
+            if (previousReasonCode === undefined) delete currentReg.trace.deactivationReasonCode;
+            else currentReg.trace.deactivationReasonCode = previousReasonCode;
+          });
         }
       }
 
       const player = playerRegistry.require(cmd.playerId);
-      const rosterReport = RosterSvc.releasePlayer({ playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId });
+      const rosterReport = RosterSvc.releasePlayer({
+        playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId, lineup: deps.lineup,
+      });
       runStep(() => {
         const backTeam = (teams || []).find((t) => t.id === rosterReport.fromTeamId);
         if (backTeam) backTeam.addPlayer(player);
+        else playerRegistry.setAffiliation(cmd.playerId, rosterReport.fromTeamId);
+        rosterReport.restoreOperationalReferences();
       });
 
       const record = new TransferEntities.TransactionRecord({
@@ -686,6 +768,7 @@
         rosterMutationReport: { fromTeamId: rosterReport.fromTeamId, toTeamId: null },
       });
       transferRegistry.registerTransactionRecord(record);
+      runStep(() => { transferRegistry.unregisterTransactionRecord(record.id); });
       return { record, idempotent: false };
     } catch (err) {
       for (let i = undoStack.length - 1; i >= 0; i -= 1) undoStack[i]();
@@ -702,6 +785,10 @@
       evaluateSellingClub,
       generateCounterFee,
       buildDestinationRegistrationCommand,
+      // LOAN-1 (DESIGN.md 9.21, sección 15 del prompt): reutilizado por
+      // LoanExecutionService.js para resolver el `registrationScopeId` de
+      // salida/retorno — nunca un segundo cálculo duplicado.
+      resolveOriginRegistrationScope,
       formalizeFreeAgentSigning,
       formalizeNegotiatedTransfer,
       formalizeReleaseClauseExercise,

@@ -2178,6 +2178,338 @@
     return resolveRules({ ...(context || {}), domain: 'transfer' });
   }
 
+  // =========================================================================
+  // Dominio `loan` (LOAN-1, DESIGN.md 9.21, sección 6 del prompt) — cesiones
+  // temporales domésticas. Capas 3-6 (administración de origen/destino,
+  // elegibilidad de destino, overlay internacional) REUTILIZAN los mismos
+  // módulos ya versionados de `TRANSFER_MODULES` (misma competición, misma
+  // norma administrativa real: p.ej. el plazo de 3 días del art. 14.7 ACB ya
+  // vive en "acb-transfer-admin-2025-26-provisional-carry-forward-v1") —
+  // nunca se duplica un segundo catálogo con los mismos datos. Solo la capa
+  // 1/2 (legislación laboral del propietario + subrogación/responsabilidad)
+  // es genuinamente nueva: ningún módulo de TRANSFER-1 modela el art. 11 del
+  // RD 1006 (cesión), solo el art. 13.a (traspaso definitivo).
+  // =========================================================================
+  const LOAN_MODULES = {
+    // --- España: art. 11 RD 1006/1985 — régimen COMPLETO de cesión temporal.
+    'es-rd1006-temporary-assignment-2026-v1': {
+      id: 'es-rd1006-temporary-assignment-2026-v1',
+      domain: 'loan',
+      familyId: 'es-loan-employment-law',
+      layer: 'owner-employment-law',
+      version: 1,
+      status: 'verified',
+      territorialJurisdictionIds: ['ES'],
+      validity: buildValidity({ seasonFrom: '2019-20', seasonTo: null, dateFrom: '2019-01-01', carryForwardUntilSuperseded: true }),
+      rules: {
+        blocksLoanRegime: false,
+        playerConsentRequired: true,
+        // "si no fue utilizado durante toda una temporada en competición
+        // oficial ante público, el club debe consentir su cesión" — hook
+        // normativo, NUNCA orgánico en LOAN-1 (CYCLE-1 decide cuándo
+        // abrirlo); sin evidencia completa de toda la temporada el estado
+        // queda `unknown`, nunca se da por cumplido.
+        zeroUtilizationConsentObligation: {
+          requiresFullSeasonEvidenceAgainstPublicInOfficialCompetition: true,
+          sourceArticle: 'art. 11.2',
+        },
+        durationCappedByMasterContractRemainingTerm: true,
+        subrogationApplies: true,
+        jointAndSeveralLiability: {
+          scope: ['labour', 'social-security'],
+          reducibleByInternalAllocation: false,
+          sourceArticle: 'art. 11.3',
+        },
+        // 15% BRUTO del canon — inderogable a la baja (art. 11.4), NUNCA el
+        // 15% del traspaso definitivo (art. 13.a), NUNCA salario asumido por
+        // el cesionario ni comisión de agente.
+        playerParticipationOnFee: {
+          appliesWhenFeePositive: true,
+          defaultMinimumPercentBasisPoints: 1500,
+          overridableByExplicitPact: false,
+          basis: 'grossFee',
+          beneficiary: 'player',
+          payer: 'ownerClub',
+          sourceArticle: 'art. 11.3',
+        },
+        // Cesión recíproca: mínimo por jugador — una mensualidad de
+        // retribuciones periódicas + una doceava parte de complementos de
+        // calidad/cantidad del último año. Si el contrato actual no permite
+        // calcularlo, LOAN-1 bloquea en vez de inventar la cifra.
+        reciprocalLoanMinimumGuarantee: {
+          minimumMonthlyPeriodicRemunerationCount: 1,
+          minimumQualityQuantityComplementFraction: { numerator: 1, denominator: 12 },
+          referencePeriod: 'lastContractYear',
+          sourceArticle: 'art. 11.4',
+        },
+      },
+      sourceRefs: [{
+        title: 'España — Real Decreto 1006/1985, relación laboral especial de los deportistas profesionales (texto consolidado), art. 11',
+        url: 'https://www.boe.es/buscar/pdf/1985/BOE-A-1985-12313-consolidado.pdf',
+        retrievedAt: '2026-08-27',
+        articles: ['art. 11', 'art. 11.2', 'art. 11.3', 'art. 11.4'],
+      }],
+      knownSourceInconsistencies: [],
+      notImplemented: ['zeroUtilizationOrganicTrigger'],
+      derivedInterpretations: [
+        'El 15% del art. 11.3 se calcula EXCLUSIVAMENTE sobre el canon de cesión pactado — nunca sobre el '
+        + 'salario asumido por el cesionario, el precio de una opción/obligación de compra, ni se suma al '
+        + '15% del art. 13.a de un traspaso definitivo posterior.',
+      ],
+    },
+    // --- Andorra: sin régimen de cesión deportiva localizado — bloquea.
+    'andorra-loan-regime-block-2026-v1': {
+      id: 'andorra-loan-regime-block-2026-v1',
+      domain: 'loan',
+      familyId: 'ad-loan-employment-law',
+      layer: 'owner-employment-law',
+      version: 1,
+      status: 'provisional',
+      territorialJurisdictionIds: ['AD'],
+      validity: buildValidity({ seasonFrom: '2019-20', seasonTo: null, dateFrom: '2019-01-01', carryForwardUntilSuperseded: true }),
+      rules: {
+        // La Llei 31/2018 localizada regula transmisión/cesión EMPRESARIAL
+        // (art. 12) y restringe la puesta a disposición de trabajadores a
+        // empresas de trabajo temporal — no un régimen de cesión deportiva
+        // equivalente al art. 11 español. MoraBanc Andorra NUNCA hereda
+        // consentimiento/15%/reciprocidad/solidaridad del RD 1006 solo por
+        // competir en ACB — bloquea explícito en vez de inventar el
+        // procedimiento (mismo test transfronterizo obligatorio que
+        // TRANSFER-1/CONTRACT-1).
+        blocksLoanRegime: true,
+        blockReasonCode: 'AD_NO_LOAN_REGIME_SOURCED',
+      },
+      sourceRefs: [{
+        title: 'Andorra — Llei 31/2018, de relacions laborals (text consolidat), art. 12',
+        url: 'https://www.portaljuridicandorra.ad/L2018031_10',
+        retrievedAt: '2026-08-27',
+        articles: ['art. 12'],
+      }],
+      knownSourceInconsistencies: [
+        'El texto localizado no contiene un régimen de cesión temporal de deportistas equivalente al art. 11 '
+        + 'español — se bloquea la ruta en vez de asumir un régimen no verificado. Revisar si aparece una '
+        + 'fuente oficial más específica antes de levantar el bloqueo.',
+      ],
+      notImplemented: ['andorraSpecificLoanProcedure'],
+      derivedInterpretations: [],
+    },
+    // --- Fixture reference-only (sección 5.6/24.1): demuestra extensibilidad,
+    // NUNCA se autoselecciona en una carrera real.
+    'bm-test-fictional-loan-employment-law-v1': {
+      id: 'bm-test-fictional-loan-employment-law-v1',
+      domain: 'loan',
+      familyId: 'bm-test-fictional-loan-employment-law',
+      layer: 'owner-employment-law',
+      version: 1,
+      status: 'reference-only',
+      territorialJurisdictionIds: ['XX'],
+      validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null, carryForwardUntilSuperseded: true }),
+      rules: {
+        blocksLoanRegime: false,
+        playerConsentRequired: true,
+        durationCappedByMasterContractRemainingTerm: true,
+        subrogationApplies: true,
+        jointAndSeveralLiability: { scope: ['labour'], reducibleByInternalAllocation: true, sourceArticle: null },
+        playerParticipationOnFee: {
+          appliesWhenFeePositive: true, defaultMinimumPercentBasisPoints: 1000, overridableByExplicitPact: true, basis: 'grossFee', beneficiary: 'player', payer: 'ownerClub', sourceArticle: null,
+        },
+        reciprocalLoanMinimumGuarantee: null,
+      },
+      sourceRefs: [],
+      knownSourceInconsistencies: [],
+      notImplemented: [],
+      derivedInterpretations: [],
+    },
+  };
+
+  function getLoanModule(moduleId) {
+    const module_ = LOAN_MODULES[moduleId];
+    if (!module_) throw new Error(`CompetitionRules: no existe el módulo de cesión "${moduleId}" en el catálogo.`);
+    return module_;
+  }
+
+  function findPinnedLoanId(pinnedModuleIds, familyId) {
+    if (!pinnedModuleIds || !pinnedModuleIds.length) return null;
+    const found = pinnedModuleIds.find((id) => {
+      const mod = LOAN_MODULES[id];
+      return mod && mod.familyId === familyId;
+    });
+    return found || null;
+  }
+
+  function selectLoanModuleByJurisdiction(jurisdictionId, ctx, warnings, sourceRefs, knownSourceInconsistencies, trace) {
+    const candidates = Object.values(LOAN_MODULES)
+      .filter((m) => m.status !== 'reference-only' && m.layer === 'owner-employment-law'
+        && m.territorialJurisdictionIds && m.territorialJurisdictionIds.includes(jurisdictionId));
+    const extra = (ctx.pinnedModuleIds || [])
+      .map((id) => LOAN_MODULES[id])
+      .filter((m) => m && m.layer === 'owner-employment-law' && m.territorialJurisdictionIds && m.territorialJurisdictionIds.includes(jurisdictionId));
+    extra.forEach((m) => { if (!candidates.some((c) => c.id === m.id)) candidates.push(m); });
+    if (!candidates.length) {
+      throw new Error(
+        `CompetitionRules.resolveLoanRules: no hay ningún módulo de legislación laboral de cesión para la `
+        + `jurisdicción "${jurisdictionId}" — no se hereda ningún perfil por defecto (nunca España/ACB por defecto).`,
+      );
+    }
+    const familyId = candidates[0].familyId;
+    const family = Object.values(LOAN_MODULES).filter((m) => m.familyId === familyId);
+    const pinnedId = findPinnedLoanId(ctx.pinnedModuleIds, familyId);
+    const resolution = selectByValidity(family, {
+      seasonKey: ctx.seasonKey || null,
+      date: ctx.effectiveDate ? toIsoDate(ctx.effectiveDate) : null,
+      pinnedId,
+      label: `RuleModule de cesión (owner-employment-law/${jurisdictionId})`,
+    });
+    warnings.push(...resolution.warnings);
+    sourceRefs.push(...resolution.entity.sourceRefs);
+    (resolution.entity.knownSourceInconsistencies || []).forEach((k) => knownSourceInconsistencies.push(k));
+    if (resolution.entity.status === 'provisional') {
+      warnings.push(`El módulo de cesión "${resolution.entity.id}" tiene estado PROVISIONAL — ver knownSourceInconsistencies.`);
+    }
+    trace.fields['owner-employment-law'] = trace.fields['owner-employment-law'] || [];
+    trace.fields['owner-employment-law'].push({
+      jurisdictionId, ruleModuleId: resolution.entity.id, version: resolution.entity.version, status: resolution.entity.status,
+    });
+    return resolution.entity;
+  }
+
+  // context esperado (sección 6 del prompt): { playerId, masterContractId,
+  // ownerClubId, borrowerClubId, ownerEmployerJurisdictionId,
+  // borrowerEmployerJurisdictionId, originCompetitionId,
+  // destinationCompetitionId, originFederationId, destinationFederationId,
+  // seasonKey, effectiveDate, returnEffectiveDate, transactionScope,
+  // operation }. `originCompetitionId`/`destinationCompetitionId` siguen el
+  // MISMO criterio direccional que TRANSFER-1 (competición que se abandona /
+  // competición de destino DEL MOVIMIENTO administrativo concreto que se
+  // está resolviendo) — una activación de salida usa origen=propietario,
+  // destino=cesionario; un retorno usa origen=cesionario, destino=propietario.
+  function resolveLoanDomain(ctx) {
+    ['playerId', 'ownerClubId', 'borrowerClubId', 'ownerEmployerJurisdictionId'].forEach((field) => {
+      if (!ctx[field]) {
+        throw new Error(`CompetitionRules.resolveLoanRules: falta "${field}" en el contexto — no se deriva del próximo partido ni de team.division.`);
+      }
+    });
+    if (!ctx.seasonKey && !ctx.effectiveDate) {
+      throw new Error('CompetitionRules.resolveLoanRules: hace falta "seasonKey" y/o "effectiveDate" para resolver la vigencia.');
+    }
+    const transactionScope = ctx.transactionScope || 'domestic';
+    if (!['domestic', 'international'].includes(transactionScope)) {
+      throw new Error(`CompetitionRules.resolveLoanRules: transactionScope desconocido "${transactionScope}".`);
+    }
+    const warnings = [];
+    const knownSourceInconsistencies = [];
+    const sourceRefs = [];
+    const trace = { fields: {} };
+
+    // 1/2) Legislación laboral del propietario + subrogación/responsabilidad
+    //      — por jurisdicción del EMPLEADOR propietario (nunca del cesionario).
+    const ownerEmploymentModule = selectLoanModuleByJurisdiction(
+      ctx.ownerEmployerJurisdictionId, ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+
+    // 3/4) Administración federativa/competitiva de origen y destino — se
+    //      REUTILIZAN los módulos `competition-admin`/`competition-membership`
+    //      ya versionados en TRANSFER_MODULES (misma norma real: art. 14.7
+    //      ACB, art. 36 FEB) — nunca un segundo catálogo con los mismos datos.
+    const originAdmin = selectTransferModuleByCompetition(
+      ctx.originCompetitionId, 'competition-admin', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+    const destinationAdmin = selectTransferModuleByCompetition(
+      ctx.destinationCompetitionId, 'competition-admin', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+    const destinationMembership = selectTransferModuleByCompetition(
+      ctx.destinationCompetitionId, 'competition-membership', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+
+    // 5) Overlay internacional — SOLO bloquea, igual que TRANSFER-1. LOAN-1
+    //    únicamente implementa cesiones DOMÉSTICAS verificables.
+    const overlayModule = getTransferModule('fiba-book3-international-transfer-overlay-2026-v1');
+    const blockers = [];
+    if (transactionScope === 'international'
+      || (ctx.originFederationId && ctx.destinationFederationId && ctx.originFederationId !== ctx.destinationFederationId)) {
+      blockers.push({
+        code: overlayModule.rules.blockReasonCode,
+        message: 'La cesión cruza federaciones o requiere Letter of Clearance — bloqueada hasta EUROPE-1 '
+          + '(nunca se convierte en doméstica en silencio, nunca se simula una LOC).',
+        ruleModuleId: overlayModule.id,
+      });
+      sourceRefs.push(...overlayModule.sourceRefs);
+      trace.fields.internationalOverlay = [{ ruleModuleId: overlayModule.id, version: overlayModule.version, applied: true }];
+    } else {
+      trace.fields.internationalOverlay = [{ ruleModuleId: overlayModule.id, version: overlayModule.version, applied: false }];
+    }
+
+    // 6) Bloqueo explícito de régimen de cesión no sourceado (MoraBanc/AD) —
+    //    nunca ACB por defecto solo porque el club compite en ACB.
+    if (ownerEmploymentModule.rules.blocksLoanRegime) {
+      blockers.push({
+        code: ownerEmploymentModule.rules.blockReasonCode || 'LOAN_REGIME_NOT_SOURCED',
+        message: `No existe fuente oficial verificada de un régimen de cesión temporal para la jurisdicción `
+          + `laboral del propietario "${ctx.ownerEmployerJurisdictionId}" — bloqueado en vez de inventar el procedimiento.`,
+        ruleModuleId: ownerEmploymentModule.id,
+      });
+    }
+
+    const documentRequirements = [
+      ...((originAdmin && originAdmin.rules.requiredDocuments) || []),
+      ...((destinationAdmin && destinationAdmin.rules.requiredDocuments) || []),
+    ].filter((doc, index, all) => all.indexOf(doc) === index);
+
+    const capabilities = new Set();
+    if (!ownerEmploymentModule.rules.blocksLoanRegime && transactionScope === 'domestic') capabilities.add('canFormalizeDomesticLoan');
+    if (ownerEmploymentModule.rules.playerParticipationOnFee) capabilities.add('appliesStatutoryLoanFeeParticipation');
+    if (ownerEmploymentModule.rules.reciprocalLoanMinimumGuarantee) capabilities.add('supportsReciprocalLoanMinimumGuarantee');
+
+    return {
+      domain: 'loan',
+      context: {
+        playerId: ctx.playerId,
+        masterContractId: ctx.masterContractId || null,
+        ownerClubId: ctx.ownerClubId,
+        borrowerClubId: ctx.borrowerClubId,
+        ownerEmployerJurisdictionId: ctx.ownerEmployerJurisdictionId,
+        borrowerEmployerJurisdictionId: ctx.borrowerEmployerJurisdictionId || null,
+        originCompetitionId: ctx.originCompetitionId || null,
+        destinationCompetitionId: ctx.destinationCompetitionId || null,
+        originFederationId: ctx.originFederationId || null,
+        destinationFederationId: ctx.destinationFederationId || null,
+        seasonKey: ctx.seasonKey || null,
+        effectiveDate: ctx.effectiveDate ? toIsoDate(ctx.effectiveDate) : null,
+        returnEffectiveDate: ctx.returnEffectiveDate ? toIsoDate(ctx.returnEffectiveDate) : null,
+        transactionScope,
+        operation: ctx.operation || null,
+      },
+      ownerEmploymentLawRules: ownerEmploymentModule.rules,
+      originDeregistrationRules: originAdmin ? originAdmin.rules : null,
+      destinationRegistrationRules: destinationAdmin ? destinationAdmin.rules : null,
+      destinationMembershipRules: destinationMembership ? destinationMembership.rules : null,
+      documentRequirements,
+      blockers,
+      capabilities,
+      warnings,
+      knownSourceInconsistencies,
+      sourceRefs,
+      notImplemented: [...(ownerEmploymentModule.notImplemented || [])],
+      trace: {
+        bundleId: null,
+        version: 1,
+        sourceRuleIds: [
+          ownerEmploymentModule.id,
+          ...(originAdmin ? [originAdmin.id] : []),
+          ...(destinationAdmin ? [destinationAdmin.id] : []),
+          ...(destinationMembership ? [destinationMembership.id] : []),
+          overlayModule.id,
+        ],
+        fields: trace.fields,
+      },
+    };
+  }
+
+  // Punto de entrada ÚNICO del dominio `loan` (sección 6 del prompt).
+  function resolveLoanRules(context) {
+    return resolveRules({ ...(context || {}), domain: 'loan' });
+  }
+
   const RULESET_BUNDLES = {
     'acb-domestic-2025-26-v1': {
       id: 'acb-domestic-2025-26-v1',
@@ -2740,10 +3072,11 @@
     if (domain === 'employment') return resolveEmploymentDomain(ctx);
     if (domain === 'market') return resolveMarketDomain(ctx);
     if (domain === 'transfer') return resolveTransferDomain(ctx);
+    if (domain === 'loan') return resolveLoanDomain(ctx);
     if (domain !== 'registration') {
       throw new Error(
         `CompetitionRules.resolveRules: dominio "${domain}" no implementado — dominios disponibles: `
-        + 'registration, employment, market, transfer.',
+        + 'registration, employment, market, transfer, loan.',
       );
     }
     return resolveRegistrationDomain(ctx);
@@ -3303,6 +3636,8 @@
     resolveMarketRules,
     resolveTransferRules,
     getTransferModule,
+    resolveLoanRules,
+    getLoanModule,
     buildSigningSnapshot,
     evaluateProbationPolicy,
     MERGE_STRATEGIES,
@@ -3311,6 +3646,7 @@
     MARKET_MODULES,
     TRANSFER_MODULES,
     TRANSFER_MECHANISMS,
+    LOAN_MODULES,
     RULESET_BUNDLES,
     COMPETITION_DEFINITIONS,
   };

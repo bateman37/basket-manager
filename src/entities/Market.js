@@ -266,6 +266,17 @@
       return this;
     }
 
+    // BUG-TRANSFER1-13 (DESIGN.md 9.21): reversión EXACTA de un `addEvent`
+    // — un rollback de TRANSFER-1/LOAN-1 nunca debe reasignar
+    // `this.events` desde fuera. Devuelve el evento eliminado o `null` si
+    // no existía (idempotente).
+    removeEvent(id) {
+      const index = this.events.findIndex((e) => e.id === id);
+      if (index === -1) return null;
+      const [removed] = this.events.splice(index, 1);
+      return removed;
+    }
+
     // Estado DERIVADO en una fecha — nunca sobrescrito directamente. Un
     // acuerdo vencido por `validUntil` sin haberse ejecutado se considera
     // `expired` aunque nadie haya registrado el evento explícito todavía

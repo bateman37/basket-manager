@@ -304,6 +304,14 @@
        las usan; no dependen de nada. -->
   <script src="src/utils/Money.js"></script>
   <script src="src/utils/LocalDate.js"></script>
+  <!-- BUG-TRANSFER1-13 (DESIGN.md 9.21): utilidad pura compartida de
+       auditoría de simetría de índices secundarios (ContractRegistry/
+       RegistrationRegistry/TransferRegistry) — no depende de nada. -->
+  <script src="src/utils/RegistryIndexAudit.js"></script>
+  <!-- BUG-TRANSFER1-17 (DESIGN.md 9.21): serialización canónica/hash
+       determinista compartidos por TransferExecutionService.js y
+       LoanExecutionService.js (LOAN-1) — no depende de nada. -->
+  <script src="src/utils/CanonicalHash.js"></script>
   <script src="src/entities/Player.js"></script>
   <script src="src/utils/playerGenerator.js"></script>
   <!-- DESIGN.md 7.12 (Sistema táctico, TAC-2): Team.js instancia
@@ -424,9 +432,25 @@
   <script src="src/core/TransferEventTypes.js"></script>
   <script src="src/entities/Transfer.js"></script>
   <script src="src/core/TransferRegistry.js"></script>
+  <!-- BUG-TRANSFER1-15 (DESIGN.md 9.21): frontera de captura/limpieza/
+       restauración de referencias operativas (foco de entrenamiento, rol
+       táctico, `state.lineup`) — RosterMutationService.js depende de ella. -->
+  <script src="src/core/OperationalReferenceService.js"></script>
   <script src="src/core/RosterMutationService.js"></script>
   <script src="src/core/TransferExecutionService.js"></script>
   <script src="src/core/TransferService.js"></script>
+
+  <!-- LOAN-1 (DESIGN.md 9.21): cesiones temporales, subrogación, retorno y
+       opciones — sexta pieza canónica de la EPIC. LoanEventTypes.js
+       reutiliza TransferEventTypes.makeEventMachine (nunca reimplementa el
+       motor); Loan.js reutiliza FinancialObligation/TransactionRecord de
+       Transfer.js (ya cargado arriba) para economía y recibos. -->
+  <script src="src/core/LoanEventTypes.js"></script>
+  <script src="src/entities/Loan.js"></script>
+  <script src="src/core/LoanRegistry.js"></script>
+  <script src="src/core/LoanExecutionService.js"></script>
+  <script src="src/core/LoanService.js"></script>
+  <script src="src/core/LoanCostService.js"></script>
 
   <script src="src/core/Bracket.js"></script>
   <script src="src/core/Playoffs.js"></script>

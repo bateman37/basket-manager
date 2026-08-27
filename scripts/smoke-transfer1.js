@@ -54,6 +54,12 @@ const { TransferService } = require('../src/core/TransferService.js');
 
 const SEASONS_TO_SIMULATE = Number(process.argv[2] || 3);
 const CAREER_SEED = 'smoke-transfer1-career-seed-v1';
+// BUG-TRANSFER1-16 (DESIGN.md 9.21): planTransaction/commitTransaction
+// exigen un contexto operacional EXPLÍCITO (¿hay un partido del usuario
+// iniciado o pendiente de revelar?) — este smoke nunca simula un partido a
+// medias del usuario, así que siempre es seguro declararlo explícitamente
+// en falso (mismo criterio que smoke-loan1.js).
+const OPERATIONAL_CONTEXT = { pendingUserMatchBlocks: false };
 const startedAt = Date.now();
 
 function resolveRegistrationRulesForDivision(division, seasonKey, date, phaseId) {
@@ -324,6 +330,7 @@ function runFreeAgentSigningFixture() {
   const { plan, result } = TransferService.formalizeFreeAgentSigning({
     transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
     agreement, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+    operationalContext: OPERATIONAL_CONTEXT,
   });
   assert.strictEqual(plan.blockers.length, 0, `fichaje de libre bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -366,6 +373,7 @@ function runNegotiatedTransferFixture() {
     transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
     agreement, originTeam, destinationTeam, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
     clubOffer, playerConsentGrantedAt: isoDate,
+    operationalContext: OPERATIONAL_CONTEXT,
   });
   assert.strictEqual(plan.blockers.length, 0, `traspaso negociado bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -444,6 +452,7 @@ function runReleaseClauseExerciseFixture() {
     transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
     agreement, originTeam, destinationTeam, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
     clauseId: clause.id, exercisedBy: 'player',
+    operationalContext: OPERATIONAL_CONTEXT,
   });
   assert.strictEqual(plan.blockers.length, 0, `ejercicio de cláusula bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -467,6 +476,7 @@ function runMutualReleaseFixture() {
     transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
     originTeam, destinationTeam: null, playerId: player.id, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
     mutualSettlement: { partiesConsent: ['club', 'player'], amount: { amountMinor: 2000000, currency: 'EUR' } },
+    operationalContext: OPERATIONAL_CONTEXT,
   });
   assert.strictEqual(plan.blockers.length, 0, `liberación por mutuo acuerdo bloqueada: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -489,6 +499,7 @@ function runScheduledFutureSigningFixture() {
   const { plan, result, transferCase } = TransferService.formalizeFreeAgentSigning({
     transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
     agreement, destinationTeam: team, seasonKey, effectiveDate: futureDate, now: isoDate, commit: true,
+    operationalContext: OPERATIONAL_CONTEXT,
   });
   assert.strictEqual(plan.blockers.length, 0, `fichaje futuro bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.strictEqual(result.notYetDue, true);
@@ -584,6 +595,7 @@ function processDueScheduledTransfers(date) {
   const isoDate = LocalDate.fromJsDate(date);
   const deps = {
     playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams: allTeams, now: isoDate,
+    operationalContext: OPERATIONAL_CONTEXT,
   };
   transferRegistry.allCases()
     .filter((tCase) => tCase.statusOn(null) === 'scheduled' && tCase.effectiveDate && tCase.effectiveDate <= isoDate)

@@ -25,6 +25,7 @@
   const RegistrationServiceModule = isNode ? require('./RegistrationService.js') : global.BasketManager;
   const RosterMutationServiceModule = isNode ? require('./RosterMutationService.js') : global.BasketManager;
   const TransferEntities = isNode ? require('../entities/Transfer.js') : global.BasketManager;
+  const CanonicalHashModule = isNode ? require('../utils/CanonicalHash.js') : global.BasketManager;
 
   function LD() { return LocalDateModule.LocalDate; }
   function M() { return MoneyModule.Money; }
@@ -45,17 +46,11 @@
     }
   }
 
-  // Hash determinista simple (sin dependencias externas) — suficiente para
-  // detectar que un plan se construyó sobre un command distinto; NO es
-  // criptográfico.
-  function stableHash(value) {
-    const s = JSON.stringify(value, Object.keys(value).sort());
-    let hash = 0;
-    for (let i = 0; i < s.length; i += 1) {
-      hash = (Math.imul(31, hash) + s.charCodeAt(i)) | 0;
-    }
-    return `h${(hash >>> 0).toString(36)}`;
-  }
+  // BUG-TRANSFER1-17 (DESIGN.md 9.21): serialización canónica recursiva y
+  // hash determinista — extraídos a `src/utils/CanonicalHash.js` para que
+  // LoanExecutionService.js (LOAN-1) los reutilice sin duplicar la misma
+  // lógica (sección 14 del prompt de LOAN-1: "no dupliques la saga").
+  function stableHash(value) { return CanonicalHashModule.CanonicalHash.stableHash(value); }
 
   // ---------------------------------------------------------------------
   // Compensación por renuncia de derechos ACB (sección 11.7 del prompt) —
@@ -162,8 +157,16 @@
     const acceptedOffer = agreement ? marketRegistry.getOffer(agreement.acceptedOfferId) : null;
     check('La oferta salarial aceptada del AIP existe.', Boolean(acceptedOffer), 'OFFER_NOT_FOUND');
 
-    // -- Partido en curso / pendiente de revelar (sección 13.2/15.4) --------
-    if (deps.pendingUserMatchBlocks) {
+    // -- Contexto operacional obligatorio (BUG-TRANSFER1-16, DESIGN.md
+    //    9.21) — `pendingUserMatchBlocks` era un booleano OPCIONAL que
+    //    ningún llamador real de game.js pasaba nunca: `undefined` se leía
+    //    como "falso", así que la protección de "partido en curso" solo
+    //    funcionaba en fixtures de test. Ahora es un `operationalContext`
+    //    EXPLÍCITO y obligatorio — su ausencia BLOQUEA (nunca se asume "sin
+    //    partido pendiente" por defecto).
+    const hasOperationalContext = Boolean(deps.operationalContext) && typeof deps.operationalContext.pendingUserMatchBlocks === 'boolean';
+    check('Existe un contexto operacional explícito (¿hay un partido del usuario iniciado o pendiente de revelar?).', hasOperationalContext, 'MISSING_OPERATIONAL_CONTEXT');
+    if (hasOperationalContext && deps.operationalContext.pendingUserMatchBlocks) {
       blockers.push({ code: 'PENDING_USER_MATCH', message: 'Hay un partido del usuario iniciado o pendiente de revelar que usa la plantilla — bloquea la mutación de roster.' });
     }
 
@@ -229,7 +232,7 @@
       }
 
       if (expectsOriginContract && originContract) {
-        terminationPlan = planTerminationStep(cmd, originContract, player, blockers, check, deps);
+        terminationPlan = planTerminationStep(cmd, originContract, player, blockers, check);
       }
     }
 
@@ -329,11 +332,32 @@
     }
 
     // -- Fingerprints (revalidación en commit) -------------------------------
+    // BUG-TRANSFER1-17 (DESIGN.md 9.21): antes solo cubrían 4 campos
+    // SUPERFICIALES (estado del AIP, número de contratos, id del contrato
+    // de origen, longitud del roster de destino) — un cambio de CONTENIDO
+    // que conserva esos conteos pasaba inadvertido: sustituir un jugador
+    // por otro en el roster sin cambiar su tamaño, añadir un evento al
+    // contrato de origen, cambiar el contenido de la oferta/AIP sin
+    // cambiar su estado derivado, cambiar las reservas de presupuesto,
+    // cambiar el módulo normativo resuelto... Ahora son un fingerprint de
+    // CONTENIDO (ids/eventos/hash canónico), comparado con `stableHash()`
+    // recursivo — nunca solo conteos.
     const fingerprints = {
       agreementStatus: agreement ? agreement.statusOn(effectiveDate) : null,
-      contractRegistrySizeForPlayer: contractRegistry.forPlayer(cmd.playerId).length,
+      agreementContentHash: agreement ? stableHash(agreement.toJSON ? agreement.toJSON() : { id: agreement.id, events: agreement.events }) : null,
+      acceptedOfferContentHash: acceptedOffer ? stableHash(acceptedOffer.toJSON ? acceptedOffer.toJSON() : acceptedOffer) : null,
+      budgetReservationGroupHash: (agreement && agreement.budgetReservationGroupId && marketRegistry.getBudgetReservationGroup)
+        ? stableHash(marketRegistry.getBudgetReservationGroup(agreement.budgetReservationGroupId))
+        : null,
+      contractRegistryPlayerContractIds: contractRegistry.forPlayer(cmd.playerId).map((c) => c.id),
       originContractId: originContract ? originContract.id : null,
-      destinationRosterSize: destinationTeam.roster.length,
+      originContractLifecycleHash: originContract ? stableHash(originContract.lifecycleEvents) : null,
+      destinationRosterPlayerIds: destinationTeam.roster.map((p) => p.id).sort(),
+      destinationCumulativeRegistrationCount: (registrationRegistry && cmd.registrationScopeId)
+        ? registrationRegistry.cumulativeCountForClub(cmd.destinationClubId, cmd.registrationScopeId, cmd.seasonKey)
+        : null,
+      resolvedTransferRulesHash: resolvedTransferRules ? stableHash(resolvedTransferRules.trace) : null,
+      pendingUserMatchBlocks: hasOperationalContext ? deps.operationalContext.pendingUserMatchBlocks : null,
     };
 
     // -- Programada para el futuro (sección 11.2) ---------------------------
@@ -371,7 +395,7 @@
   // el mecanismo declarado — devuelve `{ mechanism, ...datos }` o añade
   // blockers si faltan artefactos obligatorios (sección 11.6: nunca se
   // inventa una causa/cifra).
-  function planTerminationStep(cmd, originContract, player, blockers, check, deps) {
+  function planTerminationStep(cmd, originContract, player, blockers, check) {
     const mechanism = {
       'negotiated-transfer': 'mutual-transfer',
       'release-clause-exercise': 'player-release-clause',
@@ -413,10 +437,9 @@
       check('La causa controvertida exige un ExternalResolution/VerifiedCauseRecord de fixture explícito.', Boolean(cmd.verifiedCauseRecordId), 'MISSING_VERIFIED_CAUSE');
     }
 
-    check(
-      'El movimiento no puede ejecutarse mientras un partido del usuario esté iniciado o pendiente de revelar.',
-      !(deps && deps.pendingUserMatchBlocks), 'PENDING_USER_MATCH',
-    );
+    // La comprobación de partido en curso/pendiente ya se hizo una única
+    // vez en `planTransaction()` (BUG-TRANSFER1-16) — repetirla aquí sería
+    // el mismo blocker duplicado dos veces en la lista.
 
     return { mechanism, originContractId: originContract.id };
   }
@@ -452,23 +475,40 @@
       return { record: null, notYetDue: true, effectiveDate };
     }
 
-    // Revalidación de fingerprints (sección 13.2) — un plan obsoleto se
-    // rechaza en vez de ejecutarse a ciegas sobre el estado actual.
+    // Revalidación de fingerprints (sección 13.2, BUG-TRANSFER1-13/17,
+    // DESIGN.md 9.21) — "replan-at-commit": la versión anterior comparaba
+    // 4 campos SUPERFICIALES (estado del AIP, número de contratos, id del
+    // contrato de origen, longitud del roster de destino) contra el estado
+    // actual, así que un cambio de CONTENIDO que conservara esos conteos
+    // pasaba inadvertido. Ahora se vuelve a ejecutar `planTransaction()`
+    // con el MISMO comando contra el estado REAL de este instante y se
+    // compara el fingerprint de CONTENIDO resultante campo a campo — un
+    // plan obsoleto se rechaza explícito, nunca se ejecuta a ciegas el
+    // plan viejo. El resto del commit usa SIEMPRE `resolvedPlan` (el plan
+    // recién recalculado), nunca el `plan` recibido por parámetro.
+    if (!deps.operationalContext || typeof deps.operationalContext.pendingUserMatchBlocks !== 'boolean') {
+      throw new TransferDomainError('TransferExecutionService.commitTransaction: falta "operationalContext" explícito en las dependencias.', 'MISSING_OPERATIONAL_CONTEXT');
+    }
+    const freshPlan = planTransaction(cmd, deps);
+    if (!freshPlan.isExecutable) {
+      throw new TransferDomainError(
+        `El plan "${plan.transactionId}" ya no es ejecutable al revalidar contra el estado actual: `
+        + freshPlan.blockers.map((b) => b.message).join(' | '),
+        'PLAN_STALE_BLOCKED', freshPlan.blockers,
+      );
+    }
+    const staleFields = Object.keys(plan.fingerprints).filter(
+      (key) => stableHash(plan.fingerprints[key]) !== stableHash(freshPlan.fingerprints[key]),
+    );
+    if (staleFields.length) {
+      throw new TransferDomainError(
+        `El plan "${plan.transactionId}" quedó obsoleto desde que se planificó — cambió: ${staleFields.join(', ')}. Replanifica.`,
+        'PLAN_STALE_CONTENT',
+      );
+    }
+    const resolvedPlan = freshPlan;
     const agreement = marketRegistry.getAgreement(cmd.agreementInPrincipleId);
-    if (!agreement || agreement.statusOn(effectiveDate) !== plan.fingerprints.agreementStatus) {
-      throw new TransferDomainError('El AIP cambió de estado desde que se planificó — plan obsoleto, replanifica.', 'PLAN_STALE_AIP');
-    }
-    const currentContractCountForPlayer = contractRegistry.forPlayer(cmd.playerId).length;
-    if (currentContractCountForPlayer !== plan.fingerprints.contractRegistrySizeForPlayer) {
-      throw new TransferDomainError('El historial contractual del jugador cambió desde que se planificó — plan obsoleto, replanifica.', 'PLAN_STALE_CONTRACT');
-    }
     const destinationTeam = (teams || []).find((t) => t.id === cmd.destinationClubId);
-    if (!destinationTeam || destinationTeam.roster.length !== plan.fingerprints.destinationRosterSize) {
-      throw new TransferDomainError('El roster de destino cambió desde que se planificó — plan obsoleto, replanifica.', 'PLAN_STALE_ROSTER');
-    }
-    if (deps.pendingUserMatchBlocks) {
-      throw new TransferDomainError('Hay un partido del usuario iniciado o pendiente de revelar — no se puede completar ahora.', 'PENDING_USER_MATCH');
-    }
 
     // --- Commit por pasos con "undo" acumulado (saga) -----------------------
     // Cada paso muta primero y ACTO SEGUIDO registra su propio cierre de
@@ -479,7 +519,7 @@
     function registerUndo(fn) { undoStack.push(fn); }
 
     try {
-      const { contract, terminationPlan } = plan.newObjects;
+      const { contract, terminationPlan } = resolvedPlan.newObjects;
       const player = playerRegistry.require(cmd.playerId);
       const originTeam = cmd.originClubId ? (teams || []).find((t) => t.id === cmd.originClubId) : null;
 
@@ -503,34 +543,29 @@
           verifiedCauseRecordId: cmd.verifiedCauseRecordId || null,
           settlement: cmd.mutualSettlement && cmd.mutualSettlement.amount ? cmd.mutualSettlement.amount : (cmd.releaseClauseAmount || null),
           documentation: cmd.documentation || [],
-          rulesSnapshot: plan.newObjects.resolvedTransferRules ? { trace: plan.newObjects.resolvedTransferRules.trace } : null,
+          rulesSnapshot: resolvedPlan.newObjects.resolvedTransferRules ? { trace: resolvedPlan.newObjects.resolvedTransferRules.trace } : null,
         });
         transferRegistry.registerTerminationRecord(terminationRecord);
-        registerUndo(() => { transferRegistry._terminationRecords.delete(terminationRecord.id); });
-        originContract.addLifecycleEvent({ type: 'terminated', date: effectiveDate, note: `TRANSFER-1:${terminationPlan.mechanism}` });
+        registerUndo(() => { transferRegistry.unregisterTerminationRecord(terminationRecord.id); });
+        const terminatedEvent = originContract.addLifecycleEvent({ type: 'terminated', date: effectiveDate, note: `TRANSFER-1:${terminationPlan.mechanism}` });
+        registerUndo(() => { originContract.removeLifecycleEvent(terminatedEvent.id); });
       }
 
-      const registeredObligations = plan.obligations.map((line, idx) => {
+      const registeredObligations = resolvedPlan.obligations.map((line, idx) => {
         const obligation = new TransferEntities.FinancialObligation({
           id: `obligation:${plan.transactionId}:${idx}`,
           transactionId: plan.transactionId,
           ...line,
         });
         transferRegistry.registerObligation(obligation);
-        registerUndo(() => { transferRegistry._obligations.delete(obligation.id); });
+        registerUndo(() => { transferRegistry.unregisterObligation(obligation.id); });
         return obligation;
       });
 
       // 3) registrar contrato nuevo.
       if (contract) {
         contractRegistry.register(contract);
-        registerUndo(() => {
-          contractRegistry._contracts.delete(contract.id);
-          const byPlayer = contractRegistry._byPlayer.get(contract.playerId) || [];
-          contractRegistry._byPlayer.set(contract.playerId, byPlayer.filter((id) => id !== contract.id));
-          const byClub = contractRegistry._byClub.get(contract.clubId) || [];
-          contractRegistry._byClub.set(contract.clubId, byClub.filter((id) => id !== contract.id));
-        });
+        registerUndo(() => { contractRegistry.unregister(contract.id); });
       }
 
       // 4) baja regulatoria de origen.
@@ -538,24 +573,40 @@
       if (registrationRegistry && cmd.originRegistrationScopeId && originTeam) {
         const currentReg = registrationRegistry.currentRegistration(cmd.playerId, cmd.originRegistrationScopeId, cmd.originSeasonKey || cmd.seasonKey, effectiveDate);
         if (currentReg) {
-          const before = currentReg.events.slice();
+          // BUG-TRANSFER1-13 (DESIGN.md 9.21): id determinista del evento
+          // calculado ANTES de mutar (mismo criterio que
+          // `RegistrationService.advanceRegistrationEvent`) — el rollback
+          // usa `removeEvent(id)` en vez de reasignar `currentReg.events`
+          // desde fuera del agregado.
+          const deactivationEventId = `${currentReg.id}:deactivated:${currentReg.events.length}`;
+          const previousReasonCode = currentReg.trace.deactivationReasonCode;
           RegSvc().deactivateRegistration(currentReg, effectiveDate, `TRANSFER-1:${terminationPlan ? terminationPlan.mechanism : cmd.operationType}`);
           deactivatedRegistrationId = currentReg.id;
-          registerUndo(() => { currentReg.events = before; delete currentReg.trace.deactivationReasonCode; });
+          registerUndo(() => {
+            currentReg.removeEvent(deactivationEventId);
+            if (previousReasonCode === undefined) delete currentReg.trace.deactivationReasonCode;
+            else currentReg.trace.deactivationReasonCode = previousReasonCode;
+          });
         }
       }
 
-      // 5) mover afiliación canónica (frontera única).
+      // 5) mover afiliación canónica (frontera única) — el snapshot
+      // operativo (foco de entrenamiento, rol táctico, `state.lineup` si se
+      // pasó) se captura ANTES de mover y se restaura EXACTO en el
+      // rollback vía `restoreOperationalReferences()` (BUG-TRANSFER1-15).
       const rosterReport = cmd.releaseOnly
-        ? RosterSvc().releasePlayer({ playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId })
+        ? RosterSvc().releasePlayer({
+          playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId, lineup: deps.lineup,
+        })
         : RosterSvc().transferPlayer({
-          playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId, toTeamId: cmd.destinationClubId,
+          playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId, toTeamId: cmd.destinationClubId, lineup: deps.lineup,
         });
       registerUndo(() => {
         if (cmd.releaseOnly) {
           if (rosterReport.fromTeamId) {
             const backTeam = (teams || []).find((t) => t.id === rosterReport.fromTeamId);
             if (backTeam) backTeam.addPlayer(player);
+            else playerRegistry.setAffiliation(cmd.playerId, rosterReport.fromTeamId);
           }
         } else {
           const backTeam = rosterReport.fromTeamId ? (teams || []).find((t) => t.id === rosterReport.fromTeamId) : null;
@@ -564,6 +615,7 @@
           if (backTeam) backTeam.addPlayer(player);
           else playerRegistry.setAffiliation(cmd.playerId, null);
         }
+        rosterReport.restoreOperationalReferences();
       });
 
       // 6) licencia + inscripción de destino.
@@ -573,6 +625,14 @@
         const regCmd = cmd.destinationRegistration;
         const license = RegSvc().issueLicense({
           registry: registrationRegistry,
+          // Igual que la inscripción de abajo: el id determinista por
+          // defecto (playerId+clubId+season) asume UNA licencia por
+          // jugador/club/temporada — roto en cuanto el mismo jugador vuelve
+          // a licenciarse en el MISMO club dentro de la misma temporada
+          // (p.ej. cesión activada y devuelta y luego comprado en firme por
+          // el propio cesionario). Se fija explícito por transacción para
+          // que nunca choque con una licencia anterior desactivada.
+          id: `license:${plan.transactionId}`,
           playerId: cmd.playerId,
           clubId: cmd.destinationClubId,
           federationId: regCmd.federationId,
@@ -584,7 +644,7 @@
           provenance: { dataSource: 'simulated-transfer-v1', isReal: false },
         });
         createdLicenseId = license.id;
-        registerUndo(() => { registrationRegistry._licenses.delete(license.id); });
+        registerUndo(() => { registrationRegistry.unregisterLicense(license.id); });
 
         const registration = RegSvc().createRegistration({
           registry: registrationRegistry,
@@ -612,7 +672,7 @@
           provenance: { dataSource: 'simulated-transfer-v1', isReal: false },
         });
         createdRegistrationId = registration.id;
-        registerUndo(() => { registrationRegistry._registrations.delete(registration.id); });
+        registerUndo(() => { registrationRegistry.unregisterRegistration(registration.id); });
       }
 
       // 7) historial/team stint: PlayerCareer crea el stint automáticamente
@@ -621,10 +681,10 @@
       //    explícito aquí (sección 16 del prompt: nunca reinicializa carrera).
 
       // 8) consumir reservas + AIP.
-      const beforeAgreementEvents = agreement.events.slice();
-      agreement.addEvent({ id: `${agreement.id}:completed:${plan.transactionId}`, type: 'execution-completed', date: effectiveDate });
+      const completionEventId = `${agreement.id}:completed:${plan.transactionId}`;
+      agreement.addEvent({ id: completionEventId, type: 'execution-completed', date: effectiveDate });
       agreement.completedTransactionId = plan.transactionId;
-      registerUndo(() => { agreement.events = beforeAgreementEvents; agreement.completedTransactionId = null; });
+      registerUndo(() => { agreement.removeEvent(completionEventId); agreement.completedTransactionId = null; });
 
       const reservationLinesBefore = (marketRegistry.getBudgetReservationGroup(agreement.budgetReservationGroupId) || []).map((l) => ({ ...l }));
       marketRegistry.releaseBudgetGroup(agreement.budgetReservationGroupId);
@@ -635,7 +695,29 @@
         });
       });
 
-      // 9) TransactionRecord completado.
+      // 9) proyección de nómina refrescada ANTES del recibo final
+      // (BUG-TRANSFER1-14, DESIGN.md 9.21) — antes se refrescaba DESPUÉS de
+      // `registerTransactionRecord()`, así que un fallo entre medias dejaba
+      // el `TransactionRecord` ya registrado (comentado como "no hace falta
+      // undo, es la última mutación") pero con la nómina de los clubes
+      // implicados desincronizada, sin ningún paso posterior que la
+      // revirtiera.
+      if (contract) {
+        const before = destinationTeam.finances.expenses.playerSalaries;
+        ContractSvc().refreshTeamSalaryProjection(destinationTeam, contractRegistry, cmd.seasonKey);
+        registerUndo(() => { destinationTeam.finances.expenses.playerSalaries = before; });
+      }
+      if (originTeam) {
+        const before = originTeam.finances.expenses.playerSalaries;
+        ContractSvc().refreshTeamSalaryProjection(originTeam, contractRegistry, cmd.seasonKey);
+        registerUndo(() => { originTeam.finances.expenses.playerSalaries = before; });
+      }
+
+      // 10) TransactionRecord completado — ÚLTIMO paso: si algo posterior
+      // fallara tendría que deshacer el recibo también, así que registra su
+      // propio undo por defensa en profundidad (anticipando que LOAN-1
+      // añada pasos DESPUÉS del recibo, p.ej. publicar noticia con
+      // dependencias que pueden lanzar).
       const record = new TransferEntities.TransactionRecord({
         id: plan.transactionId,
         transferCaseId: cmd.transferCaseId || plan.transactionId,
@@ -656,16 +738,12 @@
         createdLicenseId,
         obligationIds: registeredObligations.map((o) => o.id),
         rosterMutationReport: { fromTeamId: rosterReport.fromTeamId, toTeamId: rosterReport.toTeamId },
-        rulesSnapshot: plan.newObjects.resolvedTransferRules ? { trace: plan.newObjects.resolvedTransferRules.trace } : null,
-        sourceRefs: plan.newObjects.resolvedTransferRules ? plan.newObjects.resolvedTransferRules.sourceRefs : [],
-        warnings: plan.warnings,
+        rulesSnapshot: resolvedPlan.newObjects.resolvedTransferRules ? { trace: resolvedPlan.newObjects.resolvedTransferRules.trace } : null,
+        sourceRefs: resolvedPlan.newObjects.resolvedTransferRules ? resolvedPlan.newObjects.resolvedTransferRules.sourceRefs : [],
+        warnings: resolvedPlan.warnings,
       });
       transferRegistry.registerTransactionRecord(record);
-      // No hace falta undo: si llegamos aquí, el resto ya tuvo éxito y esta
-      // es la ÚLTIMA mutación antes de devolver — nada puede fallar después.
-
-      if (contract) ContractSvc().refreshTeamSalaryProjection(destinationTeam, contractRegistry, cmd.seasonKey);
-      if (originTeam) ContractSvc().refreshTeamSalaryProjection(originTeam, contractRegistry, cmd.seasonKey);
+      registerUndo(() => { transferRegistry.unregisterTransactionRecord(record.id); });
 
       return { record, idempotent: false };
     } catch (err) {

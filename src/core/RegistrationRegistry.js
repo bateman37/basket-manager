@@ -14,6 +14,7 @@
 (function (global) {
   const isNode = (typeof module !== 'undefined' && module.exports);
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
+  const RegistryIndexAuditModule = isNode ? require('../utils/RegistryIndexAudit.js') : global.BasketManager;
 
   function LD() { return LocalDateModule.LocalDate; }
 
@@ -28,6 +29,8 @@
     list.push(value);
     map.set(key, list);
   }
+
+  function auditIndexSymmetry(...args) { return RegistryIndexAuditModule.RegistryIndexAudit.auditIndexSymmetry(...args); }
 
   class RegistrationRegistry {
     constructor() {
@@ -59,6 +62,20 @@
       pushIndex(this._licensesByPlayer, license.playerId, license.id);
       pushIndex(this._licensesByClub, license.clubId, license.id);
       return license;
+    }
+
+    // BUG-TRANSFER1-14 (DESIGN.md 9.21): reversión SIMÉTRICA de
+    // registerLicense — primario + `_licensesByPlayer`/`_licensesByClub`
+    // juntos, nunca por separado desde fuera. Idempotente.
+    unregisterLicense(id) {
+      const license = this._licenses.get(id);
+      if (!license) return false;
+      this._licenses.delete(id);
+      const byPlayer = this._licensesByPlayer.get(license.playerId) || [];
+      this._licensesByPlayer.set(license.playerId, byPlayer.filter((x) => x !== id));
+      const byClub = this._licensesByClub.get(license.clubId) || [];
+      this._licensesByClub.set(license.clubId, byClub.filter((x) => x !== id));
+      return true;
     }
 
     getLicense(id) { return this._licenses.get(id) || null; }
@@ -96,6 +113,25 @@
       pushIndex(this._registrationsByScope, registration.registrationScopeId, registration.id);
       pushIndex(this._registrationsByCompetition, registration.competitionId, registration.id);
       return registration;
+    }
+
+    // BUG-TRANSFER1-14 (DESIGN.md 9.21): reversión SIMÉTRICA de
+    // registerRegistration — primario + los CUATRO índices secundarios
+    // juntos, nunca por separado desde fuera. Idempotente.
+    unregisterRegistration(id) {
+      const registration = this._registrations.get(id);
+      if (!registration) return false;
+      this._registrations.delete(id);
+      [
+        [this._registrationsByPlayer, registration.playerId],
+        [this._registrationsByClub, registration.teamId],
+        [this._registrationsByScope, registration.registrationScopeId],
+        [this._registrationsByCompetition, registration.competitionId],
+      ].forEach(([map, key]) => {
+        const list = map.get(key) || [];
+        map.set(key, list.filter((x) => x !== id));
+      });
+      return true;
     }
 
     getRegistration(id) { return this._registrations.get(id) || null; }
@@ -300,10 +336,24 @@
             );
           }
           if (contract && contract.clubId !== registration.teamId) {
-            errors.push(
-              `La inscripción "${registration.id}" referencia el contrato "${registration.contractId}", que pertenece `
-              + `al club "${contract.clubId}", no a "${registration.teamId}".`,
-            );
+            // LOAN-1 (DESIGN.md 9.21): excepción EXPLÍCITA para una cesión
+            // real — el contrato sigue siendo del club EMPLEADOR (nunca se
+            // mueve durante la cesión), la inscripción es del club de
+            // SERVICIO. Solo se admite la discordancia cuando
+            // `employmentBasis` declara exactamente ese reparto — nunca
+            // como excepción genérica "cualquier discordancia vale".
+            const basis = registration.employmentBasis;
+            const explainedByLoanBasis = Boolean(basis)
+              && basis.type === 'temporary-assignment'
+              && basis.contractId === registration.contractId
+              && basis.employerClubId === contract.clubId
+              && basis.serviceClubId === registration.teamId;
+            if (!explainedByLoanBasis) {
+              errors.push(
+                `La inscripción "${registration.id}" referencia el contrato "${registration.contractId}", que pertenece `
+                + `al club "${contract.clubId}", no a "${registration.teamId}".`,
+              );
+            }
           }
         }
         // Invariante: no hay inscripción activa fuera de la vigencia de la
@@ -333,6 +383,16 @@
         if (seen.has(id)) errors.push(`ID "${id}" duplicado entre colecciones del RegistrationRegistry.`);
         seen.add(id);
       });
+
+      // BUG-TRANSFER1-14 (DESIGN.md 9.21): índices secundarios simétricos —
+      // ningún id colgante (apunta a una entidad borrada) ni indexado más
+      // de una vez, y todo primario alcanzable desde su índice.
+      errors.push(...auditIndexSymmetry('_licensesByPlayer', this._licensesByPlayer, this._licenses));
+      errors.push(...auditIndexSymmetry('_licensesByClub', this._licensesByClub, this._licenses));
+      errors.push(...auditIndexSymmetry('_registrationsByPlayer', this._registrationsByPlayer, this._registrations));
+      errors.push(...auditIndexSymmetry('_registrationsByClub', this._registrationsByClub, this._registrations));
+      errors.push(...auditIndexSymmetry('_registrationsByScope', this._registrationsByScope, this._registrations));
+      errors.push(...auditIndexSymmetry('_registrationsByCompetition', this._registrationsByCompetition, this._registrations));
 
       // Doble acta misma jornada, mismo ámbito: ningún jugador debería
       // aparecer en dos actas del mismo ámbito+temporada+jornada a la vez

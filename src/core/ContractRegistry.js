@@ -22,11 +22,12 @@
 // Módulo puro: no lee DOM, ni `state`, ni variables globales.
 
 (function (global) {
-  const LocalDateModule = (typeof module !== 'undefined' && module.exports)
-    ? require('../utils/LocalDate.js')
-    : global.BasketManager;
+  const isNode = (typeof module !== 'undefined' && module.exports);
+  const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
+  const RegistryIndexAuditModule = isNode ? require('../utils/RegistryIndexAudit.js') : global.BasketManager;
 
   function LD() { return LocalDateModule.LocalDate; }
+  function auditIndexSymmetry(...args) { return RegistryIndexAuditModule.RegistryIndexAudit.auditIndexSymmetry(...args); }
 
   function toIso(date) {
     if (!date) throw new Error('ContractRegistry: hace falta una fecha para resolver el estado de un contrato.');
@@ -74,6 +75,22 @@
     registerMany(contracts) {
       (contracts || []).forEach((contract) => this.register(contract));
       return contracts || [];
+    }
+
+    // BUG-TRANSFER1-14 (DESIGN.md 9.21): reversión SIMÉTRICA — primario e
+    // índices secundarios se actualizan juntos, nunca por separado desde
+    // fuera (`registry._contracts`/`_byPlayer`/`_byClub` quedan prohibidos
+    // para cualquier servicio, auditado estáticamente). Idempotente: quitar
+    // dos veces el mismo id no lanza.
+    unregister(contractId) {
+      const contract = this._contracts.get(contractId);
+      if (!contract) return false;
+      this._contracts.delete(contractId);
+      const byPlayer = this._byPlayer.get(contract.playerId) || [];
+      this._byPlayer.set(contract.playerId, byPlayer.filter((id) => id !== contractId));
+      const byClub = this._byClub.get(contract.clubId) || [];
+      this._byClub.set(contract.clubId, byClub.filter((id) => id !== contractId));
+      return true;
     }
 
     get(contractId) {
@@ -132,7 +149,9 @@
     // Informe de integridad — NUNCA lanza por sí solo (mismo criterio que
     // `PlayerRegistry.validateAgainstTeams`): devuelve todo lo que no cuadra.
     validateIntegrity(options) {
-      const { playerRegistry, teams, date } = options || {};
+      const {
+        playerRegistry, teams, date, loanRegistry,
+      } = options || {};
       const errors = [];
       const iso = date ? toIso(date) : null;
       const teamIds = new Set((teams || []).map((team) => team.id));
@@ -149,6 +168,10 @@
           scheduleCheck.errors.forEach((error) => errors.push(`Contrato "${contract.id}": ${error}`));
         }
       });
+
+      // BUG-TRANSFER1-14 (DESIGN.md 9.21): índices secundarios simétricos.
+      errors.push(...auditIndexSymmetry('_byPlayer', this._byPlayer, this._contracts));
+      errors.push(...auditIndexSymmetry('_byClub', this._byClub, this._contracts));
 
       // Ningún jugador con dos contratos solapados.
       [...this._byPlayer.keys()].forEach((playerId) => {
@@ -179,10 +202,32 @@
                 + `"${team.fullName || team.id}" pero no tiene ningún contrato vigente ni pendiente a ${iso}.`,
               );
             } else if (current.clubId !== team.id) {
-              errors.push(
-                `El jugador "${player.id}" está en la plantilla de "${team.id}" pero su contrato vigente `
-                + `("${current.id}") es con "${current.clubId}".`,
-              );
+              // LOAN-1 (DESIGN.md 9.21, sección 12 del prompt) — durante una
+              // cesión, el contrato matriz sigue siendo con el PROPIETARIO
+              // pero el roster operativo es el del CESIONARIO. Esta
+              // discordancia contrato≠roster es válida SOLO si existe
+              // EXACTAMENTE un LoanAgreement activo que la explica: el
+              // contrato pertenece al propietario declarado, el roster es el
+              // cesionario declarado y la fecha cae dentro del intervalo de
+              // servicio — cualquier otra discordancia sigue siendo error.
+              let explainedByLoan = false;
+              if (loanRegistry && typeof loanRegistry.activeAgreementForPlayer === 'function') {
+                try {
+                  const agreement = loanRegistry.activeAgreementForPlayer(player.id, iso);
+                  explainedByLoan = Boolean(agreement)
+                    && agreement.masterContractId === current.id
+                    && agreement.ownerClubId === current.clubId
+                    && agreement.borrowerClubId === team.id;
+                } catch (err) {
+                  errors.push(err.message);
+                }
+              }
+              if (!explainedByLoan) {
+                errors.push(
+                  `El jugador "${player.id}" está en la plantilla de "${team.id}" pero su contrato vigente `
+                  + `("${current.id}") es con "${current.clubId}" — sin un LoanAgreement activo que lo explique.`,
+                );
+              }
             }
           });
         });
