@@ -276,8 +276,14 @@ async function main(mode) {
   }
   await marketTab(page, 'Negociaciones');
   const aipUiText = await page.$eval('#gm-market', (el) => el.textContent);
-  summarize('La UI muestra el texto "Acuerdo en principio alcanzado" y la advertencia de TRANSFER-1', /Acuerdo en principio alcanzado/.test(aipUiText) && /TRANSFER-1/.test(aipUiText));
-  summarize('La UI NUNCA usa "fichado"/"contrato firmado"/"inscrito" para un AIP', !/fichado|contrato firmado|jugador inscrito/i.test(aipUiText));
+  // TRANSFER-1 (DESIGN.md 9.20) ya está construido — un AIP vivo muestra
+  // el asistente de formalización real (mecanismo derivado + acción),
+  // no el antiguo texto estático "se ejecutarán en TRANSFER-1" (ese
+  // placeholder desapareció al integrar la pantalla real; ver
+  // verify-transfer1-playwright.js para la cobertura completa del
+  // asistente).
+  summarize('La UI muestra el asistente de formalización real (mecanismo derivado)', /Mecanismo:/.test(aipUiText));
+  summarize('La UI NUNCA usa "fichado"/"contrato firmado"/"inscrito" para un AIP todavía sin formalizar', !/fichado|contrato firmado|jugador inscrito/i.test(aipUiText));
 
   // -------------------------------------------------------------------
   // 12. Fixture ACB de tanteo: deadline/componentes visibles y decisión.

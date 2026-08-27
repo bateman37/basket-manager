@@ -7025,7 +7025,12 @@
         if (evaluation.decision === 'counter') {
           const counterFeeMinor = BM.TransferService.generateCounterFee({ originalFeeMinor: feeMinor, careerSeed, offerId: proposedOffer.id, roundIndex: 0 });
           resultEl.textContent = `${escapeHtml(originTeam.fullName)} contraoferta: ${formatMoneyMinor(counterFeeMinor, 'EUR')} (${evaluation.reasons.join(' ')})`;
-          form.querySelector('input[name=feeEuros]').value = Math.round(counterFeeMinor / 100);
+          // El campo declara step="1000" (renderAgreementFormalizationHtml)
+          // — un importe sugerido que no cayera en un múltiplo de 1000
+          // bloquearía en silencio el siguiente envío (validación nativa
+          // del formulario, sin disparar 'submit' ni mostrar error propio)
+          // si el usuario reenvía tal cual el valor sugerido.
+          form.querySelector('input[name=feeEuros]').value = Math.round(counterFeeMinor / 100 / 1000) * 1000;
           return;
         }
         if (!playerConsent) {
