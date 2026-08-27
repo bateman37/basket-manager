@@ -286,7 +286,8 @@ function runFreeAgentInquiryToAgreementFixture() {
   });
   assert.ok(validation.valid, `oferta inicial inválida: ${validation.errors.join(' | ')}`);
   let offer = MarketService.createAndSendOffer({
-    marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: 'core' }, date: dueEvent.dueDate, careerSeed: CAREER_SEED, employmentValidation: validation.employmentValidation, marketContext, validation,
+    marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: 'core' }, date: dueEvent.dueDate, careerSeed: CAREER_SEED, marketContext,
+    team, player, playerRegistry, contractRegistry, seasonKey,
   });
   let round = 0;
   let outcome = null;
@@ -294,6 +295,7 @@ function runFreeAgentInquiryToAgreementFixture() {
     const responseDate = LocalDate.addDays(offer.createdAt, 1);
     const result = MarketService.processOfferResponse({
       marketRegistry, playerRegistry, thread, offer, date: responseDate, careerSeed: CAREER_SEED, marketContext,
+      team, contractRegistry, seasonKey,
     });
     if (result.outcome !== 'countered') { outcome = result; break; }
     offer = result.counterOffer;
@@ -303,7 +305,7 @@ function runFreeAgentInquiryToAgreementFixture() {
     const agreement = MarketService.createAgreementInPrinciple({
       marketRegistry, thread, offer: outcome.offer, date: LocalDate.addDays(offer.createdAt, 1), employmentSnapshot: { profileId: marketContext.bundleId },
     });
-    assert.strictEqual(agreement.executionState, 'pending-transfer-1');
+    assert.strictEqual(agreement.statusOn(LocalDate.addDays(offer.createdAt, 1)), 'pendingExecution');
     assert.strictEqual(contractRegistry.currentForPlayer(player.id, LocalDate.addDays(offer.createdAt, 1)), null, 'un AIP nunca registra contrato');
     assert.strictEqual(player.teamId, null, 'un AIP nunca mueve teamId');
     console.log(`OK: fixture libre completo — inquiry -> counter (${round} rondas) -> AIP con "${player.fullName}" (${team.fullName}).`);
@@ -324,16 +326,26 @@ function runLowballRejectionFixture() {
   thread.addEvent({ id: 'smoke-rejection:contacted', type: 'player-side-contacted', date: isoDate });
   thread.addEvent({ id: 'smoke-rejection:scheduled', type: 'interest-response-scheduled', date: isoDate });
   thread.addEvent({ id: 'smoke-rejection:confirmed', type: 'interest-confirmed', date: isoDate });
-  const draft = buildValidOfferDraft(team, player, isoDate, 100000, 1); // 1.000 € — insultantemente bajo a propósito
+  // BUG-MARKET1-03 (DESIGN.md 9.20): createAndSendOffer valida SIEMPRE
+  // internamente contra el mínimo legal/convenio real — un importe por
+  // debajo de ese mínimo (100.000 minor/1.000€, el valor original de este
+  // fixture) ya no llega a enviarse: es inválido de por sí, no solo
+  // "lowball". Se sube al mínimo ACB exacto (28.000€/año) para que la
+  // oferta SÍ sea legal-válida pero siga siendo económicamente
+  // insultante frente al objetivo simulado del jugador (evaluado por
+  // NegotiationService, nunca por el mínimo legal).
+  const draft = buildValidOfferDraft(team, player, isoDate, 2800000, 1); // 28.000 € — mínimo legal, insultante para el jugador
   const marketContext = MarketService.resolveMarketContext({ domesticCompetitionId: 'acb', seasonKey, date: isoDate });
   const offer = MarketService.createAndSendOffer({
     marketRegistry, thread, draft, offeredBy: 'club', date: isoDate, careerSeed: CAREER_SEED, marketContext,
+    team, player, playerRegistry, contractRegistry, seasonKey,
   });
   const result = MarketService.processOfferResponse({
     marketRegistry, playerRegistry, thread, offer, date: LocalDate.addDays(isoDate, 1), careerSeed: CAREER_SEED, marketContext,
+    team, contractRegistry, seasonKey,
   });
   assert.strictEqual(result.outcome, 'rejected', 'una oferta insultantemente baja debe rechazarse');
-  assert.strictEqual(marketRegistry.getBudgetReservation(`res:${offer.id}`).status, 'released');
+  assert.ok(marketRegistry.getBudgetReservationGroup(`res:${offer.id}`).every((line) => line.status === 'released'));
   rejectionFlowChecked = true;
   console.log(`OK: fixture de rechazo — oferta insuficiente a "${player.fullName}" rechazada, reserva liberada.`);
 }

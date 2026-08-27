@@ -47,9 +47,10 @@
     const player = playerRegistry.get(playerId);
 
     // Acuerdo en principio vivo con OTRO club — prioridad máxima de
-    // presentación (sección 8.3).
+    // presentación (sección 8.3). BUG-MARKET1-06: "vivo" ahora es
+    // `isLiveOn()` (ciclo de vida + validUntil), nunca solo `validUntil`.
     const liveAgreement = marketRegistry.agreementsForPlayer(playerId)
-      .find((a) => !a.validUntil || !LD().isAfter(iso, a.validUntil));
+      .find((a) => a.isLiveOn(iso));
     if (liveAgreement) {
       return {
         status: 'agreement-in-principle', reasons: [], agreementId: liveAgreement.id, withClubId: liveAgreement.clubId,
@@ -146,21 +147,81 @@
   }
 
   // ---------------------------------------------------------------------
+  // BUG-MARKET1-04 (DESIGN.md 9.20): `openInquiry()` aceptaba
+  // `agentRegistry`/`actingMandateId` pero nunca los resolvía ni validaba
+  // — un hilo podía abrirse con `actingMandateId: null` aunque el jugador
+  // SÍ estuviera representado, o con un mandato ajeno/expirado/fuera de
+  // alcance sin ningún error. Ahora:
+  //  - si se declara `actingMandateId`, se exige que exista, represente
+  //    EXACTAMENTE a este jugador y esté activo en la fecha (nunca un
+  //    mandato ajeno o vencido — exige renovación/nuevo mandato/
+  //    consentimiento personal trazado);
+  //  - si no se declara, se resuelve el mandato ACTIVO exacto vía
+  //    `AgentRegistry.actingMandateForTransaction()` (determinista:
+  //    exclusivo > más reciente, nunca "el primero del array") — `null`
+  //    significa auto-representación EXPLÍCITA, no un mandato ignorado;
+  //  - si se pasa `playerRegistry`, se valida además conflicto de interés
+  //    (agente representando a la vez al club y al jugador de esta
+  //    operación).
+  // ---------------------------------------------------------------------
+  function resolveActingMandate(params) {
+    const {
+      agentRegistry, playerId, actingClubId, actingMandateId, date, playerRegistry,
+    } = params;
+    if (!agentRegistry) return null; // sin registro de agentes disponible: auto-representación (fixtures legacy)
+    let mandate = null;
+    if (actingMandateId) {
+      mandate = agentRegistry.requireMandate(actingMandateId);
+      if (mandate.clientType !== 'player' || mandate.clientId !== playerId) {
+        throw new Error(
+          `MarketService.openInquiry: el mandato "${actingMandateId}" no representa al jugador "${playerId}" `
+          + '(BUG-MARKET1-04: nunca se acepta un mandato ajeno).',
+        );
+      }
+      if (!mandate.isActiveOn(date)) {
+        throw new Error(
+          `MarketService.openInquiry: el mandato "${actingMandateId}" no está activo a ${date} `
+          + '(pendiente/expirado/terminado) — exige renovación, nuevo mandato o consentimiento personal trazado, '
+          + 'nunca se reescribe el hilo histórico con un mandato caducado.',
+        );
+      }
+    } else {
+      mandate = agentRegistry.actingMandateForTransaction({ playerId, date, scope: 'employment' });
+    }
+    if (mandate && playerRegistry) {
+      const conflict = agentRegistry.validateConflictOfInterest(
+        {
+          agentId: mandate.agentId, playerId, involvedClubId: actingClubId, date,
+        },
+        { playerRegistry },
+      );
+      if (!conflict.valid) {
+        throw new Error(`MarketService.openInquiry: conflicto de interés del agente — ${conflict.errors.join(' | ')}`);
+      }
+    }
+    return mandate;
+  }
+
+  // ---------------------------------------------------------------------
   // 5. Abrir consulta / hilo (sección 12.1, 8.4).
   // ---------------------------------------------------------------------
   function openInquiry(params) {
     const {
       marketRegistry, agentRegistry, playerId, actingClubId, actingMandateId, prospectiveCompetitionIds,
-      date, marketContext, careerSeed,
+      date, marketContext, careerSeed, playerRegistry,
     } = params;
-    const id = params.id || `thread:${actingClubId}:${playerId}:${toIso(date)}`;
+    const iso = toIso(date);
+    const resolvedMandate = resolveActingMandate({
+      agentRegistry, playerId, actingClubId, actingMandateId, date: iso, playerRegistry,
+    });
+    const id = params.id || `thread:${actingClubId}:${playerId}:${iso}`;
     const thread = new MarketEntities.NegotiationThread({
       id,
       playerId,
       actingClubId,
-      actingMandateId: actingMandateId || null,
+      actingMandateId: resolvedMandate ? resolvedMandate.id : null,
       prospectiveCompetitionIds: prospectiveCompetitionIds || [],
-      openedAt: toIso(date),
+      openedAt: iso,
       rulesSnapshot: marketContext ? { bundleId: marketContext.bundleId, trace: marketContext.trace } : null,
       marketPolicyVersion: NegSvc().NEGOTIATION_POLICY_VERSION,
       provenance: { dataSource: 'market-negotiation', isReal: false },
@@ -242,6 +303,12 @@
   // ---------------------------------------------------------------------
   // Valida un borrador ANTES de enviarlo — empleo/jurisdicción/reglas de
   // mercado del contexto exacto (sección 3.8 del resultado esperado).
+  //
+  // BUG-MARKET1-05 (DESIGN.md 9.20): desglose y validación POR TEMPORADA
+  // (`Contract.breakdownForSeason`, misma semántica que CONTRACT-1), nunca
+  // un total plurianual comparado contra el disponible de un único
+  // ejercicio. `costPlan` pasa a ser un mapa `{ [seasonKey]: costPlan }` —
+  // quien consuma el resultado (UI, tests) debe leer por temporada.
   function validateOfferBeforeSend(params) {
     const {
       draft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey, date, marketContext,
@@ -250,16 +317,36 @@
       draft, team, player, playerRegistry, contractRegistry, seasonKey, date,
     });
     const errors = [...employment.errors];
+    const warnings = [...employment.warnings];
 
-    const guaranteedTotalMinor = NegSvc().summarizeOfferDraft(draft).guaranteedTotalMinor;
-    const costPlan = computeSquadCostPlan({
-      team, contractRegistry, marketRegistry, seasonKey,
-    });
-    if (guaranteedTotalMinor > costPlan.availableMinor) {
-      errors.push(
-        `La oferta (${guaranteedTotalMinor} minor) excede el disponible del límite interno simulado `
-        + `(${costPlan.availableMinor} minor) para ${seasonKey}.`,
-      );
+    const currency = (draft.compensation && draft.compensation.currency) || 'EUR';
+    const coveredSeasonKeys = (draft.coveredSeasonKeys && draft.coveredSeasonKeys.length)
+      ? draft.coveredSeasonKeys
+      : (employment.contract ? employment.contract.coveredSeasonKeys : []);
+    const costPlanBySeason = {};
+    const perSeasonReservationLines = [];
+    if (employment.contract) {
+      coveredSeasonKeys.forEach((sKey) => {
+        const breakdown = employment.contract.breakdownForSeason(sKey);
+        if (breakdown.currency !== currency) {
+          errors.push(
+            `La temporada ${sKey} usa la moneda ${breakdown.currency}, distinta de la declarada en la oferta `
+            + `(${currency}) — no se suman monedas distintas.`,
+          );
+          return;
+        }
+        const costPlan = computeSquadCostPlan({ team, contractRegistry, marketRegistry, seasonKey: sKey });
+        costPlanBySeason[sKey] = costPlan;
+        if (breakdown.guaranteedTotalMinor > costPlan.availableMinor) {
+          errors.push(
+            `La oferta de ${sKey} (${breakdown.guaranteedTotalMinor} minor) excede el disponible del límite `
+            + `interno simulado (${costPlan.availableMinor} minor) para esa temporada.`,
+          );
+        }
+        perSeasonReservationLines.push({ seasonKey: sKey, amountMinor: breakdown.guaranteedTotalMinor, currency });
+      });
+    } else {
+      warnings.push('No se pudo construir un Contract efímero desde el borrador — no hay desglose por temporada disponible.');
     }
 
     const requiresInternationalLicense = Boolean(marketContext && marketContext.market
@@ -274,23 +361,60 @@
     return {
       valid: errors.length === 0,
       errors,
-      warnings: [...employment.warnings],
+      warnings,
       employmentValidation: employment,
-      costPlan,
+      // Compatibilidad de lectura: `costPlan` sigue existiendo como el
+      // plan de la temporada PRINCIPAL solicitada (si se pidió una), y
+      // `costPlanBySeason` expone el desglose completo por temporada.
+      costPlan: (seasonKey && costPlanBySeason[seasonKey]) || costPlanBySeason[coveredSeasonKeys[0]] || null,
+      costPlanBySeason,
+      perSeasonReservationLines,
       requiresTransferResolution: employment.requiresTransferResolution,
     };
+  }
+
+  // BUG-MARKET1-03 (DESIGN.md 9.20): antes existía un fallback
+  // `params.validation || { valid: true, errors: [] }` que permitía a
+  // cualquier llamador distinto de la UI enviar una oferta SIN validar
+  // jugador/club/contrato/solapamiento/jurisdicción/presupuesto. Ahora
+  // `createAndSendOffer()` exige las dependencias completas y VALIDA él
+  // mismo internamente llamando a `validateOfferBeforeSend()` — la UI ya
+  // no puede decidir que un borrador es válido. Además congela una copia
+  // profunda del borrador ANTES de validar: una mutación posterior del
+  // objeto de entrada nunca puede alterar lo ya validado ni su fingerprint.
+  function deepFreezeClone(value) {
+    const clone = JSON.parse(JSON.stringify(value));
+    const freeze = (node) => {
+      if (node && typeof node === 'object') {
+        Object.values(node).forEach(freeze);
+        Object.freeze(node);
+      }
+    };
+    freeze(clone);
+    return clone;
   }
 
   function createAndSendOffer(params) {
     const {
       marketRegistry, thread, draft, offeredBy, rolePromise, conditionsPrecedent, disclosures, date, careerSeed,
-      employmentValidation, marketContext, parentOfferId, version, maxOfficialDeadline,
+      marketContext, parentOfferId, version, maxOfficialDeadline,
+      team, player, playerRegistry, contractRegistry, seasonKey,
     } = params;
-    const validation = params.validation || { valid: true, errors: [] };
+    if (!team || !playerRegistry || !contractRegistry) {
+      throw new Error(
+        'MarketService.createAndSendOffer: faltan dependencias obligatorias (team/playerRegistry/contractRegistry) '
+        + '— BUG-MARKET1-03: el comando valida SIEMPRE internamente, un llamador nunca puede saltarse la validación.',
+      );
+    }
+    const frozenDraft = deepFreezeClone(draft);
+    const iso = toIso(date);
+    const resolvedSeasonKey = seasonKey || (frozenDraft.coveredSeasonKeys && frozenDraft.coveredSeasonKeys[0]);
+    const validation = validateOfferBeforeSend({
+      draft: frozenDraft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey: resolvedSeasonKey, date: iso, marketContext,
+    });
     if (!validation.valid) {
       throw new Error(`MarketService.createAndSendOffer: borrador inválido — ${validation.errors.join(' | ')}`);
     }
-    const iso = toIso(date);
     const nextVersion = version || (marketRegistry.offersForThread(thread.id).length + 1);
     const fingerprint = NegSvc().buildFingerprint({
       careerSeed, playerId: thread.playerId, threadId: thread.id, offerVersion: nextVersion, decisionDate: iso,
@@ -305,30 +429,26 @@
       createdAt: iso,
       expiresAt,
       playerId: thread.playerId,
-      clubId: draft.clubId,
-      contractDraft: draft,
+      clubId: frozenDraft.clubId,
+      contractDraft: frozenDraft,
       rolePromise: rolePromise || null,
       conditionsPrecedent: conditionsPrecedent || [],
       disclosures: disclosures || [],
-      employmentValidationSnapshot: employmentValidation ? {
-        valid: employmentValidation.valid, requiresTransferResolution: employmentValidation.requiresTransferResolution,
-      } : null,
+      employmentValidationSnapshot: {
+        valid: validation.employmentValidation.valid, requiresTransferResolution: validation.employmentValidation.requiresTransferResolution,
+      },
       marketRulesSnapshot: marketContext ? { bundleId: marketContext.bundleId } : null,
       provenance: { dataSource: 'market-negotiation', isReal: false },
     });
     marketRegistry.registerOffer(offer);
     thread.addOfferId(offer.id);
 
-    const guaranteedTotalMinor = NegSvc().summarizeOfferDraft(draft).guaranteedTotalMinor;
-    marketRegistry.reserveBudget({
-      id: `res:${offer.id}`,
-      clubId: draft.clubId,
-      seasonKey: (draft.coveredSeasonKeys && draft.coveredSeasonKeys[0]) || null,
-      amountMinor: guaranteedTotalMinor,
-      currency: draft.compensation ? draft.compensation.currency : 'EUR',
-      sourceType: 'offer',
-      sourceId: offer.id,
-    });
+    // BUG-MARKET1-05: reserva por GRUPO (una línea por temporada), nunca
+    // bajo `coveredSeasonKeys[0]` solamente.
+    marketRegistry.reserveBudgetGroup(`res:${offer.id}`, validation.perSeasonReservationLines.map((line) => ({
+      clubId: frozenDraft.clubId, seasonKey: line.seasonKey, amountMinor: line.amountMinor, currency: line.currency,
+      sourceType: 'offer', sourceId: offer.id,
+    })));
 
     // Ofertas del CLUB esperan respuesta del jugador/agente (CPU): se
     // programa un evento NO interactivo (game.js lo procesa solo al
@@ -339,7 +459,7 @@
         id: `${offer.id}:offer-response`,
         type: 'offer-response',
         dueDate: NegSvc().scheduleResponseDate({ fingerprint, fromDate: iso, maxOfficialDeadline: expiresAt }),
-        clubId: draft.clubId,
+        clubId: frozenDraft.clubId,
         playerId: thread.playerId,
         threadId: thread.id,
         requiresAttention: false,
@@ -357,7 +477,7 @@
       throw new Error(`MarketService.withdrawOffer: la oferta "${offerId}" no está en estado retirable.`);
     }
     offer.addEvent({ id: `${offerId}:withdrawn`, type: 'offer-withdrawn', date: toIso(date) });
-    marketRegistry.releaseBudget(`res:${offerId}`);
+    marketRegistry.releaseBudgetGroup(`res:${offerId}`);
     return offer;
   }
 
@@ -370,7 +490,7 @@
       marketRegistry.offersForThread(thread.id).forEach((offer) => {
         if (offer.statusOn(iso) === 'sent' && LD().isAfter(iso, offer.expiresAt)) {
           offer.addEvent({ id: `${offer.id}:expired`, type: 'offer-expired', date: iso });
-          marketRegistry.releaseBudget(`res:${offer.id}`);
+          marketRegistry.releaseBudgetGroup(`res:${offer.id}`);
           expired.push(offer);
         }
       });
@@ -383,6 +503,7 @@
   function processOfferResponse(params) {
     const {
       marketRegistry, playerRegistry, thread, offer, date, careerSeed, marketContext,
+      team, contractRegistry, seasonKey,
     } = params;
     const iso = toIso(date);
     const player = playerRegistry.get(thread.playerId);
@@ -402,14 +523,14 @@
 
     if (evaluation.decision === 'reject') {
       offer.addEvent({ id: `${offer.id}:rejected`, type: 'offer-rejected', date: iso });
-      marketRegistry.releaseBudget(`res:${offer.id}`);
+      marketRegistry.releaseBudgetGroup(`res:${offer.id}`);
       return { evaluation, outcome: 'rejected', offer };
     }
 
     // counter — supera la versión anterior con una NUEVA oferta, nunca
     // muta la vieja (invariante 6).
     offer.addEvent({ id: `${offer.id}:countered`, type: 'offer-countered', date: iso });
-    marketRegistry.releaseBudget(`res:${offer.id}`);
+    marketRegistry.releaseBudgetGroup(`res:${offer.id}`);
     const currentGuaranteedMinor = NegSvc().summarizeOfferDraft(offer.contractDraft).guaranteedTotalMinor
       / Math.max(1, (offer.contractDraft.coveredSeasonKeys || [1]).length);
     const adjustment = NegSvc().generateCounterAdjustment({
@@ -422,6 +543,9 @@
       ...offer.contractDraft,
       compensation: { ...offer.contractDraft.compensation, seasons },
     };
+    // BUG-MARKET1-03: la contraoferta pasa por el MISMO createAndSendOffer
+    // que valida internamente — nunca se salta la validación por ser una
+    // contraoferta generada por el motor.
     const counterOffer = createAndSendOffer({
       marketRegistry,
       thread,
@@ -435,6 +559,11 @@
       marketContext,
       parentOfferId: offer.id,
       version: offer.version + 1,
+      team,
+      player,
+      playerRegistry,
+      contractRegistry,
+      seasonKey,
     });
     return {
       evaluation, outcome: 'countered', offer, counterOffer,
@@ -443,18 +572,54 @@
 
   // ---------------------------------------------------------------------
   // 7. Acuerdo en principio (sección 8.6, 12.1).
+  //
+  // BUG-MARKET1-06 (DESIGN.md 9.20): antes `validUntil` podía quedar
+  // `null` (vivo para siempre) y no se comprobaba que oferta/hilo/jugador/
+  // club/reserva/derecho de tanteo fueran REALMENTE coherentes entre sí.
+  // Ahora la creación:
+  //  - exige `validUntil` (declarado o derivado de una política
+  //    versionada, `AIP_DEFAULT_VALIDITY_DAYS`, nunca un plazo mágico);
+  //  - valida que la oferta pertenezca al hilo y coincida en jugador/club;
+  //  - valida que exista el grupo de reserva de la oferta aceptada (BUG-
+  //    MARKET1-05) y esté activo;
+  //  - valida, si se declara, que el resultado de tanteo pertenezca al
+  //    mismo jugador.
   // ---------------------------------------------------------------------
+  const AIP_DEFAULT_VALIDITY_DAYS = 30;
+  const AIP_VALIDITY_POLICY_VERSION = 'simulated-aip-validity-policy-v1';
+
   function createAgreementInPrinciple(params) {
     const {
       marketRegistry, thread, offer, date, employmentSnapshot, marketRulesSnapshot, rightsOutcomeId, validUntil,
     } = params;
     const iso = toIso(date);
+    if (offer.threadId !== thread.id) {
+      throw new Error(`MarketService.createAgreementInPrinciple: la oferta "${offer.id}" no pertenece al hilo "${thread.id}".`);
+    }
+    if (offer.playerId !== thread.playerId || offer.clubId !== thread.actingClubId) {
+      throw new Error('MarketService.createAgreementInPrinciple: la oferta no coincide en jugador/club con el hilo.');
+    }
     if (offer.statusOn(iso) !== 'accepted') {
       throw new Error('MarketService.createAgreementInPrinciple: la oferta debe estar aceptada por el jugador.');
     }
     if (marketRegistry.hasLiveAgreementForPlayer(thread.playerId, iso)) {
       throw new Error(`MarketService.createAgreementInPrinciple: "${thread.playerId}" ya tiene un acuerdo en principio vivo (invariante 8).`);
     }
+    const reservationGroupId = `res:${offer.id}`;
+    const reservationLines = marketRegistry.getBudgetReservationGroup(reservationGroupId);
+    if (!reservationLines || !reservationLines.length || !reservationLines.every((line) => line.status === 'active')) {
+      throw new Error(
+        `MarketService.createAgreementInPrinciple: el grupo de reserva "${reservationGroupId}" de la oferta `
+        + 'aceptada no existe o no está activo (BUG-MARKET1-06: la reserva debe existir, estar activa y coincidir con su coste).',
+      );
+    }
+    if (rightsOutcomeId) {
+      const rightsCase = marketRegistry.getRightsCase(rightsOutcomeId);
+      if (!rightsCase || rightsCase.playerId !== thread.playerId) {
+        throw new Error(`MarketService.createAgreementInPrinciple: el caso de derechos "${rightsOutcomeId}" no pertenece a este jugador/operación.`);
+      }
+    }
+    const resolvedValidUntil = validUntil || LD().addDays(iso, AIP_DEFAULT_VALIDITY_DAYS);
     const agreement = new MarketEntities.AgreementInPrinciple({
       id: `aip:${thread.id}:${offer.id}`,
       threadId: thread.id,
@@ -462,14 +627,15 @@
       playerId: thread.playerId,
       clubId: offer.clubId,
       acceptedAt: iso,
-      validUntil: validUntil || null,
+      validUntil: resolvedValidUntil,
+      validityPolicyVersion: AIP_VALIDITY_POLICY_VERSION,
       conditionsPrecedent: offer.conditionsPrecedent,
       rightsOutcomeId: rightsOutcomeId || null,
       employmentSnapshot: employmentSnapshot || {},
       marketRulesSnapshot: marketRulesSnapshot || null,
       // La reserva del acuerdo REUTILIZA la de la oferta aceptada — nunca
       // se reserva dos veces (sección 11: "un acuerdo conserva la reserva").
-      budgetReservationId: `res:${offer.id}`,
+      budgetReservationGroupId: reservationGroupId,
       provenance: { dataSource: 'market-negotiation', isReal: false },
     });
     marketRegistry.registerAgreement(agreement);
@@ -513,16 +679,38 @@
     return items[0];
   }
 
+  // BUG-MARKET1-07 (DESIGN.md 9.20): regla INCLUSIVA ÚNICA compartida por
+  // Home y `advanceGameClockTo()` — antes Home invocaba
+  // `computeMarketAttentionForClub()` con la fecha de HOY (nunca la fecha
+  // objetivo real de la siguiente acción) y sustituía "Continuar" por
+  // CUALQUIER atención viva, aunque venciera mucho después del próximo
+  // partido; mientras tanto `advanceGameClockTo()` solo bloqueaba con una
+  // comparación EXCLUSIVA (`isAfter`), así que una atención que vencía
+  // EXACTAMENTE el mismo día del salto no bloqueaba ahí tampoco. Las dos
+  // fronteras usan ahora esta MISMA consulta pura, con `throughDate`
+  // OBLIGATORIO: bloquea si `attention.dueDate <= throughDate` (inclusive).
+  function attentionBlocksThrough(attention, throughDate) {
+    if (!attention) return false;
+    if (!throughDate) {
+      throw new Error('MarketService.attentionBlocksThrough: falta "throughDate" (obligatorio, BUG-MARKET1-07).');
+    }
+    return LD().compare(attention.dueDate, toIso(throughDate)) <= 0;
+  }
+
   const exportsObj = {
     MarketService: {
       computeMarketAttentionForClub,
+      attentionBlocksThrough,
       MARKET_BUDGET_POLICY_VERSION,
+      AIP_DEFAULT_VALIDITY_DAYS,
+      AIP_VALIDITY_POLICY_VERSION,
       addWatch,
       removeWatch,
       resolveMarketAvailability,
       resolveMarketContext,
       computeInternalBudgetLimit,
       computeSquadCostPlan,
+      resolveActingMandate,
       openInquiry,
       grantContactPermission,
       denyContactPermission,

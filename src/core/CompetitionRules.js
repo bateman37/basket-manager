@@ -801,13 +801,14 @@
       knownSourceInconsistencies: [],
       notImplemented: [
         'temporaryAssignmentProcedure', // cesión temporal — LOAN-1
-        'transferCompensation', // compensación por transferencia — TRANSFER-1
-        'terminationIndemnityCalculation', // extinción e indemnizaciones — TRANSFER-1
         'imageRightsTaxTreatment', // sin motor fiscal en CONTRACT-1
       ],
       derivedInterpretations: [
         'clausePolicy["automatic-renewal"] = forbidden es LECTURA DEL PROYECTO de la exigencia de prórroga '
         + 'por acuerdo sucesivo (duración determinada), no una prohibición literal del texto.',
+        'La participación del jugador en un traspaso (art. 13.a) y la indemnización por extinción (arts. '
+        + '15/16) ya NO están notImplemented aquí — TRANSFER-1 (DESIGN.md 9.20) las resuelve en el dominio '
+        + '`transfer` (módulo "es-rd1006-professional-athlete-termination-2026-v1"), separado de `employment`.',
       ],
     },
 
@@ -956,9 +957,12 @@
         'rightOfFirstRefusalProcedure', // tanteo = máquina de estados — MARKET-1
         'qualifyingOfferRules', // MARKET-1
         'disabilityInsuranceAmounts', // importes concretos de coberturas
-        'exitIndemnityCalculation', // TRANSFER-1
       ],
-      derivedInterpretations: [],
+      derivedInterpretations: [
+        'La compensación por renuncia de derechos (art. 16) y la restricción de cláusula de rescisión (art. '
+        + '17.4.5) ya NO están notImplemented aquí — TRANSFER-1 (DESIGN.md 9.20) las resuelve en el dominio '
+        + '`transfer` (módulo "acb-transfer-membership-2026-27-provisional-v1").',
+      ],
     },
 
     // --- Andorra: relaciones laborales -------------------------------------
@@ -1561,6 +1565,614 @@
   //    puede aportar una competición es una capa de convenio/membresía
   //    (`modules.employmentMembershipOverlay`).
   // ---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // TRANSFER-1 (DESIGN.md 9.20, sección 8 del prompt) — dominio `transfer`:
+  // resuelve la operación (fichaje/traspaso/rescisión/mutuo acuerdo) desde
+  // un CONTEXTO EXPLÍCITO (nunca deriva jurisdicción del próximo partido ni
+  // competición de `team.division`). Compone capas SEPARADAS, nunca con
+  // Object.assign — mismo criterio que el dominio `market`:
+  //   1. terminación laboral de ORIGEN (por jurisdicción del EMPLEADOR)
+  //   2. contratación laboral de DESTINO (reutiliza el dominio `employment`)
+  //   3/4. administración federativa/competitiva de origen y destino (por
+  //        competitionId — el MISMO módulo sirve para cualquier lado)
+  //   5. derechos/compensaciones de membresía (ACB art. 16, cuando el
+  //      ORIGEN los declara — nunca inventado para una competición que no
+  //      los declara, FEB no hereda tanteo)
+  //   6. overlay internacional (SOLO puede bloquear en esta entrega)
+  // ---------------------------------------------------------------------
+  const TRANSFER_MODULES = {
+    // --- España: terminación laboral del deportista profesional ----------
+    'es-rd1006-professional-athlete-termination-2026-v1': {
+      id: 'es-rd1006-professional-athlete-termination-2026-v1',
+      domain: 'transfer',
+      familyId: 'es-sport-labour-termination',
+      layer: 'origin-termination',
+      version: 1,
+      status: 'verified',
+      territorialJurisdictionIds: ['ES'],
+      validity: buildValidity({ seasonFrom: '1985-86', seasonTo: null, dateFrom: '1985-08-12', carryForwardUntilSuperseded: true }),
+      rules: {
+        // art. 13.a: cesión definitiva pactada entre clubes — SIN pacto
+        // expreso, mínimo legal del 15% BRUTO del fee estipulado.
+        negotiatedTransferParticipation: {
+          appliesToMechanism: 'negotiated-transfer',
+          defaultMinimumPercentOfFeeBasisPoints: 1500, // 15,00% en basis points
+          basis: 'gross',
+          overridableByExplicitPact: true,
+          beneficiary: 'player',
+          payer: 'sellingClub',
+          sourceArticle: 'art. 13.a',
+        },
+        // art. 14: compensación de formación al expirar — SOLO si la fija
+        // un convenio colectivo aplicable; ninguno vigente la fija con
+        // cifra verificada para esta partida.
+        expiryFormationCompensation: {
+          requiresApplicableCollectiveAgreement: true,
+          amount: null,
+          sourceArticle: 'art. 14',
+        },
+        // arts. 15/16.1: extinción unilateral del jugador sin causa — sin
+        // pacto, la indemnización la fija la jurisdicción laboral (no
+        // simulable); TRANSFER-1 exige pacto explícito o bloquea.
+        playerWithdrawalWithoutCause: {
+          requiresExplicitPactOrExternalResolution: true,
+          sourceArticle: 'art. 16.1',
+        },
+        // art. 16.2: resolución por causa imputable al empleador — el
+        // juego nunca decide si concurre una causa controvertida.
+        employerCauseTermination: {
+          requiresVerifiedCauseArtifact: true,
+          sourceArticle: 'art. 16.2',
+        },
+        mutualAgreementSettlement: { requiresExplicitAgreementWithPartiesAndAmount: true },
+      },
+      sourceRefs: [{
+        title: 'España — Real Decreto 1006/1985, relación laboral especial de los deportistas profesionales (texto consolidado)',
+        url: 'https://www.boe.es/buscar/pdf/1985/BOE-A-1985-12313-consolidado.pdf',
+        retrievedAt: '2026-08-27',
+        articles: ['art. 13.a', 'art. 14', 'art. 15', 'art. 16.1', 'art. 16.2'],
+      }],
+      knownSourceInconsistencies: [],
+      notImplemented: ['expiryFormationCompensationAmount', 'judicialWithdrawalIndemnityAmount', 'employerCauseJudicialDetermination'],
+      derivedInterpretations: [
+        'El 15% del art. 13.a se aplica EXCLUSIVAMENTE al traspaso definitivo negociado entre clubes con '
+        + 'empleador español y sin pacto expreso — nunca a un buyout, una extinción sin comprador, una '
+        + 'compensación ACB por derechos ni a un empleador de otra jurisdicción (MoraBanc/AD).',
+      ],
+    },
+    // --- Andorra: terminación laboral (test transfronterizo obligatorio) -
+    'andorra-employment-termination-law31-2018-consolidated-2026-v1': {
+      id: 'andorra-employment-termination-law31-2018-consolidated-2026-v1',
+      domain: 'transfer',
+      familyId: 'ad-labour-termination',
+      layer: 'origin-termination',
+      version: 1,
+      status: 'provisional',
+      territorialJurisdictionIds: ['AD'],
+      validity: buildValidity({ seasonFrom: '2019-20', seasonTo: null, dateFrom: '2019-01-01', carryForwardUntilSuperseded: true }),
+      rules: {
+        // Andorra NUNCA hereda el 15% español — jurisdicción propia.
+        negotiatedTransferParticipation: {
+          appliesToMechanism: 'negotiated-transfer',
+          defaultMinimumPercentOfFeeBasisPoints: null,
+          overridableByExplicitPact: true,
+          basis: null,
+          beneficiary: null,
+          payer: null,
+          sourceArticle: null,
+        },
+        // art. 84.2: compensación propia por terminación anticipada
+        // empresarial de un contrato de duración determinada.
+        fixedTermEarlyEmployerTermination: { requiresSourceForAmount: true, amount: null, sourceArticle: 'art. 84.2' },
+        // arts. 89-90: preaviso/formalidades; art. 91: causas justificadas.
+        workerWithdrawalNoticeAndFormalities: {
+          requiresSourceForNoticeDays: true, noticeDays: null, sourceArticles: ['art. 89', 'art. 90'],
+        },
+        justifiedWithdrawalCauses: { requiresVerifiedCauseArtifact: true, sourceArticle: 'art. 91' },
+        mutualAgreementSettlement: { requiresExplicitAgreementWithPartiesAndAmount: true },
+      },
+      sourceRefs: [{
+        title: 'Andorra — Llei 31/2018, de relacions laborals (text consolidat, inclosa modificació 2026)',
+        url: 'https://www.portaljuridicandorra.ad/L2018031',
+        retrievedAt: '2026-08-27',
+        articles: ['art. 83-93', 'art. 84.2', 'art. 89-90', 'art. 91'],
+      }],
+      knownSourceInconsistencies: [
+        'El texto consolidado localizado no fija en esta lectura un importe cerrado de indemnización del '
+        + 'art. 84.2 ni un número de días de preaviso de los arts. 89-90 — se declaran notImplemented en vez '
+        + 'de inventar una cifra.',
+      ],
+      notImplemented: ['fixedTermEarlyTerminationAmount', 'noticePeriodDays'],
+      derivedInterpretations: [],
+    },
+    // --- ACB: derechos/compensaciones de membresía (Convenio, provisional)
+    'acb-transfer-membership-2026-27-provisional-v1': {
+      id: 'acb-transfer-membership-2026-27-provisional-v1',
+      domain: 'transfer',
+      familyId: 'acb-transfer-membership',
+      layer: 'competition-membership',
+      version: 1,
+      status: 'provisional',
+      competitionIds: [COMPETITION_IDS.ACB],
+      validity: buildValidity({ seasonFrom: '2018-19', seasonTo: '2021-22', dateTo: '2022-06-30', carryForwardUntilSuperseded: true }),
+      rules: {
+        // art. 16: compensación por renuncia definitiva a prórroga/tanteo/
+        // inscripción preferente — tramos progresivos, uso único en toda la
+        // carrera, el jugador NO participa, se reparte en tantas
+        // anualidades como el nuevo contrato.
+        rightsWaiverCompensation: {
+          ageBands: [
+            {
+              maxAgeInclusive: 20,
+              tiers: [
+                { uptoAnnualMinor: 10000000, percentBasisPoints: 7500 },
+                { uptoAnnualMinor: 30000000, percentBasisPoints: 5000 },
+                { uptoAnnualMinor: 60000000, percentBasisPoints: 2500 },
+                { uptoAnnualMinor: null, percentBasisPoints: 1000 },
+              ],
+            },
+            {
+              minAgeInclusive: 21,
+              maxAgeInclusive: 23,
+              tiers: [
+                { uptoAnnualMinor: 7000000, percentBasisPoints: 1500 },
+                { uptoAnnualMinor: 18000000, percentBasisPoints: 3000 },
+                { uptoAnnualMinor: null, percentBasisPoints: 5000 },
+              ],
+            },
+          ],
+          currency: EUR,
+          onceInCareer: true,
+          incompatibleWithFormationCompensation: true,
+          playerDoesNotParticipate: true,
+          distributionSeasons: 'sameAsNewContractSeasons',
+          sourceArticle: 'art. 16',
+        },
+        // art. 17.4.5: la cláusula de rescisión se satisface SIMULTÁNEAMENTE
+        // a la comunicación; restricción de inscripción tras el 15-09.
+        releaseClauseExercise: {
+          requiresSimultaneousSatisfaction: true,
+          registrationRestrictionAfterMonthDay: '09-15',
+          sourceArticle: 'art. 17.4.5',
+        },
+        // art. 18: cambio de club ACB durante la temporada, baja antes del
+        // 28 de febrero.
+        inSeasonClubChange: { deregistrationDeadlineMonthDay: '02-28', sourceArticle: 'art. 18' },
+        requiresPlayerConsentForRightsTransfer: true,
+      },
+      sourceRefs: [{
+        title: 'España — IV Convenio colectivo ACB–ABP (BOE-A-2021-4226)',
+        url: 'https://www.boe.es/buscar/doc.php?id=BOE-A-2021-4226',
+        retrievedAt: '2026-08-27',
+        articles: ['art. 16', 'art. 17.4.5', 'art. 18'],
+      }],
+      knownSourceInconsistencies: [
+        'El periodo formal publicado del IV Convenio terminó el 30-06-2022 (mismo aviso que '
+        + '"acb-abp-cba-2018-22-operational-provisional-v1" de CONTRACT-1) — se mantiene como continuidad '
+        + 'PROVISIONAL para 2026-27 porque ACB sigue utilizando operativamente su procedimiento de tanteo, '
+        + 'nunca como texto verificado vigente.',
+      ],
+      notImplemented: [],
+      derivedInterpretations: [],
+    },
+    // --- ACB: administración/documentos (Normas Internas, carry-forward) -
+    'acb-transfer-admin-2025-26-provisional-carry-forward-v1': {
+      id: 'acb-transfer-admin-2025-26-provisional-carry-forward-v1',
+      domain: 'transfer',
+      familyId: 'acb-transfer-admin',
+      layer: 'competition-admin',
+      version: 1,
+      status: 'provisional',
+      competitionIds: [COMPETITION_IDS.ACB],
+      validity: buildValidity({ seasonFrom: '2025-26', seasonTo: '2025-26', carryForwardUntilSuperseded: true }),
+      rules: {
+        registrationEffectiveFromDocumentValidation: true,
+        cessionOrNovationDocumentDeadlineDays: 3,
+        deregistrationEffectiveDateBasis: 'extinction-agreement-or-communication-date',
+        extinctionAndTransferShareSameEffectiveDate: true,
+        // arts. 14.4/15.1 ya modelados por REG-1 en `registration` — se
+        // referencia el MISMO cupo, nunca un segundo número paralelo.
+        cumulativeRegistrationCapReference: 'registration.cumulativeRegistrationCap',
+        requiredDocuments: ['employment-contract', 'social-security-registration', 'deregistration-letter'],
+        letterOfClearanceRequiredOnlyIfOriginClubNonSpanish: true,
+        sourceArticle: 'art. 14.7 / 14.4 / 15.1 / 15.3',
+      },
+      sourceRefs: [{
+        title: 'ACB — Normas Internas 2025-26',
+        url: 'https://www.acb.com/docs/descarga/pdf/transparencia/normas_internas_25-26_180825.pdf',
+        retrievedAt: '2026-08-27',
+        articles: ['art. 14.7', 'art. 14.4', 'art. 15.1', 'art. 15.3'],
+      }],
+      knownSourceInconsistencies: [
+        'No se localizó edición 2026-27 de las Normas Internas ACB en la fecha de consulta — se conserva '
+        + '2025-26 como continuidad PROVISIONAL (provisional-carry-forward), igual criterio que '
+        + '"acb-registration-2025-26-v1" de REG-1. Revalidar cuando se publique la edición nueva.',
+      ],
+      notImplemented: [],
+      derivedInterpretations: [],
+    },
+    // --- Primera FEB: cambio de club doméstico ----------------------------
+    'feb-domestic-player-change-2026-27-v1': {
+      id: 'feb-domestic-player-change-2026-27-v1',
+      domain: 'transfer',
+      familyId: 'feb-transfer-admin',
+      layer: 'competition-membership',
+      version: 1,
+      status: 'verified',
+      competitionIds: [COMPETITION_IDS.PRIMERA_FEB],
+      validity: buildValidity({ seasonFrom: '2026-27', seasonTo: '2026-27', carryForwardUntilSuperseded: true }),
+      rules: {
+        requiresNoOutstandingCommitmentWithOtherClub: true, // art. 20.2.b
+        linkTerminationRequiresSignedDesvinculacionDocument: true, // arts. 21, 24-27
+        exemptFromDesvinculacionDocumentWhenLawfulEmploymentTermination: true,
+        federativeProceedingsOnlyOnAccreditedGrounds: true, // arts. 33-35 — nunca simula la decisión
+        changeOfClubWithinWindow: true, // art. 36
+        changeOfClubAfterWindowRequiresNoOfficialMatchPlayedAndPriorDesvinculacion: true,
+        administrativeExceptionRequiresAllConditionsAccredited: true, // art. 37
+        inheritsAcbDeadlinesOrCompensation: false,
+        sourceArticle: 'art. 20.2.b / 21 / 24-27 / 33-35 / 36 / 37',
+      },
+      sourceRefs: [
+        {
+          title: 'FEB — Bases de Competición Primera FEB 2026-27',
+          url: 'https://www.feb.es/Documentos/Enlaces/%5B6537%5DBBCC%20Primera%20FEB%2026-27%20-%20Versi%C3%B3n%20Web.pdf',
+          retrievedAt: '2026-08-27',
+          articles: ['art. 36'],
+        },
+        {
+          title: 'FEB — Reglamento General y de Competiciones FEB (edición 06-05-2026, versión CSD limpio)',
+          url: 'https://www.feb.es/Documentos/Enlaces/%5B6692%5DReglamento%20General%20y%20de%20Competiciones%20FEB.%20Version%20CSD%20%28limpio%29.pdf',
+          retrievedAt: '2026-08-27',
+          articles: ['art. 20.2.b', 'art. 21', 'art. 24-27', 'art. 33-35', 'art. 37'],
+        },
+      ],
+      knownSourceInconsistencies: [],
+      notImplemented: ['federativeProceedingDecisionSimulation'],
+      derivedInterpretations: [],
+    },
+    // --- Fixture reference-only (sección 8.3): demuestra extensibilidad —
+    // NUNCA se autoselecciona en una carrera real.
+    'bm-test-fictional-transfer-participation-v1': {
+      id: 'bm-test-fictional-transfer-participation-v1',
+      domain: 'transfer',
+      familyId: 'bm-test-fictional-transfer',
+      layer: 'origin-termination',
+      version: 1,
+      status: 'reference-only',
+      territorialJurisdictionIds: ['XX'],
+      validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null, carryForwardUntilSuperseded: true }),
+      rules: {
+        negotiatedTransferParticipation: {
+          appliesToMechanism: 'negotiated-transfer',
+          defaultMinimumPercentOfFeeBasisPoints: 2500,
+          overridableByExplicitPact: false,
+          basis: 'gross',
+          beneficiary: 'player',
+          payer: 'sellingClub',
+          sourceArticle: null,
+        },
+      },
+      sourceRefs: [],
+      knownSourceInconsistencies: [],
+      notImplemented: [],
+      derivedInterpretations: [],
+    },
+    // --- Overlay internacional: SOLO bloquea en TRANSFER-1 ----------------
+    'fiba-book3-international-transfer-overlay-2026-v1': {
+      id: 'fiba-book3-international-transfer-overlay-2026-v1',
+      domain: 'transfer',
+      familyId: 'fiba-international-overlay',
+      layer: 'international-overlay',
+      version: 1,
+      status: 'verified',
+      territorialJurisdictionIds: null,
+      validity: buildValidity({ seasonFrom: '2026-27', seasonTo: null, dateFrom: '2026-04-22', carryForwardUntilSuperseded: true }),
+      rules: { blocksInternationalTransfer: true, blockReasonCode: 'REQUIRES_EUROPE_1', requiresLetterOfClearance: true },
+      sourceRefs: [{
+        title: 'FIBA — Internal Regulations, Book 3 (Players and Officials), edición en vigor desde 22-04-2026',
+        url: 'https://assets.fiba.basketball/image/upload/documents-corporate-fiba-regulations-internal-regulations-book-3.pdf',
+        retrievedAt: '2026-08-27',
+        articles: ['Letter of Clearance / transfer internacional'],
+      }],
+      knownSourceInconsistencies: [],
+      notImplemented: ['letterOfClearanceIssuance', 'internationalTransferExecution'],
+      derivedInterpretations: [],
+    },
+  };
+
+  function getTransferModule(moduleId) {
+    const module_ = TRANSFER_MODULES[moduleId];
+    if (!module_) {
+      throw new Error(`CompetitionRules: no existe el módulo de transferencia "${moduleId}" en el catálogo.`);
+    }
+    return module_;
+  }
+
+  function findPinnedTransferId(pinnedModuleIds, familyId) {
+    if (!pinnedModuleIds || !pinnedModuleIds.length) return null;
+    const found = pinnedModuleIds.find((id) => {
+      const mod = TRANSFER_MODULES[id];
+      return mod && mod.familyId === familyId;
+    });
+    return found || null;
+  }
+
+  function selectTransferModuleByJurisdiction(jurisdictionId, layer, ctx, warnings, sourceRefs, knownSourceInconsistencies, trace) {
+    const candidates = Object.values(TRANSFER_MODULES)
+      .filter((m) => m.status !== 'reference-only' && m.layer === layer
+        && m.territorialJurisdictionIds && m.territorialJurisdictionIds.includes(jurisdictionId));
+    const extra = (ctx.pinnedModuleIds || [])
+      .map((id) => TRANSFER_MODULES[id])
+      .filter((m) => m && m.layer === layer && m.territorialJurisdictionIds && m.territorialJurisdictionIds.includes(jurisdictionId));
+    extra.forEach((m) => { if (!candidates.some((c) => c.id === m.id)) candidates.push(m); });
+    if (!candidates.length) {
+      throw new Error(
+        `CompetitionRules.resolveTransferRules: no hay ningún módulo de "${layer}" para la jurisdicción `
+        + `"${jurisdictionId}" — no se hereda ningún perfil por defecto (nunca España/ACB por defecto).`,
+      );
+    }
+    const familyId = candidates[0].familyId;
+    const family = Object.values(TRANSFER_MODULES).filter((m) => m.familyId === familyId);
+    const pinnedId = findPinnedTransferId(ctx.pinnedModuleIds, familyId);
+    const resolution = selectByValidity(family, {
+      seasonKey: ctx.seasonKey || null,
+      date: ctx.effectiveDate ? toIsoDate(ctx.effectiveDate) : null,
+      pinnedId,
+      label: `RuleModule de transferencia (${layer}/${jurisdictionId})`,
+    });
+    warnings.push(...resolution.warnings);
+    sourceRefs.push(...resolution.entity.sourceRefs);
+    (resolution.entity.knownSourceInconsistencies || []).forEach((k) => knownSourceInconsistencies.push(k));
+    if (resolution.entity.status === 'provisional') {
+      warnings.push(`El módulo de transferencia "${resolution.entity.id}" tiene estado PROVISIONAL — ver knownSourceInconsistencies.`);
+    }
+    trace.fields[layer] = trace.fields[layer] || [];
+    trace.fields[layer].push({
+      jurisdictionId, ruleModuleId: resolution.entity.id, version: resolution.entity.version, status: resolution.entity.status,
+    });
+    return resolution.entity;
+  }
+
+  function selectTransferModuleByCompetition(competitionId, layer, ctx, warnings, sourceRefs, knownSourceInconsistencies, trace) {
+    if (!competitionId) return null;
+    getCompetitionDefinition(competitionId); // valida existencia — invariante 33, nunca ACB por defecto.
+    const candidates = Object.values(TRANSFER_MODULES)
+      .filter((m) => m.status !== 'reference-only' && m.layer === layer && m.competitionIds && m.competitionIds.includes(competitionId));
+    const extra = (ctx.pinnedModuleIds || [])
+      .map((id) => TRANSFER_MODULES[id])
+      .filter((m) => m && m.layer === layer && m.competitionIds && m.competitionIds.includes(competitionId));
+    extra.forEach((m) => { if (!candidates.some((c) => c.id === m.id)) candidates.push(m); });
+    if (!candidates.length) return null; // esta competición no declara módulo de este layer todavía (p.ej. FEB admin)
+    const familyId = candidates[0].familyId;
+    const family = Object.values(TRANSFER_MODULES).filter((m) => m.familyId === familyId);
+    const pinnedId = findPinnedTransferId(ctx.pinnedModuleIds, familyId);
+    const resolution = selectByValidity(family, {
+      seasonKey: ctx.seasonKey || null,
+      date: ctx.effectiveDate ? toIsoDate(ctx.effectiveDate) : null,
+      pinnedId,
+      label: `RuleModule de transferencia (${layer}/${competitionId})`,
+    });
+    warnings.push(...resolution.warnings);
+    sourceRefs.push(...resolution.entity.sourceRefs);
+    (resolution.entity.knownSourceInconsistencies || []).forEach((k) => knownSourceInconsistencies.push(k));
+    if (resolution.entity.status === 'provisional') {
+      warnings.push(`El módulo de transferencia "${resolution.entity.id}" tiene estado PROVISIONAL — ver knownSourceInconsistencies.`);
+    }
+    trace.fields[layer] = trace.fields[layer] || [];
+    trace.fields[layer].push({
+      competitionId, ruleModuleId: resolution.entity.id, version: resolution.entity.version, status: resolution.entity.status,
+    });
+    return resolution.entity;
+  }
+
+  const TRANSFER_MECHANISMS = [
+    'free-agent-signing',
+    'future-signing',
+    'negotiated-transfer',
+    'release-clause-exercise',
+    'mutual-agreement',
+    'employer-termination',
+    'player-withdrawal',
+    'verified-cause-termination',
+    'rights-waiver-compensation',
+  ];
+
+  // context esperado (sección 8.1 del prompt): { playerId, originClubId,
+  // destinationClubId, originEmployerJurisdictionId,
+  // destinationEmployerJurisdictionId, originCompetitionId,
+  // destinationCompetitionId, federationId, seasonKey, effectiveDate,
+  // operationType, mechanism, transactionScope, contractId,
+  // agreementInPrincipleId, pinnedModuleIds }.
+  function resolveTransferDomain(ctx) {
+    ['playerId', 'originClubId', 'destinationClubId', 'originEmployerJurisdictionId', 'destinationEmployerJurisdictionId'].forEach((field) => {
+      if (!ctx[field]) {
+        throw new Error(`CompetitionRules.resolveTransferRules: falta "${field}" en el contexto — no se deriva del próximo partido ni de team.division.`);
+      }
+    });
+    if (!ctx.seasonKey && !ctx.effectiveDate) {
+      throw new Error('CompetitionRules.resolveTransferRules: hace falta "seasonKey" y/o "effectiveDate" para resolver la vigencia.');
+    }
+    const transactionScope = ctx.transactionScope || 'domestic';
+    if (!['domestic', 'international'].includes(transactionScope)) {
+      throw new Error(`CompetitionRules.resolveTransferRules: transactionScope desconocido "${transactionScope}".`);
+    }
+
+    const warnings = [];
+    const knownSourceInconsistencies = [];
+    const sourceRefs = [];
+    const trace = { fields: {} };
+
+    // 1) Terminación laboral de ORIGEN — por jurisdicción del EMPLEADOR.
+    const originTerminationModule = selectTransferModuleByJurisdiction(
+      ctx.originEmployerJurisdictionId, 'origin-termination', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+
+    // 2) Contratación laboral de DESTINO — reutiliza `employment` y su
+    //    snapshot de firma (sección 8.2 del prompt).
+    let destinationSigningRules = null;
+    let destinationEmploymentResolved = null;
+    if (ctx.destinationEmployerJurisdictionId) {
+      destinationEmploymentResolved = resolveEmploymentDomain({
+        domain: 'employment',
+        clubId: ctx.destinationClubId,
+        employerJurisdictionId: ctx.destinationEmployerJurisdictionId,
+        domesticCompetitionId: ctx.destinationCompetitionId || null,
+        federationId: ctx.federationId || null,
+        seasonKey: ctx.seasonKey,
+        date: ctx.effectiveDate,
+        operation: 'transferSigning',
+        pinnedModuleIds: ctx.pinnedModuleIds,
+      });
+      destinationSigningRules = destinationEmploymentResolved.employment;
+      warnings.push(...destinationEmploymentResolved.warnings);
+      (destinationEmploymentResolved.knownSourceInconsistencies || []).forEach((k) => knownSourceInconsistencies.push(k));
+      trace.fields.destinationSigning = destinationEmploymentResolved.trace.moduleIds.map((id) => ({
+        ruleModuleId: id, version: destinationEmploymentResolved.trace.moduleVersions[id],
+      }));
+    }
+
+    // 3/4) Administración federativa/competitiva de origen y destino — por
+    //      competitionId, NUNCA por 'team.division' (invariante 33).
+    const originMembership = selectTransferModuleByCompetition(
+      ctx.originCompetitionId, 'competition-membership', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+    const originAdmin = selectTransferModuleByCompetition(
+      ctx.originCompetitionId, 'competition-admin', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+    const destinationMembership = selectTransferModuleByCompetition(
+      ctx.destinationCompetitionId, 'competition-membership', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+    const destinationAdmin = selectTransferModuleByCompetition(
+      ctx.destinationCompetitionId, 'competition-admin', ctx, warnings, sourceRefs, knownSourceInconsistencies, trace,
+    );
+
+    // 5) Derechos/compensaciones de membresía — SOLO si el ORIGEN (quien
+    //    renuncia al derecho) los declara.
+    const rightsCompensationRules = (originMembership && originMembership.rules.rightsWaiverCompensation)
+      ? originMembership.rules.rightsWaiverCompensation : null;
+    const releaseClauseRules = (originMembership && originMembership.rules.releaseClauseExercise)
+      ? originMembership.rules.releaseClauseExercise
+      : { requiresSimultaneousSatisfaction: false, registrationRestrictionAfterMonthDay: null };
+
+    // 6) Overlay internacional — SOLO bloquea en esta entrega.
+    const overlayModule = getTransferModule('fiba-book3-international-transfer-overlay-2026-v1');
+    const blockers = [];
+    if (transactionScope === 'international') {
+      blockers.push({
+        code: overlayModule.rules.blockReasonCode,
+        message: 'La operación cruza federaciones o requiere Letter of Clearance — bloqueada hasta EUROPE-1 '
+          + '(nunca se convierte en doméstica en silencio).',
+        ruleModuleId: overlayModule.id,
+      });
+      sourceRefs.push(...overlayModule.sourceRefs);
+      trace.fields.internationalOverlay = [{ ruleModuleId: overlayModule.id, version: overlayModule.version, applied: true }];
+    } else {
+      trace.fields.internationalOverlay = [{ ruleModuleId: overlayModule.id, version: overlayModule.version, applied: false }];
+    }
+
+    const originTerminationParticipation = originTerminationModule.rules.negotiatedTransferParticipation;
+    const playerParticipationRules = {
+      negotiatedTransfer: originTerminationParticipation ? {
+        appliesToMechanism: originTerminationParticipation.appliesToMechanism,
+        defaultMinimumPercentBasisPoints: originTerminationParticipation.defaultMinimumPercentOfFeeBasisPoints,
+        overridableByExplicitPact: Boolean(originTerminationParticipation.overridableByExplicitPact),
+        basis: originTerminationParticipation.basis || null,
+        beneficiary: originTerminationParticipation.beneficiary,
+        payer: originTerminationParticipation.payer,
+        sourceModuleId: originTerminationModule.id,
+      } : null,
+    };
+
+    const documentRequirements = [
+      ...((originAdmin && originAdmin.rules.requiredDocuments) || []),
+      ...((destinationAdmin && destinationAdmin.rules.requiredDocuments) || []),
+    ].filter((doc, index, all) => all.indexOf(doc) === index);
+
+    const timingRules = {
+      releaseClauseRegistrationRestrictionAfterMonthDay: releaseClauseRules.registrationRestrictionAfterMonthDay || null,
+      inSeasonClubChangeDeadlineMonthDay: (originMembership && originMembership.rules.inSeasonClubChange
+        && originMembership.rules.inSeasonClubChange.deregistrationDeadlineMonthDay) || null,
+      cessionOrNovationDocumentDeadlineDays: (originAdmin && originAdmin.rules.cessionOrNovationDocumentDeadlineDays) || null,
+      extinctionAndTransferShareSameEffectiveDate: Boolean(originAdmin && originAdmin.rules.extinctionAndTransferShareSameEffectiveDate),
+      feb: (destinationMembership && destinationMembership.familyId === 'feb-transfer-admin') ? destinationMembership.rules : null,
+    };
+
+    const allowedMechanisms = transactionScope === 'international' ? [] : [...TRANSFER_MECHANISMS];
+
+    const capabilities = new Set();
+    if (allowedMechanisms.length) capabilities.add('canFormalizeDomesticTransfer');
+    if (rightsCompensationRules) capabilities.add('supportsRightsWaiverCompensation');
+    if (releaseClauseRules && releaseClauseRules.requiresSimultaneousSatisfaction) capabilities.add('supportsReleaseClauseSimultaneousSatisfaction');
+    if (originTerminationParticipation && originTerminationParticipation.defaultMinimumPercentOfFeeBasisPoints) {
+      capabilities.add('appliesStatutoryTransferParticipation');
+    }
+
+    return {
+      domain: 'transfer',
+      context: {
+        playerId: ctx.playerId,
+        originClubId: ctx.originClubId,
+        destinationClubId: ctx.destinationClubId,
+        originEmployerJurisdictionId: ctx.originEmployerJurisdictionId,
+        destinationEmployerJurisdictionId: ctx.destinationEmployerJurisdictionId,
+        originCompetitionId: ctx.originCompetitionId || null,
+        destinationCompetitionId: ctx.destinationCompetitionId || null,
+        federationId: ctx.federationId || null,
+        seasonKey: ctx.seasonKey || null,
+        effectiveDate: ctx.effectiveDate ? toIsoDate(ctx.effectiveDate) : null,
+        operationType: ctx.operationType || null,
+        mechanism: ctx.mechanism || null,
+        transactionScope,
+        contractId: ctx.contractId || null,
+        agreementInPrincipleId: ctx.agreementInPrincipleId || null,
+      },
+      allowedMechanisms,
+      originTerminationRules: originTerminationModule.rules,
+      destinationSigningRules,
+      transferAgreementRules: {
+        requiresPlayerConsentForRightsTransfer: Boolean(originMembership && originMembership.rules.requiresPlayerConsentForRightsTransfer),
+      },
+      playerParticipationRules,
+      releaseClauseRules,
+      rightsCompensationRules,
+      originDeregistrationRules: originAdmin ? originAdmin.rules : null,
+      destinationRegistrationRules: destinationAdmin ? destinationAdmin.rules : null,
+      documentRequirements,
+      timingRules,
+      financialObligationRules: {
+        transferParticipation: playerParticipationRules.negotiatedTransfer,
+        rightsWaiverCompensation: rightsCompensationRules,
+      },
+      blockers,
+      capabilities,
+      warnings,
+      knownSourceInconsistencies,
+      sourceRefs,
+      notImplemented: [
+        ...(originTerminationModule.notImplemented || []),
+        ...((destinationEmploymentResolved && destinationEmploymentResolved.notImplemented) || []),
+      ],
+      trace: {
+        bundleId: null,
+        version: 1,
+        sourceRuleIds: [
+          originTerminationModule.id,
+          ...(originMembership ? [originMembership.id] : []),
+          ...(originAdmin ? [originAdmin.id] : []),
+          ...(destinationMembership ? [destinationMembership.id] : []),
+          ...(destinationAdmin ? [destinationAdmin.id] : []),
+          overlayModule.id,
+        ],
+        fields: trace.fields,
+      },
+    };
+  }
+
+  // Wrapper fino (mismo criterio que resolveMarketRules/resolveEmploymentRules).
+  function resolveTransferRules(context) {
+    return resolveRules({ ...(context || {}), domain: 'transfer' });
+  }
+
   const RULESET_BUNDLES = {
     'acb-domestic-2025-26-v1': {
       id: 'acb-domestic-2025-26-v1',
@@ -1585,8 +2197,10 @@
         // tanteo/inscripción preferente/retorno — declarado como dato del
         // bundle, exactamente igual que `registration`.
         market: 'acb-right-of-first-refusal-2026-27-provisional-v1',
-        // Ámbitos todavía SIN ningún módulo real — ausentes explícitamente.
-        transfer: null,
+        // TRANSFER-1 (DESIGN.md 9.20): membresía/compensación (Convenio) +
+        // administración/documentos (Normas Internas, carry-forward).
+        transfer: 'acb-transfer-membership-2026-27-provisional-v1',
+        transferAdmin: 'acb-transfer-admin-2025-26-provisional-carry-forward-v1',
         internationalTransfer: null,
       },
       sourceRefs: [{
@@ -1614,7 +2228,10 @@
         registration: 'primera-feb-registration-2026-27-v1',
         employmentMembershipOverlay: null,
         market: null,
-        transfer: null,
+        // TRANSFER-1 (DESIGN.md 9.20): cambio de club doméstico propio de
+        // Primera FEB — nunca hereda plazos/compensaciones ACB.
+        transfer: 'feb-domestic-player-change-2026-27-v1',
+        transferAdmin: null,
         internationalTransfer: null,
       },
       sourceRefs: [{
@@ -2117,10 +2734,11 @@
     const domain = ctx.domain || 'registration';
     if (domain === 'employment') return resolveEmploymentDomain(ctx);
     if (domain === 'market') return resolveMarketDomain(ctx);
+    if (domain === 'transfer') return resolveTransferDomain(ctx);
     if (domain !== 'registration') {
       throw new Error(
         `CompetitionRules.resolveRules: dominio "${domain}" no implementado — dominios disponibles: `
-        + 'registration, employment, market.',
+        + 'registration, employment, market, transfer.',
       );
     }
     return resolveRegistrationDomain(ctx);
@@ -2678,12 +3296,16 @@
     resolveRules,
     resolveEmploymentRules,
     resolveMarketRules,
+    resolveTransferRules,
+    getTransferModule,
     buildSigningSnapshot,
     evaluateProbationPolicy,
     MERGE_STRATEGIES,
     REGISTRATION_MODULES,
     EMPLOYMENT_MODULES,
     MARKET_MODULES,
+    TRANSFER_MODULES,
+    TRANSFER_MECHANISMS,
     RULESET_BUNDLES,
     COMPETITION_DEFINITIONS,
   };

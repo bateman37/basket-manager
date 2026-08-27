@@ -1031,10 +1031,13 @@
       const attention = BM.MarketService.computeMarketAttentionForClub({
         marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: targetIso,
       });
-      if (attention && LocalDate.isAfter(targetIso, attention.dueDate)) {
+      // BUG-MARKET1-07 (DESIGN.md 9.20): regla INCLUSIVA compartida con
+      // Home (getMarketAttentionForUser) — antes usaba `isAfter` (EXCLUSIVA),
+      // así que una atención que vencía el MISMO día del salto no bloqueaba.
+      if (BM.MarketService.attentionBlocksThrough(attention, targetIso)) {
         throw new Error(
           `advanceGameClockTo: hay una atención de mercado pendiente ("${attention.type}", jugador `
-          + `"${attention.playerId}") con plazo ${attention.dueDate}, anterior a la fecha objetivo ${targetIso} `
+          + `"${attention.playerId}") con plazo ${attention.dueDate}, en o antes de la fecha objetivo ${targetIso} `
           + '— "Continuar" debe detenerse en Mercado antes de avanzar (DESIGN.md 9.19, invariante 20).',
         );
       }
@@ -1057,11 +1060,26 @@
   // exige una decisión REAL del usuario para su club — wrapper fino sobre
   // MarketService, usado tanto por el gating de "Continuar" como por la
   // aserción de advanceGameClockTo() de arriba.
+  //
+  // BUG-MARKET1-07 (DESIGN.md 9.20): antes, sin `throughDate` explícito,
+  // caía en `state.calendar.currentGameDateTime` (HOY) — Home sustituía
+  // "Continuar" por CUALQUIER atención viva, aunque venciera mucho después
+  // del próximo partido. Ahora, sin `throughDate` explícito, se calcula la
+  // fecha objetivo REAL de la siguiente acción con
+  // `resolveNextMatchContextForTeam()` (la MISMA función que ya usa la
+  // pantalla de Alineación) y solo devuelve la atención si de verdad
+  // BLOQUEA esa fecha (`attentionBlocksThrough`, regla inclusiva
+  // compartida con `advanceGameClockTo()`) — una atención posterior sigue
+  // existiendo (Agenda/Mercado pueden mostrarla), pero deja de sustituir
+  // el botón principal de Home antes de tiempo.
   function getMarketAttentionForUser(throughDate) {
     if (!state.userTeamId || !state.marketRegistry) return null;
-    return BM.MarketService.computeMarketAttentionForClub({
-      marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: throughDate || state.calendar.currentGameDateTime,
+    const team = getUserTeam();
+    const resolvedThroughDate = throughDate || (team ? resolveNextMatchContextForTeam(team).date : state.calendar.currentGameDateTime);
+    const attention = BM.MarketService.computeMarketAttentionForClub({
+      marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: resolvedThroughDate,
     });
+    return BM.MarketService.attentionBlocksThrough(attention, resolvedThroughDate) ? attention : null;
   }
 
   // Procesa, para TODOS los clubes (usuario y CPU), los eventos de
@@ -6700,19 +6718,24 @@
           errorEl.textContent = validation.errors.join(' · ');
           return;
         }
+        // BUG-MARKET1-03 (DESIGN.md 9.20): `createAndSendOffer()` valida
+        // SIEMPRE internamente — la UI ya no puede pasar un `validation`
+        // ajeno para saltarse la comprobación; se pasan las dependencias
+        // completas (team/player/playerRegistry/contractRegistry) para que
+        // el comando revalide él mismo el borrador exacto.
+        const commonOfferParams = {
+          marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
+          marketContext, team, player, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, seasonKey: buildCareerSeasonKey(),
+        };
         if (form.dataset.mode === 'counter') {
           const liveOffer = state.marketRegistry.liveOfferForThread(threadId, isoDate);
           liveOffer.addEvent({ id: `${liveOffer.id}:club-countered`, type: 'offer-countered', date: isoDate });
-          state.marketRegistry.releaseBudget(`res:${liveOffer.id}`);
+          state.marketRegistry.releaseBudgetGroup(`res:${liveOffer.id}`);
           BM.MarketService.createAndSendOffer({
-            marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
-            employmentValidation: validation.employmentValidation, marketContext, validation, parentOfferId: liveOffer.id, version: liveOffer.version + 1,
+            ...commonOfferParams, parentOfferId: liveOffer.id, version: liveOffer.version + 1,
           });
         } else {
-          BM.MarketService.createAndSendOffer({
-            marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
-            employmentValidation: validation.employmentValidation, marketContext, validation,
-          });
+          BM.MarketService.createAndSendOffer(commonOfferParams);
         }
         renderMarketScreen();
       });

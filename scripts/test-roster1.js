@@ -219,13 +219,17 @@ check('resolveRules: capacidades no implementadas no aparecen como activas', () 
   // ADAPTACIÓN MARKET-1 (DESIGN.md 9.19): `market` TAMPOCO figura ya como
   // no implementado para ACB — MARKET-1 declara
   // `bundle.modules.market: 'acb-right-of-first-refusal-2026-27-provisional-v1'`
-  // (resolveMarketRules(), dominio `market` separado). Se conserva el
+  // (resolveMarketRules(), dominio `market` separado).
+  // ADAPTACIÓN TRANSFER-1 (DESIGN.md 9.20): `transfer` TAMPOCO figura ya
+  // como no implementado para ACB — TRANSFER-1 declara
+  // `bundle.modules.transfer: 'acb-transfer-membership-2026-27-provisional-v1'`
+  // (resolveTransferRules(), dominio `transfer` separado). Se conserva el
   // objetivo original del test (una capacidad sin política real detrás
-  // nunca aparece activa) comprobando los dominios que siguen sin módulo:
-  // transfer/internationalTransfer.
+  // nunca aparece activa) comprobando el único dominio que sigue sin
+  // módulo: internationalTransfer (EUROPE-1).
   assert.ok(!resolved.notImplemented.includes('employment'));
   assert.ok(!resolved.notImplemented.includes('market'));
-  assert.ok(resolved.notImplemented.includes('transfer'));
+  assert.ok(!resolved.notImplemented.includes('transfer'));
   assert.ok(resolved.notImplemented.includes('internationalTransfer'));
   assert.ok(resolved.notImplemented.some((f) => f.startsWith('registration.')));
 });

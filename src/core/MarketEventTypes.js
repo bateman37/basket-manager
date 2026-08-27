@@ -244,9 +244,53 @@
     allowedTransitions: RIGHTS_CASE_ALLOWED_TRANSITIONS,
   });
 
+  // ---------------------------------------------------------------------
+  // AgreementEvents (BUG-MARKET1-06, TRANSFER-1 DESIGN.md 9.20) — ciclo de
+  // vida EXPLÍCITO del AgreementInPrinciple. Antes `executionState` era una
+  // constante fija `pending-transfer-1`, y `validUntil: null` lo trataba
+  // como vivo para siempre. Ahora el estado se DERIVA de eventos, nunca se
+  // sobrescribe sin historial, y todo estado terminal (completed/expired/
+  // withdrawn/failed) dejar de bloquear el mercado para ese jugador.
+  // ---------------------------------------------------------------------
+  const AGREEMENT_EVENT_TYPES = [
+    'agreement-created',
+    'execution-scheduled',
+    'execution-completed',
+    'execution-failed',
+    'agreement-expired',
+    'agreement-withdrawn',
+  ];
+  const AGREEMENT_STATUS_BY_EVENT = {
+    'agreement-created': 'pendingExecution',
+    'execution-scheduled': 'scheduled',
+    'execution-completed': 'completed',
+    'execution-failed': 'failed',
+    'agreement-expired': 'expired',
+    'agreement-withdrawn': 'withdrawn',
+  };
+  const AGREEMENT_ALLOWED_TRANSITIONS = {
+    null: ['agreement-created'],
+    pendingExecution: ['execution-scheduled', 'execution-completed', 'execution-failed', 'agreement-expired', 'agreement-withdrawn'],
+    scheduled: ['execution-completed', 'execution-failed', 'agreement-expired', 'agreement-withdrawn'],
+    // Terminales: nunca vuelven a un estado vivo (sección 9.1 del prompt de
+    // TRANSFER-1) — un reintento exige un AIP/expediente nuevo.
+    completed: [],
+    failed: [],
+    expired: [],
+    withdrawn: [],
+  };
+  const AGREEMENT_TERMINAL_STATUSES = new Set(['completed', 'expired', 'withdrawn', 'failed']);
+  const AgreementEvents = makeEventMachine({
+    label: 'AgreementInPrinciple',
+    eventTypes: AGREEMENT_EVENT_TYPES,
+    statusByEvent: AGREEMENT_STATUS_BY_EVENT,
+    allowedTransitions: AGREEMENT_ALLOWED_TRANSITIONS,
+  });
+
   const exportsObj = {
     MarketEventTypes: {
       eventSortKey, ThreadEvents, OfferEvents, RightsCaseEvents, OFFER_LIVE_STATUSES,
+      AgreementEvents, AGREEMENT_TERMINAL_STATUSES,
     },
   };
 

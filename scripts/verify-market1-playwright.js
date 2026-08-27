@@ -148,9 +148,16 @@ async function main(mode) {
     // ContractOffer CONTRACT-1 completo solo para esta comprobación de UI):
     // basta con una entrada en `computeMarketAttentionForClub` para probar
     // el gating real de "Continuar".
+    // BUG-MARKET1-07 (DESIGN.md 9.20): Home ya solo sustituye "Continuar"
+    // cuando la atención vence EN O ANTES de la fecha objetivo real de la
+    // siguiente acción (próximo partido/ronda/cierre) — un plazo a 5 días
+    // podía caer DESPUÉS del próximo partido y ya no bloquearía (comportamiento
+    // correcto, no un fallo). Se fija a 1 día vista para probar el caso que
+    // SÍ debe bloquear, sin depender de cuándo cae exactamente el próximo
+    // partido de esta semilla.
     const fakeOffer = {
       id: 'verify-fixture-counter', threadId: thread.id, version: 99, offeredBy: 'player-side',
-      createdAt: isoDate, expiresAt: BM.LocalDate.addDays(isoDate, 5), playerId: thread.playerId, clubId: thread.actingClubId,
+      createdAt: isoDate, expiresAt: BM.LocalDate.addDays(isoDate, 1), playerId: thread.playerId, clubId: thread.actingClubId,
       contractDraft: Object.freeze(counterDraft), rolePromise: Object.freeze({ role: null }), conditionsPrecedent: [], disclosures: [],
       events: [{ id: 'verify-fixture-counter:sent', type: 'offer-sent', date: isoDate }],
       statusOn() { return 'sent'; },
@@ -257,10 +264,12 @@ async function main(mode) {
     const rosterAfter = Object.values(state.leagues).filter(Boolean).reduce((acc, l) => acc + l.teams.reduce((a, t) => a + t.roster.length, 0), 0);
     goToScreen('market');
     return {
-      ok: true, executionState: agreement.executionState, rosterBefore, rosterAfter, playerTeamId: state.playerRegistry.get(thread.playerId).teamId,
+      ok: true, executionState: agreement.statusOn(isoDate), rosterBefore, rosterAfter, playerTeamId: state.playerRegistry.get(thread.playerId).teamId,
     };
   });
-  summarize('Se puede alcanzar un Acuerdo en Principio con executionState pending-transfer-1', aipResult.ok && aipResult.executionState === 'pending-transfer-1', JSON.stringify(aipResult));
+  // BUG-MARKET1-06 (DESIGN.md 9.20): ya no es una constante fija — recién
+  // creado, el estado derivado del ciclo de vida es 'pendingExecution'.
+  summarize('Se puede alcanzar un Acuerdo en Principio con executionState pendingExecution', aipResult.ok && aipResult.executionState === 'pendingExecution', JSON.stringify(aipResult));
   if (aipResult.ok) {
     summarize('El roster combinado de la liga NO cambia al crear el AIP', aipResult.rosterBefore === aipResult.rosterAfter, `${aipResult.rosterBefore} -> ${aipResult.rosterAfter}`);
     summarize('player.teamId no cambia al crear el AIP', aipResult.playerTeamId === null || typeof aipResult.playerTeamId === 'string');
