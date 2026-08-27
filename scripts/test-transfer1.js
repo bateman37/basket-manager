@@ -781,5 +781,89 @@ check('data/real permanece intacto (TRANSFER-1 nunca escribe ahí)', () => {
   });
 });
 
+// =========================================================================
+// 14. Fichaje futuro tras expiración (sección 11.2) — expediente
+//     `scheduled` + reintento en el punto único del reloj.
+// =========================================================================
+group('14. Fichaje futuro (scheduled) + reintento en advanceGameClockTo()');
+
+check('effectiveDate futura: NO se ejecuta hoy, el expediente queda "scheduled" y el mundo intacto', () => {
+  const world = makeWorld();
+  const team = realTeam('team-real-madrid');
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  world.playerRegistry.register(player);
+  const agreement = makeLiveAgreement(world, team, player, 'seed-t14-1', GAME_DATE);
+  const futureDate = LocalDate.addDays(GAME_DATE, 10);
+  const before = deepWorldSnapshot(world, [team]);
+  const { plan, result } = TransferService.formalizeFreeAgentSigning({
+    ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
+  });
+  assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
+  assert.strictEqual(result.notYetDue, true);
+  assert.strictEqual(result.record, null);
+  assert.strictEqual(plan.newObjects.isFutureSigning, true);
+  const transferCase = world.transferRegistry.getCase(plan.command.transferCaseId);
+  assert.strictEqual(transferCase.statusOn(GAME_DATE), 'scheduled');
+  assert.strictEqual(team.roster.find((p) => p.id === player.id), undefined, 'no debe entrar hoy en el roster');
+  assert.strictEqual(world.contractRegistry.currentForPlayer(player.id, GAME_DATE), null, 'no debe crear contrato hoy');
+  const after = deepWorldSnapshot(world, [team]);
+  assert.strictEqual(before, after, 'planificar/comprometer un fichaje futuro no debe mutar NADA del mundo actual');
+});
+
+check('retryScheduledTransferCase antes de la fecha efectiva: sigue "scheduled", sin mutar nada', () => {
+  const world = makeWorld();
+  const team = realTeam('team-real-madrid');
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  world.playerRegistry.register(player);
+  const agreement = makeLiveAgreement(world, team, player, 'seed-t14-2', GAME_DATE);
+  const futureDate = LocalDate.addDays(GAME_DATE, 10);
+  TransferService.formalizeFreeAgentSigning({
+    ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
+  });
+  const transferCase = world.transferRegistry.casesForPlayer(player.id)[0];
+  const stillEarlyDate = LocalDate.addDays(GAME_DATE, 3); // antes de futureDate
+  const before = deepWorldSnapshot(world, [team]);
+  const { result } = TransferService.retryScheduledTransferCase(transferCase, { ...world, teams: [team], now: stillEarlyDate }, stillEarlyDate);
+  assert.strictEqual(result.notYetDue, true);
+  assert.strictEqual(transferCase.statusOn(stillEarlyDate), 'scheduled');
+  const after = deepWorldSnapshot(world, [team]);
+  assert.strictEqual(before, after);
+});
+
+check('retryScheduledTransferCase en/tras la fecha efectiva: ejecuta el fichaje completo (contrato+roster+inscripción)', () => {
+  const world = makeWorld();
+  const team = realTeam('team-real-madrid');
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  world.playerRegistry.register(player);
+  const agreement = makeLiveAgreement(world, team, player, 'seed-t14-3', GAME_DATE);
+  const futureDate = LocalDate.addDays(GAME_DATE, 10);
+  TransferService.formalizeFreeAgentSigning({
+    ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
+  });
+  const transferCase = world.transferRegistry.casesForPlayer(player.id)[0];
+  const { plan, result } = TransferService.retryScheduledTransferCase(transferCase, { ...world, teams: [team], now: futureDate }, futureDate);
+  assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
+  assert.ok(result.record, 'debe producir un TransactionRecord real');
+  assert.strictEqual(transferCase.statusOn(futureDate), 'completed');
+  assert.strictEqual(team.roster.find((p) => p.id === player.id), player);
+  assert.strictEqual(player.teamId, team.id);
+  assert.ok(world.contractRegistry.currentForPlayer(player.id, futureDate));
+});
+
+check('retryScheduledTransferCase sobre un expediente ya completado no reintenta nada (guard de estado)', () => {
+  const world = makeWorld();
+  const team = realTeam('team-real-madrid');
+  const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
+  world.playerRegistry.register(player);
+  const agreement = makeLiveAgreement(world, team, player, 'seed-t14-4', GAME_DATE);
+  const { transferCase } = TransferService.formalizeFreeAgentSigning({
+    ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
+  });
+  assert.strictEqual(transferCase.statusOn(GAME_DATE), 'completed');
+  const { plan, result } = TransferService.retryScheduledTransferCase(transferCase, { ...world, teams: [team], now: GAME_DATE }, GAME_DATE);
+  assert.strictEqual(plan, null);
+  assert.strictEqual(result, null);
+});
+
 console.log(`\n${passed} OK, ${failed} FAIL`);
 process.exit(failed > 0 ? 1 : 0);

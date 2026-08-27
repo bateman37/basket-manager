@@ -68,10 +68,17 @@
 
   // ---------------------------------------------------------------------
   // Apertura de expediente (sección 10.2) — a partir de un AIP VIVO.
+  //
+  // `date` es el momento REAL en que se abre el expediente (hoy, "now") —
+  // determina si el AIP sigue vivo y fecha el evento `case-opened`.
+  // `effectiveDate` es la fecha en la que la operación surtirá efecto
+  // (sección 11.2: puede ser posterior a `date` en un fichaje futuro) — se
+  // guarda como dato del expediente, nunca como fecha de sus propios
+  // eventos administrativos.
   // ---------------------------------------------------------------------
   function openCaseFromAgreement(params) {
     const {
-      transferRegistry, marketRegistry, agreement, operationType, originClubId, initiatingClubId, date, rulesSnapshot,
+      transferRegistry, marketRegistry, agreement, operationType, originClubId, initiatingClubId, date, effectiveDate, rulesSnapshot,
     } = params;
     const iso = toIso(date);
     if (!agreement.isLiveOn(iso)) {
@@ -87,6 +94,7 @@
       agreementInPrincipleId: agreement.id,
       operationType,
       openedAt: iso,
+      effectiveDate: effectiveDate || date,
       expiresAt: agreement.validUntil,
       rulesSnapshot,
       provenance: { dataSource: 'simulated-transfer-v1', isReal: false },
@@ -204,7 +212,7 @@
   // orden). `result === undefined` (en vez de null explícito) significa
   // "no se intentó comprometer" (commit:false) — el expediente queda en
   // readyToPlan, ni bloqueado ni completado.
-  function advanceTransferCaseLifecycle(transferCase, plan, result, committed, date) {
+  function advanceTransferCaseLifecycle(transferCase, plan, result, committed, date, command) {
     const iso = toIso(date);
     if (plan.blockers.length) {
       transferCase.addEvent({ id: `${transferCase.id}:blocked`, type: 'blocked', date: iso });
@@ -222,11 +230,44 @@
     transferCase.addEvent({ id: `${transferCase.id}:planned`, type: 'planned', date: iso });
     if (result && result.notYetDue) {
       transferCase.addEvent({ id: `${transferCase.id}:scheduled`, type: 'scheduled', date: iso });
+      // Sección 11.2: el comando congelado se conserva para que
+      // `retryScheduledTransferCase()` pueda re-planificar/comprometer en
+      // la fecha efectiva real, sin que el llamador (game.js) tenga que
+      // reconstruir el comando desde cero — mismo criterio que
+      // `rulesSnapshot` (congelado al abrir el expediente).
+      transferCase.pendingCommand = command ? Object.freeze({ ...command }) : null;
       return transferCase;
     }
     transferCase.addEvent({ id: `${transferCase.id}:rte`, type: 'ready-to-execute', date: iso });
     transferCase.addEvent({ id: `${transferCase.id}:completed`, type: 'completed', date: iso });
     return transferCase;
+  }
+
+  // ---------------------------------------------------------------------
+  // Fichaje futuro tras expiración (sección 11.2 del prompt) — reintenta
+  // un expediente `scheduled` en una fecha posterior real
+  // (`advanceGameClockTo()`, punto único del reloj). Re-planifica siempre
+  // desde cero (nunca reutiliza el plan viejo sin revalidar: contrato,
+  // derechos, ventana e inscripción deben seguir siendo ciertos en la
+  // fecha real de ejecución) — si algo cambió entretanto, el expediente
+  // queda `blocked` con el motivo, nunca a medias.
+  // ---------------------------------------------------------------------
+  function retryScheduledTransferCase(transferCase, deps, date) {
+    const iso = toIso(date);
+    if (transferCase.statusOn(iso) !== 'scheduled') return { transferCase, plan: null, result: null };
+    const command = transferCase.pendingCommand;
+    const plan = ExecutionSvc().planTransaction(command, deps);
+    if (!plan.isExecutable) {
+      transferCase.addEvent({ id: `${transferCase.id}:blocked:${iso}`, type: 'blocked', date: iso });
+      transferCase.lastBlockers = plan.blockers;
+      return { transferCase, plan, result: null };
+    }
+    const result = ExecutionSvc().commitTransaction(plan, deps);
+    if (result.notYetDue) return { transferCase, plan, result }; // sigue sin llegar la fecha (defensivo)
+    if (result.record) transferCase.transactionId = result.record.id;
+    transferCase.addEvent({ id: `${transferCase.id}:rte:${iso}`, type: 'ready-to-execute', date: iso });
+    transferCase.addEvent({ id: `${transferCase.id}:completed:${iso}`, type: 'completed', date: iso });
+    return { transferCase, plan, result };
   }
 
   function formalizeFreeAgentSigning(params) {
@@ -239,7 +280,7 @@
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
-      transferRegistry, marketRegistry, agreement, operationType: 'free-agent-signing', initiatingClubId: destinationTeam.id, date: effectiveDate, rulesSnapshot: resolvedRules.trace,
+      transferRegistry, marketRegistry, agreement, operationType: 'free-agent-signing', initiatingClubId: destinationTeam.id, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
     const destinationRegistration = buildDestinationRegistrationCommand({ destinationTeam, seasonKey, date: effectiveDate, registrationRegistry });
     const command = {
@@ -261,7 +302,7 @@
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
-    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
     return { transferCase, plan, result };
   }
 
@@ -278,7 +319,7 @@
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
-      transferRegistry, marketRegistry, agreement, operationType: 'negotiated-transfer', originClubId: originTeam.id, initiatingClubId: destinationTeam.id, date: effectiveDate, rulesSnapshot: resolvedRules.trace,
+      transferRegistry, marketRegistry, agreement, operationType: 'negotiated-transfer', originClubId: originTeam.id, initiatingClubId: destinationTeam.id, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
     const agreementRecord = new TransferEntities.TransferAgreement({
       id: `transfer-agreement:${transferCase.id}`,
@@ -336,7 +377,7 @@
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
-    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
     return {
       transferCase, agreementRecord, plan, result,
     };
@@ -356,7 +397,7 @@
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
-      transferRegistry, marketRegistry, agreement, operationType: 'release-clause-exercise', originClubId: originTeam.id, initiatingClubId: destinationTeam.id, date: effectiveDate, rulesSnapshot: resolvedRules.trace,
+      transferRegistry, marketRegistry, agreement, operationType: 'release-clause-exercise', originClubId: originTeam.id, initiatingClubId: destinationTeam.id, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
     const exercise = new TransferEntities.ReleaseClauseExercise({
       id: `release-clause:${transferCase.id}`,
@@ -401,7 +442,7 @@
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
-    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
     return {
       transferCase, exercise, plan, result,
     };
@@ -429,7 +470,8 @@
       destinationClubId: destinationTeam ? destinationTeam.id : originTeam.id,
       agreementInPrincipleId: agreement ? agreement.id : `self:release:${playerId}`,
       operationType: 'mutual-agreement',
-      openedAt: effectiveDate,
+      openedAt: now,
+      effectiveDate,
       rulesSnapshot: resolvedRules.trace,
       provenance: { dataSource: 'simulated-transfer-v1', isReal: false },
     });
@@ -468,14 +510,14 @@
         playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
       }, resolvedRules, commit);
       if (result && result.record) transferCase.transactionId = result.record.id;
-      advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
+      advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
       return { transferCase, plan, result };
     }
     const { plan, result } = planAndMaybeCommit(command, {
       playerRegistry, contractRegistry, registrationRegistry, marketRegistry, transferRegistry, teams, now,
     }, { commit });
     if (result && result.record) transferCase.transactionId = result.record.id;
-    advanceTransferCaseLifecycle(transferCase, plan, result, commit, effectiveDate);
+    advanceTransferCaseLifecycle(transferCase, plan, result, commit, now, command);
     return { transferCase, plan, result };
   }
 
@@ -617,6 +659,7 @@
       formalizeNegotiatedTransfer,
       formalizeReleaseClauseExercise,
       formalizeMutualAgreement,
+      retryScheduledTransferCase,
     },
   };
 
