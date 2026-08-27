@@ -165,8 +165,34 @@
   function createRegistration(params) {
     const {
       registry, playerId, licenseId, teamId, competitionId, competitionInstanceId, registrationScopeId, seasonKey,
-      accessCategory, contractId, classificationSnapshot, date, resolved, provenance, chain, moduleVersionsPinned,
+      accessCategory, contractId, contractRegistry, classificationSnapshot, date, resolved, provenance, chain, moduleVersionsPinned,
     } = params;
+    // BUG-REG1-07 (DESIGN.md 9.19): antes se aceptaba cualquier `contractId`
+    // sin comprobar que el contrato referenciado fuera REALMENTE de este
+    // jugador y este club — una inscripción podía referenciar un contrato
+    // activo perfectamente válido de OTRO jugador/club y superar
+    // elegibilidad. Comprobado aquí siempre que se pase `contractRegistry`
+    // (opcional para no romper llamadores que todavía no lo tenían a mano,
+    // p.ej. fixtures sin contrato); nunca se "corrige" el contractId en
+    // silencio, se rechaza con un motivo estable.
+    if (contractId && contractRegistry) {
+      const contract = contractRegistry.get(contractId);
+      if (!contract) {
+        throw new Error(`RegistrationService.createRegistration: el contrato "${contractId}" no existe en ContractRegistry (REGISTRATION_CONTRACT_NOT_FOUND).`);
+      }
+      if (contract.playerId !== playerId) {
+        throw new Error(
+          `RegistrationService.createRegistration: el contrato "${contractId}" pertenece al jugador "${contract.playerId}", `
+          + `no a "${playerId}" (REGISTRATION_CONTRACT_PLAYER_MISMATCH).`,
+        );
+      }
+      if (contract.clubId !== teamId) {
+        throw new Error(
+          `RegistrationService.createRegistration: el contrato "${contractId}" pertenece al club "${contract.clubId}", `
+          + `no a "${teamId}" (REGISTRATION_CONTRACT_CLUB_MISMATCH).`,
+        );
+      }
+    }
     const impact = determineCumulativeCapImpact(accessCategory, resolved);
     assertCumulativeCapNotExceeded(registry, teamId, registrationScopeId, seasonKey, resolved, impact);
 

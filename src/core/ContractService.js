@@ -281,6 +281,102 @@
   }
 
   // ---------------------------------------------------------------------
+  // 3-bis. MARKET-1 (DESIGN.md 9.19, sección 9.4 del prompt) — validación
+  // PURA de un borrador de oferta, SIN registrar. `createContract()`
+  // registra y por eso no puede usarse desde MARKET-1; esta función repite
+  // exactamente los mismos cuatro pasos (construir/resolver/validar) pero
+  // NUNCA llama a `registry.register()` ni a nómina — construye un
+  // `Contract` EFÍMERO, solo para comparar/validar, que el llamador
+  // descarta.
+  //
+  // Añade además la comprobación que CONTRACT-1 no necesitaba: el
+  // borrador no puede solaparse con el contrato VIGENTE/PENDIENTE actual
+  // del jugador. Si el contrato actual es del MISMO club, es un error
+  // (una renovación real no es una oferta de mercado, pertenece a
+  // CYCLE-1). Si es de OTRO club, no es un error — es exactamente el caso
+  // de "jugador bajo contrato" (sección 12.2 del prompt): la oferta queda
+  // marcada `requiresTransferResolution: true`, nunca se disfraza de
+  // contrato ya válido para registrar.
+  // ---------------------------------------------------------------------
+  function validateDraft(params) {
+    const {
+      draft, team, player, playerRegistry, contractRegistry, seasonKey, date, resolved: preResolved, options,
+    } = params || {};
+    const opts = options || {};
+    const errors = [];
+    if (!draft) throw new Error('ContractService.validateDraft: falta "draft".');
+    if (!team) throw new Error('ContractService.validateDraft: falta el club (team).');
+
+    if (playerRegistry && !playerRegistry.has(draft.playerId)) {
+      errors.push(`El jugador "${draft.playerId}" no está en PlayerRegistry.`);
+    }
+    if (draft.clubId !== team.id) {
+      errors.push(`El borrador declara el club "${draft.clubId}" pero se está validando contra "${team.id}".`);
+    }
+
+    let contract = null;
+    try {
+      contract = new ContractModule.Contract(draft);
+    } catch (err) {
+      return {
+        valid: false,
+        errors: [...errors, err.message],
+        warnings: [],
+        contract: null,
+        resolved: null,
+        signingContext: null,
+        requiresTransferResolution: false,
+        overlapsCurrentContract: false,
+      };
+    }
+
+    const resolved = preResolved || resolveRulesForClub(team, {
+      seasonKey: seasonKey || contract.coveredSeasonKeys[0],
+      date: date || contract.signedDate,
+      operation: 'validateMarketOffer',
+      annualSalaryMinor: contract.breakdownForSeason(contract.coveredSeasonKeys[0]).guaranteedCashMinor,
+      pinnedModuleIds: opts.pinnedModuleIds,
+      extraModuleIds: opts.extraModuleIds,
+    });
+
+    const rulesValidation = validateContractAgainstRules(contract, resolved, { player });
+    errors.push(...rulesValidation.errors);
+
+    let overlapsCurrentContract = false;
+    let requiresTransferResolution = false;
+    if (contractRegistry) {
+      const current = contractRegistry.currentForPlayer(draft.playerId, date || contract.signedDate);
+      if (current && current.overlaps(contract)) {
+        overlapsCurrentContract = true;
+        if (current.clubId !== draft.clubId) {
+          // Incorporación inmediata bajo contrato ajeno — MARKET-1 puede
+          // registrar interés/condiciones, pero la incorporación queda
+          // condicionada a TRANSFER-1 (traspaso/rescisión/buyout).
+          requiresTransferResolution = true;
+        } else {
+          errors.push(
+            `El borrador se solapa con el contrato vigente/pendiente "${current.id}" del MISMO club — una `
+            + 'renovación real no es una oferta de mercado (fuera de alcance de MARKET-1, ver CYCLE-1).',
+          );
+        }
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings: rulesValidation.warnings || [],
+      // Instancia EFÍMERA de comparación — NUNCA registrada, NUNCA pasada
+      // a `ContractRegistry.register()`/`Team.addPlayer()` desde MARKET-1.
+      contract,
+      resolved,
+      signingContext: CompetitionRules.buildSigningSnapshot(resolved),
+      requiresTransferResolution,
+      overlapsCurrentContract,
+    };
+  }
+
+  // ---------------------------------------------------------------------
   // 4. Proyecciones económicas (funciones PURAS sobre el registro)
   //
   //    ContractRegistry es la fuente canónica del payroll contractual: la
@@ -352,6 +448,7 @@
       resolveRulesForClub,
       validateContractAgainstRules,
       createContract,
+      validateDraft,
       guaranteedPayrollForClub,
       potentialVariableCompensationForClub,
       benefitsValueForClub,

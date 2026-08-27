@@ -1311,6 +1311,247 @@
   }
 
   // ---------------------------------------------------------------------
+  // 5-bis. RuleModuleCatalog — dominio `market` (MARKET-1, DESIGN.md 9.19,
+  //    sección 6/7 del prompt). Tres capas DISTINTAS, nunca fusionadas:
+  //
+  //   - `agent-principles` (FIBA, Internal Regulations Book 3): rige al
+  //     AGENTE, universal — jamás depende de `competitionId`. La licencia
+  //     FIBA solo se exige para transfer INTERNACIONAL (bloqueado hasta
+  //     EUROPE-1), nunca a una negociación doméstica.
+  //   - `domestic-procedure` (ACB derecho de tanteo/inscripción
+  //     preferente/retorno): rige por COMPETICIÓN — se declara en
+  //     `bundle.modules.market`, exactamente igual que `registration`.
+  //     Ninguna competición hereda el de otra por defecto (invariante 32).
+  //   - `membership-overlay` (EuroLeague EFA): capa que puede superponerse
+  //     a la doméstica sin sustituirla — SIEMPRE `reference-only` en esta
+  //     entrega, nunca auto-seleccionada, solo activable fijando su
+  //     módulo explícitamente (`ctx.pinnedModuleIds`).
+  //
+  //    Política de JUEGO (tiempos de respuesta, paciencia, límite interno
+  //    de plantilla) NUNCA vive aquí — eso es `simulated-policy`
+  //    (sección 7.4 del prompt), ver `src/core/NegotiationService.js` y
+  //    `src/core/MarketService.js`.
+  // ---------------------------------------------------------------------
+  const MARKET_MODULES = {
+    'fiba-agents-book3-2026-v1': {
+      id: 'fiba-agents-book3-2026-v1',
+      domain: 'market',
+      familyId: 'fiba-agents-book3',
+      layer: 'agent-principles',
+      version: 1,
+      status: 'verified',
+      // Universal a propósito: ningún agente FIBA queda fuera por
+      // competición/jurisdicción — nunca `null` por omisión, `null`
+      // declarado explícitamente como "sin restricción de ámbito".
+      scope: { jurisdictionIds: null, competitionIds: null, personalScope: 'agent' },
+      validity: buildValidity({ dateFrom: '2026-04-22', dateTo: null, carryForwardUntilSuperseded: true }),
+      agentPrinciples: {
+        mandateMaxYears: 2,
+        mandateRequiresWrittenContract: true,
+        mandateRenewalRequiresNewWrittenAgreement: true,
+        mandateTerminationNoticeDays: 30,
+        commissionMaxBasisPoints: 1000,
+        commissionPayerMustBeClient: true,
+        conflictOfInterest: {
+          prohibitsMultiPartyRepresentationSameOperation: true,
+          prohibitsClubRepresentationIfAgentHasContractWithClubPlayer: true,
+          prohibitsUsingThirdPartiesToEvade: true,
+          prohibitsInducingBreachOfExistingContract: true,
+        },
+        minorProtection: {
+          minimumAgeForApproach: 18,
+          prohibitedDuringCampsOrCompetitions: true,
+        },
+        dutyOfGoodFaithAndTransparency: true,
+        playerSignsPersonallyAndRetainsFinalDecision: true,
+        // Sección 6.1 del prompt: declarado ahora, ejecución bloqueada
+        // hasta EUROPE-1 (transfer internacional real).
+        requiresFibaLicenseForOperations: ['internationalTransfer'],
+      },
+      sourceRefs: [
+        {
+          title: 'FIBA Internal Regulations, Book 3 — Players and Officials (arts. 3-298 a 3-327), vigente desde 22-04-2026',
+          url: 'https://assets.fiba.basketball/image/upload/documents-corporate-fiba-regulations-internal-regulations-book-3.pdf',
+          retrievedAt: '2026-08-26',
+        },
+        {
+          title: 'FIBA — Directorio oficial de agentes (verificación humana)',
+          url: 'https://about.fiba.basketball/en/search/agents',
+          retrievedAt: '2026-08-26',
+        },
+      ],
+      knownSourceInconsistencies: [],
+      notImplemented: ['domesticAgentLicenseRequirement'],
+      derivedInterpretations: [
+        'La licencia FIBA se exige SOLO para transfer internacional (bloqueado hasta EUROPE-1) — nunca se '
+        + 'convierte en obligación universal para negociación doméstica ACB/FEB sin una fuente adicional verificada.',
+      ],
+    },
+    'acb-right-of-first-refusal-2026-27-provisional-v1': {
+      id: 'acb-right-of-first-refusal-2026-27-provisional-v1',
+      domain: 'market',
+      familyId: 'acb-right-of-first-refusal',
+      layer: 'domestic-procedure',
+      version: 1,
+      // El convenio (BOE) tuvo vigencia formal 2018-07-01/2022-06-30; ACB
+      // seguía aplicando el procedimiento operativamente en julio de 2026
+      // (14 jugadores publicados, 06-07-2026) — NUNCA "verified" para
+      // 2026-27, siempre "provisional" con warning visible (sección 6.2).
+      status: 'provisional',
+      scope: { jurisdictionIds: null, competitionIds: [COMPETITION_IDS.ACB], personalScope: 'player' },
+      validity: buildValidity({ seasonFrom: '2026-27', seasonTo: '2026-27', carryForwardUntilSuperseded: true }),
+      procedureFamily: 'acb-right-of-first-refusal',
+      qualifyingOffer: {
+        firstExtensionMinimumPercentOfLastMonetizedAnnual: 100,
+        ageComputedOnMonthDay: '07-01',
+        maxConsecutiveExercisesUpToAge30: 3,
+        maxConsecutiveExercisesFromAge30: 3,
+      },
+      debtChallenge: {
+        windowDaysBeforeLastMatch: 15,
+        deadlineTimeOnLastMatchDay: '20:00',
+      },
+      // Días NATURALES (art. 14) — nunca desplazados por fin de semana.
+      generalProcedureDeadlinesNaturalDays: {
+        clubStatusReportingDays: 3,
+        listPublicationDays: 3,
+        qualifyingOfferAccreditationDays: 3,
+        thirdPartyOfferSheetDays: 13,
+        forwardToOriginClubDays: 1,
+        originClubMatchingWindowDays: 5,
+        contractDepositIfMatchedDays: 5,
+        contractDepositIfNotMatchedDays: 10,
+      },
+      offerSheetRequiredFields: [
+        'duration', 'grossAnnualRemunerationPerSeason', 'fixedComponents', 'inKindValuation',
+        'imageRights', 'unilateralTerminationClause', 'agentFees',
+      ],
+      matchableComponents: [
+        'economicTotalDividedInTenInstallments', 'inKindAmounts', 'duration', 'terminationClause', 'agentFees',
+      ],
+      ignoredForMatchingComponents: ['rolePromise', 'expectedMinutes', 'nonSalaryHousing', 'personalPreferences'],
+      preferredRegistrationRight: {
+        procedureFamily: 'acb-preferred-registration',
+        requiresAtLeastOneFullJuniorSeasonAtOriginClub: true,
+        maxAgeInclusive: 21,
+        maxConsecutiveExercises: 3,
+        communicationDeadlineMonthDay: '03-31',
+        qualifyingOfferWithinFirstDaysOfWindow: 2,
+        qualifyingOfferMinimumMultiplierBySeason: [1, 1.5, 2],
+        // Art. 15.3.2: 12 días — DISTINTO de los 13 del procedimiento
+        // general (art. 14.4). Particularidad REAL de la fuente,
+        // conservada tal cual, nunca "corregida" por intuición.
+        thirdPartyOfferSheetDays: 12,
+      },
+      returnRights: {
+        procedureFamily: 'acb-return-rights',
+        originClubDecisionWindowDays: 3,
+        options: ['do-not-maintain', 'maintain-and-use-general-procedure', 'wait-for-third-party-offer'],
+        matchingSurchargePercentOnWaitOption: 10,
+      },
+      sourceRefs: [
+        {
+          title: 'BOE — IV Convenio colectivo de baloncesto profesional ACB, arts. 13 a 17',
+          url: 'https://www.boe.es/eli/es/res/2021/03/03/(6)',
+          retrievedAt: '2026-08-26',
+        },
+        {
+          title: 'ACB — Jugadores sujetos al derecho de tanteo (publicación operativa 06-07-2026)',
+          url: 'https://www.acb.com/es/liga/noticias/jugadores-sujetos-al-derecho-de-tanteo-145528',
+          retrievedAt: '2026-08-26',
+        },
+      ],
+      knownSourceInconsistencies: [
+        'El convenio publicado (BOE) tuvo vigencia formal 2018-07-01/2022-06-30; ACB seguía aplicando el '
+        + 'procedimiento operativamente en julio de 2026 — continuidad declarada "provisional", nunca "verified".',
+        'El art. 15.3.2 declara 12 días para documentos de terceros en inscripción preferente, frente a los 13 '
+        + 'del procedimiento general (art. 14.4) — diferencia real entre artículos del propio convenio.',
+      ],
+      notImplemented: ['contractDepositRegistration', 'compensationPaymentExecution'],
+      derivedInterpretations: [],
+    },
+    'euroleague-efa-contact-overlay-2024-27-reference-only-v1': {
+      id: 'euroleague-efa-contact-overlay-2024-27-reference-only-v1',
+      domain: 'market',
+      familyId: 'euroleague-efa-contact-overlay',
+      layer: 'membership-overlay',
+      version: 1,
+      // Sección 6.3: demuestra overlays futuros — nunca se autoselecciona,
+      // ningún bundle real lo referencia en `modules.market`.
+      status: 'reference-only',
+      scope: { jurisdictionIds: null, competitionIds: ['euroleague'], personalScope: 'player' },
+      validity: buildValidity({ seasonFrom: '2024-25', seasonTo: '2026-27', carryForwardUntilSuperseded: true }),
+      contactOverlay: {
+        requiresPriorClubAuthorization: true,
+        authorizationAppliesToClubAndAgent: true,
+        exemptWithinDaysBeforeContractExpiry: 60,
+        agentIdentityMustBeDisclosedAtSeasonStart: true,
+        compensationTransparencyForLegitimateInterestClubs: true,
+        compensationTransparencyUnderConfidentiality: true,
+      },
+      sourceRefs: [
+        { title: 'ELPA — EuroLeague Framework Agreement', url: 'https://elpa.basketball/efa/', retrievedAt: '2026-08-26' },
+        {
+          title: 'EFA 2024-27',
+          url: 'https://elpa.basketball/wp-content/uploads/2024/09/EFA-2024-27-DEF.pdf',
+          retrievedAt: '2026-08-26',
+        },
+      ],
+      knownSourceInconsistencies: [],
+      notImplemented: ['euroleaguePlayableCompetition'],
+      derivedInterpretations: [
+        'Módulo de REFERENCIA: prueba que una regla de negociación puede superponerse a la liga doméstica sin '
+        + 'convertir Team.division en clave universal. Nunca se aplica a un club real hasta EUROPE-1.',
+      ],
+    },
+    // Sección 6.4 del prompt: fixture `reference-only` de una competición
+    // FICTICIA con una regla de contacto/ventana DISTINTA — demuestra que
+    // se activa fijando su módulo (`ctx.marketModuleId`/`pinnedModuleIds`)
+    // sin editar MarketService/UI/Team.js ni ninguna rama
+    // `if (competitionId === ...)`. Nunca asociado a ningún RulesetBundle real.
+    'bm-test-fictional-market-window-reference-only-v1': {
+      id: 'bm-test-fictional-market-window-reference-only-v1',
+      domain: 'market',
+      familyId: 'bm-test-fictional-market-window',
+      layer: 'domestic-procedure',
+      version: 1,
+      status: 'reference-only',
+      scope: { jurisdictionIds: null, competitionIds: [COMPETITION_IDS.TEST_FICTIONAL], personalScope: 'player' },
+      validity: buildValidity({ seasonFrom: '2000-01', seasonTo: null, carryForwardUntilSuperseded: true }),
+      procedureFamily: 'bm-test-fictional-market-window',
+      marketWindow: { opensMonthDay: '07-01', closesMonthDay: '09-15' },
+      contactRequiresOpenWindow: true,
+      sourceRefs: [],
+      knownSourceInconsistencies: [],
+      notImplemented: [],
+      derivedInterpretations: [
+        'Fixture SOLO DE TEST (sección 6.4 del prompt de MARKET-1) — NUNCA usar en una partida real.',
+      ],
+    },
+  };
+
+  function getMarketModule(moduleId) {
+    const module_ = MARKET_MODULES[moduleId];
+    if (!module_) {
+      throw new Error(`CompetitionRules: no existe el módulo de mercado "${moduleId}" en el catálogo.`);
+    }
+    return module_;
+  }
+
+  // Encuentra, dentro de una lista de ids fijados explícitamente, el que
+  // pertenece a una familia concreta — permite pinnear varios módulos de
+  // mercado de capas distintas (agente/procedimiento/overlay) a la vez sin
+  // ambigüedad, igual que `pinnedModuleIds` del contexto de sección 7.1.
+  function findPinnedIdForFamily(pinnedModuleIds, familyId) {
+    if (!pinnedModuleIds || !pinnedModuleIds.length) return null;
+    const found = pinnedModuleIds.find((id) => {
+      const mod = MARKET_MODULES[id];
+      return mod && mod.familyId === familyId;
+    });
+    return found || null;
+  }
+
+  // ---------------------------------------------------------------------
   // 6. RulesetBundleCatalog — compone módulos de ÁMBITOS DISTINTOS para una
   //    competición+temporada.
   //
@@ -1340,8 +1581,11 @@
         registration: 'acb-registration-2025-26-v1',
         // Capa de convenio de la COMPETICIÓN (no la ley del empleador).
         employmentMembershipOverlay: 'acb-abp-cba-2018-22-operational-provisional-v1',
+        // MARKET-1 (DESIGN.md 9.19): procedimiento doméstico de derecho de
+        // tanteo/inscripción preferente/retorno — declarado como dato del
+        // bundle, exactamente igual que `registration`.
+        market: 'acb-right-of-first-refusal-2026-27-provisional-v1',
         // Ámbitos todavía SIN ningún módulo real — ausentes explícitamente.
-        market: null,
         transfer: null,
         internationalTransfer: null,
       },
@@ -1872,10 +2116,11 @@
     const ctx = context || {};
     const domain = ctx.domain || 'registration';
     if (domain === 'employment') return resolveEmploymentDomain(ctx);
+    if (domain === 'market') return resolveMarketDomain(ctx);
     if (domain !== 'registration') {
       throw new Error(
         `CompetitionRules.resolveRules: dominio "${domain}" no implementado — dominios disponibles: `
-        + 'registration, employment.',
+        + 'registration, employment, market.',
       );
     }
     return resolveRegistrationDomain(ctx);
@@ -2004,6 +2249,236 @@
         resolutionMode,
       },
     };
+  }
+
+  // ---------------------------------------------------------------------
+  // MARKET-1 (DESIGN.md 9.19, sección 7.1 del prompt) — `context` esperado:
+  //   { domain: 'market', actingClubId, targetPlayerId, currentClubId,
+  //     employerJurisdictionId, domesticCompetitionId, prospectiveCompetitionIds,
+  //     membershipCompetitionIds, rightsCaseId, seasonKey, date, operation,
+  //     transactionScope, proposedStartDate, pinnedBundleId, pinnedModuleIds,
+  //     marketModuleId }
+  //
+  // Compone TRES capas independientes, NUNCA fusionadas con Object.assign
+  // (sección 7.3): `agentPrinciples` (FIBA, universal — nunca depende de
+  // `competitionId`), `domesticProcedure` (declarado en
+  // `bundle.modules.market`, por competición, igual que `registration` —
+  // una competición desconocida NUNCA hereda el de otra, invariante 32) y
+  // `membershipOverlay` (SIEMPRE reference-only en esta entrega, solo
+  // activable fijando su módulo explícitamente en `pinnedModuleIds` —
+  // invariante 22, nunca se autoselecciona).
+  // ---------------------------------------------------------------------
+  function resolveMarketDomain(ctx) {
+    const { domesticCompetitionId, operation } = ctx;
+    const pinnedModuleIds = ctx.pinnedModuleIds || [];
+    const warnings = [];
+    const knownSourceInconsistencies = [];
+    const trace = { fields: {} };
+    const sourceRefs = [];
+    const appliedModules = [];
+
+    function pushFieldTrace(field, entry) {
+      if (!trace.fields[field]) trace.fields[field] = [];
+      trace.fields[field].push(entry);
+    }
+
+    // 1) Principios FIBA de agente — SIEMPRE se resuelven, universales.
+    const fibaFamily = Object.values(MARKET_MODULES).filter((m) => m.familyId === 'fiba-agents-book3');
+    const fibaResolution = selectByValidity(fibaFamily, {
+      seasonKey: ctx.seasonKey || null,
+      date: ctx.date ? toIsoDate(ctx.date) : null,
+      pinnedId: findPinnedIdForFamily(pinnedModuleIds, 'fiba-agents-book3'),
+      label: 'RuleModule de principios de agente (FIBA)',
+    });
+    const agentPrinciplesModule = fibaResolution.entity;
+    warnings.push(...fibaResolution.warnings);
+    sourceRefs.push(...agentPrinciplesModule.sourceRefs);
+    (agentPrinciplesModule.knownSourceInconsistencies || []).forEach((k) => knownSourceInconsistencies.push(k));
+    appliedModules.push(agentPrinciplesModule);
+    pushFieldTrace('agentPrinciples', {
+      ruleModuleId: agentPrinciplesModule.id, version: agentPrinciplesModule.version,
+      status: agentPrinciplesModule.status, strategy: 'single-universal-module',
+    });
+
+    // 2) Procedimiento doméstico — declarado en el bundle de la competición
+    //    doméstica, exactamente igual que `registration`.
+    let domesticProcedureModule = null;
+    let bundle = null;
+    if (domesticCompetitionId) {
+      const bundleResolution = resolveBundleDetailed({ ...ctx, competitionId: domesticCompetitionId });
+      bundle = bundleResolution.entity;
+      warnings.push(...bundleResolution.warnings);
+      const marketModuleId = ctx.marketModuleId || bundle.modules.market;
+      if (marketModuleId) {
+        const declared = getMarketModule(marketModuleId);
+        const family = Object.values(MARKET_MODULES).filter((m) => m.familyId === declared.familyId);
+        const resolution = selectByValidity(family, {
+          seasonKey: ctx.seasonKey || null,
+          date: ctx.date ? toIsoDate(ctx.date) : null,
+          pinnedId: ctx.marketModuleId || findPinnedIdForFamily(pinnedModuleIds, declared.familyId)
+            || (ctx.pinnedBundleId ? marketModuleId : null),
+          label: 'RuleModule de procedimiento doméstico de mercado',
+        });
+        domesticProcedureModule = resolution.entity;
+        warnings.push(...resolution.warnings);
+        sourceRefs.push(...domesticProcedureModule.sourceRefs);
+        (domesticProcedureModule.knownSourceInconsistencies || []).forEach((k) => knownSourceInconsistencies.push(k));
+        appliedModules.push(domesticProcedureModule);
+        if (domesticProcedureModule.status === 'provisional') {
+          warnings.push(
+            `El procedimiento doméstico de mercado "${domesticProcedureModule.id}" tiene continuidad `
+            + 'PROVISIONAL (no "verified") — ver knownSourceInconsistencies.',
+          );
+        }
+        pushFieldTrace('domesticProcedure', {
+          ruleModuleId: domesticProcedureModule.id, version: domesticProcedureModule.version,
+          status: domesticProcedureModule.status, strategy: 'single-domestic-module',
+        });
+      }
+    } else if (ctx.marketModuleId) {
+      // Resolver un módulo de mercado SIN bundle doméstico — fixtures/tests
+      // dirigidos (sección 6.4), nunca usado en producción.
+      const declared = getMarketModule(ctx.marketModuleId);
+      const family = Object.values(MARKET_MODULES).filter((m) => m.familyId === declared.familyId);
+      const resolution = selectByValidity(family, {
+        seasonKey: ctx.seasonKey || null,
+        date: ctx.date ? toIsoDate(ctx.date) : null,
+        pinnedId: ctx.marketModuleId,
+        label: 'RuleModule de procedimiento doméstico de mercado (fixture)',
+      });
+      domesticProcedureModule = resolution.entity;
+      warnings.push(...resolution.warnings);
+      if (domesticProcedureModule.status === 'reference-only') {
+        warnings.push(
+          `El módulo de mercado "${domesticProcedureModule.id}" es reference-only (fixture de test) — fijado `
+          + 'explícitamente, nunca se autoselecciona en una partida real.',
+        );
+      }
+      sourceRefs.push(...domesticProcedureModule.sourceRefs);
+      appliedModules.push(domesticProcedureModule);
+      pushFieldTrace('domesticProcedure', {
+        ruleModuleId: domesticProcedureModule.id, version: domesticProcedureModule.version,
+        status: domesticProcedureModule.status, strategy: 'pinned-fixture',
+      });
+    }
+
+    // 3) Overlay de membresía (EuroLeague) — solo se resuelve si el club/
+    //    negociación declara membresía en esa competición Y se fija
+    //    explícitamente su módulo (invariante 22: nunca se autoselecciona).
+    let membershipOverlayModule = null;
+    const membershipCompetitionIds = ctx.membershipCompetitionIds || [];
+    Object.values(MARKET_MODULES).forEach((mod) => {
+      if (membershipOverlayModule) return;
+      if (mod.layer !== 'membership-overlay') return;
+      const scopeCompetitionIds = (mod.scope && mod.scope.competitionIds) || [];
+      const membershipMatches = scopeCompetitionIds.some((id) => membershipCompetitionIds.includes(id));
+      const explicitlyPinned = pinnedModuleIds.includes(mod.id);
+      if (!membershipMatches || !explicitlyPinned) return;
+      const family = Object.values(MARKET_MODULES).filter((m) => m.familyId === mod.familyId);
+      const resolution = selectByValidity(family, {
+        seasonKey: ctx.seasonKey || null,
+        date: ctx.date ? toIsoDate(ctx.date) : null,
+        pinnedId: mod.id,
+        label: 'RuleModule de overlay de membresía de mercado',
+      });
+      membershipOverlayModule = resolution.entity;
+      warnings.push(...resolution.warnings);
+      warnings.push(
+        `El overlay de membresía "${membershipOverlayModule.id}" (${membershipOverlayModule.status}) se ha `
+        + 'activado explícitamente por fijación — nunca se autoselecciona.',
+      );
+      sourceRefs.push(...membershipOverlayModule.sourceRefs);
+      appliedModules.push(membershipOverlayModule);
+      pushFieldTrace('membershipOverlay', {
+        ruleModuleId: membershipOverlayModule.id, version: membershipOverlayModule.version,
+        status: membershipOverlayModule.status, strategy: 'pinned-membership-overlay',
+      });
+    });
+
+    const market = {
+      agentPrinciples: agentPrinciplesModule.agentPrinciples,
+      domesticProcedure: domesticProcedureModule ? {
+        procedureFamily: domesticProcedureModule.procedureFamily,
+        qualifyingOffer: domesticProcedureModule.qualifyingOffer || null,
+        debtChallenge: domesticProcedureModule.debtChallenge || null,
+        generalProcedureDeadlinesNaturalDays: domesticProcedureModule.generalProcedureDeadlinesNaturalDays || null,
+        offerSheetRequiredFields: domesticProcedureModule.offerSheetRequiredFields || [],
+        matchableComponents: domesticProcedureModule.matchableComponents || [],
+        ignoredForMatchingComponents: domesticProcedureModule.ignoredForMatchingComponents || [],
+        preferredRegistrationRight: domesticProcedureModule.preferredRegistrationRight || null,
+        returnRights: domesticProcedureModule.returnRights || null,
+        marketWindow: domesticProcedureModule.marketWindow || null,
+        contactRequiresOpenWindow: Boolean(domesticProcedureModule.contactRequiresOpenWindow),
+      } : null,
+      // Ventana concurrente (sección 7.3: "ventanas concurrentes:
+      // intersección") — cuando hay overlay Y procedimiento doméstico con
+      // ventana propia, la ventana EFECTIVA de contacto la calcula quien
+      // evalúa fechas reales (NegotiationService/MarketService) por
+      // intersección de `domesticProcedure.marketWindow` y
+      // `membershipOverlay.exemptWithinDaysBeforeContractExpiry`, nunca
+      // "el último módulo gana" — CompetitionRules solo expone ambas capas
+      // por separado.
+      membershipOverlay: membershipOverlayModule ? membershipOverlayModule.contactOverlay : null,
+    };
+
+    const capabilities = deriveMarketCapabilities(market, appliedModules);
+
+    return {
+      domain: 'market',
+      domesticCompetitionId: domesticCompetitionId || null,
+      bundleId: bundle ? bundle.id : null,
+      registrationScopeId: bundle ? (bundle.registrationScopeId || null) : null,
+      requestedSeasonKey: ctx.seasonKey || null,
+      requestedDate: ctx.date ? toIsoDate(ctx.date) : null,
+      operation: operation || null,
+      resolutionMode: fibaResolution.resolutionMode,
+      warnings,
+      knownSourceInconsistencies,
+      market,
+      capabilities,
+      notImplemented: domesticProcedureModule ? [] : ['market.domesticProcedure'],
+      sourceRefs,
+      trace,
+      // Política de JUEGO, nunca norma legal (sección 7.4) — declarada
+      // aquí solo como referencia de versión para que quien abra un
+      // hilo/caso pueda congelarla junto al resto de `trace`; el VALOR
+      // real (tiempos de respuesta, paciencia, límite interno de
+      // plantilla) vive en NegotiationService/MarketService.
+      marketPolicyVersion: 'simulated-market-policy-v1',
+    };
+  }
+
+  // Sección 7.2 del prompt: capacidad DERIVADA, nunca una lista a mano que
+  // pueda divergir de qué campos están de verdad resueltos — mismo
+  // criterio que deriveEmploymentCapabilities/deriveRegistrationCapabilities.
+  function deriveMarketCapabilities(market, appliedModules) {
+    const capabilities = new Set();
+    if (appliedModules.length) capabilities.add('canOpenNegotiation');
+    const ap = market.agentPrinciples;
+    if (ap && ap.requiresFibaLicenseForOperations && ap.requiresFibaLicenseForOperations.includes('internationalTransfer')) {
+      capabilities.add('requiresFibaLicensedAgentForInternationalTransfer');
+    }
+    const dp = market.domesticProcedure;
+    if (dp) {
+      capabilities.add('hasAdditionalDomesticProcedure');
+      if (dp.qualifyingOffer) capabilities.add('supportsQualifyingOffer');
+      if (dp.generalProcedureDeadlinesNaturalDays) capabilities.add('supportsRightOfFirstRefusal');
+      if (dp.preferredRegistrationRight) capabilities.add('supportsPreferredRegistrationRight');
+      if (dp.returnRights) capabilities.add('supportsReturnRights');
+      if (dp.marketWindow) capabilities.add('hasMarketWindow');
+    }
+    if (market.membershipOverlay) {
+      capabilities.add('requiresPriorClubAuthorization');
+      if (market.membershipOverlay.exemptWithinDaysBeforeContractExpiry) capabilities.add('hasMarketWindow');
+    }
+    return capabilities;
+  }
+
+  // Wrapper fino (sección 7.1 del prompt): construye el contexto de
+  // dominio `market` y delega en `resolveRules`, mismo patrón que
+  // `resolveEmploymentRules()`.
+  function resolveMarketRules(context) {
+    return resolveRules({ ...(context || {}), domain: 'market' });
   }
 
   // Contexto laboral esperado (sección 5.1 del prompt de CONTRACT-1):
@@ -2197,15 +2672,18 @@
     listCompetitions,
     getRegistrationModule,
     getEmploymentModule,
+    getMarketModule,
     resolveBundle,
     resolveBundleDetailed,
     resolveRules,
     resolveEmploymentRules,
+    resolveMarketRules,
     buildSigningSnapshot,
     evaluateProbationPolicy,
     MERGE_STRATEGIES,
     REGISTRATION_MODULES,
     EMPLOYMENT_MODULES,
+    MARKET_MODULES,
     RULESET_BUNDLES,
     COMPETITION_DEFINITIONS,
   };

@@ -22,8 +22,14 @@
   // LIFE-3 (DESIGN.md 9.14): CAL-2 ya reservó 'medical' — esta entrega es
   // quien empieza a construirlo de verdad (lesión/alta), ver builders más
   // abajo. Sale de RESERVED_FUTURE_EVENT_TYPES a EVENT_TYPES.
-  const EVENT_TYPES = ['match', 'competition', 'news', 'medical'];
-  const RESERVED_FUTURE_EVENT_TYPES = ['training', 'scouting', 'market', 'contract', 'board'];
+  // MARKET-1 (DESIGN.md 9.19, sección 15.3 del prompt): 'market' sale
+  // igualmente de RESERVED_FUTURE_EVENT_TYPES — respuesta de jugador/
+  // agente, expiración de oferta, fin de autorización, apertura/cierre de
+  // ventana, traslado de documento, decisión de igualar y depósito/
+  // formalización pendiente, todos derivados de `MarketRegistry`
+  // (game.js), nunca inventados aquí.
+  const EVENT_TYPES = ['match', 'competition', 'news', 'medical', 'market'];
+  const RESERVED_FUTURE_EVENT_TYPES = ['training', 'scouting', 'contract', 'board'];
 
   const NEWS_PRIORITIES = ['alta', 'media', 'baja'];
   // Catálogo de categorías de noticia soportadas hoy (DESIGN.md 3.5) — cada
@@ -37,7 +43,10 @@
   // carrera derivados de `PlayerCareer.recordResolvedMatch()` (hecho real
   // ya detectado allí; este módulo solo redacta). Cierra el hueco que
   // CAL-2 dejó explícitamente pendiente por falta de histórico real.
-  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise', 'medical', 'career'];
+  // MARKET-1 añade 'market' — solo hechos YA OCURRIDOS y apropiados para
+  // el usuario (aceptación/rechazo/expiración YA resueltos); una oferta
+  // privada de otro club nunca se filtra al feed (sección 15.3).
+  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise', 'medical', 'career', 'market'];
 
   let eventIdCounter = 0;
   function nextEventId(prefix) {
@@ -490,6 +499,60 @@
   }
 
   // ------------------------------------------------------------------
+  // MARKET-1 (DESIGN.md 9.19, sección 15.3 del prompt) — eventos de
+  // mercado. Agenda (`type:'market'`) deriva SIEMPRE de un evento
+  // programado ya existente en `MarketRegistry` (game.js construye el
+  // payload real, este módulo solo redacta) — `requiresAttention` decide
+  // si "Continuar" debe detenerse (sección 15.4). Noticias
+  // (`type:'news', newsCategory:'market'`) SOLO para hechos YA resueltos
+  // del club del usuario (aceptación/rechazo/expiración/resultado de
+  // derecho) — una oferta privada de otro club nunca se filtra aquí.
+  // ------------------------------------------------------------------
+  const MARKET_EVENT_LABELS = {
+    'interest-response': (payload) => `Respuesta de interés esperada: ${payload.playerName || payload.playerId}`,
+    'offer-expiry': (payload) => `Vence la oferta a ${payload.playerName || payload.playerId}`,
+    'contact-permission-expiry': (payload) => `Fin de la autorización de contacto para ${payload.playerName || payload.playerId}`,
+    'rights-window': (payload) => `${payload.windowLabel || 'Ventana de derecho preferente'}: ${payload.playerName || payload.playerId}`,
+    'offer-sheet-forward': (payload) => `Documento de oferta trasladado — ${payload.playerName || payload.playerId}`,
+    'matching-decision': (payload) => `Decisión de igualar pendiente — ${payload.playerName || payload.playerId}`,
+    'contract-deposit': (payload) => `Depósito/formalización pendiente — ${payload.playerName || payload.playerId}`,
+  };
+
+  function buildMarketAgendaEvent(scheduledEvent, opts = {}) {
+    const labelFn = MARKET_EVENT_LABELS[scheduledEvent.type] || ((p) => `Evento de mercado: ${p.playerId || ''}`);
+    return makeEvent({
+      id: `market-agenda:${scheduledEvent.id}`,
+      type: 'market',
+      dateTime: scheduledEvent.dueDate,
+      title: labelFn(scheduledEvent.payload || {}),
+      relatedCompetition: opts.relatedCompetition || null,
+      relatedTeam: opts.relatedTeam || null,
+      relatedPlayer: opts.relatedPlayer || null,
+      requiresAttention: !!scheduledEvent.requiresAttention,
+      status: scheduledEvent.processed ? 'resolved' : 'pending',
+      body: opts.body || null,
+    });
+  }
+
+  function buildMarketNewsEvent(params) {
+    const {
+      dateTime, title, body, relatedTeam, relatedPlayer, relatedCompetition, priority,
+    } = params;
+    return makeEvent({
+      id: nextEventId('news-market'),
+      type: 'news',
+      dateTime,
+      title,
+      relatedCompetition: relatedCompetition || null,
+      relatedTeam: relatedTeam || null,
+      relatedPlayer: relatedPlayer || null,
+      newsCategory: 'market',
+      priority: priority || 'media',
+      body: body || null,
+    });
+  }
+
+  // ------------------------------------------------------------------
   // LIFE-4 (DESIGN.md 9.15, sección 40/41/70/71): noticias de carrera —
   // derivadas SIEMPRE de un milestone/personalBest ya detectado por
   // `PlayerCareer.recordResolvedMatch()` (hecho real, con su propio id
@@ -602,6 +665,8 @@
     buildFullRecoveryNewsEvent,
     buildCareerMilestoneNewsEvent,
     buildPersonalBestNewsEvent,
+    buildMarketAgendaEvent,
+    buildMarketNewsEvent,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

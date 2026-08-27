@@ -215,11 +215,16 @@ check('resolveRules: capacidades no implementadas no aparecen como activas', () 
   // ADAPTACIÓN CONTRACT-1 (DESIGN.md 9.17): `employment` YA NO figura como
   // dominio no implementado — CONTRACT-1 lo implementa de verdad, pero
   // resuelto por la JURISDICCIÓN DEL EMPLEADOR (BUG-ROSTER1-02), no por la
-  // competición. Se conserva el objetivo original del test (una capacidad
-  // sin política real detrás nunca aparece activa) comprobando los dominios
-  // que siguen sin módulo: market/transfer/internationalTransfer.
+  // competición.
+  // ADAPTACIÓN MARKET-1 (DESIGN.md 9.19): `market` TAMPOCO figura ya como
+  // no implementado para ACB — MARKET-1 declara
+  // `bundle.modules.market: 'acb-right-of-first-refusal-2026-27-provisional-v1'`
+  // (resolveMarketRules(), dominio `market` separado). Se conserva el
+  // objetivo original del test (una capacidad sin política real detrás
+  // nunca aparece activa) comprobando los dominios que siguen sin módulo:
+  // transfer/internationalTransfer.
   assert.ok(!resolved.notImplemented.includes('employment'));
-  assert.ok(resolved.notImplemented.includes('market'));
+  assert.ok(!resolved.notImplemented.includes('market'));
   assert.ok(resolved.notImplemented.includes('transfer'));
   assert.ok(resolved.notImplemented.includes('internationalTransfer'));
   assert.ok(resolved.notImplemented.some((f) => f.startsWith('registration.')));

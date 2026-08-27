@@ -175,6 +175,7 @@
       seasonKey,
       accessCategory: finalAccessCategory,
       contractId: contract ? contract.id : null,
+      contractRegistry,
       classificationSnapshot: {
         formation: classification.formationPlayerIds.has(player.id) ? 'qualifies' : 'does-not-qualify',
         nonCommunity: classification.nonCommunityPlayerIds.has(player.id) ? 'counts' : 'does-not-count',

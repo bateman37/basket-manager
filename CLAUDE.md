@@ -154,7 +154,11 @@ con dos botones:
     nunca desde `Player`/`Team.addPlayer()`. La pantalla **Contratos** y la
     pestaña **Contrato** de la ficha son de SOLO LECTURA: no pueden
     incorporar botones de renovar/fichar/liberar/ejecutar/tantear/ceder
-    (MARKET-1/TRANSFER-1/LOAN-1). `team.finances.expenses.playerSalaries`
+    (TRANSFER-1/LOAN-1) — MARKET-1 (DESIGN.md 9.19) ya permite NEGOCIAR
+    desde la pantalla Mercado y crear un Agreement in Principle, pero ese
+    acuerdo nunca escribe en `ContractRegistry`; formalizarlo sigue siendo
+    de TRANSFER-1, así que Contratos sigue sin botones de acción.
+    `team.finances.expenses.playerSalaries`
     es una PROYECCIÓN refrescada desde el registro
     (`ContractService.refreshTeamSalaryProjection`), no un valor editable.
   - Inscripción/licencias/elegibilidad (REG-1, DESIGN.md 9.18):
@@ -168,7 +172,10 @@ con dos botones:
     La pantalla **Inscripciones** y la pestaña **Licencia y elegibilidad**
     de la ficha son de SOLO LECTURA: no pueden incorporar botones de
     alta/baja/suspensión/vinculación/fichaje/renovación/cesión/tanteo/
-    transfer (MARKET-1/TRANSFER-1/LOAN-1/EUROPE-1). El pool regulado de
+    transfer (TRANSFER-1/LOAN-1/EUROPE-1) — igual que Contratos, MARKET-1
+    puede generar un Agreement in Principle desde Mercado sin que estas
+    pantallas ganen ninguna acción: inscribir sigue siendo de TRANSFER-1.
+    El pool regulado de
     un partido (`buildEligiblePoolForMatch(team, context)`, sección 11.1
     del prompt de REG-1) es siempre senior+propios+vinculados evaluados
     por `EligibilityService` — nunca solo `team.roster`; tanto el usuario
@@ -181,12 +188,13 @@ con dos botones:
     nunca `null` fijo ni un id de partido dependiente de qué equipo fue
     local (BUG-REG1-03/04, ver DESIGN.md 9.18).
 
-## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1 y siguientes)
+## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1, MARKET-1 y siguientes)
 
 Convenciones permanentes de la EPIC iniciada en ROSTER-1 (DESIGN.md 9.16),
-ampliada en CONTRACT-1 (DESIGN.md 9.17) y en REG-1 (DESIGN.md 9.18) —
-aplican a toda sesión futura que toque contratos, licencias, inscripción,
-elegibilidad, mercado, traspasos, cesiones o transfer internacional:
+ampliada en CONTRACT-1 (DESIGN.md 9.17), en REG-1 (DESIGN.md 9.18) y en
+MARKET-1 (DESIGN.md 9.19) — aplican a toda sesión futura que toque
+contratos, licencias, inscripción, elegibilidad, mercado, traspasos,
+cesiones o transfer internacional:
 
 - Todo jugador vive en el Player Registry mundial
   (`src/core/PlayerRegistry.js`, `state.playerRegistry`); una plantilla
@@ -349,8 +357,97 @@ elegibilidad, mercado, traspasos, cesiones o transfer internacional:
   demuestran extensibilidad, no se activan en ninguna partida real.
 - No hay alta, baja, suspensión, vinculación, fichaje, renovación, cesión,
   tanteo ni transfer como ACCIONES de usuario antes de sus entregas
-  (MARKET-1/TRANSFER-1/LOAN-1/EUROPE-1); la pantalla Inscripciones y la
-  pestaña de la ficha son de solo lectura.
+  (TRANSFER-1/LOAN-1/EUROPE-1 — MARKET-1 ya añade la NEGOCIACIÓN, pero
+  nunca ejecuta el fichaje); la pantalla Inscripciones y la pestaña de la
+  ficha son de solo lectura.
+
+### Mercado, agentes y derechos (MARKET-1, DESIGN.md 9.19)
+
+Convenciones permanentes de MARKET-1 — aplican a toda sesión futura que
+toque negociación, agentes/representación, ofertas, Agreement in
+Principle o el procedimiento de tanteo ACB, y a TRANSFER-1/LOAN-1/
+EUROPE-1 cuando construyan sobre esta entrega:
+
+- Todo jugador negociable se resuelve desde el Player Registry mundial
+  (`state.playerRegistry`) — código nuevo nunca busca un jugador
+  recorriendo `Team.roster` de los equipos actuales como si fuera un
+  índice global (mismo principio que ROSTER-1/REG-1).
+- `state.agentRegistry` y `state.marketRegistry` son instancias
+  EXPLÍCITAS por carrera (creadas en `bootstrapMarketForNewCareer()`,
+  limpiadas al volver a selección de equipo) — nunca singletons, nunca
+  recreadas de forma perezosa desde un renderizador.
+- Un agente, una oferta o un derecho de tanteo NUNCA se duplican como
+  campo suelto en `Player`/`Team` (`player.agent`, `player.currentOffer`,
+  `team.offers`, `hasTanteo` y equivalentes están prohibidos y auditados
+  estáticamente en `scripts/test-market1.js`) — viven solo en
+  `AgentRegistry`/`MarketRegistry`.
+- Oferta (`ContractOffer`), Agreement in Principle, contrato
+  (`ContractRegistry`, CONTRACT-1), afiliación de plantilla
+  (`Team.roster`) y licencia/inscripción (`RegistrationRegistry`, REG-1)
+  son CUATRO conceptos distintos — un AIP nunca registra un contrato,
+  nunca mueve `player.teamId`, nunca crea licencia ni inscripción. Esa
+  ejecución es de TRANSFER-1, no de MARKET-1.
+- Lógica de mercado nueva usa `competitionId`/módulos de
+  `CompetitionRules.js` (dominio `market`) — nunca `division`
+  (`1ª`/`2ª`), el nombre visible de una liga, ni ACB como comportamiento
+  por defecto de una competición desconocida (lanza explícito).
+- Un `NegotiationThread`/`RightOfFirstRefusalCase` congela sus módulos de
+  reglas (`rulesSnapshot`/`procedureRules`) al abrirse — un ascenso/
+  descenso posterior del club no reescribe la normativa de un hilo o caso
+  ya abierto.
+- Una `ContractOffer` enviada es INMUTABLE (`Object.freeze()` sobre su
+  `contractDraft`) — una contraoferta es SIEMPRE una entidad nueva con id
+  y versión propios, nunca una mutación de la anterior.
+- Un borrador de oferta se valida con `ContractService.validateDraft()`
+  (pura, sin registrar) — nunca se llama a
+  `ContractRegistry.register()`/`ContractService.createContract()`/
+  `Team.addPlayer()`/`removePlayer()`/`RegistrationService` desde un
+  comando de Market ni desde la resolución de un AIP.
+- Dinero SIEMPRE en unidad mínima entera (`...Minor`) + moneda ISO 4217;
+  fechas SIEMPRE civiles ISO vía `LocalDate`, nunca `Date.now()`/reloj de
+  sistema dentro del core de mercado — toda fecha llega explícita desde
+  `state.calendar.currentGameDateTime` adaptada en la frontera.
+- El jugador conserva SIEMPRE la decisión final
+  (`playerSignsPersonallyAndRetainsFinalDecision`, principio FIBA
+  universal) — un agente/mandato autoriza a negociar en su nombre, nunca
+  decide por él. Los conflictos de interés (mismo agente en ambos lados,
+  representar a un club y a un jugador de ese club a la vez) se validan
+  contra `PlayerRegistry`/afiliación real, nunca se asumen ausentes.
+- La licencia FIBA de un agente NUNCA se exige para negociación
+  doméstica sin `transactionScope === 'international'` — sigue bloqueada
+  para transfer internacional real hasta EUROPE-1.
+- El tanteo ACB (y sus variantes de inscripción preferente/retorno) es un
+  PROCEDIMIENTO con máquina de estados y plazos fechados
+  (`RightOfFirstRefusalService`) — nunca un booleano. El core valida
+  siempre con la política real (`openCase()` lanza explícito si la
+  competición no resuelve procedimiento doméstico) — una capacidad de UI
+  (`capabilities.has('supportsRightOfFirstRefusal')`) decide solo qué
+  MOSTRAR, nunca es la única barrera de una regla de dominio.
+- `advanceGameClockTo()` sigue siendo el ÚNICO punto que avanza
+  `state.calendar` — cualquier nueva parada obligatoria ante mercado
+  (contraoferta viva, plazo de tanteo) se añade ahí, nunca repartida por
+  los call-sites de Liga/Copa/Playoffs/Ascenso.
+- No se ejecuta fichaje/traspaso/cesión/inscripción/contrato real antes
+  de sus entregas (TRANSFER-1/LOAN-1) — MARKET-1 se detiene siempre en el
+  Agreement in Principle.
+- Todo dato simulado de mercado (libres ficticios, agentes, mandatos,
+  contratos de fixture) lleva `dataSource`/dataSource simulado y
+  `isReal: false` visibles — nunca se presenta como un dato real, y
+  `data/real/` no se toca nunca desde este dominio.
+- Los módulos `reference-only` (overlay EuroLeague, ventana de
+  competición ficticia de test) nunca se autoseleccionan en un
+  `RulesetBundle` real — solo se activan fijando su id explícitamente,
+  como demostración de extensibilidad.
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambian la arquitectura de mercado o las reglas activas.
+- Ningún caso de tanteo se abre orgánicamente todavía en una carrera
+  normal (`openCase()` solo se ejercita desde tests/smoke con fixtures
+  dirigidos) — CONTRACT-1 garantiza un mínimo de 3 temporadas restantes en
+  todo contrato (`MINIMUM_PLAYABLE_REMAINING_SEASONS`, puente de staging),
+  así que ningún contrato expira todavía dentro de un horizonte
+  verificable. El gancho de apertura orgánica en cierre de temporada queda
+  para CYCLE-1 (cuando exista expiración/renovación real) — no lo
+  construyas antes, sería código inalcanzable e imposible de verificar.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 
