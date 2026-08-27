@@ -2021,7 +2021,12 @@
         seasonKey: ctx.seasonKey,
         date: ctx.effectiveDate,
         operation: 'transferSigning',
-        pinnedModuleIds: ctx.pinnedModuleIds,
+        // Solo se reenvían los ids fijados que EXISTEN en el catálogo de
+        // `employment` — `pinnedModuleIds` es un campo de contexto
+        // compartido entre dominios (transfer/market/employment) y un id
+        // fijado de OTRO catálogo (p.ej. un módulo `transfer`) nunca debe
+        // hacer fallar la resolución de `employment` con un "no existe".
+        pinnedModuleIds: (ctx.pinnedModuleIds || []).filter((id) => Object.prototype.hasOwnProperty.call(EMPLOYMENT_MODULES, id)),
       });
       destinationSigningRules = destinationEmploymentResolved.employment;
       warnings.push(...destinationEmploymentResolved.warnings);

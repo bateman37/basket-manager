@@ -254,7 +254,10 @@
       fee: clubOffer.fee,
       agreedAt: effectiveDate,
       effectiveDate,
-      playerConsent: { grantedAt: playerConsentGrantedAt || effectiveDate, actor: 'player', scope: 'transfer-and-termination' },
+      // El consentimiento NUNCA se deduce de haber aceptado una oferta
+      // salarial (sección 11.3 del prompt) — sin `playerConsentGrantedAt`
+      // EXPLÍCITO, no hay consentimiento, y el plan debe bloquear.
+      playerConsent: playerConsentGrantedAt ? { grantedAt: playerConsentGrantedAt, actor: 'player', scope: 'transfer-and-termination' } : null,
       terminationMechanism: 'mutual-transfer',
       documentsRequired: (resolvedRules.documentRequirements || []),
       documentStatuses: Object.fromEntries((resolvedRules.documentRequirements || []).map((d) => [d, 'verified'])),
