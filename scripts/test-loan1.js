@@ -65,7 +65,7 @@ function check(name, fn) {
 const SEASON = '2026-27';
 const GAME_DATE = '2026-10-15';
 const SERVICE_START = '2026-10-20';
-const RETURN_DATE = '2027-06-30';
+const RETURN_DATE = '2027-07-31';
 
 function realTeam(id) { return new Team({ ...REAL_DATA_TEAMS[id], roster: [] }); }
 
@@ -88,9 +88,11 @@ function makeMasterContract(world, ownerTeam, player, overrides) {
     playerId: player.id,
     clubId: ownerTeam.id,
     contractType: 'professional-player',
-    signedDate: opts.signedDate || '2025-07-01',
-    startDate: opts.startDate || '2025-07-01',
-    endDate: opts.endDate || '2028-06-30',
+    // CYCLE-1 (BUG-CYCLE1-06): ventana civil de temporada 1-ago .. 31-jul
+    // (LocalDate.seasonWindow) — mismo contrato de 2025-26 a 2027-28.
+    signedDate: opts.signedDate || '2025-08-01',
+    startDate: opts.startDate || '2025-08-01',
+    endDate: opts.endDate || '2028-07-31',
     guaranteeType: 'fully-guaranteed',
     compensation: {
       currency: 'EUR',
@@ -343,10 +345,10 @@ check('openCaseAndPropose bloquea si returnEffectiveDate excede la vigencia del 
   const ownerTeam = realTeam('team-real-madrid');
   const borrowerTeam = realTeam('team-barca');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 20, maxAge: 23 });
-  makeMasterContract(world, ownerTeam, player, { id: 'mc:t3-2', endDate: '2027-06-30', seasonKeys: ['2025-26', SEASON] });
+  makeMasterContract(world, ownerTeam, player, { id: 'mc:t3-2', endDate: '2027-07-31', seasonKeys: ['2025-26', SEASON] });
   assert.throws(() => LoanService.openCaseAndPropose({
     loanRegistry: world.loanRegistry, contractRegistry: world.contractRegistry, ownerTeam, borrowerTeam, playerId: player.id, initiatingClubId: ownerTeam.id,
-    now: GAME_DATE, seasonKey: SEASON, serviceStartDate: SERVICE_START, returnEffectiveDate: '2028-06-30', loanFee: null,
+    now: GAME_DATE, seasonKey: SEASON, serviceStartDate: SERVICE_START, returnEffectiveDate: '2028-08-31', loanFee: null,
     salaryAllocation: { ownerShareBasisPoints: 5000, borrowerShareBasisPoints: 5000 }, clauses: [], medicalResponsibility: { responsibleParty: 'owner' },
     insuranceResponsibility: { responsibleParty: 'owner' }, documentsRequired: [], expiresAt: GAME_DATE,
   }), /vigencia del contrato matriz/);

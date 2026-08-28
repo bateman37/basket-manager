@@ -472,17 +472,52 @@
   function getAvailability(player, date, config, context) {
     const team = context && context.team;
     ensureMedicalState(player, config, date);
+    return computeAvailabilityFromState(player, date, config, team, true);
+  }
+
+  // CYCLE-1 (DESIGN.md 9.22, BUG-CYCLE1-03) — CONSULTA PURA: nunca
+  // inicializa `medicalState` ni ningún otro estado del jugador. La usan los
+  // renderizadores/filtros/tooltips de la interfaz y el planificador CPU;
+  // `getAvailability()` sigue siendo el COMANDO (inicializa si hace falta)
+  // que usan el motor de partido y el ciclo de vida mundial.
+  //
+  // Un jugador sin `medicalState` inicializado NO se inventa aquí: se
+  // devuelve `stateInitialized: false` y disponibilidad neutra, y quien
+  // corresponda (creación/registro/importación del jugador, o el bootstrap
+  // explícito de migración) lo inicializa como COMANDO.
+  function peekAvailability(player, date, config, context) {
+    const team = context && context.team;
+    if (!player || !player.medicalState) {
+      return {
+        status: 'available', phase: 'available', minuteCap: null, injury: null, riskBand: null, stateInitialized: false,
+      };
+    }
+    return computeAvailabilityFromState(player, date, config, team, false);
+  }
+
+  // Núcleo COMPARTIDO por el comando y la consulta pura — misma fórmula
+  // exacta, la única diferencia es si se permite tocar el mundo.
+  function computeAvailabilityFromState(player, date, config, team, allowMutation) {
     const injury = player.medicalState.currentInjury;
+    const riskBand = allowMutation
+      ? describeRiskBand(player, date, config, team)
+      : describeRiskBandPure(player, date, config, team);
     if (!injury) {
-      return { status: 'available', phase: 'available', minuteCap: null, injury: null, riskBand: describeRiskBand(player, date, config, team) };
+      return {
+        status: 'available', phase: 'available', minuteCap: null, injury: null, riskBand, stateInitialized: true,
+      };
     }
     const phase = computePhase(injury.recoveryProgress, injury.severity, config);
     if (phase === 'available') {
-      return { status: 'available', phase: 'available', minuteCap: null, injury: null, riskBand: describeRiskBand(player, date, config, team) };
+      return {
+        status: 'available', phase: 'available', minuteCap: null, injury: null, riskBand, stateInitialized: true,
+      };
     }
     const minuteCap = computeMinuteCap(injury.recoveryProgress, phase, injury.severity, config, team);
     const status = phase === 'limited' ? 'limited' : 'unavailable';
-    return { status, phase, minuteCap, injury, riskBand: describeRiskBand(player, date, config, team) };
+    return {
+      status, phase, minuteCap, injury, riskBand, stateInitialized: true,
+    };
   }
 
   // ===========================================================================
@@ -490,6 +525,13 @@
   // ===========================================================================
   function describeRiskBand(player, date, config, team) {
     ensureMedicalState(player, config, date);
+    return describeRiskBandPure(player, date, config, team);
+  }
+
+  // CYCLE-1 (BUG-CYCLE1-03): variante PURA — exige que `medicalState` ya
+  // exista (devuelve `null` si no), nunca lo inicializa.
+  function describeRiskBandPure(player, date, config, team) {
+    if (!player || !player.medicalState) return null;
     const riskNonContact = computeMechanismRisk(1, player, date, 'acuteNonContact', config, team);
     // `computeMechanismRisk` con baseExposureRisk=1 devuelve el PRODUCTO de
     // todos los modificadores (nunca una probabilidad real) — suficiente
@@ -723,6 +765,10 @@
   const exportsObj = {
     ensureMedicalState,
     getAvailability,
+    // CYCLE-1 (BUG-CYCLE1-03): consultas PURAS para renderizadores/
+    // planificación — nunca inicializan estado.
+    peekAvailability,
+    describeRiskBandPure,
     computePhase,
     computeMinuteCap,
     computeDurabilityFactor,

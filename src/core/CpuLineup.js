@@ -175,12 +175,32 @@
   // `EligibilityService`), NUNCA solo `team.roster`. `resolved`: salida de
   // `CompetitionRules.resolveRules({domain:'registration', ...})`. Cuando se
   // aporta, la CPU consulta EXACTAMENTE `SquadEligibilityService.
-  // selectLegalSquad()` — el MISMO servicio que valida al usuario — en vez
-  // del `pickMatchSquadIds` puramente posicional de abajo. Un pool infeasible
-  // (nunca debería ocurrir con el seeder determinista, sección 11.3: "el
-  // smoke no debe dejar a ninguno de los 36 clubes en softlock") cae de
-  // vuelta al selector legacy sobre `team.roster` con warning explícito —
-  // red de seguridad para no interrumpir una partida en curso.
+  // selectLegalSquad()` — el MISMO servicio que valida al usuario.
+  //
+  // BUG-LOAN1-01 (CYCLE-1, DESIGN.md 9.22) — CORREGIDO: hasta esta entrega,
+  // si `selectLegalSquad()` respondía `ok: false` (o si `eligibility.pool`
+  // llegaba VACÍO, caso en el que ni siquiera se entraba al camino
+  // regulado), esta función caía al selector legacy sobre `team.roster`.
+  // Esa "red de seguridad" violaba la separación de REG-1: podía incluir
+  // jugadores individualmente NO elegibles, ignorar cupos de formación/no
+  // comunitarios y producir un acta fuera de rango. En la auditoría externa
+  // `smoke-loan1.js` falló UNA vez en un playoff exactamente por ese camino
+  // y pasó varias veces después — prueba de que el arnés no garantizaba el
+  // invariante. (Causa raíz determinista encontrada en CYCLE-1: el último
+  // partido posible del playoff caía el 1 de julio, FUERA de la ventana
+  // civil de la temporada, así que licencias e inscripciones ya habían
+  // expirado y el pool regulado quedaba vacío — ver BUG-CYCLE1-06 en
+  // `LocalDate.seasonWindow`.)
+  //
+  // Ahora: si el partido aporta contexto regulado, NUNCA se selecciona desde
+  // `team.roster`. Un pool vacío sigue siendo un resultado REGULADO e
+  // inviable, no permiso para ignorar la norma. El resultado es TIPADO:
+  //   `outcome: 'legal' | 'medical-exception' | 'infeasible'`
+  // con `diagnostic` estructurado en el caso inviable — usuario y CPU
+  // consumen el MISMO diagnóstico, y el motor no juega un partido con acta
+  // ilegal. Resolver la imposibilidad ANTES del primer partido es
+  // responsabilidad de la fase de legalidad de CYCLE-1
+  // (`RosterLegalityService`), no de esconderla aquí.
   function buildCpuLineup(team, matchImportance, config, date, squadRules, eligibility) {
     const matchDate = date || new Date();
     const limits = squadRules || TEST_MATCH_SQUAD_POLICY;
@@ -189,13 +209,20 @@
     let availablePlayers;
     let squadIds;
     let squad;
-    let squadWarnings = [];
+    const squadWarnings = [];
     let effectiveMinUsed = limits.min;
+    let outcome = 'legal';
 
-    if (eligibility && eligibility.pool && eligibility.pool.length) {
+    // El camino REGULADO se activa por la presencia de `resolved` (contexto
+    // normativo del partido), NO por que el pool traiga jugadores: un pool
+    // vacío es precisamente el caso que antes se escapaba.
+    const regulated = Boolean(eligibility && eligibility.resolved);
+
+    if (regulated) {
       const SquadEligibility = (typeof module !== 'undefined' && module.exports)
         ? require('./SquadEligibilityService.js') : global.BasketManager;
-      const { pool, resolved } = eligibility;
+      const pool = eligibility.pool || [];
+      const { resolved } = eligibility;
       const availabilityMap = new Map(
         pool.map((entry) => [entry.player.id, Medical.getAvailability(entry.player, matchDate, config, { team })]),
       );
@@ -203,26 +230,98 @@
         entry.evaluation.eligible && availabilityMap.get(entry.player.id).status !== 'unavailable'
       ));
       const callableCount = eligibleAndAvailable.length;
+      // La excepción médica SOLO puede reducir el mínimo por esta vía —
+      // nunca vuelve elegible a quien no lo era.
       const effectiveMin = Medical.resolveEffectiveSquadMinimum(limits.min, config, callableCount);
       effectiveMinUsed = effectiveMin;
-      const desiredSize = Math.max(effectiveMin, Math.min(limits.max, eligibleAndAvailable.length));
+      const desiredSize = Math.max(effectiveMin, Math.min(limits.max, callableCount));
       const candidates = eligibleAndAvailable.map((entry) => ({
         playerId: entry.player.id, qualityScore: playerQualityScore(entry.player), evaluation: entry.evaluation,
       }));
-      const selection = SquadEligibility.SquadEligibilityService.selectLegalSquad(candidates, desiredSize, resolved);
-      if (selection.ok) {
-        squadIds = selection.playerIds;
-        squad = squadIds.map((id) => pool.find((entry) => entry.player.id === id).player);
-        availablePlayers = eligibleAndAvailable.map((entry) => entry.player);
-      } else {
+      const Squad = SquadEligibility.SquadEligibilityService;
+      // CYCLE-1: el cupo de formación depende de la BANDA de tamaño de acta,
+      // así que se busca un tamaño LEGAL recorriendo el rango
+      // [effectiveMin..desiredSize] con la MISMA función compartida que usa
+      // la auditoría de legalidad — nunca un único tamaño fijo.
+      let selection = candidates.length
+        ? Squad.selectLegalSquadWithinRange(candidates, {
+          minSize: effectiveMin, maxSize: limits.max, preferredSize: desiredSize, resolved,
+        })
+        : { ok: false, diagnostic: { code: 'REGULATED_POOL_EMPTY', available: 0, required: desiredSize } };
+
+      // --- Escasez MÉDICA que hace inalcanzable un cupo colectivo --------
+      // Si el acta es imposible con los disponibles pero SÍ sería posible con
+      // la plantilla reglamentariamente elegible SANA, la carencia no es
+      // reglamentaria: es médica. El partido se juega entonces bajo excepción
+      // médica de convocatoria con el acta de MEJOR ESFUERZO y el
+      // incumplimiento DECLARADO (nunca escondido, nunca cayendo al selector
+      // no regulado). Si el cupo tampoco se cumpliría con la plantilla sana,
+      // la imposibilidad es REGLAMENTARIA y el partido no se juega
+      // (BUG-LOAN1-01) — resolverlo antes del primer partido es de
+      // `RosterLegalityService`, no de aquí.
+      let medicallyForcedShortfalls = null;
+      if (!selection.ok && candidates.length) {
+        const healthyCandidates = pool.filter((entry) => entry.evaluation.eligible).map((entry) => ({
+          playerId: entry.player.id, qualityScore: playerQualityScore(entry.player), evaluation: entry.evaluation,
+        }));
+        const healthySelection = Squad.selectLegalSquadWithinRange(healthyCandidates, {
+          minSize: limits.min, maxSize: limits.max, preferredSize: Math.min(limits.max, healthyCandidates.length), resolved,
+        });
+        if (healthySelection.ok) {
+          const bestEffort = Squad.selectBestEffortSquad(candidates, desiredSize, resolved);
+          if (bestEffort.ok) {
+            selection = bestEffort;
+            medicallyForcedShortfalls = bestEffort.shortfalls;
+          }
+        }
+      }
+      if (!selection.ok) {
+        // Resultado REGULADO e inviable — nunca una convocatoria legacy.
+        return {
+          squad: null,
+          lineup: null,
+          outcome: 'infeasible',
+          effectiveMin,
+          diagnostic: {
+            code: selection.diagnostic.code,
+            teamId: team.id,
+            teamName: team.fullName || team.id,
+            poolSize: pool.length,
+            eligibleAndAvailable: callableCount,
+            requiredMin: limits.min,
+            effectiveMin,
+            max: limits.max,
+            detail: selection.diagnostic,
+          },
+          warnings: [
+            `CpuLineup: convocatoria regulada INVIABLE para "${team.fullName || team.id}" `
+            + `(${selection.diagnostic.code}; pool ${pool.length}, elegibles y disponibles ${callableCount}, `
+            + `mínimo efectivo ${effectiveMin}) — BUG-LOAN1-01: NUNCA se cae al selector no regulado.`,
+          ],
+        };
+      }
+      squadIds = selection.playerIds;
+      squad = squadIds.map((id) => pool.find((entry) => entry.player.id === id).player);
+      availablePlayers = eligibleAndAvailable.map((entry) => entry.player);
+      if (effectiveMin < limits.min) {
+        outcome = 'medical-exception';
         squadWarnings.push(
-          `CpuLineup: convocatoria regulada INFEASIBLE para "${team.fullName || team.id}" `
-          + `(${selection.diagnostic.code}) — se aplica el selector legacy sobre team.roster como red de seguridad.`,
+          `CpuLineup: excepción médica de convocatoria para "${team.fullName || team.id}" — mínimo reducido de `
+          + `${limits.min} a ${effectiveMin} por escasez médica real (Medical.resolveEffectiveSquadMinimum).`,
         );
       }
-    }
-
-    if (!squad) {
+      if (medicallyForcedShortfalls && medicallyForcedShortfalls.length) {
+        outcome = 'medical-exception';
+        squadWarnings.push(
+          `CpuLineup: acta de MEJOR ESFUERZO para "${team.fullName || team.id}" — la escasez MÉDICA hace inalcanzable `
+          + `${medicallyForcedShortfalls.map((s) => s.code).join(', ')} (la plantilla sana SÍ cumpliría el cupo). `
+          + 'El incumplimiento queda declarado en el acta; nunca se oculta ni se cae al selector no regulado.',
+        );
+      }
+    } else {
+      // Camino LEGACY: SOLO para llamadores sin contexto regulado (pruebas
+      // de motor de LIFE-1..4 y "modo prueba" de index.html). Cualquier
+      // llamador multi-liga real de producción pasa siempre `eligibility`.
       availablePlayers = team.roster.filter((player) => (
         Medical.getAvailability(player, matchDate, config, { team }).status !== 'unavailable'
       ));
@@ -325,7 +424,13 @@
     }
 
     return {
-      squad, lineup: { entries, fixedSegments: [], garbageTime: { enabled: false } }, warnings: squadWarnings, effectiveMin: effectiveMinUsed,
+      squad,
+      lineup: { entries, fixedSegments: [], garbageTime: { enabled: false } },
+      warnings: squadWarnings,
+      effectiveMin: effectiveMinUsed,
+      // BUG-LOAN1-01: resultado TIPADO consumido igual por CPU y usuario.
+      outcome,
+      diagnostic: null,
     };
   }
 

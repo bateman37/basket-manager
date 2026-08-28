@@ -124,13 +124,24 @@
 
   // Comprometido (contratos) + reservado (ofertas vivas + acuerdos) +
   // disponible, por club+temporada — sección 11.
+  // `params.limitOverrideMinor` (CYCLE-1, DESIGN.md 9.22, sección 16 del
+  // prompt): límite interno YA calculado por el ciclo anual a partir de la
+  // REFERENCIA DE NÓMINA DE APERTURA congelada ANTES de que expiren
+  // contratos. Sin él, el límite se derivaría del payroll comprometido de la
+  // temporada objetivo — que en pleno verano puede ser casi cero porque
+  // media plantilla acaba de vencer, produciendo una espiral de presupuesto
+  // hacia cero justo cuando el club necesita reponer. MARKET-1 sigue
+  // calculando su propio límite cuando nadie aporta override (partida en
+  // curso, negociación puntual del usuario dentro de la temporada).
   function computeSquadCostPlan(params) {
     const {
-      team, contractRegistry, marketRegistry, seasonKey,
+      team, contractRegistry, marketRegistry, seasonKey, limitOverrideMinor,
     } = params;
     const committed = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.id, seasonKey);
     const reserved = marketRegistry.reservedTotalForClubSeason(team.id, seasonKey);
-    const limit = computeInternalBudgetLimit(team, contractRegistry, seasonKey);
+    const limit = (limitOverrideMinor !== undefined && limitOverrideMinor !== null)
+      ? { amountMinor: limitOverrideMinor, currency: committed.currency, policyVersion: 'cycle-frozen-opening-payroll-v1' }
+      : computeInternalBudgetLimit(team, contractRegistry, seasonKey);
     const availableMinor = Math.max(0, limit.amountMinor - committed.amountMinor - reserved);
     return {
       seasonKey,
@@ -312,6 +323,9 @@
   function validateOfferBeforeSend(params) {
     const {
       draft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey, date, marketContext,
+      // CYCLE-1: límite interno congelado del ciclo anual (ver
+      // computeSquadCostPlan) — opcional, nunca obligatorio para MARKET-1.
+      budgetLimitMinor,
     } = params;
     const employment = ContractSvc().validateDraft({
       draft, team, player, playerRegistry, contractRegistry, seasonKey, date,
@@ -335,7 +349,9 @@
           );
           return;
         }
-        const costPlan = computeSquadCostPlan({ team, contractRegistry, marketRegistry, seasonKey: sKey });
+        const costPlan = computeSquadCostPlan({
+          team, contractRegistry, marketRegistry, seasonKey: sKey, limitOverrideMinor: budgetLimitMinor,
+        });
         costPlanBySeason[sKey] = costPlan;
         if (breakdown.guaranteedTotalMinor > costPlan.availableMinor) {
           errors.push(
@@ -398,7 +414,7 @@
     const {
       marketRegistry, thread, draft, offeredBy, rolePromise, conditionsPrecedent, disclosures, date, careerSeed,
       marketContext, parentOfferId, version, maxOfficialDeadline,
-      team, player, playerRegistry, contractRegistry, seasonKey,
+      team, player, playerRegistry, contractRegistry, seasonKey, budgetLimitMinor,
     } = params;
     if (!team || !playerRegistry || !contractRegistry) {
       throw new Error(
@@ -410,7 +426,7 @@
     const iso = toIso(date);
     const resolvedSeasonKey = seasonKey || (frozenDraft.coveredSeasonKeys && frozenDraft.coveredSeasonKeys[0]);
     const validation = validateOfferBeforeSend({
-      draft: frozenDraft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey: resolvedSeasonKey, date: iso, marketContext,
+      draft: frozenDraft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey: resolvedSeasonKey, date: iso, marketContext, budgetLimitMinor,
     });
     if (!validation.valid) {
       throw new Error(`MarketService.createAndSendOffer: borrador inválido — ${validation.errors.join(' | ')}`);

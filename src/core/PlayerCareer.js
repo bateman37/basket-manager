@@ -188,6 +188,18 @@
     return ch;
   }
 
+  // CYCLE-1 (DESIGN.md 9.22, BUG-CYCLE1-03) — CONSULTA PURA: devuelve el
+  // histórico ya inicializado o `null`, NUNCA lo crea. La ficha universal y
+  // cualquier renderizador/filtro/orden la usan en vez de
+  // `ensureCareerHistory()` (que es un COMANDO y se llama al crear/
+  // registrar/importar un jugador, o en una migración explícita de
+  // bootstrap). Antes de esta corrección, abrir la ficha de un agente libre
+  // podía alterar la instancia canónica y, con ella, el resultado futuro de
+  // la simulación.
+  function peekCareerHistory(player) {
+    return (player && player.careerHistory) ? player.careerHistory : null;
+  }
+
   function ensureTeamStint(currentSeason, team) {
     let stint = currentSeason.teamStints.find((s) => s.teamId === team.id);
     if (!stint) {
@@ -454,6 +466,8 @@
     averageGroup,
     seasonKeyFromStartYear,
     ensureCareerHistory,
+    // CYCLE-1 (BUG-CYCLE1-03): consulta PURA para renderizadores.
+    peekCareerHistory,
     recordResolvedMatch,
     closeSeason,
     computeCareerTotals,

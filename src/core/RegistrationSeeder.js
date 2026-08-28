@@ -63,7 +63,19 @@
   // — con margen suficiente para que CUALQUIER selección de convocatoria
   // (8-12) pueda cumplir el cupo real de la competición.
   // ---------------------------------------------------------------------
-  function classifyRosterForClub(team, resolved, seasonKey) {
+  // `options.preAssigned` (CYCLE-1, DESIGN.md 9.22): clasificación YA
+  // asignada a algunos jugadores del roster por una inscripción ANTERIOR de
+  // este mismo ámbito/temporada (un fichaje de agente libre, una promoción
+  // de cantera o un alta de emergencia del ciclo anual, todos ellos con su
+  // propio `classificationSnapshot`). Sin este dato, la re-siembra del curso
+  // nuevo elegía su cupo de formación por hash sobre TODO el roster e
+  // ignoraba que parte de él ya estaba clasificado como "no formación":
+  // el club podía quedarse por debajo del cupo real y con un acta imposible.
+  // Ahora se CONSERVAN los ya clasificados y el objetivo se completa con el
+  // resto, de forma igualmente determinista.
+  function classifyRosterForClub(team, resolved, seasonKey, options) {
+    const opts = options || {};
+    const preAssigned = opts.preAssigned || null;
     const bands = (resolved.registration && resolved.registration.quotaBands) || [];
     const maxFormationMinimum = bands.reduce((max, band) => Math.max(max, band.formationMinimum), 0);
     const nonCommunityMax = (resolved.registration && resolved.registration.nonCommunityCap
@@ -74,27 +86,68 @@
     // dejar a ninguno de los 36 clubes en softlock").
     const formationTargetCount = Math.min(team.roster.length, maxFormationMinimum + 2);
 
-    const sortedByHash = [...team.roster].sort((a, b) => {
-      const ha = hash32(seedFingerprint(a.id, team.id, seasonKey) + '#formation-rank');
-      const hb = hash32(seedFingerprint(b.id, team.id, seasonKey) + '#formation-rank');
-      return (ha - hb) || (a.id < b.id ? -1 : 1);
+    const preFormation = new Set();
+    const preNonCommunity = new Set();
+    const preClassified = new Set();
+    if (preAssigned) {
+      team.roster.forEach((player) => {
+        const entry = preAssigned[player.id] || (typeof preAssigned.get === 'function' ? preAssigned.get(player.id) : null);
+        if (!entry) return;
+        preClassified.add(player.id);
+        if (entry.formation === 'qualifies') preFormation.add(player.id);
+        if (entry.nonCommunity === 'counts') preNonCommunity.add(player.id);
+      });
+    }
+
+    const sortedByHash = [...team.roster]
+      .filter((p) => !preClassified.has(p.id))
+      .sort((a, b) => {
+        const ha = hash32(seedFingerprint(a.id, team.id, seasonKey) + '#formation-rank');
+        const hb = hash32(seedFingerprint(b.id, team.id, seasonKey) + '#formation-rank');
+        return (ha - hb) || (a.id < b.id ? -1 : 1);
+      });
+    const formationPlayerIds = new Set(preFormation);
+    sortedByHash.forEach((player) => {
+      if (formationPlayerIds.size >= formationTargetCount) return;
+      formationPlayerIds.add(player.id);
     });
-    const formationPlayerIds = new Set(sortedByHash.slice(0, formationTargetCount).map((p) => p.id));
 
     // No comunitarios: 0-nonCommunityMax jugadores por club, variado por
     // hash del CLUB (nunca más que el cupo, nunca inferido del nombre).
     const clubRoll = unitFrom(`${team.id}|${seasonKey}|${GENERATOR_VERSION}`, 'non-community-count');
-    const nonCommunityCount = nonCommunityMax > 0 ? Math.floor(clubRoll * (nonCommunityMax + 1)) : 0;
-    const sortedForNonCommunity = [...team.roster]
-      .filter((p) => !formationPlayerIds.has(p.id))
+    const nonCommunityTarget = nonCommunityMax > 0 ? Math.floor(clubRoll * (nonCommunityMax + 1)) : 0;
+    const nonCommunityPlayerIds = new Set(preNonCommunity);
+    [...team.roster]
+      .filter((p) => !formationPlayerIds.has(p.id) && !preClassified.has(p.id))
       .sort((a, b) => {
         const ha = hash32(seedFingerprint(a.id, team.id, seasonKey) + '#non-community-rank');
         const hb = hash32(seedFingerprint(b.id, team.id, seasonKey) + '#non-community-rank');
         return (ha - hb) || (a.id < b.id ? -1 : 1);
+      })
+      .forEach((player) => {
+        if (nonCommunityPlayerIds.size >= nonCommunityTarget) return;
+        nonCommunityPlayerIds.add(player.id);
       });
-    const nonCommunityPlayerIds = new Set(sortedForNonCommunity.slice(0, nonCommunityCount).map((p) => p.id));
 
     return { formationPlayerIds, nonCommunityPlayerIds };
+  }
+
+  // Clasificación YA asignada a jugadores del roster por una inscripción
+  // anterior del MISMO ámbito/temporada (ver `classifyRosterForClub`).
+  function collectPreAssignedClassification(team, registrationRegistry, resolved, seasonKey, isoDate) {
+    const preAssigned = {};
+    if (!registrationRegistry) return preAssigned;
+    team.roster.forEach((player) => {
+      const registration = registrationRegistry
+        .currentRegistration(player.id, resolved.registrationScopeId, seasonKey, isoDate);
+      if (registration && registration.classificationSnapshot) {
+        preAssigned[player.id] = {
+          formation: registration.classificationSnapshot.formation,
+          nonCommunity: registration.classificationSnapshot.nonCommunity,
+        };
+      }
+    });
+    return preAssigned;
   }
 
   // ---------------------------------------------------------------------
@@ -203,6 +256,7 @@
     const isoDate = typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
     const warnings = [];
     const results = [];
+    const skipped = [];
 
     teams.forEach((team) => {
       const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
@@ -210,9 +264,30 @@
         competitionId, seasonKey, date: isoDate, phaseId: 'league', operation: 'bootstrap',
       });
       warnings.push(...(resolved.warnings || []).map((w) => `[${team.id}] ${w}`));
-      const classification = classifyRosterForClub(team, resolved, seasonKey);
+      const classification = classifyRosterForClub(team, resolved, seasonKey, {
+        preAssigned: collectPreAssignedClassification(team, registrationRegistry, resolved, seasonKey, isoDate),
+      });
 
       team.roster.forEach((player) => {
+        // CYCLE-1 (DESIGN.md 9.22): IDEMPOTENCIA por jugador/ámbito/
+        // temporada. El ciclo anual crea licencias/inscripciones en varias
+        // fases (promoción de cantera, fichaje de libre, alta de
+        // emergencia) ANTES de la re-siembra masiva del nuevo curso; sin
+        // esta comprobación, esa re-siembra intentaba emitir una SEGUNDA
+        // licencia con el mismo id determinista por defecto
+        // (`playerId+clubId+seasonKey`) y rompía con
+        // "ya existe una licencia distinta con id ..." — mismo tipo de
+        // choque que BUG-TRANSFER1-20. Un jugador que YA tiene licencia e
+        // inscripción activas en este ámbito/temporada simplemente se
+        // salta: nunca se re-emite ni se duplica.
+        const existingRegistration = registrationRegistry
+          .currentRegistration(player.id, resolved.registrationScopeId, seasonKey, isoDate);
+        const existingLicense = registrationRegistry.currentLicenseForPlayer(player.id, isoDate);
+        if (existingRegistration && existingLicense) {
+          skipped.push({ playerId: player.id, clubId: team.id, reason: 'ALREADY_REGISTERED_FOR_SCOPE_SEASON' });
+          results.push({ playerId: player.id, licenseId: existingLicense.id, registrationId: existingRegistration.id, reused: true });
+          return;
+        }
         const { license, registration, warning } = seedPlayerRegistration({
           player, team, seasonKey, isoDate, resolved, registrationRegistry, contractRegistry, classification,
           accessCategory: 'senior', licenseClass: 'professional-senior', config,
@@ -222,7 +297,7 @@
       });
     });
 
-    return { results, warnings };
+    return { results, warnings, skipped };
   }
 
   // Jugador que se incorpora con la partida ya en marcha (cantera, relleno
@@ -383,6 +458,7 @@
       seedFingerprint,
       unitFrom,
       classifyRosterForClub,
+      collectPreAssignedClassification,
       seedPlayerRegistration,
       seedRegistrationsForTeams,
       seedRegistrationForNewPlayer,

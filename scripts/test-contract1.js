@@ -586,11 +586,15 @@ check('solapamiento total, parcial y por fecha límite INCLUSIVA se rechazan', (
   }))), /solapado/);
   // Límite INCLUSIVO: empezar el mismo día en que termina el anterior solapa.
   assert.throws(() => registry.register(new Contract(makeDraft(player, team, resolved, {
-    id: 'ov-edge', coveredSeasonKeys: ['2028-29'], startDate: base.endDate, endDate: '2029-06-30',
+    id: 'ov-edge', coveredSeasonKeys: ['2028-29'], startDate: base.endDate, endDate: '2029-07-31',
   }))), /solapado/);
   // Justo al día siguiente NO solapa.
   assert.doesNotThrow(() => registry.register(new Contract(makeDraft(player, team, resolved, {
-    id: 'ov-ok', coveredSeasonKeys: ['2028-29'], startDate: '2028-07-01', endDate: '2029-06-30',
+    // CYCLE-1 (BUG-CYCLE1-06): la ventana civil de temporada pasa a ser
+    // 1-ago .. 31-jul, así que "el día siguiente al fin del anterior" es el
+    // 1 de agosto — mismo criterio semántico exacto, derivado ahora del
+    // propio `base.endDate` en vez de un literal.
+    id: 'ov-ok', coveredSeasonKeys: ['2028-29'], startDate: LocalDate.addDays(base.endDate, 1), endDate: '2029-07-31',
   }))));
 });
 
@@ -626,10 +630,10 @@ check('el histórico de un jugador queda ORDENADO de forma estable', () => {
 
 check('estados derivados: pending / active / expired / terminated / void', () => {
   const { contract } = buildValidContract({ coveredSeasonKeys: ['2026-27'] });
-  assert.strictEqual(contract.statusOn('2026-06-30'), 'pending');
-  assert.strictEqual(contract.statusOn('2026-07-01'), 'active');
-  assert.strictEqual(contract.statusOn('2027-06-30'), 'active', 'endDate es INCLUSIVA');
-  assert.strictEqual(contract.statusOn('2027-07-01'), 'expired');
+  assert.strictEqual(contract.statusOn('2026-07-31'), 'pending');
+  assert.strictEqual(contract.statusOn('2026-08-01'), 'active');
+  assert.strictEqual(contract.statusOn('2027-07-31'), 'active', 'endDate es INCLUSIVA');
+  assert.strictEqual(contract.statusOn('2027-08-01'), 'expired');
   const terminated = buildValidContract({ coveredSeasonKeys: ['2026-27'] }).contract;
   terminated.addLifecycleEvent({ type: 'terminated', date: '2026-12-01' });
   assert.strictEqual(terminated.statusOn('2026-11-30'), 'active');
@@ -835,9 +839,9 @@ check('un contrato real de UNA temporada expira correctamente y no se renueva so
   const registry = new ContractRegistry();
   const { contract } = buildValidContract({ id: 'one-season', coveredSeasonKeys: ['2026-27'] });
   registry.register(contract);
-  assert.strictEqual(contract.statusOn('2027-06-30'), 'active');
-  assert.strictEqual(contract.statusOn('2027-07-01'), 'expired');
-  assert.strictEqual(registry.currentForPlayer(contract.playerId, '2027-07-01'), null);
+  assert.strictEqual(contract.statusOn('2027-07-31'), 'active');
+  assert.strictEqual(contract.statusOn('2027-08-01'), 'expired');
+  assert.strictEqual(registry.currentForPlayer(contract.playerId, '2027-08-01'), null);
   assert.strictEqual(registry.size, 1, 'expirar no borra ni sustituye el contrato');
 });
 
@@ -847,7 +851,7 @@ check('el periodo de prueba debe caber en la vigencia y respetar el tope resuelt
   const resolved = resolveFor(team);
   const draft = makeDraft(player, team, resolved);
   draft.probation = {
-    enabled: true, startDate: '2026-07-01', endDate: '2026-09-30', durationDays: 92, legalBasisRuleIds: [],
+    enabled: true, startDate: '2026-08-01', endDate: '2026-10-31', durationDays: 92, legalBasisRuleIds: [],
   };
   const contract = new Contract(draft);
   const validation = ContractService.validateContractAgainstRules(contract, resolved, { player });
@@ -856,7 +860,7 @@ check('el periodo de prueba debe caber en la vigencia y respetar el tope resuelt
   // Fuera de la vigencia, el propio constructor lo rechaza.
   const outsideDraft = makeDraft(player, team, resolved);
   outsideDraft.probation = {
-    enabled: true, startDate: '2026-06-01', endDate: '2026-06-30', durationDays: 30, legalBasisRuleIds: [],
+    enabled: true, startDate: '2026-07-01', endDate: '2026-07-31', durationDays: 30, legalBasisRuleIds: [],
   };
   assert.throws(() => new Contract(outsideDraft), /DENTRO de la vigencia/);
 });
@@ -1154,9 +1158,12 @@ check('el seeder NO usa Math.random ni atributos ocultos', () => {
 
 check('todos los contratos del bootstrap se identifican como SIMULADOS', () => {
   world.registry.all().forEach((contract) => {
-    assert.strictEqual(contract.provenance.dataSource, 'simulated-contract-v1');
+    // CYCLE-1 (DESIGN.md 9.22): procedencia/versión NUEVAS del seeder — la
+    // distribución de duración pasa a ser variada y determinista, así que
+    // los contratos del bootstrap ya no son los de `contract-seeder-v1`.
+    assert.strictEqual(contract.provenance.dataSource, 'simulated-contract-v2');
     assert.strictEqual(contract.provenance.isReal, false);
-    assert.strictEqual(contract.provenance.generatorVersion, 'contract-seeder-v1');
+    assert.strictEqual(contract.provenance.generatorVersion, 'contract-seeder-v2');
     assert.ok(contract.provenance.seedFingerprint);
   });
   assert.strictEqual(
@@ -1230,14 +1237,24 @@ check('monotonía razonable: en un mismo club y franja de edad, más TMB implica
   }
 });
 
-check('el puente temporal cubre las tres transiciones de temporada que el smoke necesita', () => {
-  assert.strictEqual(ContractSeeder.MINIMUM_PLAYABLE_REMAINING_SEASONS, 3);
+check('CYCLE-1 retiró el suelo de tres temporadas: la duración inicial es variada y determinista', () => {
+  // El puente de staging de CONTRACT-1 (`MINIMUM_PLAYABLE_REMAINING_SEASONS
+  // = 3`, que garantizaba que ningún contrato pudiera vencer) queda
+  // RETIRADO en CYCLE-1: la constante se conserva solo como referencia
+  // histórica documentada y ya no participa en ningún cálculo.
+  assert.strictEqual(ContractSeeder.MINIMUM_PLAYABLE_REMAINING_SEASONS_RETIRED_IN, 'CYCLE-1');
+  const lengths = new Set();
   world.registry.all().forEach((contract) => {
-    assert.ok(contract.coveredSeasonKeys.length >= 3);
+    assert.ok(contract.coveredSeasonKeys.length >= 1);
     assert.ok(contract.termYears <= 4 + (1 / 365), 'nunca por encima del máximo FIBA de cuatro años');
+    lengths.add(contract.coveredSeasonKeys.length);
   });
-  const sample = world.registry.forClub('team-real-madrid')[0];
-  assert.deepStrictEqual(sample.coveredSeasonKeys, ['2026-27', '2027-28', '2028-29', '2029-30']);
+  // Población significativa en cada tramo de la distribución declarada.
+  [1, 2, 3, 4].forEach((n) => assert.ok(lengths.has(n), `no hay ningún contrato de ${n} temporada(s)`));
+  const oneSeason = world.registry.all().filter((c) => c.coveredSeasonKeys.length === 1).length;
+  const twoSeasons = world.registry.all().filter((c) => c.coveredSeasonKeys.length === 2).length;
+  assert.ok(oneSeason > 20, `demasiados pocos contratos de una temporada (${oneSeason})`);
+  assert.ok(twoSeasons > 20, `demasiados pocos contratos de dos temporadas (${twoSeasons})`);
 });
 
 check('MoraBanc: contratos bajo jurisdicción andorrana, con 12 cuotas y sin RD 1006', () => {

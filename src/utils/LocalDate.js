@@ -173,13 +173,31 @@
     return seasonKeyFromStartYear(seasonStartYear(seasonKey) + count);
   }
 
-  // Ventana civil por defecto de una temporada deportiva europea: 1 de
-  // julio del año de inicio a 30 de junio del siguiente. Es una convención
-  // DE JUEGO (no una norma legal): la usan las fechas de contrato del
-  // bootstrap y el calendario de pagos. Documentada en DESIGN.md 9.17.
+  // Ventana civil de una temporada deportiva europea. Es una convención DE
+  // JUEGO (no una norma legal): la usan las fechas de contrato del
+  // bootstrap, la validez de licencia/inscripción y el calendario de pagos.
+  // Documentada en DESIGN.md 9.17 y corregida en 9.22.
+  //
+  // CYCLE-1 (DESIGN.md 9.22, BUG-CYCLE1-06) — CORRECCIÓN: hasta esta
+  // entrega la ventana era `1 de julio .. 30 de junio`, pero el calendario
+  // DEPORTIVO de este motor (Calendar.js, config.calendar: liga desde el 3
+  // de octubre + 34 jornadas + Copa + playoffs al mejor de 5) puede terminar
+  // el **1 de julio** del año siguiente. Es decir: el último partido oficial
+  // de una temporada caía FUERA de la ventana civil de esa misma temporada.
+  // Consecuencias reales reproducidas: (1) la licencia federativa y la
+  // inscripción de competición estaban ya expiradas en ese partido, así que
+  // el pool regulado de REG-1 quedaba VACÍO y `CpuLineup` caía a su selector
+  // no regulado (causa raíz determinista de BUG-LOAN1-01, que la auditoría
+  // solo había visto de forma intermitente en un playoff); (2) con contratos
+  // de una sola temporada (CYCLE-1 retira el puente de tres), un jugador se
+  // quedaba sin contrato vigente en pleno playoff.
+  //
+  // La ventana pasa a ser `1 de agosto .. 31 de julio`: cubre por completo
+  // el calendario deportivo real del motor, sigue siendo de un año exacto
+  // (365 días) y dos temporadas consecutivas NUNCA se solapan.
   function seasonWindow(seasonKey) {
     const startYear = seasonStartYear(seasonKey);
-    return { startDate: format(startYear, 7, 1), endDate: format(startYear + 1, 6, 30) };
+    return { startDate: format(startYear, 8, 1), endDate: format(startYear + 1, 7, 31) };
   }
 
   // Temporadas (claves) cubiertas por un intervalo de fechas inclusivo.

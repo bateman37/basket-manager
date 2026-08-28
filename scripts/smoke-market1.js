@@ -53,6 +53,14 @@ const { MarketSeeder } = require('../src/core/MarketSeeder.js');
 const { RightOfFirstRefusalService } = require('../src/core/RightOfFirstRefusalService.js');
 const { NegotiationThread } = require('../src/entities/Market.js');
 
+const { TransferRegistry } = require('../src/core/TransferRegistry.js');
+const { LoanRegistry } = require('../src/core/LoanRegistry.js');
+
+// CYCLE-1 (DESIGN.md 9.22, sección 26 del prompt) — harness compartido: la
+// auditoría de legalidad de plantilla + escalera de emergencia son las MISMAS
+// que usa una carrera real, nunca una copia local en este script.
+const cycle1 = require('./cycle1-harness.js');
+
 const SEASONS_TO_SIMULATE = Number(process.argv[2] || 3);
 const CAREER_SEED = 'smoke-market1-career-seed-v1';
 const startedAt = Date.now();
@@ -74,7 +82,18 @@ function buildRealTeam(teamData, referenceDate, seasonKey) {
     return player;
   });
   const resolved = resolveRegistrationRulesForDivision(teamData.division, seasonKey, referenceDate);
-  const fallbackPlayers = padRosterToMinimum(roster, resolved.squadRules.min, { minAge: 18, maxAge: 34, referenceDate });
+  const fallbackPlayers = padRosterToMinimum(roster, resolved.squadRules.min, {
+    minAge: 18,
+    maxAge: 34,
+    referenceDate,
+    // CYCLE-1 (BUG-CYCLE1-02): relleno DETERMINISTA. Este `padRosterToMinimum`
+    // usaba `Math.random()`, así que CADA ejecución del smoke construía un
+    // mundo distinto: por eso BUG-LOAN1-01 solo aparecía "de vez en cuando".
+    // Con semilla e id explícitos el mundo es reproducible y un fallo se puede
+    // volver a provocar.
+    seed: `smoke-market1|roster-fill|${teamData.id}`,
+    id: `roster-fill:${teamData.id}`,
+  });
   fallbackPlayers.forEach((player) => {
     PC.ensureCareerHistory(player, CONFIG_BASE, referenceDate, { historyCompleteness: 'complete', seasonKey });
   });
@@ -208,11 +227,26 @@ const agentBootstrap = MarketSeeder.seedAgentsAndMandates({
 console.log(`OK: pool de mercado sembrado — ${initialFreeAgents.length} libres ficticios, ${agentBootstrap.agents.length} agentes, `
   + `${agentBootstrap.playersWithAgent}/${agentBootstrap.eligiblePlayers} con representación.`);
 
+// TRANSFER-1/LOAN-1: registros EXPLÍCITOS por carrera (nunca singleton) —
+// mismo criterio que agentRegistry/marketRegistry. Este script no ejerce
+// fixtures propios de traspasos/cesiones, pero `cycle1.runAnnualCycleTransition`
+// los necesita para completar el ciclo anual real (misma vertical de
+// mundo que una carrera de verdad).
+const transferRegistry = new TransferRegistry();
+const loanRegistry = new LoanRegistry();
+
+// CYCLE-1 (DESIGN.md 9.22, sección 26 del prompt): registros nuevos del
+// ciclo anual, mismo criterio que smoke-loan1.js — nunca singletons.
+const { annualCycleRegistry: cycleRegistryForLegality, academyRegistry: academyRegistryForLegality } = cycle1.createCycleRegistries();
+let totalStartupEmergencyActions = 0;
+
 function validateAll(label, date) {
   const isoDate = LocalDate.fromJsDate(date);
   const playerCheck = playerRegistry.validateAgainstTeams(allTeams);
   assert.ok(playerCheck.valid, `[${label}] Player Registry roto: ${JSON.stringify(playerCheck.errors.slice(0, 5))}`);
-  const contractCheck = contractRegistry.validateIntegrity({ playerRegistry, teams: allTeams, date: isoDate });
+  const contractCheck = contractRegistry.validateIntegrity({
+    playerRegistry, teams: allTeams, date: isoDate, loanRegistry,
+  });
   assert.ok(contractCheck.valid, `[${label}] Contract Registry roto: ${JSON.stringify(contractCheck.errors.slice(0, 5))}`);
   const registrationCheck = registrationRegistry.validateIntegrity({ playerRegistry, contractRegistry, teams: allTeams, date: isoDate });
   assert.ok(registrationCheck.valid, `[${label}] Registration Registry roto: ${JSON.stringify(registrationCheck.errors.slice(0, 5))}`);
@@ -220,12 +254,23 @@ function validateAll(label, date) {
   assert.ok(agentCheck.valid, `[${label}] Agent Registry roto: ${JSON.stringify(agentCheck.errors.slice(0, 5))}`);
   const marketCheck = marketRegistry.validateIntegrity({ playerRegistry, teams: allTeams, date: isoDate });
   assert.ok(marketCheck.valid, `[${label}] Market Registry roto: ${JSON.stringify(marketCheck.errors.slice(0, 5))}`);
+  // TRANSFER-1/LOAN-1: registros presentes desde CYCLE-1 (necesarios para
+  // completar el ciclo anual real) — se validan igual que el resto, aunque
+  // este script no ejerza fixtures propios de traspasos/cesiones.
+  const transferCheck = transferRegistry.validateIntegrity({
+    playerRegistry, teams: allTeams, contractRegistry, registrationRegistry, marketRegistry, loanRegistry, date: isoDate,
+  });
+  assert.ok(transferCheck.valid, `[${label}] Transfer Registry roto: ${JSON.stringify(transferCheck.errors.slice(0, 5))}`);
+  const loanCheck = loanRegistry.validateIntegrity({
+    playerRegistry, teams: allTeams, contractRegistry, transferRegistry, date: isoDate,
+  });
+  assert.ok(loanCheck.valid, `[${label}] Loan Registry roto: ${JSON.stringify(loanCheck.errors.slice(0, 5))}`);
   return {
-    playerCheck, contractCheck, registrationCheck, agentCheck, marketCheck,
+    playerCheck, contractCheck, registrationCheck, agentCheck, marketCheck, transferCheck, loanCheck,
   };
 }
 validateAll('arranque', referenceDate);
-console.log('OK: Player/Contract/Registration/Agent/Market Registry íntegros al arranque.');
+console.log('OK: Player/Contract/Registration/Agent/Market/Transfer/Loan Registry íntegros al arranque.');
 
 // =====================================================================
 // Fixtures dirigidos de mercado (sección 19.2 del prompt)
@@ -542,8 +587,39 @@ function bracketResolver(bracketDate, phaseId, bracket) {
 function processDevelopmentToDateForTeams(teams, date) { teams.forEach((team) => Training.processTeamDevelopmentToDate(team, date, CONFIG_BASE, calendarCtx)); }
 function reviewCpu(teams, date) { teams.forEach((team) => TrainingAI.reviewTeamIfDue(team, date, { matchesInNext7Days: 1 }, CONFIG_BASE, calendarCtx)); }
 
-let totalNewgens = 0;
-let totalDeferredNewgenRegistrations = 0;
+// CYCLE-1 (DESIGN.md 9.22, sección 26 del prompt): ninguna plantilla arranca
+// una temporada sin poder construir un acta legal — misma auditoría +
+// escalera de emergencia compartidas que usa una carrera real
+// (`cycle1-harness`), nunca una comprobación local relajada. Mismo criterio
+// EXACTO que smoke-loan1.js.
+function ensureLegalRostersBeforeMatches(label, date) {
+  const audit = cycle1.ensureAllClubsLegalBeforeFirstMatch({
+    teams: allTeams,
+    seasonKey,
+    date,
+    config: CONFIG_BASE,
+    careerSeed: `smoke-market1|${seasonKey}`,
+    annualCycleRegistry: cycleRegistryForLegality,
+    academyRegistry: academyRegistryForLegality,
+    playerRegistry,
+    contractRegistry,
+    registrationRegistry,
+    loanRegistry,
+    classificationCache,
+    userClubId: null,
+  });
+  totalStartupEmergencyActions += audit.emergencyActions.length;
+  const stillIllegal = audit.reports.filter((report) => !report.isLegal)
+    .map((report) => `${report.clubId}: ${report.gaps.filter((g) => g.severity === 'blocking').map((g) => g.code).join(',')}`);
+  assert.strictEqual(
+    stillIllegal.length, 0,
+    `[${label}] ${stillIllegal.length} club(es) siguen sin poder construir un acta legal: ${stillIllegal.slice(0, 5).join(' | ')}`,
+  );
+  return audit;
+}
+
+ensureLegalRostersBeforeMatches('antes de la jornada 1', referenceDate);
+
 let ascendedFebNeverInheritsAcbChecked = false;
 
 for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
@@ -599,24 +675,58 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   const leagueA = leagues['1ª'];
   const leagueB = leagues['2ª'];
   const seasonEndDateTime = calendar.currentGameDateTime;
-  const seasonEndIso = LocalDate.fromJsDate(seasonEndDateTime);
   const prevSeasonKey = seasonKey;
+  const nextSeasonKey = PC.seasonKeyFromStartYear(seasonStartYear + 1);
 
-  const divisionBeforeByTeamId = new Map();
-  [...leagueA.teams, ...leagueB.teams].forEach((team) => divisionBeforeByTeamId.set(team.id, team.division));
-
-  const standingsA = leagueA.getStandingsTable();
-  const relegatedTeams = [standingsA[standingsA.length - 1].team, standingsA[standingsA.length - 2].team];
-  relegatedTeams.forEach((team) => { team.division = '2ª'; });
-  const promotedTeams = [promotionPlayoff.directPromotion.team, promotionPlayoff.secondPromotedEntry.team];
-  promotedTeams.forEach((team) => { team.division = '1ª'; });
+  // CYCLE-1 (DESIGN.md 9.22, sección 26 del prompt): el cierre de temporada
+  // YA NO es el monolito directo (ascender/descender -> expirar+resembrar
+  // inscripciones -> generateAcademyIntake(3) a los 36 -> reemplazar
+  // calendario) — ese comportamiento está RETIRADO (BUG-CYCLE1-05). Este
+  // smoke consume el MISMO ciclo anual real que una carrera de verdad, vía
+  // el harness compartido — nunca una copia local del motor del ciclo.
+  const evidence = cycle1.collectSeasonEvidence({
+    leagues: [leagueA, leagueB],
+    brackets: [
+      { bracket: cup, phaseId: 'cup' },
+      { bracket: titlePlayoff, phaseId: 'title-playoff' },
+      { bracket: promotionPlayoff, phaseId: 'promotion' },
+    ],
+  });
+  const { cycle, summary } = cycle1.runAnnualCycleTransition({
+    annualCycleRegistry: cycleRegistryForLegality,
+    academyRegistry: academyRegistryForLegality,
+    playerRegistry,
+    contractRegistry,
+    registrationRegistry,
+    marketRegistry,
+    agentRegistry,
+    transferRegistry,
+    loanRegistry,
+    teams: allTeams,
+    leagueA,
+    leagueB,
+    cup,
+    titlePlayoff,
+    promotionPlayoff,
+    fromSeasonKey: prevSeasonKey,
+    targetSeasonKey: nextSeasonKey,
+    evidence,
+    seasonEndDateTime,
+    config: CONFIG_BASE,
+    careerSeed: `smoke-market1|${prevSeasonKey}`,
+    classificationCache,
+  });
+  void cycle;
+  const promotedTeams = (summary.promotedIds || []).map((id) => allTeamsById.get(id)).filter(Boolean);
+  const relegatedTeams = (summary.relegatedIds || []).map((id) => allTeamsById.get(id)).filter(Boolean);
 
   // --- MARKET-1: ascenso/descenso nunca activa ACB sobre un club FEB que
   // acaba de subir NI reescribe casos ya congelados (sección invariante 21).
+  // (Genérico por competición — no depende de qué equipo concreto asciende,
+  // por eso se comprueba en cuanto el ciclo devuelve algún ascendido.)
   if (promotedTeams.length) {
-    const promoted = promotedTeams[0];
     const promotedResolved = MarketService.resolveMarketContext({
-      domesticCompetitionId: CompetitionRules.competitionIdFromLegacyDivision('2ª'), seasonKey: prevSeasonKey, date: seasonEndIso,
+      domesticCompetitionId: CompetitionRules.competitionIdFromLegacyDivision('2ª'), seasonKey: prevSeasonKey, date: LocalDate.fromJsDate(seasonEndDateTime),
     });
     assert.strictEqual(promotedResolved.market.domesticProcedure, null, 'un club en Primera FEB (antes de ascender) nunca resuelve tanteo ACB');
   }
@@ -626,43 +736,11 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   allTeams = [...leagueA.teams, ...leagueB.teams];
   teamsByDivision = { '1ª': allTeams.filter((t) => t.division === '1ª'), '2ª': allTeams.filter((t) => t.division === '2ª') };
   allTeamsById = new Map(allTeams.map((t) => [t.id, t]));
-  processDevelopmentToDateForTeams(allTeams, seasonEndDateTime);
-
-  const nextSeasonKey = PC.seasonKeyFromStartYear(seasonStartYear + 1);
-
-  const oldScopeIds = new Set([...leagueA.teams, ...leagueB.teams].map((team) => resolveRegistrationRulesForDivision(divisionBeforeByTeamId.get(team.id), prevSeasonKey, seasonEndDateTime).registrationScopeId));
-  oldScopeIds.forEach((scopeId) => {
-    registrationRegistry.registrationsForScope(scopeId)
-      .filter((registration) => registration.seasonKey === prevSeasonKey && registration.statusOn(seasonEndIso) === 'active')
-      .forEach((registration) => RegistrationService.advanceRegistrationEvent(registration, 'expired', seasonEndIso));
-  });
-  registrationRegistry.allLicenses()
-    .filter((license) => license.seasonKey === prevSeasonKey && license.statusOn(seasonEndIso) === 'active')
-    .forEach((license) => RegistrationService.advanceLicenseEvent(license, 'expired', seasonEndIso));
-
-  const registrationTransition = RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey: nextSeasonKey, date: seasonEndIso, registrationRegistry, contractRegistry, config: CONFIG_BASE });
-
-  const intakeCalibration = ContractSeeder.buildCompetitionCalibration(allTeams, CONFIG_BASE);
-  allTeams.forEach((team) => {
-    const resolvedForIntake = resolveRegistrationRulesForDivision(team.division, nextSeasonKey, seasonEndDateTime);
-    const intakeClassification = RegistrationSeeder.classifyRosterForClub(team, resolvedForIntake, nextSeasonKey);
-    const newPlayers = team.generateAcademyIntake(3, seasonEndDateTime);
-    newPlayers.forEach((player) => PC.ensureCareerHistory(player, CONFIG_BASE, seasonEndDateTime, { historyCompleteness: 'complete', seasonKey: nextSeasonKey }));
-    playerRegistry.registerMany(newPlayers);
-    newPlayers.forEach((player) => {
-      ContractSeeder.seedContractForNewPlayer({ player, team, seasonKey: nextSeasonKey, date: seasonEndIso, registry: contractRegistry, playerRegistry, config: CONFIG_BASE, calibration: intakeCalibration });
-      const newgenReg = RegistrationSeeder.seedRegistrationForNewPlayer({
-        player, team, seasonKey: nextSeasonKey, date: seasonEndIso, registrationRegistry, contractRegistry, config: CONFIG_BASE, existingClassification: intakeClassification,
-      });
-      if (!newgenReg.registration) totalDeferredNewgenRegistrations += 1;
-      totalNewgens += 1;
-    });
-  });
 
   // --- MARKET-1: offseason mínima — expira ofertas vivas que no llegaron a
   // resolverse durante la temporada (sección 15.5: "resuelve o conserva
   // como pendiente todo caso antes de sustituir temporada/bundle").
-  MarketService.expireDueOffers(marketRegistry, seasonEndIso);
+  MarketService.expireDueOffers(marketRegistry, LocalDate.fromJsDate(seasonEndDateTime));
 
   seasonStartYear += 1;
   calendar = new Calendar(seasonStartYear, CONFIG_BASE);
@@ -672,9 +750,12 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   bootstrapIsoDate = LocalDate.fromJsDate(referenceDate);
 
   validateAll(`tras cierre + cantera (${seasonKey})`, referenceDate);
+  // Misma garantía tras el cierre: ninguna plantilla arranca la temporada
+  // siguiente sin poder construir un acta legal.
+  ensureLegalRostersBeforeMatches(`antes de la jornada 1 de ${seasonKey}`, referenceDate);
   console.log(`Temporada cerrada. Ascendidos: ${promotedTeams.map((t) => t.fullName).join(', ')}. Descendidos: ${relegatedTeams.map((t) => t.fullName).join(', ')}.`);
   console.log(`Player Registry: ${playerRegistry.all().length} · Contratos: ${contractRegistry.size} · Licencias: ${registrationRegistry.allLicenses().length} · `
-    + `Inscripciones: ${registrationRegistry.allRegistrations().length} (altas transición: ${registrationTransition.results.length}) · `
+    + `Inscripciones: ${registrationRegistry.allRegistrations().length} · `
     + `Agentes: ${agentRegistry.allAgents().length} · Mandatos: ${agentRegistry.allMandates().length} · `
     + `Hilos: ${marketRegistry.allThreads().length} · Acuerdos: ${marketRegistry.allAgreements().length} · Casos de derechos: ${marketRegistry.allRightsCases().length}.`);
 }
@@ -714,7 +795,11 @@ console.log(`Reservas de presupuesto:               ${marketRegistry.allBudgetRe
 console.log(`Casos de derecho preferente:            ${marketRegistry.allRightsCases().length}`);
 console.log(`Casos de retorno:                       ${marketRegistry.allReturnRightsCases().length}`);
 console.log(`Eventos de mercado totales:             ${totalMarketEvents}`);
-console.log(`Newgens contratados/inscritos:          ${totalNewgens} (inscripción diferida: ${totalDeferredNewgenRegistrations})`);
+// CYCLE-1: la cantera ya no entra directamente al primer equipo (sustituye
+// al antiguo generateAcademyIntake(3) manual de este script) — se resuelve
+// siempre desde academyRegistryForLegality, nunca con un contador propio.
+console.log(`Pertenencias de academia (histórico):   ${academyRegistryForLegality.allMemberships().length} (decisiones anuales: ${academyRegistryForLegality.allDecisions().length})`);
+console.log(`Altas de emergencia para garantizar legalidad: ${totalStartupEmergencyActions}`);
 console.log(`Actas de partido registradas:           ${totalMatchActs} (infeasibilidad médica conocida: ${totalToleratedInfeasibleActs})`);
 console.log(`Determinismo (misma semilla):           ${deterministic}`);
 console.log(`Fixture libre completo (inquiry->AIP):  ${freeAgentFlowChecked ? 'OK' : 'NO EJECUTADO'}`);

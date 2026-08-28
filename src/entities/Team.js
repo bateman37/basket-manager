@@ -419,10 +419,41 @@
     // progreso retroactivo (invariante 36). Opcional por compatibilidad
     // (llamadas de modo prueba sin fecha de partida real siguen
     // funcionando igual que antes).
+    // CYCLE-1 (DESIGN.md 9.22) — API LEGACY, SOLO MODO PRUEBA / tests
+    // antiguos del motor. Ya NO existe ningún camino de CARRERA que llame
+    // aquí: el ciclo anual incorpora la cantera al **pool de academia**
+    // (`AcademyRegistry`/`AcademyService`, DESIGN.md 6.2.3 reescrito), donde
+    // un joven NO tiene contrato, ni licencia, ni plaza en `Team.roster`
+    // hasta que una promoción explícita y válida lo afilia mediante
+    // `RosterMutationService` + `ContractService` + REG-1. Añadir tres
+    // seniors por club y temporada (BUG-CYCLE1-05: ~108 jugadores nuevos por
+    // cierre, sin ninguna salida equivalente) queda retirado del ciclo.
+    //
+    // Se conserva porque el "modo prueba" de `index.html` y los tests de
+    // LIFE-1..4 la invocan directamente. Corregida además su generación
+    // (BUG-CYCLE1-02): `referenceDate` obligatoria y semilla estable, para
+    // que un intake 16-19 tenga EXACTAMENTE 16-19 años en esa fecha civil
+    // (antes el año de nacimiento salía del reloj real de la máquina y con
+    // un mes/día aleatorio podía producir un jugador de 15 años).
     generateAcademyIntake(count = 3, referenceDate) {
+      if (!referenceDate) {
+        throw new Error(
+          'Team.generateAcademyIntake: "referenceDate" es OBLIGATORIA — CYCLE-1 (BUG-CYCLE1-02) prohíbe generar '
+          + 'un jugador contra el reloj del sistema. En una carrera real usa AcademyService.runAnnualIntake().',
+        );
+      }
+      const CareerAge = ((typeof module !== 'undefined' && module.exports)
+        ? require('../utils/CareerAge.js') : global.BasketManager).CareerAge;
+      const referenceIso = CareerAge.requireCareerDate(referenceDate, 'referenceDate');
       const newPlayers = [];
       for (let i = 0; i < count; i++) {
-        const player = PlayerGenerator.generateFictionalPlayer({ minAge: 16, maxAge: 19, referenceDate });
+        const player = PlayerGenerator.generateFictionalPlayer({
+          minAge: 16,
+          maxAge: 19,
+          referenceDate: referenceIso,
+          seed: `legacy-academy-intake|${this.id}|${referenceIso}|${i}`,
+          id: `legacy-academy:${this.id}:${referenceIso}:${i}`,
+        });
         player.teamId = this.id;
         this.roster.push(player);
         newPlayers.push(player);

@@ -17,7 +17,7 @@ function summarize(label, ok, detail) {
 }
 
 async function main() {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   page.on('console', (msg) => {
     if (msg.type() === 'error') consoleErrors.push(msg.text());
