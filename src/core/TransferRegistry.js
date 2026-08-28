@@ -390,7 +390,30 @@
               loanRegistry && typeof loanRegistry.hasActiveLoanForPlayer === 'function'
               && loanRegistry.hasActiveLoanForPlayer(playerId, iso || last.effectiveDate),
             );
-            if (!explainedByActiveLoan && player.teamId !== expectedTeamId) {
+            // CYCLE-1 (DESIGN.md 9.22): el ciclo anual mueve/libera jugadores
+            // por caminos que NUNCA pasan por TransferService (expiración
+            // orgánica de contrato, renovación, la escalera de emergencia de
+            // `RosterLegalityService` que usa `RosterMutationService`
+            // directamente — sección 17 del prompt, "cada paso pasa por
+            // contrato/roster/licencia normales", nunca por un
+            // TransactionRecord de mercado negociado) — así que el último
+            // TransactionRecord de ESTE registro puede quedar
+            // deliberadamente "obsoleto" sin que ningún movimiento de
+            // traspaso/cesión lo refleje. La fuente de verdad real es
+            // siempre el CONTRATO vigente: si el club del contrato actual
+            // coincide con `player.teamId` (o ambos son "sin club"), la
+            // discordancia queda explicada — nunca como excepción genérica
+            // para cualquier `teamId` inesperado, solo cuando el contrato
+            // realmente respalda el club actual.
+            const currentContract = contractRegistry && typeof contractRegistry.currentForPlayer === 'function'
+              ? contractRegistry.currentForPlayer(playerId, iso || last.effectiveDate) : null;
+            const explainedByCurrentContract = Boolean(
+              contractRegistry && (
+                (currentContract && currentContract.clubId === player.teamId)
+                || (!currentContract && player.teamId === null)
+              ),
+            );
+            if (!explainedByActiveLoan && !explainedByCurrentContract && player.teamId !== expectedTeamId) {
               errors.push(
                 `El TransactionRecord "${last.id}" (el más reciente de "${playerId}") completó un movimiento a `
                 + `"${expectedTeamId}" pero player.teamId es "${player.teamId}".`,

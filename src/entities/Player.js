@@ -155,6 +155,16 @@
   // Edad a partir de la fecha de nacimiento (DESIGN.md 6.1: se calcula, no se
   // guarda como número aparte). Se exporta también como función suelta para
   // que el generador de jugadores ficticios pueda usarla sin instanciar Player.
+  //
+  // CYCLE-1 (DESIGN.md 9.22, BUG-CYCLE1-01) — LEGACY / SOLO MODO PRUEBA:
+  // el valor por defecto `new Date()` es el reloj REAL del ordenador, no la
+  // fecha de la carrera. Cualquier flujo de carrera (core, UI de partida,
+  // seeders, retiro, mercado, planificación, CPU) debe usar
+  // `CareerAge.ageOn()/ageOnDate()` (src/utils/CareerAge.js) con la fecha
+  // civil explícita del hecho que resuelve. Esta función y el getter
+  // `player.age` de abajo se conservan únicamente por compatibilidad con el
+  // "modo prueba" del motor de `index.html` y quedan auditados
+  // estáticamente en `scripts/test-cycle1.js`.
   function calculateAge(birthDate, referenceDate = new Date()) {
     if (!birthDate) return null;
     const birth = birthDate instanceof Date ? birthDate : new Date(birthDate);
@@ -353,6 +363,9 @@
       return MENTAL_ATTRIBUTES.reduce((sum, key) => sum + this.mental[key], 0) / MENTAL_ATTRIBUTES.length;
     }
 
+    // CYCLE-1 (BUG-CYCLE1-01) — LEGACY: lee el reloj REAL del ordenador.
+    // Prohibido en el flujo de carrera (ver nota en `calculateAge` arriba);
+    // usa `CareerAge.ageOnDate(player, fechaDeCarrera)`.
     get age() {
       return calculateAge(this.birthDate);
     }

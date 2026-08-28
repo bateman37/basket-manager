@@ -154,12 +154,82 @@
     'Pívot': { height: [195, 215], weight: [100, 120] },
   };
 
+  // ---------------------------------------------------------------------
+  // CYCLE-1 (DESIGN.md 9.22, BUG-CYCLE1-02) — fuente de aleatoriedad
+  // INYECTADA.
+  //
+  // Antes de esta entrega todo este generador usaba `Math.random()` global y
+  // `randomBirthDate()` calculaba el año de nacimiento con `new Date()` (el
+  // reloj REAL del ordenador). Aunque `generateFictionalPlayer()` ya recibía
+  // `referenceDate`, esa fecha solo llegaba al cursor de desarrollo, nunca
+  // al nacimiento: se reprodujo un intake "16-19" generado en 2036 con fecha
+  // de nacimiento de 2008 (unos 27 años en la carrera, 18 según el reloj de
+  // la máquina).
+  //
+  // Desde CYCLE-1:
+  //  - `options.seed` activa el MODO DETERMINISTA (obligatorio en cualquier
+  //    generación usada por una carrera: cantera, libres, emergencia): toda
+  //    tirada sale de `DeterministicRandom` con un discriminador propio y un
+  //    contador interno, nunca de `Math.random()`;
+  //  - en modo determinista `options.referenceDate` es OBLIGATORIA y la edad
+  //    se calcula contra ella con `CareerAge` (un intake 16-19 tiene 16-19
+  //    en su fecha real de incorporación, también en la temporada 10);
+  //  - `options.id` fija el identificador estable del jugador — el ciclo no
+  //    depende del fallback `Date.now()+Math.random()` de `Player`;
+  //  - sin `seed` el generador conserva EXACTAMENTE el comportamiento
+  //    anterior (`Math.random()`), para no romper el "modo prueba" de
+  //    `index.html` ni los generadores de equipos ficticios de LIFE-1..4.
+  // ---------------------------------------------------------------------
+  const DeterministicRandomCore = (typeof module !== 'undefined' && module.exports)
+    ? require('./DeterministicRandom.js')
+    : null;
+  const CareerAgeCore = (typeof module !== 'undefined' && module.exports)
+    ? require('./CareerAge.js')
+    : null;
+
+  function getDeterministicRandom() {
+    return (DeterministicRandomCore || global.BasketManager).DeterministicRandom;
+  }
+
+  function getCareerAge() {
+    return (CareerAgeCore || global.BasketManager).CareerAge;
+  }
+
+  // Secuencia determinista: cada llamada consume un discriminador nuevo, así
+  // que dos tiradas consecutivas nunca devuelven el mismo valor aunque
+  // pertenezcan a la misma huella. `next()` es la ÚNICA fuente de azar en
+  // modo determinista.
+  function buildRandomSource(seed) {
+    if (!seed) {
+      return { deterministic: false, next: () => Math.random() };
+    }
+    const Rnd = getDeterministicRandom();
+    let cursor = 0;
+    return {
+      deterministic: true,
+      seed,
+      next() {
+        cursor += 1;
+        return Rnd.unitFrom(seed, `pg#${cursor}`);
+      },
+    };
+  }
+
+  // Fuente activa durante una llamada a `generateFictionalPlayer` — se
+  // instala al principio y se restaura al final (el generador tiene una
+  // docena de funciones internas que ya usaban `Math.random()`; inyectar la
+  // fuente por este único punto evita cambiar todas sus firmas y garantiza
+  // que ninguna se quede fuera del modo determinista).
+  let activeRandom = { deterministic: false, next: () => Math.random() };
+
+  function rnd() { return activeRandom.next(); }
+
   function randomFrom(list) {
-    return list[Math.floor(Math.random() * list.length)];
+    return list[Math.floor(rnd() * list.length)];
   }
 
   function randomNoise(spread) {
-    return (Math.random() * 2 - 1) * spread;
+    return (rnd() * 2 - 1) * spread;
   }
 
   function generateFictionalName() {
@@ -168,13 +238,25 @@
     return { firstName, lastName };
   }
 
-  function randomBirthDate(minAge, maxAge) {
-    const age = minAge + Math.floor(Math.random() * (maxAge - minAge + 1));
-    const now = new Date();
-    const year = now.getFullYear() - age;
-    const month = Math.floor(Math.random() * 12);
-    const day = 1 + Math.floor(Math.random() * 28);
-    return new Date(year, month, day);
+  // `referenceDate` (BUG-CYCLE1-02): fecha de CARRERA contra la que la edad
+  // generada debe ser exacta. Obligatoria en modo determinista; sin ella
+  // (modo prueba legacy) se conserva el reloj del sistema, marcado como tal.
+  function randomBirthDate(minAge, maxAge, referenceDate) {
+    const age = minAge + Math.floor(rnd() * (maxAge - minAge + 1));
+    const month = 1 + Math.floor(rnd() * 12);
+    const day = 1 + Math.floor(rnd() * 28);
+    if (activeRandom.deterministic) {
+      const CareerAge = getCareerAge();
+      const iso = CareerAge.birthDateForAgeOn(age, referenceDate, { month, day });
+      // Se devuelve un `Date` local (mismo tipo que `Player.birthDate`
+      // espera) construido desde la fecha civil ya calculada — nunca desde
+      // el reloj del sistema.
+      const [y, m, d] = iso.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    // LEGACY (modo prueba, sin `seed`): comportamiento idéntico al anterior.
+    const now = referenceDate instanceof Date ? referenceDate : new Date();
+    return new Date(now.getFullYear() - age, month - 1, day);
   }
 
   // Genera el mapa de 5 posiciones (DESIGN.md 6.1, revisión mini-EPIC POS):
@@ -205,7 +287,7 @@
   function pickPositionArchetype() {
     const entries = Object.entries(POSITION_ARCHETYPE_WEIGHTS);
     const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
-    let roll = Math.random() * total;
+    let roll = rnd() * total;
     for (const [key, weight] of entries) {
       if (roll < weight) return key;
       roll -= weight;
@@ -228,7 +310,7 @@
   function shuffleIndices(list) {
     const copy = [...list];
     for (let i = copy.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rnd() * (i + 1));
       [copy[i], copy[j]] = [copy[j], copy[i]];
     }
     return copy;
@@ -260,11 +342,11 @@
       const otherIndices = shuffleIndices(
         POSITIONS.map((_, index) => index).filter((index) => index !== primaryIndex),
       );
-      const extraCount = 2 + Math.floor(Math.random() * 2); // 2 o 3 extra -> 3 o 4 posiciones altas en total
+      const extraCount = 2 + Math.floor(rnd() * 2); // 2 o 3 extra -> 3 o 4 posiciones altas en total
       const highIndices = [primaryIndex, ...otherIndices.slice(0, extraCount)];
       map[nominalPosition] = ATTRIBUTE_MAX;
       highIndices.slice(1).forEach((index) => {
-        map[POSITIONS[index]] = clamp(Math.round(17 + Math.random() * 3), 17, ATTRIBUTE_MAX);
+        map[POSITIONS[index]] = clamp(Math.round(17 + rnd() * 3), 17, ATTRIBUTE_MAX);
       });
       fillRemainingByDistance(map, highIndices);
     } else {
@@ -312,10 +394,10 @@
   // Datos Físicos Corporales (DESIGN.md 6.1) — reales, no en escala 1-20.
   function randomBodyMeasurements(positionMap) {
     const [heightMin, heightMax] = blendBodyRange(positionMap, 'height');
-    const height = Math.round(heightMin + Math.random() * (heightMax - heightMin));
+    const height = Math.round(heightMin + rnd() * (heightMax - heightMin));
 
     const [weightMin, weightMax] = blendBodyRange(positionMap, 'weight');
-    const weight = Math.round(weightMin + Math.random() * (weightMax - weightMin));
+    const weight = Math.round(weightMin + rnd() * (weightMax - weightMin));
 
     // Envergadura: no hay fórmula validada con Dennis todavía — aproximación
     // de diseño propia, no un dato acordado. Se genera como la altura más
@@ -323,7 +405,7 @@
     // hacia el lado positivo que hacia el negativo, para que la envergadura
     // supere a la altura la mayoría de las veces (como ocurre en la
     // realidad) sin impedir el caso contrario, menos frecuente.
-    const wingspanDelta = -3 + Math.random() * 18;
+    const wingspanDelta = -3 + rnd() * 18;
     const wingspan = Math.round(height + wingspanDelta);
 
     return { height, weight, wingspan };
@@ -346,7 +428,7 @@
     const threshold = getPositionsConfig().wingspanBiasThresholdCm;
     const relativeWingspan = bodyMeasurements.wingspan - bodyMeasurements.height;
     if (relativeWingspan <= threshold) return null;
-    return { penalty: Math.random() * WINGSPAN_BIAS_MAX, bonus: Math.random() * WINGSPAN_BIAS_MAX };
+    return { penalty: rnd() * WINGSPAN_BIAS_MAX, bonus: rnd() * WINGSPAN_BIAS_MAX };
   }
 
   function generateAttributeGroup(keys, blendedDeltas, bodyMeasurements) {
@@ -417,11 +499,11 @@
   }
 
   function randomTraits() {
-    const count = Math.floor(Math.random() * 3); // 0, 1 o 2 rasgos
+    const count = Math.floor(rnd() * 3); // 0, 1 o 2 rasgos
     const pool = [...TRAITS];
     const selected = [];
     for (let i = 0; i < count && pool.length > 0; i++) {
-      const index = Math.floor(Math.random() * pool.length);
+      const index = Math.floor(rnd() * pool.length);
       selected.push(pool.splice(index, 1)[0]);
     }
     return selected;
@@ -433,7 +515,7 @@
   function estimateStartingExperience(age) {
     const yearsAsPro = Math.max(0, age - 18);
     const avgGamesPerYear = 30;
-    return Math.round(yearsAsPro * avgGamesPerYear * (0.5 + Math.random() * 0.5));
+    return Math.round(yearsAsPro * avgGamesPerYear * (0.5 + rnd() * 0.5));
   }
 
   // `options.minAge`/`options.maxAge` permiten generar perfiles de edad
@@ -449,14 +531,38 @@
   // 20) en vez de sortearla al azar — usado por el script de importación de
   // datos reales (scripts/import-real-data.js) para completar de forma
   // dirigida las posiciones que le falten a una plantilla incompleta.
+  // `options.seed` (CYCLE-1, BUG-CYCLE1-02): activa el modo DETERMINISTA —
+  // obligatorio para cualquier generación de una carrera. Con él,
+  // `options.referenceDate` pasa a ser OBLIGATORIA (la edad se calcula
+  // contra la fecha de carrera) y `options.id` fija el identificador
+  // estable del jugador. Sin `seed`, comportamiento legacy idéntico.
   function generateFictionalPlayer(options = {}) {
+    const previousRandom = activeRandom;
+    activeRandom = buildRandomSource(options.seed || null);
+    try {
+      return generateFictionalPlayerInner(options);
+    } finally {
+      activeRandom = previousRandom;
+    }
+  }
+
+  function generateFictionalPlayerInner(options) {
     const minAge = options.minAge !== undefined ? options.minAge : 18;
     const maxAge = options.maxAge !== undefined ? options.maxAge : 36;
     const { attributeRange } = options;
+    if (activeRandom.deterministic && !options.referenceDate) {
+      throw new Error(
+        'generateFictionalPlayer: en modo determinista (`options.seed`) la fecha de carrera '
+        + '`options.referenceDate` es OBLIGATORIA — CYCLE-1 (BUG-CYCLE1-02) prohíbe generar un jugador de '
+        + 'carrera contra el reloj del sistema.',
+      );
+    }
     const { map: positions, nominalPosition } = generatePositionMap(options.primaryPosition);
     const { firstName, lastName } = generateFictionalName();
-    const birthDate = randomBirthDate(minAge, maxAge);
-    const age = Core.calculateAge(birthDate);
+    const birthDate = randomBirthDate(minAge, maxAge, options.referenceDate);
+    const age = activeRandom.deterministic
+      ? getCareerAge().ageOn(birthDate, options.referenceDate)
+      : Core.calculateAge(birthDate);
     const blended = blendProfiles(positions);
     // Envergadura relativa (Modelo B, 7.4) calculada ANTES que los atributos
     // Técnicos para poder sesgar outsideShot/interiorDefense/blocking/
@@ -474,6 +580,10 @@
       : generateAttributeGroup(MENTAL_ATTRIBUTES, blended.mental);
 
     const player = new Player({
+      // BUG-CYCLE1-02: id estable EXPLÍCITO en modo determinista — el ciclo
+      // anual nunca depende del fallback `Date.now()+Math.random()` de
+      // `Player.generateId()`.
+      id: options.id || undefined,
       firstName,
       lastName,
       birthDate,
@@ -502,10 +612,18 @@
     return player;
   }
 
+  // `options.seed` (CYCLE-1, BUG-CYCLE1-02): en modo determinista cada
+  // jugador del lote recibe su PROPIO sufijo de semilla e id estable — sin
+  // esto los `count` jugadores del lote saldrían idénticos.
   function generateFictionalPlayers(count, options) {
     const players = [];
+    const opts = options || {};
     for (let i = 0; i < count; i++) {
-      players.push(generateFictionalPlayer(options));
+      players.push(generateFictionalPlayer(opts.seed ? {
+        ...opts,
+        seed: `${opts.seed}|${i}`,
+        id: opts.id ? `${opts.id}-${i + 1}` : undefined,
+      } : opts));
     }
     return players;
   }
