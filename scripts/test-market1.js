@@ -164,7 +164,7 @@ check('BUG-REG1-06: dos "carreras" con el mismo playerId/competición/temporada 
 check('BUG-REG1-07: inscripción rechaza contrato de OTRO jugador', () => {
   const c = new Contract({
     id: 'c1', playerId: 'playerA', clubId: 'clubA', contractType: 'professional-player',
-    signedDate: '2026-08-01', startDate: '2026-08-01', endDate: '2027-06-30', guaranteeType: 'fully-guaranteed',
+    signedDate: '2026-08-01', startDate: '2026-08-01', endDate: '2027-07-31', guaranteeType: 'fully-guaranteed',
     compensation: { currency: 'EUR', declaredBasis: 'gross', seasons: [{ seasonKey: SEASON, guaranteedBaseSalaryMinor: 1000000 }] },
     declaredDocuments: ['written-contract'],
   });
@@ -183,7 +183,7 @@ check('BUG-REG1-07: inscripción rechaza contrato de OTRO jugador', () => {
 check('BUG-REG1-07: inscripción rechaza contrato de OTRO club', () => {
   const c = new Contract({
     id: 'c2', playerId: 'playerA', clubId: 'clubA', contractType: 'professional-player',
-    signedDate: '2026-08-01', startDate: '2026-08-01', endDate: '2027-06-30', guaranteeType: 'fully-guaranteed',
+    signedDate: '2026-08-01', startDate: '2026-08-01', endDate: '2027-07-31', guaranteeType: 'fully-guaranteed',
     compensation: { currency: 'EUR', declaredBasis: 'gross', seasons: [{ seasonKey: SEASON, guaranteedBaseSalaryMinor: 1000000 }] },
     declaredDocuments: ['written-contract'],
   });
@@ -202,7 +202,7 @@ check('BUG-REG1-07: inscripción rechaza contrato de OTRO club', () => {
 check('BUG-REG1-07: ambos correctos (jugador y club) no lanza', () => {
   const c = new Contract({
     id: 'c3', playerId: 'playerA', clubId: 'clubA', contractType: 'professional-player',
-    signedDate: '2026-08-01', startDate: '2026-08-01', endDate: '2027-06-30', guaranteeType: 'fully-guaranteed',
+    signedDate: '2026-08-01', startDate: '2026-08-01', endDate: '2027-07-31', guaranteeType: 'fully-guaranteed',
     compensation: { currency: 'EUR', declaredBasis: 'gross', seasons: [{ seasonKey: SEASON, guaranteedBaseSalaryMinor: 1000000 }] },
     declaredDocuments: ['written-contract'],
   });
@@ -222,7 +222,7 @@ check('BUG-REG1-07: ambos correctos (jugador y club) no lanza', () => {
 check('BUG-REG1-08: contrato pending no habilita elegibilidad de partido hoy (pero sí isCurrentOn)', () => {
   const c = new Contract({
     id: 'c4', playerId: 'playerA', clubId: 'clubA', contractType: 'professional-player',
-    signedDate: '2026-08-01', startDate: '2027-07-01', endDate: '2028-06-30', guaranteeType: 'fully-guaranteed',
+    signedDate: '2026-08-01', startDate: '2027-08-01', endDate: '2028-07-31', guaranteeType: 'fully-guaranteed',
     compensation: { currency: 'EUR', declaredBasis: 'gross', seasons: [{ seasonKey: '2027-28', guaranteedBaseSalaryMinor: 1000000 }] },
     declaredDocuments: ['written-contract'],
   });
@@ -424,7 +424,7 @@ check('disponibilidad derivada: libre / bajo contrato / próximo a expirar', () 
   pr.register(underContract);
   cr.register(new Contract({
     id: 'c-uc', playerId: 'uc-1', clubId: 'club-1', contractType: 'professional-player',
-    signedDate: '2025-08-01', startDate: '2025-08-01', endDate: '2028-06-30', guaranteeType: 'fully-guaranteed',
+    signedDate: '2025-08-01', startDate: '2025-08-01', endDate: '2028-07-31', guaranteeType: 'fully-guaranteed',
     coveredSeasonKeys: [SEASON],
     compensation: { currency: 'EUR', declaredBasis: 'gross', seasons: [{ seasonKey: SEASON, guaranteedBaseSalaryMinor: 1000000 }] },
     declaredDocuments: ['written-contract'],
@@ -661,7 +661,7 @@ check('contrato bajo vigencia no se rompe: la oferta con otro club queda marcada
   const cr = new ContractRegistry();
   cr.register(new Contract({
     id: 'existing-elsewhere', playerId: player.id, clubId: 'other-club-y', contractType: 'professional-player',
-    signedDate: '2025-07-01', startDate: '2025-07-01', endDate: '2027-06-30', guaranteeType: 'fully-guaranteed',
+    signedDate: '2025-08-01', startDate: '2025-08-01', endDate: '2027-07-31', guaranteeType: 'fully-guaranteed',
     compensation: {
       currency: 'EUR', declaredBasis: 'gross', seasons: [
         { seasonKey: '2025-26', guaranteedBaseSalaryMinor: 2000000 }, { seasonKey: SEASON, guaranteedBaseSalaryMinor: 2000000 },
@@ -686,7 +686,7 @@ check('oferta futura (empieza tras expirar el contrato) queda diferenciada de la
   const cr = new ContractRegistry();
   cr.register(new Contract({
     id: 'expiring-soon', playerId: player.id, clubId: 'other-club-z', contractType: 'professional-player',
-    signedDate: '2025-07-01', startDate: '2025-07-01', endDate: '2027-06-30', guaranteeType: 'fully-guaranteed',
+    signedDate: '2025-08-01', startDate: '2025-08-01', endDate: '2027-07-31', guaranteeType: 'fully-guaranteed',
     compensation: {
       currency: 'EUR', declaredBasis: 'gross', seasons: [
         { seasonKey: '2025-26', guaranteedBaseSalaryMinor: 2000000 }, { seasonKey: SEASON, guaranteedBaseSalaryMinor: 2000000 },

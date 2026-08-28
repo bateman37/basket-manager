@@ -130,9 +130,13 @@ function makeOriginContract(world, team, player, overrides) {
     playerId: player.id,
     clubId: team.id,
     contractType: 'professional-player',
-    signedDate: opts.signedDate || '2025-07-01',
-    startDate: opts.startDate || '2025-07-01',
-    endDate: opts.endDate || '2028-06-30',
+    // CYCLE-1 (BUG-CYCLE1-06): la ventana civil de una temporada pasa a ser
+    // 1-ago .. 31-jul (LocalDate.seasonWindow) para cubrir el calendario
+    // deportivo real del motor — este fixture conserva EXACTAMENTE su
+    // semántica (contrato de 2025-26 a 2027-28), solo se alinea con ella.
+    signedDate: opts.signedDate || '2025-08-01',
+    startDate: opts.startDate || '2025-08-01',
+    endDate: opts.endDate || '2028-07-31',
     guaranteeType: 'fully-guaranteed',
     compensation: {
       currency: 'EUR',
@@ -914,9 +918,9 @@ function minimalContract(overrides) {
     playerId: opts.playerId || 'p-min',
     clubId: opts.clubId || 'team-min',
     contractType: 'professional-player',
-    signedDate: '2025-07-01',
-    startDate: '2025-07-01',
-    endDate: '2026-06-30',
+    signedDate: '2025-08-01',
+    startDate: '2025-08-01',
+    endDate: '2026-07-31',
     guaranteeType: 'fully-guaranteed',
     compensation: { currency: 'EUR', declaredBasis: 'gross', seasons: [{ seasonKey: '2025-26', guaranteedBaseSalaryMinor: 1000000 }] },
     clauses: [],

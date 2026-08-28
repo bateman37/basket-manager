@@ -57,7 +57,18 @@ function buildRealTeam(teamData, referenceDate, seasonKey) {
   // este equipo, si el bundle se queda corto (hoy: varios clubes de
   // Primera FEB con <10 jugadores cargados).
   const squadRules = resolveSquadRulesForDivision(teamData.division, seasonKey, referenceDate);
-  const fallbackPlayers = padRosterToMinimum(roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate });
+  const fallbackPlayers = padRosterToMinimum(roster, squadRules.min, {
+    minAge: 18,
+    maxAge: 34,
+    referenceDate,
+    // CYCLE-1 (BUG-CYCLE1-02): relleno DETERMINISTA. Este `padRosterToMinimum`
+    // usaba `Math.random()`, así que CADA ejecución del smoke construía un
+    // mundo distinto: por eso BUG-LOAN1-01 solo aparecía "de vez en cuando".
+    // Con semilla e id explícitos el mundo es reproducible y un fallo se puede
+    // volver a provocar.
+    seed: `smoke-roster1|roster-fill|${teamData.id}`,
+    id: `roster-fill:${teamData.id}`,
+  });
   fallbackPlayers.forEach((player) => {
     PC.ensureCareerHistory(player, CONFIG_BASE, referenceDate, { historyCompleteness: 'complete', seasonKey });
   });
