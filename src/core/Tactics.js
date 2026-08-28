@@ -48,6 +48,15 @@
     : global.BasketManager;
   const { getPenalty } = RotationCore;
 
+  // CYCLE-1 (BUG-CYCLE1-01): acceso perezoso a la API única de edad de
+  // carrera — mismo patrón que el resto de dependencias de este archivo
+  // (en navegador el orden de <script> no está garantizado).
+  function CareerAgeCore() {
+    return (typeof module !== 'undefined' && module.exports)
+      ? require('../utils/CareerAge.js')
+      : global.BasketManager;
+  }
+
   // DESIGN.md 7.12 (TAC-2): a diferencia de las funciones de TAC-1
   // (computeAdvantageScore, buildPossessionPlan...), que reciben
   // `getAttribute` como parámetro desde MatchEngine (para no depender de
@@ -2861,9 +2870,15 @@
     return (config.tactics.cpuIdentity.dnaBias && config.tactics.cpuIdentity.dnaBias[clubDNA]) || { pace: 0, pickAndRollUsage: 0, pressActive: 0 };
   }
 
-  function buildCpuTacticalIdentity(team, config) {
+  // `referenceDate` (CYCLE-1, DESIGN.md 9.22, BUG-CYCLE1-01) — OBLIGATORIA:
+  // la señal "Energía/edad de rotación" (7.12.25) necesita la edad de los
+  // jugadores en la FECHA DE CARRERA, nunca el getter `player.age` (que lee
+  // el reloj real del ordenador). Sin ella, una carrera de 2036 construía la
+  // identidad táctica CPU con las edades de 2026.
+  function buildCpuTacticalIdentity(team, config, referenceDate) {
     const roster = team.roster;
     if (!roster || roster.length === 0) return new TacticalProfile();
+    const careerAgeReference = CareerAgeCore().CareerAge.requireCareerDate(referenceDate, 'referenceDate');
     const cfg = config.tactics.cpuIdentity;
     const dnaBias = resolveClubDnaBias(team.clubDNA, config);
     const specialist = cfg.specialistThreshold;
@@ -2899,7 +2914,8 @@
     // plantilla (7.12.25, "Energía/edad de rotación" — señal de fondo de
     // banco, no solo del quinteto titular).
     const averageEnergy = roster.reduce((sum, p) => sum + p.dynamicState.energy, 0) / roster.length;
-    const averageAge = roster.reduce((sum, p) => sum + p.age, 0) / roster.length;
+    const CareerAge = CareerAgeCore().CareerAge;
+    const averageAge = roster.reduce((sum, p) => sum + (CareerAge.ageOnDate(p, careerAgeReference) || 0), 0) / roster.length;
     const isYoungAthleticRoster = averageAge < 27 && averageEnergy >= 55;
 
     // --- Dirección (7.12.25, los 4 ejemplos literales como guía) ---

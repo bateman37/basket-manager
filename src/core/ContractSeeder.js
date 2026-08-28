@@ -34,21 +34,33 @@
   const MoneyModule = isNode ? require('../utils/Money.js') : global.BasketManager;
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
   const PlayerDevelopment = isNode ? require('./PlayerDevelopment.js') : global.BasketManager;
+  // CYCLE-1: la distribución de duración de los contratos simulados es
+  // CALIBRACIÓN DE JUEGO y vive en `CycleConfig`, nunca en este seeder.
+  const CycleConfigModule = isNode ? require('./CycleConfig.js') : global.BasketManager;
 
   function M() { return MoneyModule.Money; }
   function LD() { return LocalDateModule.LocalDate; }
   function Service() { return ContractServiceModule.ContractService; }
 
-  const SIMULATED_CONTRACT_DATA_SOURCE = 'simulated-contract-v1';
-  const GENERATOR_VERSION = 'contract-seeder-v1';
+  // CYCLE-1 (DESIGN.md 9.22, sección 9 del prompt): procedencia y versión
+  // NUEVAS del generador. La distribución de duración restante pasa a ser
+  // variada y determinista (25/30/30/15 % para 1/2/3/4 temporadas, ver
+  // `CycleConfig.INITIAL_CONTRACT_DURATION_WEIGHTS`), así que los contratos
+  // del bootstrap YA NO son comparables con los de `simulated-contract-v1`.
+  const SIMULATED_CONTRACT_DATA_SOURCE = 'simulated-contract-v2';
+  const GENERATOR_VERSION = 'contract-seeder-v2';
   const SIMULATED_CONTRACT_WARNING = 'Contrato simulado para esta partida; no es un dato contractual real.';
 
-  // Puente temporal de datos (sección 8.5): "tres transiciones completas de
-  // temporada disponibles después del arranque". NO es una distribución
-  // contractual realista ni una renovación automática — es una constante de
-  // staging documentada que CYCLE-1 retirará al incorporar decisiones de
-  // mercado reales.
+  // RETIRADO en CYCLE-1 (sección 9 del prompt). Era el puente de staging de
+  // CONTRACT-1 (sección 8.5, "tres transiciones completas de temporada
+  // disponibles después del arranque") que garantizaba un suelo de 3
+  // temporadas restantes en TODO contrato, para que ningún contrato pudiera
+  // vencer dentro de un horizonte verificable. Con la expiración orgánica
+  // real (`ContractExpiryService`) ese suelo desaparece: la constante se
+  // conserva SOLO como referencia histórica documentada y ya NO participa
+  // en ningún cálculo (auditado en `scripts/test-cycle1.js`).
   const MINIMUM_PLAYABLE_REMAINING_SEASONS = 3;
+  const MINIMUM_PLAYABLE_REMAINING_SEASONS_RETIRED_IN = 'CYCLE-1';
 
   // Unidad de presentación de los importes generados: 1.000 EUR. Todos los
   // salarios simulados son múltiplos de esta unidad (más realista de leer),
@@ -183,18 +195,29 @@
     return { weight: roleWeight * ageFactor(age), qualityIndex, tmb, age };
   }
 
-  // --- Vigencia del puente temporal --------------------------------------
-  // "Tres transiciones completas de temporada disponibles después del
-  // arranque": si la partida arranca dentro del primer año natural de la
-  // temporada en curso, esa temporada todavía se juega entera, así que el
-  // contrato cubre la actual + 3; si arranca ya en el segundo año natural,
-  // bastan 3. Siempre por debajo del máximo FIBA de 4 años.
-  function bootstrapSeasonSpan(seasonKey, isoDate, maxTermYears) {
-    const startYear = LD().seasonStartYear(seasonKey);
-    const inFirstCalendarYear = LD().parse(isoDate).year <= startYear;
-    const desired = MINIMUM_PLAYABLE_REMAINING_SEASONS + (inFirstCalendarYear ? 1 : 0);
-    const cap = maxTermYears || desired;
-    return Math.max(1, Math.min(desired, cap));
+  // --- Duración restante del contrato de bootstrap ------------------------
+  // CYCLE-1 (sección 9 del prompt): distribución DETERMINISTA y VARIADA
+  // (`CycleConfig.INITIAL_CONTRACT_DURATION_WEIGHTS`, calibración de juego:
+  // 25 % una temporada, 30 % dos, 30 % tres, 15 % cuatro), SIEMPRE recortada
+  // por el máximo normativo REAL que resuelva el contexto laboral aplicable
+  // (si otra jurisdicción admite menos, gana el límite real). Sustituye el
+  // suelo de 3 temporadas de CONTRACT-1, que impedía que venciera nadie.
+  //
+  // `fingerprint` es la huella estable del contrato
+  // (`playerId|clubId|seasonKey|GENERATOR_VERSION`): la misma carrera y la
+  // misma semilla generan los mismos contratos aunque cambie el orden de
+  // los equipos.
+  function bootstrapSeasonSpan(seasonKey, isoDate, maxTermYears, fingerprint) {
+    void isoDate;
+    if (!fingerprint) {
+      throw new Error(
+        'ContractSeeder.bootstrapSeasonSpan: falta "fingerprint" — CYCLE-1 exige una huella estable para la '
+        + 'distribución determinista de duración (nunca un suelo fijo de 3 temporadas).',
+      );
+    }
+    return CycleConfigModule.CycleConfig.resolveInitialContractSeasons(
+      fingerprint, `initial-duration|${seasonKey}`, maxTermYears, null,
+    );
   }
 
   // ---------------------------------------------------------------------
@@ -208,8 +231,16 @@
     const currency = (employment.allowedCurrencies && employment.allowedCurrencies[0]) || 'EUR';
     const declaredBasis = (employment.allowedBases && employment.allowedBases[0]) || 'gross';
 
-    const maxTermYears = employment.maxTermYears || MINIMUM_PLAYABLE_REMAINING_SEASONS + 1;
-    const seasonSpan = bootstrapSeasonSpan(seasonKey, isoDate, maxTermYears);
+    const maxTermYears = employment.maxTermYears || null;
+    // Un contrato de INCORPORACIÓN (cantera, relleno, emergencia, fichaje
+    // con la partida en marcha) usa la distribución de contratos NUEVOS; el
+    // bootstrap inicial usa la de arranque (más larga).
+    const seasonSpan = params.seasonSpanOverride || (isFirstProfessionalContract
+      ? CycleConfigModule.CycleConfig.resolveInitialContractSeasons(
+        fingerprint, `new-duration|${seasonKey}`, maxTermYears,
+        CycleConfigModule.CycleConfig.NEW_CONTRACT_DURATION_WEIGHTS,
+      )
+      : bootstrapSeasonSpan(seasonKey, isoDate, maxTermYears, fingerprint));
     const firstWindow = LD().seasonWindow(seasonKey);
     const lastWindow = LD().seasonWindow(LD().addSeasons(seasonKey, seasonSpan - 1));
     const startDate = firstWindow.startDate;
@@ -512,6 +543,7 @@
       GENERATOR_VERSION,
       SIMULATED_CONTRACT_WARNING,
       MINIMUM_PLAYABLE_REMAINING_SEASONS,
+      MINIMUM_PLAYABLE_REMAINING_SEASONS_RETIRED_IN,
       PRESENTATION_UNIT_MINOR,
       SIMULATION_ECONOMIC_PROFILES,
       getEconomicProfile,

@@ -27,6 +27,7 @@
   const CatalogModule = isNode ? require('./ClubEmploymentContextCatalog.js') : global.BasketManager;
   const MoneyModule = isNode ? require('../utils/Money.js') : global.BasketManager;
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
+  const CareerAgeModule = isNode ? require('../utils/CareerAge.js') : global.BasketManager;
 
   function M() { return MoneyModule.Money; }
   function LD() { return LocalDateModule.LocalDate; }
@@ -38,14 +39,11 @@
   }
 
   // Edad CIVIL a una fecha dada (sin depender del reloj de la máquina).
+  // CYCLE-1 (BUG-CYCLE1-01): delega en la API ÚNICA `CareerAge` — misma
+  // función pura para contratos, retiro, academia, planificación y UI; este
+  // wrapper se conserva porque CONTRACT-1 ya lo exponía en su API pública.
   function ageOnDate(player, isoDate) {
-    if (!player || !player.birthDate) return null;
-    const birth = LD().fromJsDate(player.birthDate instanceof Date ? player.birthDate : new Date(player.birthDate));
-    const b = LD().parse(birth);
-    const d = LD().parse(isoDate);
-    let age = d.year - b.year;
-    if (d.month < b.month || (d.month === b.month && d.day < b.day)) age -= 1;
-    return age;
+    return CareerAgeModule.CareerAge.ageOnDate(player, isoDate, 'isoDate');
   }
 
   // ---------------------------------------------------------------------

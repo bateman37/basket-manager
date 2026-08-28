@@ -115,6 +115,30 @@
   // una convocatoria que ignore un cupo en silencio.
   // ---------------------------------------------------------------------
   function selectLegalSquad(candidates, desiredSize, resolved) {
+    const repaired = repairSquadOfSize(candidates, desiredSize, resolved);
+    if (!repaired.ok) return { ok: false, diagnostic: repaired.diagnostic };
+    // --- Verificación FINAL: nunca se devuelve una convocatoria ilegal --
+    if (repaired.finalFormation < repaired.formationMinimum) {
+      return {
+        ok: false,
+        diagnostic: { code: 'FORMATION_QUOTA_INFEASIBLE', required: repaired.formationMinimum, best: repaired.finalFormation },
+      };
+    }
+    if (repaired.finalNonCommunity > repaired.nonCommunityMax) {
+      return {
+        ok: false,
+        diagnostic: { code: 'NON_COMMUNITY_CAP_INFEASIBLE', max: repaired.nonCommunityMax, best: repaired.finalNonCommunity },
+      };
+    }
+    return { ok: true, playerIds: repaired.selected.map((c) => c.playerId), selected: repaired.selected };
+  }
+
+  // Reparación determinista por restricciones para un tamaño de acta FIJO.
+  // Devuelve la mejor selección alcanzable y los cupos resultantes SIN
+  // vetarla — el veto es de `selectLegalSquad` (que nunca devuelve un acta
+  // ilegal) y la variante de mejor esfuerzo es `selectBestEffortSquad`
+  // (que sí devuelve el acta incompleta, siempre etiquetada).
+  function repairSquadOfSize(candidates, desiredSize, resolved) {
     if (candidates.length < desiredSize) {
       return {
         ok: false,
@@ -172,23 +196,76 @@
       }
     }
 
-    // --- Verificación FINAL: nunca se devuelve una convocatoria ilegal --
-    const finalFormation = formationCountOf(selected);
-    const finalNonCommunity = nonCommunityCountOf(selected);
-    if (finalFormation < formationMinimum) {
-      return {
-        ok: false,
-        diagnostic: { code: 'FORMATION_QUOTA_INFEASIBLE', required: formationMinimum, best: finalFormation },
-      };
-    }
-    if (finalNonCommunity > nonCommunityMax) {
-      return {
-        ok: false,
-        diagnostic: { code: 'NON_COMMUNITY_CAP_INFEASIBLE', max: nonCommunityMax, best: finalNonCommunity },
-      };
-    }
+    return {
+      ok: true,
+      selected,
+      size: desiredSize,
+      formationMinimum,
+      nonCommunityMax,
+      finalFormation: formationCountOf(selected),
+      finalNonCommunity: nonCommunityCountOf(selected),
+    };
+  }
 
-    return { ok: true, playerIds: selected.map((c) => c.playerId), selected };
+  // ---------------------------------------------------------------------
+  // Búsqueda de tamaño LEGAL dentro del rango de acta (CYCLE-1)
+  // ---------------------------------------------------------------------
+  // `selectLegalSquad` resuelve un tamaño FIJO, y el cupo de formación
+  // depende de la BANDA de tamaño (ACB: 3 de formación con acta de 8-9, 4
+  // con acta de 10-12). Un club con solo 3 jugadores de formación
+  // convocables puede presentar un acta legal de 9 — pero no de 11. Antes
+  // de CYCLE-1 nadie buscaba ese tamaño: el llamador pedía un único
+  // `desiredSize` y una banda insatisfacible se reportaba como
+  // imposibilidad reglamentaria. Esta función es el ÚNICO punto compartido
+  // que recorre el rango [minSize..preferredSize] de mayor a menor, así que
+  // CPU, usuario y auditoría de legalidad usan exactamente la misma
+  // búsqueda — nunca una heurística de tamaño paralela.
+  function selectLegalSquadWithinRange(candidates, params) {
+    const {
+      minSize, maxSize, preferredSize, resolved,
+    } = params;
+    const upper = Math.min(maxSize, candidates.length, preferredSize != null ? preferredSize : maxSize);
+    const attempts = [];
+    for (let size = upper; size >= minSize; size -= 1) {
+      const attempt = selectLegalSquad(candidates, size, resolved);
+      if (attempt.ok) return { ...attempt, size, attempts };
+      attempts.push({ size, diagnostic: attempt.diagnostic });
+    }
+    return {
+      ok: false,
+      // El diagnóstico REPORTADO es el del tamaño más pequeño intentado: si
+      // ni con el acta mínima se cumple el cupo, la carencia es real.
+      diagnostic: attempts.length
+        ? attempts[attempts.length - 1].diagnostic
+        : { code: 'NOT_ENOUGH_ELIGIBLE_CANDIDATES', available: candidates.length, required: minSize },
+      attempts,
+    };
+  }
+
+  // Acta de MEJOR ESFUERZO: misma reparación determinista, pero se devuelve
+  // aunque incumpla un cupo colectivo, DECLARANDO el incumplimiento
+  // (`shortfalls`). Solo tiene un uso legítimo (ver CpuLineup.js): cuando la
+  // escasez que hace inalcanzable el cupo es MÉDICA y el mismo cupo SÍ sería
+  // alcanzable con la plantilla sana — el partido se juega bajo excepción
+  // médica de convocatoria, con el incumplimiento visible en el acta. Nunca
+  // se usa para tapar una imposibilidad REGLAMENTARIA.
+  function selectBestEffortSquad(candidates, desiredSize, resolved) {
+    const repaired = repairSquadOfSize(candidates, desiredSize, resolved);
+    if (!repaired.ok) return { ok: false, diagnostic: repaired.diagnostic };
+    const shortfalls = [];
+    if (repaired.finalFormation < repaired.formationMinimum) {
+      shortfalls.push({ code: 'FORMATION_QUOTA_NOT_MET', required: repaired.formationMinimum, actual: repaired.finalFormation });
+    }
+    if (repaired.finalNonCommunity > repaired.nonCommunityMax) {
+      shortfalls.push({ code: 'NON_COMMUNITY_CAP_EXCEEDED', max: repaired.nonCommunityMax, actual: repaired.finalNonCommunity });
+    }
+    return {
+      ok: true,
+      playerIds: repaired.selected.map((c) => c.playerId),
+      selected: repaired.selected,
+      size: repaired.size,
+      shortfalls,
+    };
   }
 
   // Contadores en vivo para la UI (sección 11.2 del prompt): seleccionados/
@@ -215,6 +292,8 @@
   const exportsObj = {
     SquadEligibilityService: {
       findQuotaBand,
+      selectLegalSquadWithinRange,
+      selectBestEffortSquad,
       isFormationQualifying,
       isNonCommunityCounting,
       validateSquad,

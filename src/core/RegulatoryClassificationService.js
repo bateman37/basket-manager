@@ -170,21 +170,34 @@
 
   // ---------------------------------------------------------------------
   // Caché contextual — clave incluye jugador+competición+temporada/fecha+
-  // módulo/versión de datos (sección 8.3: "una nueva evidencia o versión
-  // invalida el caché").
+  // módulo/versión de datos + EVIDENCIA aplicada (sección 8.3: "una nueva
+  // evidencia o versión invalida el caché").
+  //
+  // CYCLE-1 (BUG-CYCLE1-07): la clave llevaba solo jugador+competición+
+  // temporada+versión, así que era estable durante TODA la temporada. Eso
+  // es correcto mientras la evidencia no cambia, pero el ciclo anual crea
+  // el snapshot aprobado del curso nuevo A MITAD de esa `seasonKey` (la
+  // auditoría de plantillas del verano se ejecuta ANTES de la fase de
+  // licencias e inscripciones). Una consulta previa al alta cacheaba
+  // "unknown|unknown" y ese valor se reutilizaba el resto de la temporada
+  // incluso después de existir el snapshot real, dejando clubes con el cupo
+  // de formación aparentemente incumplido (`FORMATION_QUOTA_INFEASIBLE`)
+  // aunque sus inscripciones sí declaraban jugadores de formación. La clave
+  // incluye ahora el id del snapshot aplicado ("no-approval" cuando no hay
+  // ninguno): una evidencia nueva produce una clave nueva y el valor viejo
+  // nunca vuelve a devolverse. Nunca se resuelve borrando el caché desde
+  // fuera — la invalidación es parte de la clave.
   // ---------------------------------------------------------------------
-  function buildCacheKey(playerId, context, classifierVersion) {
+  function buildCacheKey(playerId, context, classifierVersion, approvalId) {
     return [
       playerId, context.competitionId, context.seasonKey || context.date, classifierVersion,
+      approvalId || 'no-approval',
     ].join('|');
   }
 
   const CLASSIFIER_VERSION = 'reg-classification-v1';
 
   function classifyPlayer(playerId, profile, context, cache) {
-    const cacheKey = cache ? buildCacheKey(playerId, context, CLASSIFIER_VERSION) : null;
-    if (cache && cache.has(cacheKey)) return cache.get(cacheKey);
-
     const warnings = [];
     let formation;
     let nonCommunitySlot;
@@ -199,6 +212,14 @@
     // snapshot — nunca se reutiliza para ACB (sección 5.1 del prompt).
     const approvedOverride = profile && profile.organizerApprovedClassificationFor
       ? profile.organizerApprovedClassificationFor(context.competitionId, context.seasonKey) : null;
+
+    // La clave del caché se calcula DESPUÉS de resolver qué evidencia
+    // aplica (ver BUG-CYCLE1-07 arriba) — nunca antes.
+    const cacheKey = cache
+      ? buildCacheKey(playerId, context, CLASSIFIER_VERSION, approvedOverride ? approvedOverride.id : null)
+      : null;
+    if (cache && cache.has(cacheKey)) return cache.get(cacheKey);
+
     if (approvedOverride) {
       const basis = approvedOverride.basis || 'organizer-approved';
       formation = { status: approvedOverride.formation || 'unknown', basis, evidenceIds: [approvedOverride.id].filter(Boolean) };
