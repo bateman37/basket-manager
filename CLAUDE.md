@@ -218,14 +218,15 @@ con dos botones:
     `Team.roster` de los equipos actuales. Contratos e Inscripciones
     siguen sin ganar ningún botón de acción con esta entrega.
 
-## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1, MARKET-1, TRANSFER-1, LOAN-1 y siguientes)
+## Ciclo profesional de plantilla (ROSTER-1, CONTRACT-1, REG-1, MARKET-1, TRANSFER-1, LOAN-1, CYCLE-1 y siguientes)
 
 Convenciones permanentes de la EPIC iniciada en ROSTER-1 (DESIGN.md 9.16),
 ampliada en CONTRACT-1 (DESIGN.md 9.17), en REG-1 (DESIGN.md 9.18), en
-MARKET-1 (DESIGN.md 9.19), en TRANSFER-1 (DESIGN.md 9.20) y en LOAN-1
-(DESIGN.md 9.21) — aplican a toda sesión futura que toque contratos,
-licencias, inscripción, elegibilidad, mercado, traspasos, cesiones o
-transfer internacional:
+MARKET-1 (DESIGN.md 9.19), en TRANSFER-1 (DESIGN.md 9.20), en LOAN-1
+(DESIGN.md 9.21) y en CYCLE-1 (DESIGN.md 9.22) — aplican a toda sesión
+futura que toque contratos, licencias, inscripción, elegibilidad, mercado,
+traspasos, cesiones, el ciclo anual (expiración, renovación, retirada,
+cantera, legalidad de plantilla) o transfer internacional:
 
 - Todo jugador vive en el Player Registry mundial
   (`src/core/PlayerRegistry.js`, `state.playerRegistry`); una plantilla
@@ -681,12 +682,130 @@ cuando construyan sobre esta entrega:
   como un dato real, y `data/real/` no se toca nunca desde este dominio.
 - No se ejecuta cesión/subrogación con transfer internacional real ni
   licencia FIBA para la operación (EUROPE-1, hoy solo bloquea, nunca
-  concede completado), ni expiración orgánica de contrato/apertura
-  orgánica de tanteo (CYCLE-1, sigue bloqueada por el suelo de 3
-  temporadas de CONTRACT-1) antes de sus entregas — LOAN-1 se detiene en
-  el ámbito doméstico verificable.
+  concede completado) antes de esa entrega — LOAN-1 se detiene en el
+  ámbito doméstico verificable. (Nota posterior: la expiración orgánica de
+  contrato y la apertura orgánica de tanteo, entonces bloqueadas por el
+  suelo de 3 temporadas de CONTRACT-1, ya están entregadas — ver CYCLE-1,
+  DESIGN.md 9.22, bloque de convenciones más abajo.)
 - `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
   cuando cambian la arquitectura de cesiones o las reglas activas.
+
+### Ciclo anual: expiración, renovación, retirada, cantera y clearinghouse (CYCLE-1, DESIGN.md 9.22)
+
+Convenciones permanentes de CYCLE-1 — aplican a toda sesión futura que
+toque el cierre de temporada, expiración/renovación de contratos, opciones
+contractuales, apertura de tanteo, retirada de jugadores, cantera/academia,
+legalidad de plantilla, planificación CPU o el clearinghouse anual, y a
+EUROPE-1/HARDEN-1 cuando construyan sobre esta entrega:
+
+- El cierre de temporada NUNCA vuelve a ser un monolito directo
+  (ascender/descender → resembrar inscripciones a mano →
+  `team.generateAcademyIntake(N, fecha)` en los 36 clubes → sustituir el
+  `Calendar`). Todo cierre real pasa por `AnnualCycleService.runPhase()` en
+  el orden fijo de `CycleConfig.CYCLE_PHASES` (13 fases) — nunca una copia
+  local del ciclo. `game.js` y CUALQUIER script de prueba usan el mismo
+  arnés compartido `scripts/cycle1-harness.js`
+  (`collectSeasonEvidence()`/`runAnnualCycleTransition()`) — nunca su
+  propio atajo de transición de temporada copiado.
+- `state.annualCycleRegistry`/`state.academyRegistry`
+  (`src/core/AnnualCycleRegistry.js`/`src/core/AcademyRegistry.js`) son las
+  fuentes CANÓNICAS del ciclo — instancias EXPLÍCITAS por carrera (creadas
+  en `startSeason()`), nunca singletons.
+- El suelo `MINIMUM_PLAYABLE_REMAINING_SEASONS = 3` de CONTRACT-1 está
+  RETIRADO — los contratos expiran orgánicamente
+  (`ContractExpiryService`). Código nuevo nunca asume que un contrato
+  sobrevive sin cambios de una temporada a la siguiente.
+- `AnnualRosterCycle`/`ClubCycleCase`/`RenewalCase`/`ContractOptionDecision`
+  (`src/entities/Cycle.js`) son máquinas de estados por EVENTOS en el orden
+  fijo declarado — nunca un campo de estado mutable libre. Un id de evento
+  duplicado LANZA una colisión descriptiva, nunca un no-op silencioso. Un
+  terminal nunca vuelve a un estado vivo.
+- **Legalidad de plantilla es una propiedad VIVA, no solo de arranque de
+  temporada**: un roster legal al empezar la temporada puede volverse
+  ilegal a mitad de temporada sin ningún evento explícito de cambio de
+  plantilla (ejemplo real: un jugador cruza un umbral de edad y deja de
+  contar como "de formación"). La construcción de convocatoria para
+  CUALQUIER partido (usuario o CPU) reintenta la MISMA escalera de
+  emergencia (`RosterLegalityService.applyEmergencyLadder()`,
+  `resolved` — NUNCA `actions.length` — es la señal de éxito) antes de
+  declarar infeasibilidad — nunca cae a un selector no regulado. El mismo
+  reintento (`selfHealClubLegality` en `cycle1-harness.js`) es obligatorio
+  en cualquier arnés de prueba nuevo que construya convocatorias CPU a lo
+  largo de varias temporadas.
+- Dos vías LEGÍTIMAS de cambio de `player.teamId` sin ningún
+  `TransactionRecord` en `TransferRegistry`: expiración orgánica de
+  contrato (agente libre) y alta de emergencia de plantilla
+  (`RosterLegalityService.signPlayerForEmergency()`, que llama a
+  `RosterMutationService.transferPlayer()` DIRECTAMENTE). Cualquier
+  comprobación de integridad nueva sobre `TransferRegistry`/roster debe
+  contemplar ambas — `TransferRegistry.validateIntegrity()` ya lo hace vía
+  `explainedByCurrentContract` (el `clubId` del contrato VIGENTE coincide
+  con `player.teamId`, o ambos son `null`).
+- La cantera/academia YA NO entra directamente a `Team.roster` por el
+  intake anual (BUG-CYCLE1-05, retirado) — vive como pool separado en
+  `AcademyRegistry` (`AcademyService.runAnnualIntake()`, cupo real vía
+  `CycleConfig.ACADEMY`). Solo `AcademyService.promoteToFirstTeam()` mueve
+  a un académico al roster real, vía `Team.addPlayer()`/
+  `RosterMutationService` — nunca como efecto colateral del intake.
+  `promoteToFirstTeam()` LANZA en fallo (nunca devuelve
+  `{succeeded:false}`) — cualquier botón de UI que la llame usa
+  try/catch, nunca comprueba un campo de éxito.
+- `RetirementService` decide retirada usando SOLO señales VISIBLES
+  (tendencia de TMB, carga médica, minutos recientes, edad) — **nunca
+  Potencial oculto** (auditado estáticamente en `test-cycle1.js`), y
+  SIEMPRE de forma determinista dada una `careerSeed` explícita. Un
+  jugador retirado sale de `Team.roster` pero permanece SIEMPRE
+  localizable en el Player Registry — nunca desaparece del histórico.
+- `CpuRosterPlanner` es PURO (nunca muta, nunca llama a un registro
+  directamente) y ORDEN-INDEPENDIENTE (mismo resultado con
+  clubes/jugadores barajados) — auditado estáticamente. `runClearingRounds()`
+  ejecuta la asignación determinista sobre esos planes.
+  **Limitación de alcance conocida y documentada, no oculta**: el
+  clearinghouse de CYCLE-1 resuelve renovación, fichaje de agente libre y
+  promoción de cantera — NO abre traspasos ni cesiones CPU-a-CPU orgánicos
+  entre clubes (esos siguen siendo solo acciones dirigidas por el usuario
+  vía Mercado, TRANSFER-1/LOAN-1). Cualquier sesión futura que quiera
+  cerrar esa brecha debe proponerlo primero (no está en `DESIGN.md`) y
+  seguir el mismo patrón de dos fases (planificador puro + ronda de
+  clearing determinista) ya establecido aquí — nunca un motor de mercado
+  CPU paralelo.
+- `WorldLifecycleService.initializePlayerLifecycle()` sigue siendo el
+  ÚNICO punto de inicialización real por jugador (desarrollo + estado
+  médico + histórico de carrera + perfil de retirada + procedencia) —
+  llamado en el sweep de arranque de carrera, en
+  `AcademyService.runAnnualIntake()` y en la generación de emergencia de
+  `RosterLegalityService`. **Los renders de `src/ui/game.js` NUNCA lo
+  llaman ni llaman a ninguna de las funciones `ensure*` que envuelve**
+  (BUG-CYCLE1-03) — auditado estáticamente en `test-cycle1.js`; un render
+  que necesita datos de un jugador que en teoría siempre debería tenerlos
+  ya inicializados degrada visiblemente en vez de inicializar como efecto
+  secundario de abrir una pantalla.
+- `describePopulation()` distingue SIEMPRE población ACTIVA
+  (`activeTotal`) de HISTÓRICA (`historicalTotal`) contra una cota
+  (`activeBound`) — nunca un único contador ambiguo.
+- Toda generación nueva (edad, fecha de nacimiento, decisiones CPU,
+  retirada) es DETERMINISTA dada una `careerSeed`/`referenceDate`
+  explícitas (`CareerAge.js`, `DeterministicRandom.js`) — nunca
+  `Math.random()`/`Date.now()`/`new Date()` dentro del motor del ciclo
+  (auditado estáticamente).
+- Dinero SIEMPRE en unidad mínima entera (`...Minor`) + moneda ISO 4217;
+  fechas SIEMPRE civiles ISO vía `LocalDate` — mismo criterio que
+  CONTRACT-1/MARKET-1/TRANSFER-1/LOAN-1.
+- El consentimiento del usuario para delegar medidas de emergencia sobre
+  SU PROPIO club (`delegateEmergencyForUserClub`) nunca se asume `true`
+  por defecto desde un call-site de `game.js` — el CORE
+  (`AnnualCycleService.auditAllClubs()`) ya lo respeta correctamente; un
+  call-site que lo fuerce a `true` sin pasar por el botón real "Delegar
+  medidas de emergencia" de la pantalla Planificación es un bug de
+  consentimiento (BUG-CYCLE1-04, ya corregido una vez — no reintroducirlo).
+- No se ejecuta transfer internacional real ni licencia FIBA para la
+  operación (EUROPE-1), ni save/load real con congelación de reglas por
+  versión de una temporada ya iniciada (HARDEN-1) antes de sus entregas —
+  CYCLE-1 se detiene en el ámbito doméstico verificable con el clearinghouse
+  descrito arriba.
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambian la arquitectura del ciclo anual o las reglas activas.
+
 
 ## Qué NO hacer sin confirmar con Dennis primero
 
