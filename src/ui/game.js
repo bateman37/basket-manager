@@ -158,6 +158,22 @@
     // (LoanRegistry.registerCase rechaza una segunda instancia con el mismo
     // id, aunque el expediente previo ya sea terminal).
     loanNegotiationAttemptSequence: {},
+    // CYCLE-1 (DESIGN.md 9.22): registros canónicos del ciclo anual —
+    // instancias EXPLÍCITAS por carrera, creadas en
+    // `bootstrapCycleForNewCareer()` y limpiadas al volver a selección de
+    // equipo (nunca singletons).
+    annualCycleRegistry: null,
+    academyRegistry: null,
+    // Evidencia del último partido oficial de CADA club: el ciclo abre los
+    // plazos de verano desde la fecha REAL de cierre de cada club (un
+    // eliminado en cuartos tiene más verano que el campeón), nunca desde una
+    // única fecha común para los 36.
+    lastOfficialMatchEvidence: null,
+    // `AnnualRosterCycle` en curso (verano entre dos temporadas) — `null`
+    // mientras la temporada está en juego.
+    annualCycle: null,
+    cycleWarnings: [],
+    cycleLastTransition: null,
     statsCompetition: 'league', // 'league' | 'cup' | 'playoffs' — selector de la pantalla de estadísticas
     statsSortKey: 'points', // columna activa de ordenación en la tabla de medias (retoques de estadísticas)
     // DESIGN.md 7.12.25/7.12.32 (TAC-7): equipo elegido manualmente en el
@@ -573,7 +589,10 @@
       // usuario (`teamId`, el que está a punto de elegir esta llamada).
       teams.forEach((team) => {
         if (team.id === teamId) return;
-        team.tacticalProfile = BM.buildCpuTacticalIdentity(team, CONFIG_BASE);
+        // CYCLE-1 (BUG-CYCLE1-01): la identidad CPU se construye con la
+        // fecha de CARRERA explícita (edad de rotación real), nunca con el
+        // reloj del ordenador vía `player.age`.
+        team.tacticalProfile = BM.buildCpuTacticalIdentity(team, CONFIG_BASE, state.calendar.currentGameDateTime);
       });
       // CAL-1: dateResolver con la firma ampliada de League.generateSchedule
       // (round, matchIndexInRound, matchesInRound, totalRounds) — reparte
@@ -600,6 +619,13 @@
     // contrato/inscripción, pero reutiliza `state.playerRegistry` ya
     // completo de los 36 clubes.
     bootstrapMarketForNewCareer();
+    // CYCLE-1 (DESIGN.md 9.22, sección 29 del prompt): se ejecuta AL FINAL
+    // del arranque — el ciclo anual orquesta contratos, inscripciones,
+    // mercado, traspasos y cesiones, así que necesita los cinco registros
+    // anteriores ya creados. Inicializa además el ciclo de vida (desarrollo/
+    // médico/carrera/perfil de longevidad) de TODOS los jugadores del mundo,
+    // incluidos los libres del pool de mercado.
+    bootstrapCycleForNewCareer();
 
     state.brackets = {
       '1ª': { cup: null, titlePlayoff: null },
@@ -639,6 +665,16 @@
   // ---------------------------------------------------------------------
   function currentGameIsoDate() {
     return BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
+  }
+
+  // CYCLE-1 (DESIGN.md 9.22, BUG-CYCLE1-01): punto ÚNICO de la interfaz para
+  // la edad de un jugador — SIEMPRE contra la fecha de CARRERA, nunca el
+  // getter legacy `player.age` (que lee el reloj real del ordenador y en una
+  // carrera de 2036 mostraba la edad de 2026). Devuelve `null` si el jugador
+  // no tiene fecha de nacimiento conocida.
+  function careerAgeOf(player, referenceDate) {
+    if (!state.calendar) return null;
+    return BM.CareerAge.ageOnDate(player, referenceDate || state.calendar.currentGameDateTime);
   }
 
   // Nómina proyectada de los 36 clubes desde el registro contractual —
@@ -725,6 +761,73 @@
       `Agentes simulados: ${agentResult.agents.length}, ${agentResult.playersWithAgent}/${agentResult.eligiblePlayers} `
       + 'jugadores del pool con representación (el resto, autorrepresentado).',
     ];
+  }
+
+  // =====================================================================
+  // CYCLE-1 (DESIGN.md 9.22) — registros del ciclo anual y ciclo de vida
+  // =====================================================================
+  // `state.annualCycleRegistry` y `state.academyRegistry` son instancias
+  // EXPLÍCITAS por carrera (mismo criterio que `contractRegistry`/
+  // `registrationRegistry`/`marketRegistry`/`transferRegistry`/
+  // `loanRegistry`): nunca singletons, se limpian al volver a selección de
+  // equipo. `state.lastOfficialMatchEvidence` recoge la fecha del ÚLTIMO
+  // partido oficial de CADA club durante la temporada — sin ella el ciclo no
+  // se abre (nunca se inventa una fecha de cierre común para los 36).
+  function bootstrapCycleForNewCareer() {
+    const {
+      AnnualCycleRegistry, AcademyRegistry, SeasonHistoryService, WorldLifecycleService, RetirementService, CONFIG_BASE,
+    } = BM;
+    state.annualCycleRegistry = new AnnualCycleRegistry();
+    state.academyRegistry = new AcademyRegistry();
+    state.lastOfficialMatchEvidence = new SeasonHistoryService.LastOfficialMatchEvidenceCollector();
+    state.annualCycle = null;
+    state.cycleWarnings = [];
+    state.cycleLastTransition = null;
+    const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
+    const seasonKey = buildCareerSeasonKey();
+    // Un único COMANDO de inicialización por jugador (nunca repartido por
+    // renderizadores): desarrollo + médico + histórico + perfil de longevidad.
+    state.playerRegistry.all().forEach((player) => {
+      WorldLifecycleService.initializePlayerLifecycle(player, CONFIG_BASE, isoDate, {
+        seasonKey,
+        historyCompleteness: player.teamId ? 'partial' : 'complete',
+        annualCycleRegistry: state.annualCycleRegistry,
+        retirementService: RetirementService,
+        careerSeed: buildCycleCareerSeed(),
+      });
+    });
+  }
+
+  // Semilla de carrera del ciclo — determinista y estable para toda la
+  // partida (nunca `Math.random()`/`Date.now()`).
+  function buildCycleCareerSeed() {
+    return `cycle-1|${state.userTeamId || 'no-team'}|${state.seasonStartYear}`;
+  }
+
+  // Dependencias comunes que TODA llamada al ciclo necesita. Punto único:
+  // ninguna pantalla arma su propio objeto de dependencias a mano.
+  function buildCycleParams(extra) {
+    return {
+      annualCycleRegistry: state.annualCycleRegistry,
+      academyRegistry: state.academyRegistry,
+      cycle: state.annualCycle,
+      teams: getAllTeams(),
+      playerRegistry: state.playerRegistry,
+      contractRegistry: state.contractRegistry,
+      registrationRegistry: state.registrationRegistry,
+      marketRegistry: state.marketRegistry,
+      agentRegistry: state.agentRegistry,
+      transferRegistry: state.transferRegistry,
+      loanRegistry: state.loanRegistry,
+      config: BM.CONFIG_BASE,
+      careerSeed: buildCycleCareerSeed(),
+      userClubId: state.userTeamId,
+      lineup: state.lineup,
+      operationalContext: currentTransferOperationalContext(),
+      classificationCache: state.registrationClassificationCache,
+      retirementService: BM.RetirementService,
+      ...(extra || {}),
+    };
   }
 
   // Contrato de un jugador que se incorpora con la partida ya en marcha
@@ -1370,6 +1473,22 @@
     // partido ya resuelto — Agenda/Noticias, punto único (todo partido
     // resuelto de cualquier competición pasa por aquí).
     pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey);
+    // CYCLE-1 (DESIGN.md 9.22, sección 7 del prompt): PUNTO ÚNICO de
+    // evidencia del último partido oficial de cada club — todo partido
+    // resuelto de CUALQUIER competición (liga, Copa, playoff por el título,
+    // playoff de ascenso) pasa por aquí, así que el ciclo anual abre los
+    // plazos de verano desde la fecha REAL de cierre de cada club y nunca
+    // desde la final para los 36. No se recorre el calendario a posteriori.
+    if (state.lastOfficialMatchEvidence) {
+      state.lastOfficialMatchEvidence.recordMatch({
+        homeClubId: homeTeam.id,
+        awayClubId: awayTeam.id,
+        date,
+        competitionId: BM.competitionIdFromLegacyDivision(homeTeam.division),
+        phaseId: competitionKey,
+        matchId: result.gameId || null,
+      });
+    }
     // LIFE-4 (DESIGN.md 9.15, sección 11): clave estable del partido — mismo
     // `gameId` determinista de MatchEngine.createMatchState para ambos
     // lados, con fallback defensivo por fecha para caminos de modo prueba
@@ -1750,171 +1869,160 @@
   // ver renderHomeScreen) cuando isSeasonFullyClosable() — nunca
   // automático ni oculto.
   // ---------------------------------------------------------------------
+  // =====================================================================
+  // CYCLE-1 (DESIGN.md 9.22) — cierre de temporada = CICLO ANUAL completo
+  // =====================================================================
+  // Antes de CYCLE-1 esta función era un monolito que aplicaba ascensos,
+  // expiraba/re-sembraba inscripciones y generaba 3 canteranos por club de
+  // golpe (`Team.generateAcademyIntake(3)`). Ese atajo desaparece: ahora
+  // ejecuta el CICLO ANUAL real (las fases de `AnnualCycleService`), y el
+  // cierre DEPORTIVO (ascensos/descensos/honores/histórico) vive en
+  // `SeasonHistoryService`, compartido con los scripts de humo — la interfaz
+  // no reimplementa ninguna regla.
+  //
+  // Ninguna regla de juego nueva se decide aquí: la interfaz solo aporta el
+  // rol táctico real de cada jugador para el histórico (`rolesSnapshotFor`) y
+  // publica noticias DESPUÉS de cada commit real.
   function closeSeasonAndPrepareNext() {
-    const { League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision } = BM;
+    const {
+      League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision,
+      SeasonHistoryService, AnnualCycleService, WorldLifecycleService, CycleConfig,
+    } = BM;
 
     const leagueA = getLeague('1ª');
     const leagueB = getLeague('2ª');
     const bracketsA = getBrackets('1ª');
     const bracketsB = getBrackets('2ª');
     // CAL-2: instante real de cierre, capturado ANTES de sustituir
-    // `state.calendar` por el de la temporada siguiente (paso 4 más abajo).
+    // `state.calendar` por el de la temporada siguiente.
     const seasonEndDateTime = state.calendar.currentGameDateTime;
+    const seasonEndIso = BM.LocalDate.fromJsDate(seasonEndDateTime);
+    const fromSeasonKey = buildCareerSeasonKey();
+    const targetSeasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear + 1);
+    const teams = [...leagueA.teams, ...leagueB.teams];
 
-    // LIFE-4 (DESIGN.md 9.15, sección 16): división REAL de la temporada que
-    // se está cerrando, capturada ANTES de aplicar ascensos/descensos (paso
-    // 1 de abajo) — un ascendido/descendido debe cerrar su histórico con la
-    // división en la que JUGÓ esta temporada, no con la nueva.
-    const divisionBeforeByTeamId = new Map();
-    [...leagueA.teams, ...leagueB.teams].forEach((team) => divisionBeforeByTeamId.set(team.id, team.division));
+    // Sin evidencia de último partido oficial de CADA club no se abre el
+    // ciclo — nunca se inventa una fecha común. Si faltara algún club (una
+    // competición no jugada), se declara y se aborta con un aviso visible en
+    // vez de continuar con un dato falso.
+    const missing = state.lastOfficialMatchEvidence
+      ? state.lastOfficialMatchEvidence.missingClubIds(teams) : teams.map((team) => team.id);
+    if (missing.length) {
+      state.cycleWarnings = [
+        `No se puede abrir el ciclo anual: ${missing.length} club(es) sin evidencia de último partido oficial `
+        + `(${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}). El verano abre los plazos desde la `
+        + 'fecha REAL de cierre de cada club, nunca desde una fecha inventada.',
+      ];
+      goToScreen('cycle');
+      return;
+    }
 
-    // 1. Ascensos/descensos reales (DESIGN.md 3.4.2) — SOLO team.division
-    // cambia; ningún otro campo de jugador/equipo se toca (decisión
-    // explícita, no un descuido: un ascendido puede conservar overall
-    // bajo, y viceversa).
-    const standingsA = leagueA.getStandingsTable();
-    const relegatedTeams = [
-      standingsA[standingsA.length - 1].team,
-      standingsA[standingsA.length - 2].team,
-    ];
-    relegatedTeams.forEach((team) => { team.division = '2ª'; });
+    const { cycle } = AnnualCycleService.openCycle({
+      annualCycleRegistry: state.annualCycleRegistry,
+      teams,
+      fromSeasonKey,
+      targetSeasonKey,
+      evidence: state.lastOfficialMatchEvidence.toArray(),
+      date: seasonEndIso,
+      playerRegistry: state.playerRegistry,
+      contractRegistry: state.contractRegistry,
+    });
+    state.annualCycle = cycle;
 
-    // Reutiliza directPromotion/secondPromotedEntry ya calculados por
-    // PromotionPlayoff (Promotion.js) en vez de recalcular el campeón de
-    // liga regular de 2ª por nuestra cuenta — es literalmente el mismo
-    // dato (standings[0] de la liga regular de 2ª, ya completa).
-    const promotedTeams = [
-      bracketsB.promotionPlayoff.directPromotion.team,
-      bracketsB.promotionPlayoff.secondPromotedEntry.team,
-    ];
-    promotedTeams.forEach((team) => { team.division = '1ª'; });
-
-    // Composición de las dos divisiones YA actualizada (18+18), para
-    // todos los pasos siguientes — un recién ascendido/descendido calcula
-    // su sportingGoal y juega la siguiente liga ya en su división nueva.
-    const allTeams = [...leagueA.teams, ...leagueB.teams];
-    const teamsByDivision = {
-      '1ª': allTeams.filter((team) => team.division === '1ª'),
-      '2ª': allTeams.filter((team) => team.division === '2ª'),
+    const summary = { promoted: [], relegated: [], userTeamDivision: null };
+    const hooks = {
+      // Cierre DEPORTIVO: exactamente los mismos pasos que antes, ahora en
+      // `SeasonHistoryService` (compartido con los smokes).
+      closeSeasonHistory() {
+        const divisionsBefore = SeasonHistoryService.captureDivisionsBefore(teams);
+        const { promotedTeams, relegatedTeams } = SeasonHistoryService.applyPromotionsAndRelegations({
+          leagueA, leagueB, promotionPlayoff: bracketsB.promotionPlayoff,
+        });
+        const honoursByTeamId = SeasonHistoryService.buildSeasonHonoursByTeamId({
+          leagueB, cup: bracketsA.cup, titlePlayoff: bracketsA.titlePlayoff, promotedTeams,
+        });
+        // LIFE-1: el desarrollo mundial se procesa hasta el instante exacto
+        // de cierre ANTES de cerrar el histórico y ANTES de cualquier alta de
+        // cantera del ciclo — un newgen nunca recibe progreso retroactivo.
+        WorldLifecycleService.processWorldToDate({
+          playerRegistry: state.playerRegistry,
+          teams,
+          annualCycleRegistry: state.annualCycleRegistry,
+          academyRegistry: state.academyRegistry,
+        }, seasonEndDateTime, CONFIG_BASE, { seasonStartDate: state.calendar.seasonStartDate });
+        SeasonHistoryService.closeCareerHistories({
+          teams,
+          honoursByTeamId,
+          divisionsBefore,
+          seasonEndDateTime,
+          nextSeasonKey: targetSeasonKey,
+          config: CONFIG_BASE,
+          rolesSnapshotFor: (player, team) => buildRolesSnapshotForPlayer(player, team),
+        });
+        ['1ª', '2ª'].forEach((division) => {
+          recalculateSportingGoalsForDivision(teams.filter((team) => team.division === division), CONFIG_BASE);
+        });
+        summary.promoted = promotedTeams.map((team) => team.fullName);
+        summary.relegated = relegatedTeams.map((team) => team.fullName);
+        // CAL-2 (DESIGN.md 3.5): noticias de ascenso/descenso — reutiliza los
+        // MISMOS Team ya resueltos, nunca recalculados aparte.
+        pushNews(BM.buildPromotionRelegationNewsEvents(promotedTeams, relegatedTeams, {
+          userTeamId: state.userTeamId, dateTime: seasonEndDateTime,
+        }));
+        return summary;
+      },
     };
 
-    // 2. Recalcula sportingGoal de los 36 equipos (DESIGN.md 3.4.3/3.4.4
-    // paso 1), con la composición de división YA actualizada.
-    recalculateSportingGoalsForDivision(teamsByDivision['1ª'], CONFIG_BASE);
-    recalculateSportingGoalsForDivision(teamsByDivision['2ª'], CONFIG_BASE);
-
-    // 2.5 (LIFE-1, DESIGN.md 9, sección 0.d/27 del prompt de esta sesión):
-    // procesa el desarrollo de carrera de los 36 jugadores YA existentes
-    // hasta el instante exacto de cierre de temporada, ANTES del intake de
-    // cantera de abajo — un canterano recién generado arranca su
-    // developmentState.lastProcessedDate en esa misma fecha (ver
-    // generateAcademyIntake más abajo), así que procesar en este orden es
-    // lo único que garantiza que no reciba progreso retroactivo
-    // (invariante 36): si se hiciera después, `processDevelopmentToDateForTeams`
-    // no le aplicaría ticks extra de todos modos (su lastProcessedDate ya
-    // sería igual a `seasonEndDateTime`), pero el orden documentado aquí es
-    // el que el prompt pide explícitamente, sin dejarlo a la casualidad.
-    processDevelopmentToDateForTeams(allTeams, seasonEndDateTime);
-
-    // 2.6 (LIFE-4, DESIGN.md 9.15, sección 16): cierra el histórico de
-    // carrera de los 36 equipos YA existentes — ANTES del intake de
-    // cantera de abajo, mismo motivo documentado en LIFE-1 (2.5) para el
-    // orden de procesado: un canterano recién generado no debe recibir una
-    // temporada cerrada que nunca jugó (invariante 15 del prompt de esta
-    // sesión, "season no sobrescribe").
-    const nextSeasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear + 1);
-    // REG-1 (DESIGN.md 9.18, sección 12 del prompt): las licencias/
-    // inscripciones de la temporada que TERMINA expiran mediante evento
-    // (nunca se borran) — con la plantilla y división EXACTAS de la
-    // temporada que se cierra (`divisionBeforeByTeamId`, ya capturado
-    // arriba antes de aplicar ascensos/descensos).
-    const prevSeasonKey = buildCareerSeasonKey();
-    const closeIsoDateForRegistrations = BM.LocalDate.fromJsDate(seasonEndDateTime);
-    expireRegistrationsForSeasonClose(allTeams, divisionBeforeByTeamId, prevSeasonKey, closeIsoDateForRegistrations);
-    // Nuevas licencias/inscripciones de TRANSICIÓN para el ámbito/temporada
-    // NUEVO — con la plantilla YA en su división actualizada (paso 1), y
-    // ANTES del intake de cantera (los newgens se registran aparte, más
-    // abajo, para no colisionar con esta re-siembra masiva).
-    bootstrapRegistrationsForSeasonTransition(allTeams, nextSeasonKey, closeIsoDateForRegistrations);
-    const honoursByTeamId = buildSeasonHonoursByTeamId(leagueA, leagueB, bracketsA, bracketsB, promotedTeams);
-    allTeams.forEach((team) => {
-      const honours = honoursByTeamId.get(team.id) || [];
-      team.roster.forEach((player) => {
-        if (!player.careerHistory) return;
-        honours.forEach((honourCode) => BM.registerHonour(player, honourCode));
-        BM.closeSeason(player, {
-          endDate: seasonEndDateTime,
-          teamId: team.id,
-          teamName: team.fullName,
-          division: divisionBeforeByTeamId.get(team.id) || team.division,
-          roles: buildRolesSnapshotForPlayer(player, team),
-          honours,
-          nextSeasonKey,
-        }, CONFIG_BASE);
-      });
+    // Las fases del verano, cada una en SU fecha programada (el ciclo decide
+    // las fechas desde la evidencia real; la interfaz no las inventa).
+    const phaseResults = [];
+    const notReadyClubs = [];
+    let aborted = null;
+    CycleConfig.CYCLE_PHASES.slice(1).forEach((phaseId) => {
+      if (aborted) return;
+      const phaseDate = phaseId === 'new-season-started'
+        ? cycle.scheduledDateForPhase('preseason-ready')
+        : cycle.scheduledDateForPhase(phaseId);
+      const result = AnnualCycleService.runPhase(buildCycleParams({
+        // Sección 15 del prompt de CYCLE-1: el club del usuario NUNCA recibe
+        // una medida de emergencia automática — solo tras una acción
+        // explícita ("Delegar medidas de emergencia" en Planificación). Si
+        // el club queda `not-ready` por esto, el aborto de más abajo lo
+        // redirige a esa pantalla en vez de decidir por él.
+        cycle, phaseId, date: phaseDate, targetSeasonKey, hooks, delegateEmergencyForUserClub: false,
+      }));
+      phaseResults.push({ phaseId, date: phaseDate, result });
+      if (result && result.ready === false) {
+        aborted = phaseId;
+        (result.audit && result.audit.notReady ? result.audit.notReady : []).forEach((entry) => notReadyClubs.push(entry));
+      }
     });
 
-    // 3. Cantera/Academia de la nueva temporada (3.4.4 paso 2) — conecta
-    // Team.generateAcademyIntake() tal cual (con la fecha real de cierre,
-    // LIFE-1), sin ninguna otra regla nueva.
-    //
-    // CONTRACT-1 (DESIGN.md 9.17, sección 11): cada newgen firma un
-    // contrato NUEVO con el contexto doméstico YA ACTUALIZADO (los
-    // ascensos/descensos se aplicaron en el paso 1). Los contratos ya
-    // firmados NO se recrean ni cambian su `signingContext`: un ascenso no
-    // reescribe la ley histórica de un contrato anterior.
-    const closeIsoDate = BM.LocalDate.fromJsDate(seasonEndDateTime);
-    const intakeCalibration = state.contractRegistry
-      ? BM.ContractSeeder.buildCompetitionCalibration(allTeams, CONFIG_BASE) : null;
-    allTeams.forEach((team) => {
-      // BUG-REG1-02: clasificación del club ANTES del intake, sobre el
-      // MISMO roster senior que acaba de usar
-      // `bootstrapRegistrationsForSeasonTransition()` — ver comentario de
-      // `signRegistrationsForNewPlayers` más abajo.
-      const intakeClassification = state.registrationRegistry ? (() => {
-        const competitionId = BM.competitionIdFromLegacyDivision(team.division);
-        const resolved = BM.resolveRules({
-          domain: 'registration', competitionId, seasonKey: nextSeasonKey, date: closeIsoDate, phaseId: 'league', operation: 'bootstrap',
-        });
-        return BM.RegistrationSeeder.classifyRosterForClub(team, resolved, nextSeasonKey);
-      })() : null;
-      const newPlayers = team.generateAcademyIntake(3, seasonEndDateTime);
-      // LIFE-4 (DESIGN.md 9.15, sección 19): cantera nueva = histórico
-      // `complete` desde el instante real de su incorporación — nunca
-      // recibe temporadas anteriores vacías (arranca directamente en la
-      // temporada que viene, `nextSeasonKey`, ver cierre paso 4 más abajo).
-      newPlayers.forEach((player) => {
-        BM.ensureCareerHistory(player, CONFIG_BASE, seasonEndDateTime, {
-          historyCompleteness: 'complete', seasonKey: nextSeasonKey,
-        });
-      });
-      // ROSTER-1 (DESIGN.md 9.16): registra cada newgen en el registro
-      // mundial en cuanto se crea — el intake de cantera nunca deja a un
-      // jugador ilocalizable ni colisiona con ids existentes (PlayerRegistry
-      // rechaza duplicados con error descriptivo).
-      state.playerRegistry.registerMany(newPlayers);
-      // CONTRACT-1: el contrato se crea DESPUÉS de registrar al jugador en
-      // el registro mundial (nunca desde `Player`/`Team.addPlayer`), vía
-      // ContractService, y ya con la competición doméstica nueva.
-      signContractsForNewPlayers(team, newPlayers, nextSeasonKey, closeIsoDate, intakeCalibration);
-      // REG-1: la licencia/inscripción del newgen se crea DESPUÉS de su
-      // contrato (sección 10.3: "tener contrato no activa por sí solo la
-      // licencia") — un newgen NO es automáticamente jugador de formación
-      // senior por nacer en la cantera (RegistrationSeeder lo clasifica
-      // igual que cualquier otro afiliado nuevo del club).
-      signRegistrationsForNewPlayers(team, newPlayers, nextSeasonKey, closeIsoDate, intakeClassification);
-    });
+    state.cycleLastTransition = {
+      fromSeasonKey, targetSeasonKey, phaseResults, notReadyClubs, aborted,
+    };
+    if (aborted) {
+      state.cycleWarnings = [
+        `El ciclo anual se detuvo en la fase "${aborted}": ${notReadyClubs.length} club(es) no pueden construir una `
+        + 'convocatoria legal. Ninguna temporada empieza con un club ilegal — revisa "Planificación".',
+      ];
+      goToScreen('cycle');
+      return;
+    }
+    state.cycleWarnings = [];
 
-    // CONTRACT-1: la nómina proyectada de los 36 clubes se recalcula para
-    // la temporada que entra, siempre desde el registro contractual.
-    refreshAllSalaryProjections(nextSeasonKey);
+    // CONTRACT-1: la nómina proyectada de los 36 clubes se recalcula para la
+    // temporada que entra, siempre desde el registro contractual.
+    refreshAllSalaryProjections(targetSeasonKey);
 
-    // 4. Nuevo Calendar (3.4.4 paso 3).
+    // Nuevo Calendar + nuevas League (DESIGN.md 3.4.4 pasos 3-4) — SOLO
+    // después de que el ciclo haya alcanzado `new-season-started`.
     state.seasonStartYear += 1;
     state.calendar = new Calendar(state.seasonStartYear, CONFIG_BASE);
-
-    // 5. Nuevas League para 1ª y 2ª (3.4.4 paso 4) — standings a cero,
-    // currentRound = 1, reutilizando League.js tal cual.
+    const teamsByDivision = {
+      '1ª': teams.filter((team) => team.division === '1ª'),
+      '2ª': teams.filter((team) => team.division === '2ª'),
+    };
     function buildLeagueDateResolver(div) {
       return (round, matchIndexInRound, matchesInRound, totalRounds) => (
         state.calendar.leagueMatchDateTime(round, matchIndexInRound, matchesInRound, totalRounds, div)
@@ -1924,30 +2032,21 @@
       '1ª': new League(teamsByDivision['1ª'], buildLeagueDateResolver('1ª')),
       '2ª': new League(teamsByDivision['2ª'], buildLeagueDateResolver('2ª')),
     };
-
-    // 6. Reset de brackets de ambas divisiones (3.4.4 paso 5).
     state.brackets = {
       '1ª': { cup: null, titlePlayoff: null },
       '2ª': { promotionPlayoff: null },
     };
 
-    // 7. state.userTeamId NO cambia (sigue siendo su mismo equipo); si
-    // ascendió/descendió, state.division le sigue para que "su" liga
-    // siga siendo la visible (3.4.2 punto 4).
-    const userTeam = allTeams.find((team) => team.id === state.userTeamId);
-    const summary = {
-      promoted: promotedTeams.map((team) => team.fullName),
-      relegated: relegatedTeams.map((team) => team.fullName),
-      userTeamDivision: userTeam ? userTeam.division : null,
-    };
-    if (userTeam) state.division = userTeam.division;
+    // La evidencia de último partido oficial se reinicia para la temporada
+    // que empieza — la del verano ya consumido queda en el ciclo cerrado.
+    state.lastOfficialMatchEvidence = new SeasonHistoryService.LastOfficialMatchEvidenceCollector();
+    state.annualCycle = null;
 
-    // CAL-2 (DESIGN.md 3.5): noticias de ascenso/descenso — reutiliza
-    // exactamente `promotedTeams`/`relegatedTeams` ya calculados arriba
-    // (Team reales, no recalculados aparte).
-    pushNews(BM.buildPromotionRelegationNewsEvents(promotedTeams, relegatedTeams, {
-      userTeamId: state.userTeamId, dateTime: seasonEndDateTime,
-    }));
+    // state.userTeamId NO cambia; si ascendió/descendió, state.division le
+    // sigue para que "su" liga siga siendo la visible (DESIGN.md 3.4.2).
+    const userTeam = teams.find((team) => team.id === state.userTeamId);
+    summary.userTeamDivision = userTeam ? userTeam.division : null;
+    if (userTeam) state.division = userTeam.division;
 
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
@@ -3671,7 +3770,7 @@
     return `
       <tr>
         <td>${playerLinkHtml(player)}${medicalHtml}</td>
-        <td>${player.age}</td>
+        <td>${careerAgeOf(player) ?? '—'}</td>
         <td>${Math.round(player.dynamicState.energy)}</td>
         <td><select class="training-focus-type-select" data-player-id="${player.id}">${typeOptionsHtml}</select></td>
         <td>${targetHtml}</td>
@@ -3786,7 +3885,7 @@
     return `
       <tr class="medical-row medical-row--${info.status}">
         <td>${playerLinkHtml(player)}</td>
-        <td>${player.age}</td>
+        <td>${careerAgeOf(player, referenceDate) ?? '—'}</td>
         <td>${statusLabel}</td>
         <td>${injuryLabel}</td>
         <td>${returnRange ? returnRange.label : '—'}</td>
@@ -4862,7 +4961,22 @@
     // partida todavía no construyó `state.registrationRegistry` (defensivo).
     const pool = buildEligiblePoolForMatch(team, context);
     const eligibility = pool ? { pool, resolved } : null;
-    return buildCpuLineup(team, matchImportance, CONFIG_BASE, date, resolved.squadRules, eligibility);
+    const built = buildCpuLineup(team, matchImportance, CONFIG_BASE, date, resolved.squadRules, eligibility);
+    // BUG-LOAN1-01 (CYCLE-1, DESIGN.md 9.22): una imposibilidad
+    // reglamentaria NUNCA cae a un selector no regulado, y el motor no
+    // juega un partido con acta ilegal — se detiene con el diagnóstico
+    // estructurado que el usuario ve tal cual. Resolverlo ANTES del primer
+    // partido es responsabilidad de la fase de legalidad del ciclo anual
+    // (`RosterLegalityService`, escalera de emergencia incluida).
+    if (built.outcome === 'infeasible') {
+      throw new Error(
+        `Convocatoria reglamentariamente IMPOSIBLE para "${built.diagnostic.teamName}" `
+        + `(${built.diagnostic.code}): pool regulado ${built.diagnostic.poolSize}, elegibles y disponibles `
+        + `${built.diagnostic.eligibleAndAvailable}, mínimo efectivo ${built.diagnostic.effectiveMin}. `
+        + 'El partido no se juega con un acta ilegal (CYCLE-1, BUG-LOAN1-01).',
+      );
+    }
+    return built;
   }
 
   // Resolver de opciones de MatchEngine compartido por CUALQUIER partido
@@ -5463,8 +5577,8 @@
       : '';
 
     const headerSubtitle = team
-      ? `${player.age ?? '—'} años · ${escapeHtml(team.fullName)} (${team.division}) · ${player.nominalPosition}`
-      : `${player.age ?? '—'} años · Sin club · ${player.nominalPosition}`;
+      ? `${careerAgeOf(player) ?? '—'} años · ${escapeHtml(team.fullName)} (${team.division}) · ${player.nominalPosition}`
+      : `${careerAgeOf(player) ?? '—'} años · Sin club · ${player.nominalPosition}`;
 
     let rolesCardHtml;
     if (team) {
@@ -6140,6 +6254,243 @@
       </div>` : ''}
       <p class="gm-muted contract-scope-note">Inscribir, dar de baja, vincular, tantear o solicitar autorización internacional todavía no
         existen como acciones del juego (MARKET-1 / TRANSFER-1 / LOAN-1 / EUROPE-1): esta pestaña es de consulta.</p>`;
+  }
+
+  // --- Pantalla "Planificación" / "Ciclo anual" (CYCLE-1, DESIGN.md 9.22) -
+  // ÚNICA pantalla con acciones de renovación/opción y de decisión de
+  // academia — Contratos e Inscripciones siguen de solo lectura tal cual
+  // documentan CONTRACT-1/REG-1. Consolida en una sola pantalla las cuatro
+  // áreas de la sección 20 del prompt (estado del ciclo, Contratos,
+  // Academia, Mercado/retiradas) — decisión de producto documentada en
+  // DESIGN.md/CLAUDE.md.
+  function runRenewalNegotiation(team, contract) {
+    const { RenewalService, CycleConfig: CC, LocalDate: LD } = BM;
+    const isoDate = currentGameIsoDate();
+    const seasonKey = buildCareerSeasonKey();
+    const player = state.playerRegistry.get(contract.playerId);
+    if (!player) return { outcome: 'failed', reason: 'PLAYER_NOT_FOUND' };
+    const eligibility = RenewalService.isRenewable({
+      contract, annualCycleRegistry: state.annualCycleRegistry, contractRegistry: state.contractRegistry, date: isoDate,
+    });
+    if (!eligibility.renewable) return { outcome: 'failed', reason: eligibility.reason };
+    const resolved = BM.ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateContract' });
+    const cycleId = state.annualCycle ? state.annualCycle.id : `season:${seasonKey}`;
+    const renewalCase = RenewalService.openRenewalCase({
+      annualCycleRegistry: state.annualCycleRegistry, cycle: { id: cycleId }, player, team, expiringContract: contract, date: isoDate, seasonKey,
+    });
+    const marketContext = BM.MarketService.resolveMarketContext({
+      domesticCompetitionId: BM.competitionIdFromLegacyDivision(team.division), seasonKey, date: isoDate,
+    });
+    let round = 0;
+    let outcome = null;
+    let salaryOverrideMinor = null;
+    while (round < CC.RENEWAL.maxOfferRounds) {
+      const result = RenewalService.sendRenewalOfferAndResolve({
+        annualCycleRegistry: state.annualCycleRegistry, marketRegistry: state.marketRegistry, playerRegistry: state.playerRegistry,
+        contractRegistry: state.contractRegistry, agentRegistry: state.agentRegistry,
+        renewalCase, player, team, expiringContract: contract, resolved, seasonKey, date: isoDate,
+        careerSeed: buildCycleCareerSeed(), marketContext, salaryOverrideMinor,
+      });
+      outcome = result.outcome;
+      if (outcome === 'countered' && result.counterRequestMinor) {
+        salaryOverrideMinor = result.counterRequestMinor;
+        round += 1;
+        continue;
+      }
+      break;
+    }
+    if (outcome !== 'agreement-in-principle') return { outcome: outcome || 'rejected', player, renewalCase };
+    const { contract: newContract } = RenewalService.commitRenewal({
+      annualCycleRegistry: state.annualCycleRegistry, marketRegistry: state.marketRegistry, contractRegistry: state.contractRegistry,
+      playerRegistry: state.playerRegistry, renewalCase, player, team, resolved, seasonKey, date: isoDate, teams: getAllTeams(),
+    });
+    pushNews(BM.buildMarketNewsEvent({
+      dateTime: state.calendar.currentGameDateTime,
+      title: `${player.fullName} renueva su contrato con ${team.fullName}`,
+      relatedTeam: team,
+      relatedPlayer: { id: player.id, fullName: player.fullName },
+      priority: 'alta',
+    }));
+    void LD;
+    return { outcome: 'accepted', player, contract: newContract };
+  }
+
+  function cycleContractsExpiringHtml(team, isoDate) {
+    const { RenewalService } = BM;
+    const contracts = state.contractRegistry.forClub(team.id).filter((c) => c.isCurrentOn(isoDate));
+    if (!contracts.length) return '<p class="gm-muted">No hay contratos vigentes.</p>';
+    const rows = contracts.map((contract) => {
+      const player = state.playerRegistry.get(contract.playerId);
+      if (!player) return '';
+      const eligibility = RenewalService.isRenewable({
+        contract, annualCycleRegistry: state.annualCycleRegistry, contractRegistry: state.contractRegistry, date: isoDate,
+      });
+      const alreadyRenewed = state.contractRegistry.forPlayer(contract.playerId)
+        .some((other) => other.id !== contract.id && BM.LocalDate.isAfter(other.startDate, contract.endDate));
+      const action = alreadyRenewed
+        ? '<span class="gm-tag gm-tag--ok">Continuidad ya acordada</span>'
+        : eligibility.renewable
+          ? `<button class="gm-btn gm-btn--sm cycle-renew-btn" data-contract-id="${escapeHtml(contract.id)}" type="button">Proponer renovación</button>`
+          : `<span class="gm-muted">${eligibility.reason === 'OUTSIDE_RENEWAL_WINDOW' ? 'Fuera de ventana de renovación' : 'No renovable ahora'}</span>`;
+      return `<tr>
+        <td>${escapeHtml(player.fullName)}</td>
+        <td>${escapeHtml(formatIsoDateEs(contract.endDate))}</td>
+        <td>${action}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="gm-table-scroll"><table class="gm-table"><thead><tr><th>Jugador</th><th>Fin de contrato</th><th>Acción</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  }
+
+  function cycleAcademyHtml(team, isoDate) {
+    if (!state.academyRegistry) return '';
+    const { CareerAge, CycleConfig: CC } = BM;
+    const pool = state.academyRegistry.activePoolForClub(team.id, isoDate);
+    if (!pool.length) return '<p class="gm-muted">Sin jugadores de academia activos.</p>';
+    const rows = pool.map((membership) => {
+      const player = state.playerRegistry.get(membership.playerId);
+      if (!player) return '';
+      const age = CareerAge.ageOnDate(player, isoDate);
+      const canPromote = age !== null && age <= CC.ACADEMY.maxAgeInclusive + 2;
+      return `<tr>
+        <td>${escapeHtml(player.fullName)}</td>
+        <td>${escapeHtml(player.nominalPosition || '')}</td>
+        <td>${age !== null ? age : '—'}</td>
+        <td>${canPromote ? `<button class="gm-btn gm-btn--sm cycle-promote-btn" data-player-id="${escapeHtml(player.id)}" type="button">Promocionar</button>` : '<span class="gm-muted">—</span>'}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="gm-table-scroll"><table class="gm-table"><thead><tr><th>Jugador</th><th>Posición</th><th>Edad</th><th>Acción</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+      <p class="gm-muted">Continuar/liberar/abandonar la vía profesional se decide una vez al año, en el ciclo de verano.</p>`;
+  }
+
+  function cycleRetirementsHtml(team, isoDate) {
+    if (!state.annualCycleRegistry) return '';
+    const rows = team.roster.flatMap((player) => (
+      state.annualCycleRegistry.retirementAnnouncementsForPlayer(player.id).map((a) => ({ player, announcement: a }))
+    )).filter(({ announcement }) => announcement.currentStatus() === 'announced');
+    if (!rows.length) return '<p class="gm-muted">Sin anuncios de retirada en tu plantilla.</p>';
+    return `<ul class="gm-list">${rows.map(({ player, announcement }) => (
+      `<li>${escapeHtml(player.fullName)} anuncia su retirada, efectiva el ${escapeHtml(formatIsoDateEs(announcement.effectiveDate))}.</li>`
+    )).join('')}</ul>`;
+  }
+
+  function cycleLegalityHtml(team, isoDate) {
+    const { RosterLegalityService } = BM;
+    const report = RosterLegalityService.buildReport({
+      team, seasonKey: buildCareerSeasonKey(), date: isoDate, phaseId: 'league', cycleId: null, config: BM.CONFIG_BASE,
+      playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry,
+      loanRegistry: state.loanRegistry, teams: getAllTeams(), classificationCache: state.classificationCache || new Map(),
+    });
+    if (report.isLegal) return '<p class="gm-tag gm-tag--ok">Plantilla legal para el próximo partido.</p>';
+    const gaps = report.gaps.filter((g) => g.severity === 'blocking').map((g) => g.code).join(', ');
+    return `<p class="gm-tag gm-tag--warn">Plantilla NO legal (${escapeHtml(gaps)}).</p>
+      <button class="gm-btn cycle-emergency-btn" type="button">Delegar medidas de emergencia</button>`;
+  }
+
+  function renderCycleScreen() {
+    const container = byId('gm-cycle');
+    const team = getUserTeam();
+    if (!container) return;
+    if (!team || !state.annualCycleRegistry) { container.innerHTML = ''; return; }
+    const isoDate = currentGameIsoDate();
+    const cyclePhaseLabel = state.annualCycle ? state.annualCycle.currentPhase() : 'Temporada en curso';
+    const warningsHtml = (state.cycleWarnings || []).length
+      ? `<div class="gm-card gm-card--warn">${state.cycleWarnings.map((w) => `<p>${escapeHtml(w)}</p>`).join('')}</div>` : '';
+    container.innerHTML = `
+      <h2>Planificación — ${escapeHtml(team.fullName)}</h2>
+      <p class="gm-muted">Temporada ${escapeHtml(buildCareerSeasonKey())} · Fecha del mundo: ${escapeHtml(formatIsoDateEs(isoDate))} · Fase: ${escapeHtml(cyclePhaseLabel)}</p>
+      ${warningsHtml}
+      <div class="gm-card">
+        <h3>Legalidad de la plantilla</h3>
+        ${cycleLegalityHtml(team, isoDate)}
+      </div>
+      <div class="gm-card">
+        <h3>Contratos que vencen — renovación</h3>
+        ${cycleContractsExpiringHtml(team, isoDate)}
+      </div>
+      <div class="gm-card">
+        <h3>Academia</h3>
+        ${cycleAcademyHtml(team, isoDate)}
+      </div>
+      <div class="gm-card">
+        <h3>Retiradas anunciadas</h3>
+        ${cycleRetirementsHtml(team, isoDate)}
+      </div>
+      <p class="gm-muted contract-scope-note">Opciones contractuales, tanteo y equilibrio de mercado se resuelven
+        orgánicamente durante el ciclo anual — esta pantalla es la única con acciones de renovación/academia.</p>`;
+    wireCycleScreenActions(container, team);
+  }
+
+  function wireCycleScreenActions(container, team) {
+    container.querySelectorAll('.cycle-renew-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const contract = state.contractRegistry.get(btn.dataset.contractId);
+        if (!contract) return;
+        const result = runRenewalNegotiation(team, contract);
+        const label = result.outcome === 'accepted' ? 'Renovación acordada.'
+          : result.outcome === 'rejected' ? 'El jugador rechaza la renovación por ahora.'
+            : `No se pudo renovar (${result.reason || result.outcome}).`;
+        window.alert(label); // eslint-disable-line no-alert
+        renderCycleScreen();
+      });
+    });
+    container.querySelectorAll('.cycle-promote-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const membership = state.academyRegistry.membershipsForClub(team.id)
+          .find((m) => m.playerId === btn.dataset.playerId && m.currentStatus() === 'active');
+        if (!membership) return;
+        const isoDate = currentGameIsoDate();
+        const seasonKey = buildCareerSeasonKey();
+        const resolved = BM.RegistrationService.resolveRegistrationRules({
+          competitionId: BM.competitionIdFromLegacyDivision(team.division), seasonKey, date: isoDate, phaseId: 'league',
+        });
+        const calibration = BM.ContractSeeder.buildCompetitionCalibration(getAllTeams(), BM.CONFIG_BASE);
+        const player = state.playerRegistry.get(membership.playerId);
+        try {
+          BM.AcademyService.promoteToFirstTeam({
+            academyRegistry: state.academyRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
+            registrationRegistry: state.registrationRegistry, teams: getAllTeams(), membership, team, date: isoDate, seasonKey,
+            config: BM.CONFIG_BASE, calibration, lineup: state.lineup, existingClassification: resolved.classification || null,
+          });
+          if (player) {
+            pushNews(BM.buildMarketNewsEvent({
+              dateTime: state.calendar.currentGameDateTime,
+              title: `${player.fullName} promociona al primer equipo de ${team.fullName}`,
+              relatedTeam: team,
+              relatedPlayer: { id: player.id, fullName: player.fullName },
+              priority: 'alta',
+            }));
+          }
+          window.alert('Promoción completada.'); // eslint-disable-line no-alert
+        } catch (err) {
+          window.alert(`No se pudo promocionar: ${err.message}`); // eslint-disable-line no-alert
+        }
+        renderCycleScreen();
+      });
+    });
+    const emergencyBtn = container.querySelector('.cycle-emergency-btn');
+    if (emergencyBtn) {
+      emergencyBtn.addEventListener('click', () => {
+        const isoDate = currentGameIsoDate();
+        const seasonKey = buildCareerSeasonKey();
+        const report = BM.RosterLegalityService.buildReport({
+          team, seasonKey, date: isoDate, phaseId: 'league', cycleId: state.annualCycle ? state.annualCycle.id : null, config: BM.CONFIG_BASE,
+          playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry,
+          loanRegistry: state.loanRegistry, teams: getAllTeams(), classificationCache: state.classificationCache || new Map(),
+        });
+        BM.RosterLegalityService.applyEmergencyLadder({
+          report, team, date: isoDate, seasonKey, config: BM.CONFIG_BASE, cycle: state.annualCycle, careerSeed: buildCycleCareerSeed(),
+          delegatedByUser: true,
+          deps: {
+            academyRegistry: state.academyRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
+            registrationRegistry: state.registrationRegistry, annualCycleRegistry: state.annualCycleRegistry, teams: getAllTeams(),
+            lineup: state.lineup, calibration: BM.ContractSeeder.buildCompetitionCalibration(getAllTeams(), BM.CONFIG_BASE),
+          },
+        });
+        renderCycleScreen();
+      });
+    }
   }
 
   // --- Pantalla "Contratos" ----------------------------------------------
@@ -7703,12 +8054,24 @@
     }
     const { player, team } = found;
     const { CONFIG_BASE } = BM;
-    // Legacy/defensivo (sección 5/54): cualquier jugador sin careerHistory
-    // todavía (guardado anterior a esta entrega, o instancia que nunca
-    // pasó por buildRealTeamFromData) lo recibe aquí mismo, sin inventar
-    // pasado — baseline en el instante real de esta apertura de ficha.
-    BM.ensureCareerHistory(player, CONFIG_BASE, state.calendar.currentGameDateTime, { seasonKey: buildCareerSeasonKey() });
+    // CYCLE-1 (DESIGN.md 9.22, BUG-CYCLE1-03) — CORREGIDO: este render llamaba
+    // a `ensureCareerHistory()` (un COMANDO que inicializa/normaliza) en cada
+    // apertura de ficha, mutando al jugador solo por consultarlo. Ahora TODO
+    // punto que crea o registra un jugador (bootstrapCycleForNewCareer() al
+    // arrancar la carrera, AcademyService.runAnnualIntake(),
+    // RosterLegalityService's emergencia) llama a
+    // `WorldLifecycleService.initializePlayerLifecycle()` una sola vez, así
+    // que al llegar aquí `careerHistory` YA existe siempre — el render solo
+    // LEE. Si algún jugador legacy llegara sin ella, se muestra diagnóstico
+    // en vez de inicializar durante la consulta.
     const ch = player.careerHistory;
+    if (!ch) {
+      container.innerHTML = `
+        <button id="player-profile-back-btn" class="gm-btn player-profile__back" type="button">← Volver</button>
+        <p class="gm-muted">Ficha no disponible: este jugador no tiene historial de carrera inicializado.</p>`;
+      byId('player-profile-back-btn').addEventListener('click', closePlayerProfile);
+      return;
+    }
     const activeTab = ctx.activeTab || 'summary';
 
     let body = '';
@@ -7750,7 +8113,7 @@
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
   const SCREENS = [
-    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
     'player-profile',
   ];
 
@@ -7772,6 +8135,7 @@
     if (screen === 'contracts') renderContractsScreen();
     if (screen === 'registrations') renderRegistrationsScreen();
     if (screen === 'market') renderMarketScreen();
+    if (screen === 'cycle') renderCycleScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();
@@ -7835,6 +8199,15 @@
       // sobreviven a "Volver a selección de equipo".
       state.loanRegistry = null;
       state.loanNegotiationAttemptSequence = {};
+      // CYCLE-1 (DESIGN.md 9.22): mismo criterio — ciclos anuales,
+      // expedientes de club, renovaciones, retiradas, academia y evidencia
+      // de último partido oficial pertenecen a UNA partida.
+      state.annualCycleRegistry = null;
+      state.academyRegistry = null;
+      state.lastOfficialMatchEvidence = null;
+      state.annualCycle = null;
+      state.cycleWarnings = [];
+      state.cycleLastTransition = null;
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado
@@ -8264,5 +8637,11 @@
 
   global.BasketManagerGame = {
     state, init, goToScreen, getUserTeam, simulateNextRound, startSeason,
+    // Expuestas para scripts/verify-*-playwright.js: son las MISMAS
+    // funciones de producción que ya usa el juego para resolver de golpe
+    // la división de fondo (DESIGN.md 3.4.1) — nunca un motor de prueba
+    // aparte. Permiten avanzar una carrera completa en un test sin
+    // reproducir cientos de reveals interactivos.
+    simulateBackgroundRound, drainBackgroundBrackets, getLeague, getBrackets, buildCpuOnlyResolver,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
