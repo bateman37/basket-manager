@@ -36,6 +36,12 @@
     screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'agenda' | 'news' | 'calendar' | 'competitions' | 'stats' | 'match'
     division: '1ª',
     userTeamId: null,
+    // WORLD-CORE-1 (DESIGN.md, "World Architecture"): `GameWorld` canónico
+    // de ESTA partida — `null` hasta `startSeason()`, nunca un singleton
+    // oculto. `state.playerRegistry`/`contractRegistry`/etc. de abajo son
+    // ALIASES de identidad estricta a `state.world.domainRegistries.*`
+    // (misma instancia, nunca una copia) desde que se construye el mundo.
+    world: null,
     // ROSTER-1 (DESIGN.md 9.16): instancia EXPLÍCITA del registro mundial
     // de jugadores de ESTA partida — `null` hasta `startSeason()` (nunca
     // un singleton global oculto: cada partida nueva construye la suya).
@@ -556,10 +562,16 @@
     // registro mundial — nunca un singleton compartido entre partidas.
     state.playerRegistry = new PlayerRegistry();
 
+    // WORLD-CORE-1: capturado dentro del bucle de abajo para instalar el
+    // paquete `spain-2026.1` sobre las MISMAS instancias de Team ya
+    // construidas — nunca se reconstruyen (ver más abajo, tras el bucle).
+    const teamsByDivision = {};
+
     // DESIGN.md 3.4.1: las DOS divisiones reales se construyen SIEMPRE,
     // no solo la del usuario — comparten el mismo Calendar de temporada.
     ['1ª', '2ª'].forEach((div) => {
       const teams = getRealTeamsByDivision(div);
+      teamsByDivision[div] = teams;
       // ROSTER-1 (DESIGN.md 9.16): registra el universo completo de
       // jugadores de ESTE equipo (reales + relleno ficticio por cobertura
       // incompleta) en cuanto se construye — antes de cualquier otro
@@ -603,6 +615,28 @@
       ));
     });
 
+    // WORLD-CORE-1 (DESIGN.md, "World Architecture") — `GameWorld` canónico
+    // de la carrera: se construye AQUÍ (equipos y ligas de las dos
+    // divisiones ya existen, como MISMAS instancias, nunca reconstruidas) e
+    // instala `world-core-2026.1` + `spain-2026.1`. Si la instalación
+    // lanzara, `state.world` NUNCA llega a asignarse (invariante 22: no debe
+    // quedar un mundo parcial utilizable) — el error se propaga tal cual.
+    const worldSeasonKey = buildCareerSeasonKey();
+    const world = BM.buildCareerWorld({
+      id: `world:${teamId}:${state.seasonStartYear}`,
+      name: 'Mundo de la carrera',
+      careerSeed: buildMarketCareerSeed(),
+      createdAtGameDate: currentGameIsoDate(),
+      packs: [BM.WORLD_CORE_MANIFEST, BM.SPAIN_MANIFEST],
+      context: { teamsByDivision, seasonKey: worldSeasonKey, seasonStartDate: currentGameIsoDate() },
+    });
+    state.world = world;
+    ['1ª', '2ª'].forEach((div) => {
+      BM.SpainLegacyCompetitionRuntime.bindLeagueRuntime(state.world, {
+        division: div, seasonKey: worldSeasonKey, league: state.leagues[div],
+      });
+    });
+
     // CONTRACT-1 (DESIGN.md 9.17, sección 11 del prompt): con los 36
     // equipos ya construidos y el Player Registry completo, se crea el
     // registro CONTRACTUAL de la partida, se valida que los 36 clubes
@@ -626,6 +660,23 @@
     // médico/carrera/perfil de longevidad) de TODOS los jugadores del mundo,
     // incluidos los libres del pool de mercado.
     bootstrapCycleForNewCareer();
+
+    // WORLD-CORE-1 (sección 5.2 del prompt): adjunta por IDENTIDAD (nunca
+    // copia) los siete registros de dominio ya creados arriba —
+    // `state.world.domainRegistries.playerRegistry === state.playerRegistry`
+    // es una comprobación de identidad estricta, no de contenido.
+    state.world.attachDomainRegistries({
+      playerRegistry: state.playerRegistry,
+      contractRegistry: state.contractRegistry,
+      registrationRegistry: state.registrationRegistry,
+      agentRegistry: state.agentRegistry,
+      marketRegistry: state.marketRegistry,
+      transferRegistry: state.transferRegistry,
+      loanRegistry: state.loanRegistry,
+      annualCycleRegistry: state.annualCycleRegistry,
+      academyRegistry: state.academyRegistry,
+    });
+    state.world.setCalendar(state.calendar);
 
     state.brackets = {
       '1ª': { cup: null, titlePlayoff: null },
@@ -1397,7 +1448,13 @@
       });
   }
 
+  // WORLD-CORE-1 (sección 8.5 del prompt): fuente MUNDIAL cuando existe
+  // (`state.world.registries.teams`, las MISMAS instancias que ya
+  // devolvía el recorrido por liga) — nunca "la lista de clubes españoles"
+  // como única fuente posible. El camino por liga se conserva como
+  // compatibilidad para cualquier llamada anterior a que exista mundo.
   function getAllTeams() {
+    if (state.world) return state.world.registries.teams.all();
     const teams = [];
     ['1ª', '2ª'].forEach((div) => {
       const league = getLeague(div);
@@ -1591,7 +1648,15 @@
     // 3.2.2) — createCup() exige el valor EXACTO de currentRound.
     if (division === '1ª' && league.currentRound === CUP_TRIGGER_ROUND + 1 && !brackets.cup) {
       const cupDates = state.calendar ? state.calendar.cupRoundDates() : undefined;
+      const cupQualifiedTeams = league.getStandingsTable().slice(0, 8).map((standing) => standing.team);
       brackets.cup = createCup(league, cupDates);
+      // WORLD-CORE-1 (sección 8.2 del prompt): enlaza la Copa recién creada
+      // con su propia CompetitionEdition/Stage (competición SEPARADA de la
+      // Liga, invariante 13) — misma foto de clasificación que ya usa
+      // `createCup()` por dentro.
+      BM.SpainLegacyCompetitionRuntime.bindCup(state.world, {
+        seasonKey: buildCareerSeasonKey(), bracket: brackets.cup, qualifiedTeams: cupQualifiedTeams,
+      });
       // CAL-2 (DESIGN.md 3.5): noticia de competición SOLO si es la división
       // visible del usuario — la Copa de la división de fondo no genera
       // noticias (ver decisión documentada en finishRoundBookkeeping).
@@ -1617,13 +1682,27 @@
       const dateResolver = state.calendar
         ? state.calendar.buildBracketDateResolver(playoffStartDate, TITLE_PLAYOFF_ROUND_PATTERNS)
         : undefined;
+      const titleQualifiedTeams = league.getStandingsTable().slice(0, 8).map((standing) => standing.team);
       brackets.titlePlayoff = createTitlePlayoff(league, dateResolver);
+      // WORLD-CORE-1: invariante 13 — el playoff por el título es un STAGE
+      // de la MISMA edición de Liga de esta temporada, nunca una
+      // competición aparte.
+      BM.SpainLegacyCompetitionRuntime.bindTitlePlayoff(state.world, {
+        seasonKey: buildCareerSeasonKey(), bracket: brackets.titlePlayoff, qualifiedTeams: titleQualifiedTeams,
+      });
     } else {
       if (brackets.promotionPlayoff) return;
       const dateResolver = state.calendar
         ? state.calendar.buildBracketDateResolver(playoffStartDate, PROMOTION_ROUND_PATTERNS)
         : undefined;
+      const promotionQualifiedTeams = league.getStandingsTable().slice(0, 9).map((standing) => standing.team);
       brackets.promotionPlayoff = new PromotionPlayoff(league, dateResolver);
+      // WORLD-CORE-1: mismo criterio — stage de la edición de Primera FEB,
+      // nunca una competición aparte (9 participantes: 1º asciende directo +
+      // 2º-9º juegan la eliminatoria, DESIGN.md 3.2.3).
+      BM.SpainLegacyCompetitionRuntime.bindPromotionPlayoff(state.world, {
+        seasonKey: buildCareerSeasonKey(), bracket: brackets.promotionPlayoff, qualifiedTeams: promotionQualifiedTeams,
+      });
     }
   }
 
@@ -1899,7 +1978,10 @@
     const seasonEndIso = BM.LocalDate.fromJsDate(seasonEndDateTime);
     const fromSeasonKey = buildCareerSeasonKey();
     const targetSeasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear + 1);
-    const teams = [...leagueA.teams, ...leagueB.teams];
+    // WORLD-CORE-1 (sección 8.5 del prompt): mismas instancias que
+    // `getAllTeams()` — desde el World Registry, no desde una lista fija de
+    // clubes españoles.
+    const teams = getAllTeams();
 
     // Sin evidencia de último partido oficial de CADA club no se abre el
     // ciclo — nunca se inventa una fecha común. Si faltara algún club (una
@@ -2037,6 +2119,25 @@
       '2ª': { promotionPlayoff: null },
     };
 
+    // WORLD-CORE-1: `legacyDivision` sigue el ascenso/descenso real de
+    // `team.division` (puente de compatibilidad, nunca fuente de verdad —
+    // la fuente real es `CompetitionEntry`, reconstruida justo debajo).
+    teams.forEach((team) => { team.legacyDivision = team.division; });
+
+    // WORLD-CORE-1: cierra las ediciones/stages de la temporada que termina
+    // y abre las de `targetSeasonKey` sobre el MISMO `state.world` (nunca se
+    // reconstruye el mundo completo al cerrar temporada) — enlaza además las
+    // `League` recién creadas con sus stages canónicos.
+    BM.SpainLegacyCompetitionRuntime.bindNewSeason(state.world, {
+      seasonKey: targetSeasonKey, teamsByDivision, startDate: BM.LocalDate.fromJsDate(state.calendar.seasonStartDate),
+    });
+    ['1ª', '2ª'].forEach((div) => {
+      BM.SpainLegacyCompetitionRuntime.bindLeagueRuntime(state.world, {
+        division: div, seasonKey: targetSeasonKey, league: state.leagues[div],
+      });
+    });
+    state.world.setCalendar(state.calendar);
+
     // La evidencia de último partido oficial se reinicia para la temporada
     // que empieza — la del verano ya consumido queda en el ciclo cerrado.
     state.lastOfficialMatchEvidence = new SeasonHistoryService.LastOfficialMatchEvidenceCollector();
@@ -2138,6 +2239,34 @@
   // ---------------------------------------------------------------------
   // Pantalla: inicio (Home)
   // ---------------------------------------------------------------------
+  // WORLD-CORE-1 (sección 9 del prompt): bloque técnico discreto (plegado
+  // por defecto) con los paquetes instalados y la jerarquía geográfica —
+  // España deja de ser el alcance del motor y pasa a ser el primer
+  // contenido instalado sobre `GameWorld`. Solo lectura de
+  // `state.world.describe()` — nunca muta el mundo.
+  function buildWorldDetailHtml() {
+    if (!state.world) return '';
+    const snapshot = state.world.describe();
+    const areaName = (id) => {
+      const area = snapshot.areas.find((a) => a.id === id);
+      return area ? area.name : id;
+    };
+    const geographyLine = snapshot.areas
+      .filter((a) => a.type !== 'world')
+      .sort((a, b) => (a.type === b.type ? 0 : a.type === 'continent' ? -1 : 1))
+      .map((a) => (a.type === 'continent' ? a.name : `${areaName(a.parentAreaId)} › ${a.name}`))
+      .filter((label, index, arr) => arr.indexOf(label) === index)
+      .join(', ');
+    const packsLine = snapshot.packs.map((p) => `${p.name} (${p.version})`).join(', ');
+    return `
+      <details class="gm-card gm-world-detail">
+        <summary>Mundo de la carrera</summary>
+        <p class="gm-muted">Paquetes instalados: ${escapeHtml(packsLine)}</p>
+        <p class="gm-muted">Geografía: Mundo › ${escapeHtml(geographyLine)}</p>
+        <p class="gm-muted">${snapshot.clubs.length} clubes · ${snapshot.competitionDefinitions.length} competiciones registradas</p>
+      </details>`;
+  }
+
   function renderHomeScreen() {
     const container = byId('gm-home');
     const league = getUserLeague();
@@ -2237,6 +2366,12 @@
         </div>`
       : '';
 
+    // WORLD-CORE-1 (sección 9 del prompt): detalle técnico DISCRETO — solo
+    // para poder verificar el bootstrap del mundo (paquetes instalados,
+    // jerarquía Mundo > Europa > España/Andorra). Nunca muta ni consume
+    // aleatoriedad; es una lectura de `state.world.describe()`.
+    const worldDetailHtml = buildWorldDetailHtml();
+
     container.innerHTML = `
       <div class="home-clock">
         <span class="home-clock__label">Hoy</span>
@@ -2268,6 +2403,7 @@
           </div>
         </div>
       </div>
+      ${worldDetailHtml}
     `;
 
     const goToMarketBtn = byId('gm-goto-market-btn');
@@ -8166,6 +8302,10 @@
       state.leagues = { '1ª': null, '2ª': null };
       state.brackets = { '1ª': { cup: null, titlePlayoff: null }, '2ª': { promotionPlayoff: null } };
       state.userTeamId = null;
+      // WORLD-CORE-1: mismo criterio que el resto de registros de esta
+      // sección — el mundo pertenece a UNA partida, nunca sobrevive a
+      // "Volver a selección de equipo".
+      state.world = null;
       // ROSTER-1 (DESIGN.md 9.16): la próxima partida construye su propio
       // registro — no queda un registro de la carrera anterior colgando.
       state.playerRegistry = null;

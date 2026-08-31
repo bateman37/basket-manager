@@ -16,25 +16,60 @@ Más adelante se derivará un **modo Manager simple** (estilo Football
 Manager: solo gestión, sin pantallas de presidencia) reutilizando el mismo
 motor, quitando funciones en vez de añadirlas.
 
+**Decisión de arquitectura (WORLD-CORE-1, ver sección 10):** el motor
+modela un **mundo genérico** (geografía, organizaciones, clubes,
+competiciones de clubes y de selecciones, ámbito mundial/continental/
+nacional). **España — ACB y Primera FEB — es el primer PAQUETE DE CONTENIDO
+instalado sobre ese mundo, no el alcance ontológico del motor.** Antes de
+WORLD-CORE-1 el motor solo sabía interpretar exactamente dos divisiones
+españolas fijas; desde esta entrega esa vertical vive en el paquete
+`spain-2026.1` sobre un núcleo que puede alojar cualquier país, competición
+o federación futuros sin reescribir el core. La sección 3 (estructura de
+competición) sigue describiendo la vertical española tal cual está
+construida — es contenido real y jugable, no queda invalidada — pero ya no
+es "la única forma posible" del motor.
+
 ## 2. Estado del proyecto
 
-- **Fase actual:** motor jugable con datos de prueba/ficticios.
+- **Fase actual:** motor jugable con datos de prueba/ficticios, sobre un
+  núcleo mundial genérico (`GameWorld`, ver sección 10) con España como
+  primer contenido real instalado.
 - **En paralelo:** construcción progresiva de una base de datos con
   jugadores y equipos reales (ACB primero, luego LEB y clubes europeos
   relevantes), estadística por estadística, como proceso de contenido
   separado del desarrollo del motor.
 - Los datos reales se cargan en el mismo formato que los datos ficticios,
   así que el motor no necesita cambios cuando se sustituyen.
-- **En curso:** EPIC "Ciclo profesional de plantilla" (ver 9.16) —
-  transformará las plantillas estáticas actuales en un ecosistema
-  profesional (contratos, licencias, mercado, traspasos, cesiones,
-  transfer internacional) sobre un núcleo normativo multi-liga.
+- **Completado:** EPIC "Ciclo profesional de plantilla" (ver 9.16) —
+  transformó las plantillas estáticas en un ecosistema profesional
+  (contratos, licencias, mercado, traspasos, cesiones) sobre un núcleo
+  normativo multi-liga, en siete entregas (ROSTER-1 → CYCLE-1).
+- **En curso:** EPIC "World Architecture" (ver sección 10) — corrige la raíz
+  arquitectónica para que el mundo pueda alojar competiciones mundiales,
+  continentales y nacionales, de clubes y de selecciones, sin que España sea
+  el caso por defecto. Primera entrega, WORLD-CORE-1, ya hecha (mundo
+  canónico + paquetes de contenido). El transfer internacional (Letter of
+  Clearance), las competiciones europeas y la persistencia real, que antes
+  se planeaban como EUROPE-1/HARDEN-1 de la EPIC anterior, se replantean
+  como entregas posteriores de World Architecture sobre la base nueva (ver
+  sección 10.9, "plan superado").
 
 ⚠️ **Nota legal activa:** el proyecto usa nombres reales de jugadores y
 clubes para uso privado. Si en el futuro se comercializa, hay que revisar
-esto (ver sección 12).
+esto (ver sección 13).
 
 ## 3. Estructura de competición (primer hito)
+
+**Nota de arquitectura (WORLD-CORE-1, ver sección 10):** esta sección
+describe la **vertical española** tal cual está construida y jugable hoy —
+sigue siendo el motor real de Liga/Copa/Playoffs/Ascenso, sin cambios de
+comportamiento. Desde WORLD-CORE-1, esa vertical vive detrás de identidad
+mundial genérica (`CompetitionDefinition`/`CompetitionEdition`/
+`CompetitionStage`/`CompetitionEntry`, sección 10) y de un paquete de
+contenido (`spain-2026.1`): "1ª división" y "2ª división" son el
+`legacyDivision` de ACB/Primera FEB, no una estructura universal del motor.
+Cualquier liga/país nuevo se añade como paquete de contenido y como
+`CompetitionDefinition` propia — nunca como una tercera "división" aquí.
 
 - **1ª división** (18 equipos, estructura tipo ACB) + **2ª división**
   (18 equipos, estructura tipo Primera FEB / LEB Oro), cada una con
@@ -475,6 +510,13 @@ para el cálculo de días de descanso en memoria (aunque el propio cálculo
 siga redondeando a días enteros).
 
 ### 3.4 Cierre de ciclo de temporada y pretemporada
+
+**Nota de arquitectura (WORLD-CORE-1):** "las dos divisiones" de esta
+sección son ACB y Primera FEB del paquete `spain-2026.1` — el mundo puede
+alojar más de dos competiciones domésticas simultáneas (sección 10); esta
+sección documenta el comportamiento REAL de la vertical española, que
+`SpainLegacyCompetitionRuntime` sigue orquestando sin cambios de
+comportamiento.
 
 Cierra el ciclo abierto desde el inicio del proyecto: hasta ahora una
 partida podía jugar una temporada completa (liga + Copa + Playoffs/
@@ -1126,10 +1168,17 @@ Manager) — el enfoque es **europeo/ACB**, evitando deliberadamente
 mecánicas específicas de NBA (salary cap, draft, franquicias sin
 ascenso/descenso). La adaptación de una eventual comparación con clubes
 americanos queda pendiente para cuando se aborde esa parte del proyecto.
+Esta ficha sigue siendo la de `Team` (equipo deportivo) — WORLD-CORE-1
+(sección 10) introduce `Club` (identidad institucional) como entidad
+DISTINTA, vinculada por `clubId`; la migración completa de finanzas/
+instalaciones/junta/afición de `Team` a `Club` es CLUB-CORE-1, todavía no
+hecha.
 
 #### Datos básicos
 Nombre, ciudad, año de fundación, división actual (1ª o 2ª), presupuesto
-(ver desglose económico en 6.2.6).
+(ver desglose económico en 6.2.6). **`división` es el `legacyDivision` de
+ACB/Primera FEB** (sección 10.6) — la fuente real de en qué competición
+participa un equipo es `CompetitionEntry`, nunca este campo.
 
 **Estadio/pabellón**: sigue siendo una **entidad separada** asociada al
 equipo (no integrada directamente en esta ficha), tal como se decidió
@@ -5217,7 +5266,14 @@ Primera FEB), identificadas legacy como `1ª`/`2ª`. **Eso es solo el punto
 de partida**: en el futuro convivirán muchas ligas, federaciones, países y
 competiciones supranacionales, algunas con reglas de contratación,
 inscripción y transferencia diferentes, incluso varias normativas
-aplicables al mismo club a la vez (liga doméstica + EuroLeague). Por eso:
+aplicables al mismo club a la vez (liga doméstica + EuroLeague). **Nota
+posterior (WORLD-CORE-1, sección 10):** la identidad de esas dos
+competiciones (antes una segunda tabla dentro de este mismo archivo) ya
+vive en el catálogo mundial canónico (`CompetitionCatalog.js`) — este
+archivo (`CompetitionRules.js`) importa esa identidad por referencia y
+sigue siendo la única fuente de la NORMATIVA (registro, empleo, mercado,
+traspaso, cesión) descrita en el resto de esta sección y en 9.17-9.22, sin
+cambios. Por eso:
 
 - `1ª`/`2ª` **no vuelven a usarse como claves de lógica nueva** — quedan
   como compatibilidad/presentación de calendario/ascensos (sin
@@ -7330,6 +7386,13 @@ mantiene acotada (379 activos finales sobre una cota de 1140, partiendo de
 458) pese a que el histórico mundial crece a 1538 — la cantera + retirada +
 salida de la vía profesional compensan la entrada.
 
+**Nota posterior (WORLD-CORE-1, sección 10.8):** `external-abstract` sigue
+siendo, en esta entrega, un NIVEL DE SIMULACIÓN transitorio (nadie lo ocupa
+todavía, no existen plantillas extranjeras) — nunca un tipo de club
+distinto ontológicamente. WORLD-SIM-1 lo sustituirá por clubes/equipos
+NORMALES del mismo modelo mundial con un nivel de detalle `abstract`, no por
+una segunda clase de entidad.
+
 #### Interfaz — pantalla "Planificación" (`src/ui/game.js`)
 
 Nueva pantalla (`renderCycleScreen()`, entre Mercado y Agenda en `SCREENS`)
@@ -7460,21 +7523,411 @@ libres (ver limitación conocida arriba) — sin entrega asignada todavía,
 proponer antes de construir; save/load real y congelación de reglas por
 versión de una temporada ya iniciada — **HARDEN-1**.
 
-## 10. Modo Manager (futuro, derivado del modo Completo)
+## 10. World Architecture — mundo, geografía, organizaciones y competiciones
+
+Nueva EPIC (nueve entregas), abierta al completar la EPIC "Ciclo profesional
+de plantilla" (ROSTER-1 → CYCLE-1, ver 9.16-9.22, las siete YA hechas).
+**Decisión de producto que sustituye el plan anterior** (ver 10.9): el orden
+antiguo situaba después `EUROPE-1` (transfer internacional) y `HARDEN-1`
+(persistencia). Esas dos entregas quedan PAUSADAS con su planteamiento
+anterior — se replantearán después de esta EPIC, sobre la base correcta.
+
+### Por qué se hace ahora
+
+El juego se construyó con España como vertical inicial y, aunque ROSTER-1
+introdujo `competitionId` y reglas multi-liga (9.16), la orquestación real
+seguía suponiendo: exactamente dos divisiones `1ª`/`2ª`; una ACB con Copa y
+playoff y una Primera FEB con playoff de ascenso; una "otra división" que
+siempre era el único mundo de fondo; ascensos/descensos mutando
+`Team.division`; calendario seleccionado por división con fallback
+silencioso a `1ª`; competición/fase/temporada representadas por strings
+repartidos por `game.js`; club y primer equipo confundidos en una sola
+entidad `Team`; Europa tratada como "exterior abstracto" en vez de formar
+parte del mismo mundo. El mundo debe poder contener competiciones
+mundiales, continentales y nacionales, de clubes y de selecciones, sin que
+ninguna sea el caso por defecto.
+
+### 10.1 Las nueve entregas
+
+| Orden | Entrega | Resultado | Estado |
+|---:|---|---|---|
+| 1 | **WORLD-CORE-1** | `GameWorld` canónico, geografía, organizaciones, catálogos/registros, paquetes de contenido, identidad de competición y migración compatible de España. | **hecha**, esta sección |
+| 2 | **CLUB-CORE-1** | Separación completa `Club` institucional / `Team`-`Squad` deportivo; primer equipo, filial, cantera y futuras secciones sin duplicar el club. | pendiente |
+| 3 | **COMP-CORE-1** | Motor genérico `CompetitionEdition → Stage → Entry`; migra Liga/Copa/playoff por el título/ascenso fuera de los mapas fijos por división — retira `SpainLegacyCompetitionRuntime`. | pendiente |
+| 4 | **WORLD-CALENDAR-1** | Calendario mundial y cola cronológica única; varias competiciones simultáneas, paradas de usuario y simulación de fondo sin el concepto especial de "la otra división". | pendiente |
+| 5 | **PATHWAYS-1** | Clasificación entre fases/torneos, ascenso/descenso, acceso a copas y plazas continentales mediante reglas declarativas versionadas. | pendiente |
+| 6 | **WORLD-SIM-1** | Niveles de detalle `playable/full/standard/abstract`, simulación acotada del exterior y población/mercado mundial sin cargarlo todo al máximo — sustituye `external-abstract` por clubes/equipos normales con detalle abstracto. | pendiente |
+| 7 | **NATIONAL-TEAMS-1** | Federaciones, selecciones, elegibilidad, convocatorias, ventanas y competiciones continentales/mundiales de selecciones. | pendiente |
+| 8 | **WORLD-UI-1** | Navegación estilo manager Mundo → Continente → País → Competición, configuración de carrera, selección de ligas/nivel de detalle. | pendiente |
+| 9 | **WORLD-HARDEN-1** | Elimina todos los puentes legacy de España, audita determinismo/población, prepara la frontera de persistencia — todavía sin imponer SQLite/PostgreSQL. | pendiente |
+
+Después de esta EPIC, ya sobre una base correcta: `EUROPE-CONTENT-1`
+(Euroliga/EuroCup/BCL como paquetes de contenido), `INTL-TRANSFER-1`
+(mercado transfronterizo y Letter of Clearance), paquetes de países
+adicionales, y persistencia real (SQLite/PostgreSQL cuando corresponda).
+
+### 10.2 Modelo de dominio
+
+La navegación conceptual es Mundo → Continente → País → Competiciones, pero
+el dominio usa entidades canónicas por id y relaciones EXPLÍCITAS — nunca un
+árbol de objetos anidados copiados:
+
+- La geografía forma una jerarquía por `parentAreaId`.
+- Una competición referencia su `scopeAreaId`.
+- Una organización referencia su sede y, opcionalmente, su organización
+  superior.
+- Un club referencia su área de origen, pero puede entrar en competiciones
+  de otras áreas.
+- El organizador de una competición NUNCA determina la jurisdicción laboral
+  de un club (MoraBanc Andorra: organizador ACB/España, jurisdicción
+  laboral Andorra — ver 9.17).
+- Una competición mundial puede ser de selecciones o de clubes.
+
+El modelo debe poder expresar (sin implementarlas todavía, ver 10.7 "Fuera
+de alcance"): Mundial/JJOO (mundial, selecciones), Intercontinental de
+clubes (mundial, clubes), EuroBasket (continental, selecciones), Euroliga/
+EuroCup/BCL (continental, clubes), Liga/Copa/Supercopa españolas (nacional,
+clubes).
+
+### 10.3 Entidades
+
+#### `GeographicArea` (`src/entities/Geography.js`)
+
+`id`, `type` (`world|continent|country|territory|region`), `parentAreaId`
+(`null` SOLO para la raíz mundial), `name`, `shortName`, `isoCode`,
+`status` (`active|historical|fictional-test`), `provenance`. El nombre
+visible nunca resuelve lógica. `AreaRegistry.validateHierarchy()` exige
+exactamente una raíz `world`, todo padre existente, sin ciclos.
+
+#### `Organization` (`src/entities/Organization.js`)
+
+`id`, `name`, `type` (`global-federation|continental-federation|
+national-federation|league-operator|tournament-organizer|other`),
+`headquartersAreaId`, `parentOrganizationId` opcional, `scopeAreaId`,
+`provenance`. Nunca se asume que toda competición continental la organiza
+una federación continental, ni que todo operador de liga es una
+federación.
+
+#### `Club` (`src/entities/Club.js`) — ARCH-WORLD-07
+
+Identidad institucional, SEPARADA del equipo deportivo. Campos de esta
+entrega: `id`, `name`, `shortName`, `homeAreaId`, `employerJurisdictionAreaId`
+explícito, `federationMembershipOrganizationIds`, `primaryTeamId`, `status`,
+`dataSource`/`provenance`. **Decisión de compatibilidad de `spain-2026.1`,
+NO invariante universal**: `club.id === primaryTeam.id`, para preservar
+todos los `clubId` legacy ya usados por CONTRACT-1..CYCLE-1
+(`ClubEmploymentContextCatalog`, `ContractRegistry`, etc.). Finanzas,
+instalaciones, junta, afición y táctica SIGUEN en `Team` (6.2) —
+CLUB-CORE-1 decide y ejecuta esa migración completa; WORLD-CORE-1 no la
+adelanta ni duplica valores mutables entre `Club` y `Team`.
+
+#### `Team` (`src/entities/Team.js`, ampliado)
+
+Añade `clubId` explícito, `teamType` (hoy siempre
+`'senior-men-first-team'`), `homeAreaId`, `legacyDivision` (puente de
+compatibilidad de los datos españoles). `division` se conserva como alias
+legacy durante la EPIC: ya NO recibe `1ª` por defecto cuando no se
+proporciona, no es fuente de verdad de participación, y no debe usarse en
+código mundial nuevo. Un club puede tener varios equipos en el modelo (el
+pack actual solo crea uno) — `TeamRegistry.forClub(clubId)` ya lo consulta
+así.
+
+#### `CompetitionDefinition` (`src/entities/Competition.js` + catálogo en
+`src/core/CompetitionCatalog.js`) — ARCH-WORLD-04
+
+Identidad DURADERA, independiente de temporada y de reglas: `id`, `name`,
+`shortName`, `scopeLevel` (`world|continental|national|regional`),
+`scopeAreaId` (`null` solo si `scopeLevel` es `world`), `organizerId`,
+`participantType` (`club-team|national-team`), `category` (género/edad
+explícitos), `kind` (`league|cup|supercup|championship|qualifier|other`),
+`recurrence`, `pyramidId`/`tier` cuando proceda, `implementationStatus`
+(`active-runtime|catalog-only|future`), `bindings` por id a formato/
+calendario/reglas (nunca el algoritmo incrustado), `provenance`. Conserva
+además, en el MISMO objeto (nunca una segunda tabla), los campos legacy que
+ya existían en `CompetitionRules.COMPETITION_DEFINITIONS` antes de esta
+entrega: `organizerCountry`, `federationId`, `legacyDivision`.
+
+#### `CompetitionEdition` / `CompetitionStage` / `CompetitionEntry`
+
+- **Edition**: instancia de una definición en un ciclo temporal —
+  `id`, `competitionDefinitionId`, `seasonKey`, `startDate`/`endDate`,
+  `status` (`planned|active|completed|cancelled`), `stageIds`/`entryIds`
+  (mutados EXCLUSIVAMENTE por `WorldRegistries.registerCompetitionStage/
+  Entry()`, nunca a mano), ids congelados de formato/calendario/ruleset,
+  `detailLevel` (siempre `'playable'` en esta entrega), `runtimeBinding`
+  TRANSITORIO (la `League`/`Bracket` real — excluido de `toJSON()`/snapshot).
+- **Stage**: fase dentro de una edición — `id`, `editionId`, `name`,
+  `sequence`, `stageType` (`round-robin|knockout|series|group|final-four|
+  other`), `status`, `entryIds`, `sourceStageIds`/`nextStageIds`
+  declarativos, `runtimeBinding` transitorio.
+- **Entry**: FUENTE DE VERDAD de participación (invariante 8) — `id`,
+  `editionId`, `stageId` opcional, `participantType`, `participantId`,
+  `entryStatus` (`invited|qualified|active|eliminated|withdrawn|completed`),
+  `seed`, `qualificationSource`, vigencia.
+
+**Invariante 13 (Liga/Copa/Playoff no se confunden)**: la Copa ACB es una
+`CompetitionDefinition` SEPARADA (su propia `CompetitionEdition` cada
+temporada); el playoff por el título/de ascenso es un `CompetitionStage`
+DENTRO de la edición de Liga de esa temporada, nunca otra competición.
+
+#### `GameWorld` (`src/entities/World.js`)
+
+Agregado raíz de una carrera — NO singleton, no lee DOM ni globales. `id`,
+`name`, `careerSeed`, `createdAtGameDate`, `schemaVersion`, `registries`
+(`WorldRegistries`), `calendar` (misma instancia que `state.calendar`,
+actualizada vía `setCalendar()`), `domainRegistries` (aliases por
+IDENTIDAD a los registros ya existentes de ROSTER-1..CYCLE-1, adjuntados
+con `attachDomainRegistries()`). `validateIntegrity()`/`describe()` — este
+último serializable (sin `Map`/funciones/DOM/ciclos), usado por el detalle
+técnico de Home (10.6) y por los scripts de prueba.
+
+#### `WorldRegistries` (`src/core/WorldRegistry.js`)
+
+Agregado de siete registros por carrera (`areas`, `organizations`, `clubs`,
+`teams`, `competitionDefinitions`, `competitionEditions`,
+`competitionStages`, `competitionEntries`) más `packs`
+(`ContentPackRegistry`, `src/core/ContentPackRegistry.js`). API común:
+`register/get/require/has/all`, orden canónico de inserción, id duplicado
+incompatible lanza, `validateIntegrity()` agrega TODOS los errores del
+mundo de una vez. Las operaciones que cruzan colecciones (`registerClub`,
+`registerTeam`, `registerCompetitionStage`, `registerCompetitionEntry`...)
+viven en `WorldRegistries`, nunca repartidas por quien llama — es el ÚNICO
+punto que mantiene `edition.stageIds`/`entryIds` sincronizados con lo
+realmente registrado.
+
+#### `ContentPackManifest`
+
+`id`, `version`, `name`, `status`, `dependencies` (id o `{id,version}`),
+`provides` por tipo de entidad (informativo), `dataSource`/`provenance`,
+`install(world, context)`. `ContentPackRegistry.computeInstallOrder()`
+deriva el orden de instalación de las dependencias declaradas — nunca el
+orden accidental del array de entrada (invariante 20) — y lanza
+descriptivo ante dependencia ausente o ciclo. `WorldFactory.
+installContentPacks()` es idempotente por paquete.
+
+### 10.4 Paquetes iniciales
+
+- **`world-core-2026.1`** (`data/world/world-core-2026.1.js`): esqueleto
+  geográfico mínimo — raíz Mundo (`area-world`) y continente Europa
+  (`area-continent-europe`). Sin dependencias. No inventa países/
+  organizaciones/clubes que todavía no hacen falta.
+- **`spain-2026.1`** (`data/world/spain-2026.1.js`, depende de
+  `world-core-2026.1`): España y Andorra como países DISTINTOS bajo Europa
+  (`area-country-es`/`area-country-ad`); FEB (`org-feb`) y ACB (`org-acb`,
+  organización superior FEB); los 36 clubes/equipos reales, REUTILIZANDO
+  las instancias ya construidas por `game.js` (nunca las recrea, nunca
+  copia `data/real/*`); referencias (no copias) a las
+  `CompetitionDefinition` de ACB/Primera FEB/Copa ACB/Supercopa ACB
+  (`catalog-only`, identidad declarada sin edición jugable — no hay
+  participantes/calendario/reglas reales todavía) desde
+  `CompetitionCatalog.js`; y la edición/stage/entries de temporada regular
+  de ACB y Primera FEB de la temporada de arranque, vía
+  `SpainLegacyCompetitionRuntime.bindCareerStart()`.
+- **Fixture de test** (`scripts/test-world-core1.js`, función
+  `buildTestOnlyManifest()`): paquete mínimo SOLO de test con otra área y
+  una competición mundial de selecciones (`testland-world-cup`) — se
+  instala y valida sin ACB/FEB/`1ª`/`2ª`/España ni módulo normativo
+  español, y nunca se carga en una partida real.
+
+### 10.5 Adaptador legacy — `SpainLegacyCompetitionRuntime`
+
+`src/core/SpainLegacyCompetitionRuntime.js` enlaza el runtime FIJO español
+(`League`/`Bracket`/`Cup`/`Playoffs`/`Promotion`, sin tocarlos) con su
+`CompetitionEdition`/`CompetitionStage`/`CompetitionEntry` canónicos:
+`bindCareerStart`/`bindNewSeason` (edición+stage+entries de temporada
+regular de ACB/Primera FEB), `bindLeagueRuntime` (enlaza la `League` real ya
+construida, que no existe todavía en el momento de instalar el paquete),
+`bindCup`/`bindTitlePlayoff`/`bindPromotionPlayoff` (enlazan Copa/playoffs
+en el momento REAL en que `game.js` los crea — jornada 17 / fin de liga
+regular). Junto con `data/world/spain-2026.1.js`, es uno de los DOS únicos
+sitios permitidos para literales de España (`1ª`/`2ª`/ACB/Primera FEB)
+fuera del catálogo de identidad — auditado estáticamente en
+`scripts/test-world-core1.js` contra los ocho archivos mundiales GENÉRICOS
+(`Geography.js`, `Organization.js`, `Club.js`, `Competition.js`, `World.js`,
+`WorldRegistry.js`, `ContentPackRegistry.js`, `WorldFactory.js`). No
+registra ninguna regla normativa nueva (eso sigue en `CompetitionRules.js`)
+y no lo usa ningún paquete que no sea `spain-2026.1`. **Destino de
+eliminación explícito**: desaparece cuando COMP-CORE-1 (motor genérico de
+stages) y WORLD-CALENDAR-1 (calendario mundial único) sustituyan a
+`League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` por un runner genérico.
+
+### 10.6 Integración con el runtime actual
+
+`startSeason()`: construye los 36 equipos (misma construcción de siempre,
+`getRealTeamsByDivision()`), crea `GameWorld` e instala `world-core-2026.1`
++ `spain-2026.1` (con los equipos YA construidos como contexto — nunca se
+reconstruyen), crea las `League` reales y las enlaza con
+`bindLeagueRuntime()`, y AL FINAL adjunta por identidad los siete registros
+de dominio (`attachDomainRegistries()`). Si la instalación de un paquete
+lanza, `state.world` NUNCA llega a asignarse (invariante 22) — el error se
+propaga tal cual, sin dejar un mundo parcial utilizable.
+
+`closeSeasonAndPrepareNext()`: cierra las ediciones/stages de la temporada
+que termina (`status: 'completed'`, nunca se borran) y abre las de la
+siguiente sobre el MISMO `GameWorld` — nunca se reconstruye el mundo
+completo al cerrar temporada.
+
+`createBracketsIfDue()`: en el mismo instante en que el runtime crea de
+verdad la Copa/el playoff por el título/el playoff de ascenso, llama a
+`bindCup`/`bindTitlePlayoff`/`bindPromotionPlayoff` — la foto de
+clasificación usada para las `CompetitionEntry` es la MISMA que ya usa
+`createCup()`/`createTitlePlayoff()` por dentro.
+
+`getAllTeams()` lee de `state.world.registries.teams.all()` cuando el mundo
+existe (ARCH-WORLD-08: "equipos desde World Registry, no desde una lista de
+clubes españoles") — mismas instancias que devolvía antes el recorrido por
+`League.teams`.
+
+**Interfaz mínima** (Home, `renderHomeScreen()`): un bloque `<details>`
+plegado ("Mundo de la carrera") con los paquetes instalados y la jerarquía
+Mundo › Europa › España/Andorra, construido desde `state.world.describe()`
+— solo lectura, nunca muta el mundo ni consume aleatoriedad. Home/
+Competiciones/Agenda/Noticias/Plantilla/Mercado no pierden ninguna función;
+la selección de equipo sigue mostrando ACB y Primera FEB porque son las
+únicas ediciones jugables instaladas. El navegador mundial completo
+(Mundo → Continente → País → Competición) es WORLD-UI-1.
+
+### 10.7 Fuera de alcance de WORLD-CORE-1
+
+SQLite/PostgreSQL/IndexedDB/backend/API/repositorios de persistencia o
+save-load; cargar todos los países/clubes/jugadores del mundo; Euroliga/
+EuroCup/BCL u otras competiciones nuevas jugables; Mundial/JJOO/EuroBasket
+o selecciones funcionales; transferencias internacionales/Letter of
+Clearance; motor genérico completo de formatos/stages (COMP-CORE-1);
+clasificación continental/ascenso-descenso genérico (PATHWAYS-1); varios
+equipos reales por club y migración completa de finanzas/instalaciones a
+`Club` (CLUB-CORE-1); simulación abstracta del exterior (WORLD-SIM-1);
+navegador mundial/rediseño visual (WORLD-UI-1); cambios a las reglas ACB/
+FEB ya vigentes; traspasos/cesiones CPU-a-CPU que CYCLE-1 dejó pendientes;
+datos reales modificados.
+
+### 10.8 Migración legacy — puentes y su entrega de retirada
+
+| Puente legacy | Vive en | Se retira en |
+|---|---|---|
+| `Team.division`/`legacyDivision` como alias de participación | `Team.js` | COMP-CORE-1 (participación real ya es `CompetitionEntry`) |
+| `SpainLegacyCompetitionRuntime` | `src/core/SpainLegacyCompetitionRuntime.js` | COMP-CORE-1 / WORLD-CALENDAR-1 |
+| `League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` como runner fijo | `src/core/*.js` | COMP-CORE-1 |
+| `competitionIdFromLegacyDivision()` | `CompetitionRules.js` | COMP-CORE-1 (cuando ya no exista ninguna "división" que traducir) |
+| `Club.id === primaryTeam.id` | `data/world/spain-2026.1.js` | CLUB-CORE-1 (varios equipos por club) |
+| Finanzas/instalaciones/junta/afición en `Team` en vez de `Club` | `Team.js` | CLUB-CORE-1 |
+| `external-abstract` como categoría de `WorldLifecycleService` | `src/core/WorldLifecycleService.js` | WORLD-SIM-1 |
+| Calendario por `scheduleProfileId` de contenido español (`1ª`/`2ª`) | `MatchConfig.js`/`Calendar.js` | WORLD-CALENDAR-1 |
+| `state.leagues`/`state.brackets` como mapa fijo de dos divisiones | `src/ui/game.js` | WORLD-CALENDAR-1 |
+
+No es obligatorio eliminar en esta entrega todos los usos históricos de
+`state.division`/`competitionIdFromLegacyDivision` — sí lo es no añadir
+ninguno nuevo fuera del adaptador (auditado en `scripts/test-world-core1.js`
+contra los ocho archivos mundiales genéricos).
+
+### 10.9 Plan superado
+
+El orden anterior de la EPIC "Ciclo profesional de plantilla" (9.16) situaba
+tras CYCLE-1 dos entregas — `EUROPE-1` (transfer internacional/Letter of
+Clearance) y `HARDEN-1` (persistencia/simulación larga/calibración) — con un
+planteamiento que asumía el mundo español fijo de antes de WORLD-CORE-1.
+**Esa decisión queda SUPERADA, no borrada**: el histórico de CYCLE-1 en
+9.16/9.22 y en `CHANGELOG.md` sigue siendo correcto en su contexto. El
+transfer internacional volverá como entrega de World Architecture (tras
+NATIONAL-TEAMS-1/COMP-CORE-1, con LOC real sobre el mundo nuevo); las
+competiciones europeas serán paquetes de contenido (`EUROPE-CONTENT-1`)
+sobre el motor genérico; la persistencia sigue pospuesta hasta
+WORLD-HARDEN-1. **Confirmado explícitamente**: no se implementa SQL ni
+save/load real en ninguna entrega de World Architecture hasta que
+WORLD-HARDEN-1 lo decida.
+
+### 10.10 Invariantes
+
+1. Hay exactamente una raíz geográfica de tipo `world`.
+2. Toda área no raíz tiene un padre válido y no existen ciclos.
+3. Toda organización referencia áreas existentes.
+4. Todo club referencia un área y una jurisdicción laboral explícitas.
+5. Todo equipo referencia exactamente un club existente.
+6. Un club puede tener varios equipos en el modelo aunque el pack actual
+   cree uno (`TeamRegistry.forClub()`).
+7. Un equipo puede tener entries simultáneas en varias competiciones.
+8. Participación se deriva de `CompetitionEntry`, nunca de nacionalidad ni
+   de `Team.division`.
+9. Toda definición referencia scope y organizador válidos.
+10. Toda edición referencia una definición y versiones explícitas de sus
+    bindings.
+11. Todo stage pertenece a una sola edición.
+12. Todo entry referencia edición y participante compatibles con
+    `participantType`.
+13. Liga, Copa y playoff no se confunden: Copa es competición separada;
+    playoff es stage de Liga.
+14. No existe fallback de calendario, reglas, país o jurisdicción a
+    ACB/España (`Calendar.getScheduleProfile()` lanza ante un
+    `scheduleProfileId` desconocido — ARCH-WORLD-03).
+15. MoraBanc conserva Andorra como origen/jurisdicción y ACB como
+    participación deportiva.
+16. Los 36 equipos y sus jugadores son las mismas instancias en World,
+    runtime legacy y registries.
+17. Todo Player sigue registrado exactamente una vez.
+18. Los registries de ROSTER-1..CYCLE-1 tienen una sola instancia por
+    carrera; los aliases de `state`/`GameWorld.domainRegistries` son
+    identidad estricta (`===`).
+19. Instalar solo un pack de prueba no español no instala España ni
+    requiere divisiones legacy.
+20. El orden de packs de entrada no cambia el mundo final si sus
+    dependencias son las mismas.
+21. Un id duplicado incompatible, referencia huérfana o dependencia
+    circular falla de forma descriptiva antes de mutar parcialmente el
+    mundo.
+22. Si falla la creación del mundo, no queda un `state.world` parcial
+    utilizable.
+23. Consultas y renders no consumen aleatoriedad ni mutan registros.
+24. El juego español actual conserva calendario, equipos, competiciones y
+    progresión observables.
+25. No se modifica `data/real/*`.
+26. No se implementa SQL, repositorio de persistencia ni save/load.
+27. Todos los objetos de diagnóstico se pueden serializar a JSON sin `Map`,
+    funciones, DOM ni referencias circulares.
+28. Ningún archivo genérico nuevo contiene reglas o ids de España — viven
+    solo en `CompetitionCatalog.js` (identidad heredada de
+    `CompetitionRules.js`, ver 10.3), `SpainLegacyCompetitionRuntime.js` y
+    `data/world/spain-2026.1.js` (adaptador y paquete, expresamente
+    permitidos).
+
+### 10.11 Verificación reducida (esta entrega)
+
+`node scripts/test-world-core1.js`: 27 comprobaciones dirigidas — jerarquía
+geográfica/organizaciones, dependencias/atomicidad de paquetes, mundo sin
+España, Definition/Edition/Stage/Entry, múltiples competiciones por equipo,
+sin fallback de calendario, MoraBanc transfronterizo, identidad canónica/
+aliases, auditoría estática de literales españoles. **27 OK, 0 fallos.**
+
+`node scripts/smoke-world-core1.js`: construye la carrera con los 36
+equipos reales, verifica mundo/geografía/organizaciones/clubes/equipos/
+jugadores, juega UNA temporada completa (Liga+Copa+Playoff por el
+título+Playoff de ascenso) con el runtime real, comprueba que la evidencia
+de último partido oficial resuelve contra edition/stage canónicos, ejecuta
+UNA transición anual completa reutilizando `scripts/cycle1-harness.js`
+(MoraBanc Andorra desciende de verdad en la ejecución registrada) y
+revalida integridad e identidad de instancias tras la transición. **OK en
+~9-10s.**
+
+Regresión ejecutada (sin repetir la matriz completa): `node
+scripts/test-cycle1.js` (42 OK), `node scripts/test-roster1.js` (31 OK),
+`node scripts/test-contract1.js` (102 OK), `node --check` sobre todo el
+repositorio — 0 fallos en los cuatro. Checklist manual (móvil/escritorio,
+Playwright) diferida a Dennis al terminar la EPIC completa.
+
+## 11. Modo Manager (futuro, derivado del modo Completo)
 
 Mismo motor, pero sin pantallas de gestión de presidencia — pensado para
 quien solo quiere las decisiones deportivas. Se construirá después de
 tener el modo Completo funcional, quitando pantallas en vez de duplicando
 lógica.
 
-## 11. Plataforma
+## 12. Plataforma
 
 - Desarrollo en **JavaScript/HTML** (sin frameworks pesados), pensado para
   jugarse en navegador de escritorio y móvil.
 - Posibilidad futura de empaquetar como app móvil (PWA o similar) sin
   rehacer el motor.
 
-## 12. Nota sobre comercialización futura
+## 13. Nota sobre comercialización futura
 
 Proyecto privado por ahora. Si se decide comercializar en el futuro:
 

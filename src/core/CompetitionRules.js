@@ -44,6 +44,13 @@
   const MoneyModule = (typeof module !== 'undefined' && module.exports)
     ? require('../utils/Money.js')
     : global.BasketManager;
+  // WORLD-CORE-1 (ARCH-WORLD-04): la identidad de competición ya NO vive
+  // aquí — este módulo importa el catálogo canónico y reexporta LOS MISMOS
+  // objetos (nunca una copia/segunda fuente). `CompetitionCatalog.js` debe
+  // cargar antes que este script en `index.html`.
+  const CompetitionCatalogModule = (typeof module !== 'undefined' && module.exports)
+    ? require('./CompetitionCatalog.js')
+    : global.BasketManager;
 
   // Acceso perezoso (mismo patrón que Team.js con Tactics.js): en el
   // navegador estos scripts pueden cargar en cualquier orden.
@@ -51,19 +58,11 @@
   function MoneyOf() { return MoneyModule.Money; }
 
   // ---------------------------------------------------------------------
-  // 1. Identidad de competición — IDs estables, independientes del nombre
-  //    visible o del orden de división legacy ('1ª'/'2ª').
+  // 1. Identidad de competición — delegada en CompetitionCatalog.js
+  //    (WORLD-CORE-1). IDs estables, independientes del nombre visible o
+  //    del orden de división legacy ('1ª'/'2ª').
   // ---------------------------------------------------------------------
-  const COMPETITION_IDS = {
-    ACB: 'acb',
-    PRIMERA_FEB: 'primera-feb',
-    // Perfil SOLO DE TEST (sección 5.1/8 del prompt de ROSTER-1): límites
-    // de convocatoria distintos de ACB/FEB, registrado igual que cualquier
-    // competición real — demuestra que añadir una liga nueva es dato de
-    // catálogo, no una rama nueva en Team.js/game.js. NUNCA usar en una
-    // partida real.
-    TEST_FICTIONAL: 'bm-test-fictional-league',
-  };
+  const { COMPETITION_IDS, COMPETITION_DEFINITIONS, getCompetitionDefinition, listCompetitions } = CompetitionCatalogModule;
 
   // Adaptador de frontera ÚNICO legacy ('1ª'/'2ª') -> competitionId real
   // (DESIGN.md 9.16). Ninguna lógica NUEVA debe volver a ramificar sobre
@@ -82,57 +81,6 @@
       );
     }
     return competitionId;
-  }
-
-  // ---------------------------------------------------------------------
-  // 2. CompetitionCatalog — identidad de cada competición, sin reglas.
-  //    CONTRACT-1: `country` pasa a llamarse `organizerCountry` para que
-  //    ningún código futuro lo confunda con la jurisdicción laboral del
-  //    empleador (BUG-ROSTER1-02). Describe QUIÉN organiza la competición.
-  // ---------------------------------------------------------------------
-  const COMPETITION_DEFINITIONS = {
-    [COMPETITION_IDS.ACB]: {
-      id: COMPETITION_IDS.ACB,
-      name: 'Liga ACB',
-      organizerCountry: 'ES',
-      organizerId: 'acb',
-      federationId: 'feb-general',
-      tier: 1,
-      legacyDivision: '1ª',
-    },
-    [COMPETITION_IDS.PRIMERA_FEB]: {
-      id: COMPETITION_IDS.PRIMERA_FEB,
-      name: 'Primera FEB',
-      organizerCountry: 'ES',
-      organizerId: 'feb',
-      federationId: 'feb-general',
-      tier: 2,
-      legacyDivision: '2ª',
-    },
-    [COMPETITION_IDS.TEST_FICTIONAL]: {
-      id: COMPETITION_IDS.TEST_FICTIONAL,
-      name: '[SOLO TEST] Liga ficticia de prueba',
-      organizerCountry: 'XX',
-      organizerId: 'bm-test',
-      federationId: null,
-      tier: null,
-      legacyDivision: null,
-    },
-  };
-
-  function getCompetitionDefinition(competitionId) {
-    const definition = COMPETITION_DEFINITIONS[competitionId];
-    if (!definition) {
-      throw new Error(
-        `CompetitionRules: competición desconocida "${competitionId}" — no existe CompetitionDefinition `
-        + 'registrada (nunca se aplica ACB por defecto).',
-      );
-    }
-    return definition;
-  }
-
-  function listCompetitions() {
-    return Object.values(COMPETITION_DEFINITIONS);
   }
 
   // ---------------------------------------------------------------------

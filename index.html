@@ -337,6 +337,14 @@
        constructor, en tiempo de ejecución (cuando ya cargaron todos los
        scripts) — ver comentario en Team.js. -->
   <script src="src/entities/Team.js"></script>
+  <!-- WORLD-CORE-1 (DESIGN.md, "World Architecture"): identidad mundial
+       genérica (área geográfica, organización, club, competición) — sin
+       dependencia de carga real entre sí ni con Team.js, se dejan aquí por
+       orden temático (capa de identidad, justo después de Team.js). -->
+  <script src="src/entities/Geography.js"></script>
+  <script src="src/entities/Organization.js"></script>
+  <script src="src/entities/Club.js"></script>
+  <script src="src/entities/Competition.js"></script>
   <!-- ROSTER-1 (DESIGN.md 9.16): PlayerRegistry.js es un módulo puro (no
        conoce Player/Team como clases, solo duck-typing sobre player.id/
        teamId) — se carga aquí, justo después de Team.js, por orden
@@ -383,10 +391,15 @@
   <script src="src/core/TrainingAI.js"></script>
   <script src="src/core/MatchEngine.js"></script>
   <script src="src/core/League.js"></script>
+  <!-- WORLD-CORE-1 (ARCH-WORLD-04): CompetitionCatalog.js es ahora la
+       fuente CANÓNICA de `CompetitionDefinition` — debe cargar ANTES que
+       CompetitionRules.js, que lo importa a nivel de módulo (nunca duplica
+       su propia tabla). -->
+  <script src="src/core/CompetitionCatalog.js"></script>
   <!-- ROSTER-1 (DESIGN.md 9.16): CompetitionRules.js es un módulo puro
-       (catálogo de competiciones/reglas/bundles + resolver), sin
-       dependencia de carga real con League.js — se deja aquí por orden
-       temático (capa de identidad/normativa de competición). -->
+       (catálogo de reglas/bundles + resolver), sin dependencia de carga
+       real con League.js — se deja aquí por orden temático (capa de
+       identidad/normativa de competición). -->
   <script src="src/core/CompetitionRules.js"></script>
   <!-- CONTRACT-1 (DESIGN.md 9.17): catálogo de contexto laboral por club
        (jurisdicción del EMPLEADOR, distinta del país organizador de la
@@ -506,6 +519,19 @@
        Tactics.js (aunque no depende de él en tiempo de carga, solo comparte
        ids) y antes de game.js, que es quien la consume. -->
   <script src="src/ui/TacticsHelp.js"></script>
+  <!-- WORLD-CORE-1 (DESIGN.md, "World Architecture") — mundo canónico de la
+       carrera (GameWorld), sus registros, la fábrica que instala paquetes
+       de contenido, el adaptador de compatibilidad español y los dos
+       paquetes reales (world-core + spain). Cargan al final, justo antes de
+       game.js (único consumidor real) — cada uno depende del anterior a
+       nivel de módulo, así que el orden aquí SÍ importa. -->
+  <script src="src/core/ContentPackRegistry.js"></script>
+  <script src="src/core/WorldRegistry.js"></script>
+  <script src="src/entities/World.js"></script>
+  <script src="src/core/WorldFactory.js"></script>
+  <script src="src/core/SpainLegacyCompetitionRuntime.js"></script>
+  <script src="data/world/world-core-2026.1.js"></script>
+  <script src="data/world/spain-2026.1.js"></script>
   <script src="src/ui/game.js"></script>
   <script>
     // --- Landing: alternar entre modo juego y modo prueba ---
