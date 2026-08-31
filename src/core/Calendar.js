@@ -57,9 +57,25 @@
     return slots[slots.length - 1];
   }
 
-  function getScheduleProfile(config, division) {
+  // WORLD-CORE-1 (ARCH-WORLD-03): sin fallback silencioso a ACB. Antes de
+  // esta entrega, un `scheduleProfileId` desconocido heredaba en silencio el
+  // perfil de 1ª división (`profiles['1ª']`) — una competición/paquete
+  // desconocido NUNCA hereda el calendario de ACB por defecto. Quien llama
+  // debe declarar explícitamente su `scheduleProfileId`
+  // (`CompetitionDefinition.bindings.scheduleProfileId`, ver
+  // `CompetitionCatalog.js`) — hoy sigue siendo el literal '1ª'/'2ª' de
+  // `config.calendar.scheduleProfiles` (perfiles de contenido español,
+  // WORLD-CALENDAR-1 los sustituirá por perfiles de paquete reales).
+  function getScheduleProfile(config, scheduleProfileId) {
     const profiles = config.calendar.scheduleProfiles;
-    return profiles[division] || profiles['1ª'];
+    const profile = profiles[scheduleProfileId];
+    if (!profile) {
+      throw new Error(
+        `Calendar: no existe scheduleProfile para "${scheduleProfileId}" — una competición/paquete desconocido `
+        + 'nunca hereda el calendario de ACB por defecto (ARCH-WORLD-03).',
+      );
+    }
+    return profile;
   }
 
   // Jornada 17 (fin de la Copa, DESIGN.md 3.2.4) y la jornada siguiente
@@ -121,10 +137,16 @@
     // `matchesInRound`: posición del partido dentro de su jornada (los usa
     // League.generateSchedule al construir el calendario). `totalRounds`:
     // para poder detectar la última jornada (horario unificado, 3.3.1).
-    leagueMatchDateTime(round, matchIndexInRound, matchesInRound, totalRounds, division) {
-      const profile = getScheduleProfile(this.config, division);
+    // `scheduleProfileId` (WORLD-CORE-1): antes documentado como "división"
+    // — sigue recibiendo el mismo literal '1ª'/'2ª' que ya pasaba game.js
+    // (`CompetitionDefinition.bindings.scheduleProfileId` de ACB/Primera FEB
+    // hoy resuelve a esos mismos ids en `config.calendar.scheduleProfiles`),
+    // pero ya nunca hereda un perfil ajeno en silencio (ver
+    // `getScheduleProfile()`).
+    leagueMatchDateTime(round, matchIndexInRound, matchesInRound, totalRounds, scheduleProfileId) {
+      const profile = getScheduleProfile(this.config, scheduleProfileId);
       const anchor = this.leagueRoundDate(round);
-      const seedKey = `${this.seasonStartYear}|${division}|${round}|${matchIndexInRound}`;
+      const seedKey = `${this.seasonStartYear}|${scheduleProfileId}|${round}|${matchIndexInRound}`;
 
       if (round === totalRounds) {
         return applySlot(anchor, profile.lastRoundSlot);

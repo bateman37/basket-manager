@@ -158,6 +158,24 @@
       this.foundationYear = data.foundationYear || null;
       this.division = Team.validateDivision(data.division);
 
+      // --- World Architecture (WORLD-CORE-1, ARCH-WORLD-06/07) ---
+      // Estos cuatro campos son puente de compatibilidad hacia la nueva
+      // jerarquía mundial (`Club`/`CompetitionEntry`, ver `src/entities/
+      // Club.js`/`Competition.js`): opcionales aquí (Team sigue
+      // instanciándose sin mundo en tests/modo prueba), se asignan aparte
+      // tras construir el equipo cuando un paquete de contenido (`data/world/
+      // spain-2026.1.js`) lo afilia a un `Club` — mismo patrón ya establecido
+      // para `player.dataSource` (fuera del constructor de Player).
+      // `division` NUNCA es la fuente de verdad de participación desde esta
+      // entrega (invariante 8): sigue existiendo como alias legacy para el
+      // runtime todavía no migrado (Liga/Copa/Playoffs/Ascenso), pero
+      // `legacyDivision` es el nombre explícito para código NUEVO que
+      // necesite leer ese puente sabiendo que es compatibilidad, no verdad.
+      this.clubId = data.clubId || null;
+      this.teamType = data.teamType || 'senior-men-first-team';
+      this.homeAreaId = data.homeAreaId || null;
+      this.legacyDivision = data.legacyDivision || this.division;
+
       // Presupuesto: caja actual del club. El desglose completo de
       // ingresos/gastos vive en `finances` (DESIGN.md 6.2.6) — este campo
       // es el saldo, no una fuente de ingreso más.
@@ -481,6 +499,10 @@
         city: this.city,
         foundationYear: this.foundationYear,
         division: this.division,
+        clubId: this.clubId,
+        teamType: this.teamType,
+        homeAreaId: this.homeAreaId,
+        legacyDivision: this.legacyDivision,
         budget: this.budget,
         stadium: this.stadium,
         roster: this.roster.map((player) => (typeof player.toJSON === 'function' ? player.toJSON() : player)),
