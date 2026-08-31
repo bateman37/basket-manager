@@ -59,7 +59,7 @@ basket-manager/
 ## Datos reales de jugadores/clubes (importante)
 
 Este proyecto usa **nombres reales** de jugadores y clubes para uso
-privado (ver nota legal en `DESIGN.md`, sección 12). La construcción de
+privado (ver nota legal en `DESIGN.md`, sección 13). La construcción de
 esta base de datos real es un proceso progresivo y separado del
 desarrollo del motor — no generar de golpe cientos de jugadores reales
 "inventándose" estadísticas; si no hay datos reales disponibles para un
@@ -806,6 +806,95 @@ EUROPE-1/HARDEN-1 cuando construyan sobre esta entrega:
 - `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
   cuando cambian la arquitectura del ciclo anual o las reglas activas.
 
+## World Architecture (WORLD-CORE-1 y siguientes)
+
+Nueva EPIC (nueve entregas, DESIGN.md sección 10) que corrige la raíz
+arquitectónica del motor: España deja de ser el mundo y pasa a ser el
+primer paquete de contenido instalado sobre un `GameWorld` genérico.
+**Sustituye el plan anterior** de "Ciclo profesional de plantilla" que
+situaba `EUROPE-1`/`HARDEN-1` justo después de CYCLE-1 — esas dos quedan
+REDEFINIDAS como entregas posteriores de World Architecture, sobre la base
+correcta (ver DESIGN.md 10.9; el histórico de CYCLE-1 en 9.16/9.22 y en
+`CHANGELOG.md` sigue siendo válido, no se reescribe).
+
+Convenciones permanentes, aplicables a toda sesión futura que toque el
+mundo, geografía, organizaciones, clubes, identidad de competición o
+paquetes de contenido:
+
+- Toda carrera tiene `state.world` explícito (`GameWorld`,
+  `src/entities/World.js`) — instancia EXPLÍCITA por carrera, nunca un
+  singleton, construida en `startSeason()` tras levantar los equipos
+  reales (nunca antes, nunca reconstruyéndolos).
+- **España es contenido, nunca fallback.** Un código genérico nuevo que
+  necesite "la competición X" la resuelve por `competitionId`/catálogo —
+  nunca asume ACB/Primera FEB por defecto ante una competición o país
+  desconocidos.
+- Geografía (`GeographicArea`), organizador/federación (`Organization`),
+  competición (`CompetitionDefinition`) y jurisdicción laboral
+  (`employerJurisdictionAreaId` de `Club`, `employerJurisdictionId` de
+  `ClubEmploymentContextCatalog`) son EJES DISTINTOS — MoraBanc Andorra
+  (organizador ACB/España, jurisdicción laboral Andorra) sigue siendo el
+  test transfronterizo obligatorio también para esta EPIC.
+- `Club` (`src/entities/Club.js`) y `Team` (`src/entities/Team.js`) son
+  conceptos DISTINTOS desde WORLD-CORE-1, vinculados por `team.clubId` —
+  `club.id === primaryTeam.id` es una decisión de compatibilidad de
+  `spain-2026.1`, no una invariante universal (CLUB-CORE-1 podrá tener
+  varios equipos por club). Finanzas/instalaciones/junta/afición SIGUEN en
+  `Team` hasta CLUB-CORE-1 — no las muevas ni las dupliques.
+- `CompetitionDefinition` (identidad), `CompetitionEdition` (instancia por
+  temporada), `CompetitionStage` (fase dentro de una edición) y
+  `CompetitionEntry` (participación) NO se colapsan entre sí. Liga, Copa y
+  playoff no se confunden: la Copa es una `CompetitionDefinition` SEPARADA
+  con su propia edición cada temporada; el playoff por el título/de
+  ascenso es un `CompetitionStage` de la edición de Liga, nunca otra
+  competición.
+- `CompetitionEntry` es la ÚNICA fuente de participación — código nuevo
+  nunca deriva "en qué compite un equipo" de `Team.division` (alias legacy
+  de compatibilidad, `legacyDivision`) ni de su nacionalidad.
+- Ningún código NUEVO ramifica por `division` (`1ª`/`2ª`), nombre visible
+  de liga/país, ni un país por defecto — usa `competitionId`/identidad
+  mundial (`WorldRegistries`) o falla explícito.
+- Las reglas normativas (registro, empleo, mercado, traspaso, cesión)
+  SIGUEN viviendo en `CompetitionRules.js` — la identidad de competición
+  vive en `src/core/CompetitionCatalog.js` (fuente CANÓNICA única;
+  `CompetitionRules.js` importa y reexporta LOS MISMOS objetos, nunca una
+  copia). `getCompetitionDefinition()`/`COMPETITION_DEFINITIONS` de
+  `CompetitionRules.js` son wrappers de compatibilidad, no una segunda
+  tabla.
+- Los paquetes de contenido (`ContentPackManifest`, `data/world/*.js`)
+  declaran `dependencies` explícitas y solo referencian entidades ya
+  registradas por sus dependencias — nunca asumen un orden de instalación
+  concreto (`ContentPackRegistry.computeInstallOrder()` lo deriva). Un
+  paquete nuevo (país, competición) es dato de catálogo + su propio
+  `install(world, context)`, nunca una rama nueva en `game.js`/`Team.js`/
+  el core genérico.
+- El runtime legacy español fijo (`League`/`Bracket`/`Cup`/`Playoffs`/
+  `Promotion`, `state.leagues`/`state.brackets`) sigue funcionando sin
+  cambios de comportamiento, aislado detrás de
+  `src/core/SpainLegacyCompetitionRuntime.js` — este adaptador (y
+  `data/world/spain-2026.1.js`) son los DOS ÚNICOS sitios permitidos para
+  literales de España fuera del catálogo de identidad; se retira en
+  COMP-CORE-1/WORLD-CALENDAR-1, no antes. `state.leagues`/`state.brackets`
+  como mapa fijo de "1ª y 2ª" es COMPATIBILIDAD TRANSITORIA, no arquitectura
+  definitiva — igual que la selección de equipo por pestañas de división en
+  la pantalla de selección (sección "Interfaz de juego" más arriba): sigue
+  siendo la interfaz real hasta WORLD-UI-1, pero no es el modelo del motor.
+- Los aliases a registros existentes (`state.playerRegistry`,
+  `state.contractRegistry`, etc. y `state.world.domainRegistries.*`) deben
+  ser la MISMA instancia — comprueba identidad estricta (`===`), nunca
+  contenido equivalente.
+- Un mundo exterior/extranjero NO es un tipo especial: `external-abstract`
+  (`WorldLifecycleService`) es un NIVEL DE SIMULACIÓN transitorio, no una
+  clase de club distinta — WORLD-SIM-1 lo sustituirá por clubes/equipos
+  normales con detalle abstracto, nunca por una segunda ontología.
+- Sin SQL, sin repositorio de persistencia, sin save/load real hasta que
+  WORLD-HARDEN-1 lo decida explícitamente.
+- Las pruebas de esta EPIC son DIRIGIDAS (batería reducida por entrega,
+  `scripts/test-world-core1.js`/`scripts/smoke-world-core1.js` como
+  ejemplo) — se evita repetir matrices completas de la EPIC anterior salvo
+  riesgo demostrado sobre un dominio concreto que la entrega toque.
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambian la arquitectura mundial o qué puentes legacy siguen vivos.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 
