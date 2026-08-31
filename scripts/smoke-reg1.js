@@ -45,6 +45,17 @@ const { recalculateSportingGoalsForDivision } = require('../src/core/SeasonGoals
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
 const { padRosterToMinimum, FICTIONAL_FALLBACK_DATA_SOURCE, generateFictionalPlayer } = require('../src/utils/playerGenerator.js');
 
+// CYCLE-1 (DESIGN.md 9.22) — el cierre de temporada monolítico que este
+// script hand-rollaba (ascensos -> expirar/resembrar inscripciones ->
+// `generateAcademyIntake(3)` a los 36 clubes -> `new Calendar(...)`) queda
+// RETIRADO. Se sustituye por el ciclo anual real vía el harness compartido
+// (mismo patrón que smoke-loan1.js) — nunca una copia local del motor.
+const cycle1 = require('./cycle1-harness.js');
+const { AgentRegistry } = require('../src/core/AgentRegistry.js');
+const { MarketRegistry } = require('../src/core/MarketRegistry.js');
+const { TransferRegistry } = require('../src/core/TransferRegistry.js');
+const { LoanRegistry } = require('../src/core/LoanRegistry.js');
+
 const SEASONS_TO_SIMULATE = Number(process.argv[2] || 3);
 const startedAt = Date.now();
 
@@ -65,7 +76,18 @@ function buildRealTeam(teamData, referenceDate, seasonKey) {
     return player;
   });
   const resolved = resolveRegistrationRulesForDivision(teamData.division, seasonKey, referenceDate);
-  const fallbackPlayers = padRosterToMinimum(roster, resolved.squadRules.min, { minAge: 18, maxAge: 34, referenceDate });
+  const fallbackPlayers = padRosterToMinimum(roster, resolved.squadRules.min, {
+    minAge: 18,
+    maxAge: 34,
+    referenceDate,
+    // CYCLE-1 (BUG-CYCLE1-02): relleno DETERMINISTA. Este `padRosterToMinimum`
+    // usaba `Math.random()`, así que CADA ejecución del smoke construía un
+    // mundo distinto: por eso BUG-LOAN1-01 solo aparecía "de vez en cuando".
+    // Con semilla e id explícitos el mundo es reproducible y un fallo se puede
+    // volver a provocar.
+    seed: `smoke-reg1|roster-fill|${teamData.id}`,
+    id: `roster-fill:${teamData.id}`,
+  });
   fallbackPlayers.forEach((player) => {
     PC.ensureCareerHistory(player, CONFIG_BASE, referenceDate, { historyCompleteness: 'complete', seasonKey });
   });
@@ -143,6 +165,16 @@ function buildEligiblePool(team, context, deps) {
 // tolera esto SOLO cuando viene acompañado de ese warning — cualquier
 // fallo de validación SIN warning, o con un código fuera de esta lista
 // (tamaño, duplicado, jugador no elegible), sigue siendo un fallo real.
+// CYCLE-1 (BUG-LOAN1-01, ver smoke-loan1.js): un acta solo puede quedar
+// INVÁLIDA cuando el partido se juega bajo EXCEPCIÓN MÉDICA de convocatoria
+// (mínimo reducido por escasez médica real) y el incumplimiento es de un
+// cupo COLECTIVO que esa escasez hace inevitable. Comprobar solo
+// `built.warnings.length > 0` (versión REG-1 original de este script) ya no
+// basta: `CpuLineup.buildCpuLineup` ahora devuelve un resultado TIPADO
+// (`outcome: 'legal' | 'medical-exception' | 'infeasible'`) y una
+// imposibilidad reglamentaria (`infeasible`) NUNCA debe llegar hasta aquí —
+// se corta antes de jugar en `buildSquadWithSelfHeal()`. Se exige el
+// resultado tipado, igual que smoke-loan1.js.
 const TOLERATED_INFEASIBLE_FINDING_CODES = new Set(['FORMATION_QUOTA_NOT_MET', 'NON_COMMUNITY_CAP_EXCEEDED']);
 let totalToleratedInfeasibleActs = 0;
 
@@ -156,11 +188,12 @@ function assertActValid(matchId, team, validation, built, pool) {
     return;
   }
   const blockingCodes = validation.findings.filter((f) => f.severity === 'blocking').map((f) => f.code);
-  const isKnownTolerated = built.warnings.length > 0 && blockingCodes.every((code) => TOLERATED_INFEASIBLE_FINDING_CODES.has(code));
+  const isKnownTolerated = built.outcome === 'medical-exception'
+    && blockingCodes.every((code) => TOLERATED_INFEASIBLE_FINDING_CODES.has(code));
   assert.ok(
     isKnownTolerated,
-    `[${matchId}] acta inválida para ${team.fullName} sin ser una infeasibilidad conocida/avisada: `
-    + `${JSON.stringify(validation.findings)} (warnings: ${JSON.stringify(built.warnings)})`,
+    `[${matchId}] acta inválida para ${team.fullName} sin ser una infeasibilidad médica conocida `
+    + `(outcome=${built.outcome}, bloqueos=${blockingCodes.join(',')})`,
   );
   totalToleratedInfeasibleActs += 1;
 }
@@ -241,6 +274,16 @@ const registrationBootstrap = RegistrationSeeder.seedRegistrationsForTeams({
   teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE,
 });
 console.log(`OK: ${registrationBootstrap.results.length} licencias/inscripciones simuladas creadas para ${playerRegistry.all().length} jugadores mundiales.`);
+
+// CYCLE-1: `runAnnualCycleTransition` toca agentes/mercado/traspasos/cesiones
+// (tanteo orgánico, limpieza de expedientes vivos...) aunque este smoke no
+// ejerce fixtures propios de esos dominios — instancias EXPLÍCITAS vacías por
+// carrera, mismo criterio que agentRegistry/marketRegistry/transferRegistry/
+// loanRegistry en smoke-loan1.js (nunca singletons).
+const agentRegistry = new AgentRegistry();
+const marketRegistry = new MarketRegistry();
+const transferRegistry = new TransferRegistry();
+const loanRegistry = new LoanRegistry();
 
 function validateAll(label, date) {
   const isoDate = LocalDate.fromJsDate(date);
@@ -392,8 +435,7 @@ function buildResolver(league) {
         competitionId: resolved.competitionId, competitionInstanceId: resolved.competitionInstanceId, seasonKey,
         date: match.date, phaseId: 'league', roundId: match.round, matchId,
       };
-      const pool = buildEligiblePool(team, context, { registrationRegistry, playerRegistry, contractRegistry, allTeamsById, classificationCache });
-      const built = buildCpuLineup(team, importance, CONFIG_BASE, match.date, resolved.squadRules, { pool, resolved });
+      const { pool, built } = buildSquadWithSelfHeal(team, context, resolved, importance, matchId);
       const { validation } = recordMatchActSnapshot(team, built.squad, context, resolved, pool, registrationRegistry, match.date);
       totalMatchActs += 1;
       if (!validation.valid) totalSquadValidationFailures += 1;
@@ -442,8 +484,7 @@ function bracketResolver(bracketDate, phaseId, bracket) {
         competitionId: resolved.competitionId, competitionInstanceId: resolved.competitionInstanceId, seasonKey,
         date: bracketDate, phaseId, roundId: roundKey, matchId,
       };
-      const pool = buildEligiblePool(team, context, { registrationRegistry, playerRegistry, contractRegistry, allTeamsById, classificationCache });
-      const built = buildCpuLineup(team, true, CONFIG_BASE, bracketDate, resolved.squadRules, { pool, resolved });
+      const { pool, built } = buildSquadWithSelfHeal(team, context, resolved, true, matchId);
       const { validation } = recordMatchActSnapshot(team, built.squad, context, resolved, pool, registrationRegistry, bracketDate);
       totalMatchActs += 1;
       if (!validation.valid) totalSquadValidationFailures += 1;
@@ -463,17 +504,95 @@ function reviewCpu(teams, date) {
   teams.forEach((team) => TrainingAI.reviewTeamIfDue(team, date, { matchesInNext7Days: 1 }, CONFIG_BASE, calendarCtx));
 }
 
-let totalNewgens = 0;
-let onCourtQuotaChecks = 0;
-// Sin sistema de baja/retirada de jugadores todavía (HARDEN-1/roster
-// lifecycle, fuera de alcance de REG-1), la plantilla de un club solo
-// CRECE con la cantera de cada cierre de temporada — sobre 3 temporadas
-// esto puede agotar legítimamente el cupo acumulado de inscripciones de
-// algún club. Se cuenta para verificar que el sistema se DEGRADA con
-// gracia (licencia sí, inscripción de competición diferida) en vez de
-// tirar la partida abajo — nunca se espera que sea 0 en una simulación
-// larga sin retiradas.
-let totalDeferredNewgenRegistrations = 0;
+// CYCLE-1 (BUG-LOAN1-01, ver smoke-loan1.js): los fixtures dirigidos de
+// arriba (baja/reactivación por lesión, propio/vinculado) pueden dejar a un
+// club exactamente en su suelo reglamentario. Antes de CYCLE-1 el motor no
+// se enteraba de una convocatoria reglamentariamente imposible: caía en
+// silencio al selector NO regulado y el partido se jugaba con un acta
+// ilegal. Ahora se detiene, así que la legalidad de los 36 clubes se
+// GARANTIZA con la auditoría + escalera de emergencia compartidas
+// (`cycle1-harness`), exactamente igual que en una carrera real — nunca
+// relajando la comprobación del acta.
+const { annualCycleRegistry: cycleRegistryForLegality, academyRegistry: academyRegistryForLegality } = cycle1.createCycleRegistries();
+let totalStartupEmergencyActions = 0;
+
+// Auto-corrección MID-TEMPORADA (misma escalera que usa el arranque de
+// temporada): una plantilla legal en la jornada 1 puede dejar de serlo más
+// tarde sin que ningún traspaso/cesión nuevo la toque (p.ej. la
+// clasificación de formación es SIEMPRE contextual por fecha). El motor
+// NUNCA juega un partido con una convocatoria reglamentariamente imposible
+// — se detiene con diagnóstico en vez de caer al selector no regulado.
+function buildSquadWithSelfHeal(team, context, resolved, importance, matchId) {
+  const buildOnce = () => {
+    const pool = buildEligiblePool(team, context, {
+      registrationRegistry, playerRegistry, contractRegistry, allTeamsById, classificationCache,
+    });
+    const built = buildCpuLineup(team, importance, CONFIG_BASE, context.date, resolved.squadRules, { pool, resolved });
+    return { pool, built };
+  };
+  let { pool, built } = buildOnce();
+  if (built.outcome === 'infeasible') {
+    const healed = cycle1.selfHealClubLegality({
+      team,
+      context,
+      seasonKey,
+      config: CONFIG_BASE,
+      annualCycleRegistry: cycleRegistryForLegality,
+      academyRegistry: academyRegistryForLegality,
+      playerRegistry,
+      contractRegistry,
+      registrationRegistry,
+      loanRegistry,
+      teams: allTeams,
+      classificationCache,
+      careerSeed: `smoke-reg1|${seasonKey}`,
+    });
+    if (healed) totalStartupEmergencyActions += healed.actions.filter((a) => a.succeeded).length;
+    if (healed && healed.resolved) {
+      ({ pool, built } = buildOnce());
+    }
+    if (built.outcome === 'infeasible') {
+      console.error('DEBUG-INFEASIBLE', JSON.stringify({
+        matchId, teamId: team.id, healed: healed ? { resolved: healed.resolved, remaining: healed.remaining, actions: healed.actions.map((a) => ({ type: a.actionType, succeeded: a.succeeded, failureReason: a.failureReason })) } : null, diagnostic: built.diagnostic,
+      }));
+    }
+  }
+  assert.notStrictEqual(
+    built.outcome, 'infeasible',
+    `[${matchId}] convocatoria reglamentariamente IMPOSIBLE para ${team.fullName}: `
+    + `${JSON.stringify(built.diagnostic)} — el motor no puede jugar con un acta ilegal `
+    + 'ni caer al selector legacy, ni siquiera tras reintentar la escalera de emergencia mid-temporada.',
+  );
+  return { pool, built };
+}
+
+function ensureLegalRostersBeforeMatches(label, date) {
+  const audit = cycle1.ensureAllClubsLegalBeforeFirstMatch({
+    teams: allTeams,
+    seasonKey,
+    date,
+    config: CONFIG_BASE,
+    careerSeed: `smoke-reg1|${seasonKey}`,
+    annualCycleRegistry: cycleRegistryForLegality,
+    academyRegistry: academyRegistryForLegality,
+    playerRegistry,
+    contractRegistry,
+    registrationRegistry,
+    loanRegistry,
+    classificationCache,
+    userClubId: null,
+  });
+  totalStartupEmergencyActions += audit.emergencyActions.length;
+  const stillIllegal = audit.reports.filter((report) => !report.isLegal)
+    .map((report) => `${report.clubId}: ${report.gaps.filter((g) => g.severity === 'blocking').map((g) => g.code).join(',')}`);
+  assert.strictEqual(
+    stillIllegal.length, 0,
+    `[${label}] ${stillIllegal.length} club(es) siguen sin poder construir un acta legal: ${stillIllegal.slice(0, 5).join(' | ')}`,
+  );
+  return audit;
+}
+
+ensureLegalRostersBeforeMatches('antes de la jornada 1', referenceDate);
 
 for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   console.log(`\n=== Temporada ${seasonIndex + 1}/${SEASONS_TO_SIMULATE} (${seasonKey}) ===`);
@@ -549,17 +668,53 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   const leagueA = leagues['1ª'];
   const leagueB = leagues['2ª'];
   const seasonEndDateTime = calendar.currentGameDateTime;
-  const seasonEndIso = LocalDate.fromJsDate(seasonEndDateTime);
   const prevSeasonKey = seasonKey;
+  const nextSeasonKey = PC.seasonKeyFromStartYear(seasonStartYear + 1);
 
-  const divisionBeforeByTeamId = new Map();
-  [...leagueA.teams, ...leagueB.teams].forEach((team) => divisionBeforeByTeamId.set(team.id, team.division));
-
-  const standingsA = leagueA.getStandingsTable();
-  const relegatedTeams = [standingsA[standingsA.length - 1].team, standingsA[standingsA.length - 2].team];
-  relegatedTeams.forEach((team) => { team.division = '2ª'; });
-  const promotedTeams = [promotionPlayoff.directPromotion.team, promotionPlayoff.secondPromotedEntry.team];
-  promotedTeams.forEach((team) => { team.division = '1ª'; });
+  // CYCLE-1 (DESIGN.md 9.22): el cierre de temporada YA NO es el monolito
+  // hand-rollado (ascender/descender -> expirar+resembrar inscripciones ->
+  // `generateAcademyIntake(3)` a los 36 -> reemplazar calendario) — ese
+  // comportamiento está RETIRADO. Este smoke consume el MISMO ciclo anual
+  // real que una carrera de verdad, vía el harness compartido (mismo
+  // patrón EXACTO que smoke-loan1.js) — nunca una copia local del motor.
+  // La fase `licenses-and-registrations` del ciclo hace ahora la
+  // expiración+resiembra que este script hacía a mano; construirla en
+  // paralelo aquí volvería a procesar dos veces el mismo registro.
+  const evidence = cycle1.collectSeasonEvidence({
+    leagues: [leagueA, leagueB],
+    brackets: [
+      { bracket: cup, phaseId: 'cup' },
+      { bracket: titlePlayoff, phaseId: 'title-playoff' },
+      { bracket: promotionPlayoff, phaseId: 'promotion' },
+    ],
+  });
+  const { cycle, summary } = cycle1.runAnnualCycleTransition({
+    annualCycleRegistry: cycleRegistryForLegality,
+    academyRegistry: academyRegistryForLegality,
+    playerRegistry,
+    contractRegistry,
+    registrationRegistry,
+    marketRegistry,
+    agentRegistry,
+    transferRegistry,
+    loanRegistry,
+    teams: allTeams,
+    leagueA,
+    leagueB,
+    cup,
+    titlePlayoff,
+    promotionPlayoff,
+    fromSeasonKey: prevSeasonKey,
+    targetSeasonKey: nextSeasonKey,
+    evidence,
+    seasonEndDateTime,
+    config: CONFIG_BASE,
+    careerSeed: `smoke-reg1|${prevSeasonKey}`,
+    classificationCache,
+  });
+  void cycle;
+  const promotedTeams = (summary.promotedIds || []).map((id) => allTeamsById.get(id)).filter(Boolean);
+  const relegatedTeams = (summary.relegatedIds || []).map((id) => allTeamsById.get(id)).filter(Boolean);
 
   allTeams = [...leagueA.teams, ...leagueB.teams];
   teamsByDivision = {
@@ -567,65 +722,6 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
     '2ª': allTeams.filter((t) => t.division === '2ª'),
   };
   allTeamsById = new Map(allTeams.map((t) => [t.id, t]));
-  processDevelopmentToDateForTeams(allTeams, seasonEndDateTime);
-
-  const nextSeasonKey = PC.seasonKeyFromStartYear(seasonStartYear + 1);
-
-  // --- REG-1 (sección 12): expira licencias/inscripciones de la temporada
-  // que TERMINA (mediante evento, nunca se borran). Recorrido por el
-  // REGISTRO, nunca por `team.roster`: un propio de categoría inferior o
-  // un vinculado (sección 5.4) NUNCA aparecen en `Team.roster` por diseño
-  // — iterar plantillas los deja huérfanos (su licencia expira pero su
-  // inscripción queda "activa" para siempre, ver
-  // `RegistrationRegistry.validateIntegrity()`).
-  const oldScopeIds = new Set(
-    [...leagueA.teams, ...leagueB.teams].map((team) => (
-      resolveRegistrationRulesForDivision(divisionBeforeByTeamId.get(team.id), prevSeasonKey, seasonEndDateTime).registrationScopeId
-    )),
-  );
-  oldScopeIds.forEach((scopeId) => {
-    registrationRegistry.registrationsForScope(scopeId)
-      .filter((registration) => registration.seasonKey === prevSeasonKey && registration.statusOn(seasonEndIso) === 'active')
-      .forEach((registration) => RegistrationService.advanceRegistrationEvent(registration, 'expired', seasonEndIso));
-  });
-  registrationRegistry.allLicenses()
-    .filter((license) => license.seasonKey === prevSeasonKey && license.statusOn(seasonEndIso) === 'active')
-    .forEach((license) => RegistrationService.advanceLicenseEvent(license, 'expired', seasonEndIso));
-
-  // --- Nuevas licencias/inscripciones de TRANSICIÓN, ámbito nuevo --------
-  const registrationTransition = RegistrationSeeder.seedRegistrationsForTeams({
-    teams: allTeams, seasonKey: nextSeasonKey, date: seasonEndIso, registrationRegistry, contractRegistry, config: CONFIG_BASE,
-  });
-
-  // --- Cantera: registrada, contratada y con licencia/inscripción NUEVAS -
-  const intakeCalibration = ContractSeeder.buildCompetitionCalibration(allTeams, CONFIG_BASE);
-  allTeams.forEach((team) => {
-    // Clasificación del club calculada ANTES del intake, sobre el MISMO
-    // roster senior que acaba de usar `registrationTransition` — un newgen
-    // nunca dispara su propio sorteo independiente de formación/no
-    // comunitario (eso podría superar el cupo del club ya congelado en las
-    // inscripciones senior recién creadas, ver BUG-REG1-02): hereda
-    // "no cuenta" por defecto, igual que cualquier jugador fuera del
-    // reparto ya decidido para esta temporada.
-    const resolvedForIntake = resolveRegistrationRulesForDivision(team.division, nextSeasonKey, seasonEndDateTime);
-    const intakeClassification = RegistrationSeeder.classifyRosterForClub(team, resolvedForIntake, nextSeasonKey);
-    const newPlayers = team.generateAcademyIntake(3, seasonEndDateTime);
-    newPlayers.forEach((player) => {
-      PC.ensureCareerHistory(player, CONFIG_BASE, seasonEndDateTime, { historyCompleteness: 'complete', seasonKey: nextSeasonKey });
-    });
-    playerRegistry.registerMany(newPlayers);
-    newPlayers.forEach((player) => {
-      ContractSeeder.seedContractForNewPlayer({
-        player, team, seasonKey: nextSeasonKey, date: seasonEndIso, registry: contractRegistry, playerRegistry, config: CONFIG_BASE, calibration: intakeCalibration,
-      });
-      const newgenReg = RegistrationSeeder.seedRegistrationForNewPlayer({
-        player, team, seasonKey: nextSeasonKey, date: seasonEndIso, registrationRegistry, contractRegistry, config: CONFIG_BASE,
-        existingClassification: intakeClassification,
-      });
-      if (!newgenReg.registration) totalDeferredNewgenRegistrations += 1;
-      totalNewgens += 1;
-    });
-  });
 
   seasonStartYear += 1;
   calendar = new Calendar(seasonStartYear, CONFIG_BASE);
@@ -635,11 +731,13 @@ for (let seasonIndex = 0; seasonIndex < SEASONS_TO_SIMULATE; seasonIndex += 1) {
   bootstrapIsoDate = LocalDate.fromJsDate(referenceDate);
 
   validateAll(`tras cierre + cantera (${seasonKey})`, referenceDate);
+  // Misma garantía tras el cierre: ninguna plantilla arranca la temporada
+  // siguiente sin poder construir un acta legal.
+  ensureLegalRostersBeforeMatches(`antes de la jornada 1 de ${seasonKey}`, referenceDate);
   console.log(`Temporada cerrada. Ascendidos: ${promotedTeams.map((t) => t.fullName).join(', ')}. `
     + `Descendidos: ${relegatedTeams.map((t) => t.fullName).join(', ')}.`);
   console.log(`Player Registry: ${playerRegistry.all().length} · Contratos: ${contractRegistry.size} · `
-    + `Licencias: ${registrationRegistry.allLicenses().length} · Inscripciones: ${registrationRegistry.allRegistrations().length} `
-    + `(altas nuevas de transición: ${registrationTransition.results.length}).`);
+    + `Licencias: ${registrationRegistry.allLicenses().length} · Inscripciones: ${registrationRegistry.allRegistrations().length}.`);
 }
 
 // =====================================================================
@@ -671,7 +769,16 @@ console.log(`Inscripciones:                 ${registrationRegistry.allRegistrati
 console.log(`Eventos regulatorios totales:  ${totalEvents}`);
 console.log(`Actas de partido registradas:  ${totalMatchActs} (fallos de validación de acta: ${totalSquadValidationFailures}, de los cuales infeasibilidad médica conocida y avisada: ${totalToleratedInfeasibleActs})`);
 console.log(`Acuerdos de vinculación:       ${registrationRegistry.allLinkAgreements().length}`);
-console.log(`Newgens contratados/inscritos: ${totalNewgens} (inscripción diferida por cupo agotado: ${totalDeferredNewgenRegistrations})`);
+// CYCLE-1: la cantera ya no entra directamente al primer equipo (retirado
+// `Team.generateAcademyIntake(3)` por cierre) — un joven pasa primero por
+// el pool de academia (`AcademyRegistry`) y una decisión anual real
+// (`academy-decisions`, dentro del ciclo) resuelve si promociona a senior
+// con contrato/licencia/inscripción reales. "Newgens contratados/inscritos"
+// (contador manual de este script) ya no es una magnitud que este script
+// calcule — se reporta la magnitud equivalente real del registro.
+console.log(`Pertenencias de academia (histórico): ${academyRegistryForLegality.allMemberships().length} · `
+  + `Decisiones anuales: ${academyRegistryForLegality.allDecisions().length}`);
+console.log(`Altas de emergencia para garantizar legalidad: ${totalStartupEmergencyActions}`);
 console.log(`Fixture lesión/reactivación:   ${injuryFixtureChecked ? 'OK' : 'NO EJECUTADO'}`);
 console.log(`Fixture propio/vinculado:      ${ownLowerFixtureChecked && linkedFixtureChecked ? 'OK' : 'NO EJECUTADO'}`);
 console.log(`Todos los datos regulatorios simulados etiquetados: ${allSimulated}`);
