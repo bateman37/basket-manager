@@ -22,6 +22,7 @@ const path = require('path');
 
 const { Player } = require('../src/entities/Player.js');
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
 const { ContractRegistry } = require('../src/core/ContractRegistry.js');
 const { RegistrationRegistry } = require('../src/core/RegistrationRegistry.js');
@@ -94,16 +95,28 @@ function makePlayer(overrides = {}) {
   return new Player(data);
 }
 
+// CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un Club
+// real enlazado — fixture legacy permitido: `clubId === teamId`.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
 function makeTeam(clubId, division, rosterSize = 1) {
   const roster = [];
   for (let i = 0; i < rosterSize; i += 1) roster.push(makePlayer({ id: `${clubId}-p${i}` }));
-  return new Team({
+  return linkLegacyClub(new Team({
     id: clubId, name: clubId, city: 'Test', division, roster,
-  });
+  }));
 }
 
 function realTeam(id) {
-  return new Team({ ...REAL_DATA_TEAMS[id], roster: [] });
+  return linkLegacyClub(new Team({ ...REAL_DATA_TEAMS[id], roster: [] }));
 }
 
 function buildValidDraft(team, player, resolved, overrides = {}) {
@@ -172,7 +185,7 @@ check('BUG-REG1-07: inscripción rechaza contrato de OTRO jugador', () => {
   cr.register(c);
   assert.throws(() => {
     RegistrationService.createRegistration({
-      registry: new RegistrationRegistry(), playerId: 'playerB', licenseId: 'lic1', teamId: 'clubA',
+      registry: new RegistrationRegistry(), playerId: 'playerB', licenseId: 'lic1', teamId: 'clubA', clubId: 'clubA',
       competitionId: 'acb', registrationScopeId: 'scope1', seasonKey: SEASON,
       accessCategory: 'senior', contractId: 'c1', contractRegistry: cr, date: GAME_DATE,
       resolved: { registration: null }, provenance: { dataSource: 'test', isReal: false },
@@ -191,7 +204,7 @@ check('BUG-REG1-07: inscripción rechaza contrato de OTRO club', () => {
   cr.register(c);
   assert.throws(() => {
     RegistrationService.createRegistration({
-      registry: new RegistrationRegistry(), playerId: 'playerA', licenseId: 'lic1', teamId: 'clubB',
+      registry: new RegistrationRegistry(), playerId: 'playerA', licenseId: 'lic1', teamId: 'clubB', clubId: 'clubB',
       competitionId: 'acb', registrationScopeId: 'scope1', seasonKey: SEASON,
       accessCategory: 'senior', contractId: 'c2', contractRegistry: cr, date: GAME_DATE,
       resolved: { registration: null }, provenance: { dataSource: 'test', isReal: false },
@@ -211,7 +224,7 @@ check('BUG-REG1-07: ambos correctos (jugador y club) no lanza', () => {
   const resolved = { registration: null, bundleId: 'x', version: 1 };
   assert.doesNotThrow(() => {
     RegistrationService.createRegistration({
-      registry: new RegistrationRegistry(), playerId: 'playerA', licenseId: 'lic1', teamId: 'clubA',
+      registry: new RegistrationRegistry(), playerId: 'playerA', licenseId: 'lic1', teamId: 'clubA', clubId: 'clubA',
       competitionId: 'acb', registrationScopeId: 'scope1', seasonKey: SEASON,
       accessCategory: 'senior', contractId: 'c3', contractRegistry: cr, date: GAME_DATE,
       resolved, provenance: { dataSource: 'test', isReal: false }, chain: ['submitted'],

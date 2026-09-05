@@ -28,6 +28,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
 const { ContractRegistry } = require('../src/core/ContractRegistry.js');
 const { RegistrationRegistry } = require('../src/core/RegistrationRegistry.js');
@@ -66,7 +67,19 @@ const SEASON = '2026-27';
 const GAME_DATE = '2026-10-15'; // dentro de temporada, ANTES del 15-09... no: DESPUÉS. Ver EARLY_DATE para casos que exigen fecha temprana.
 const EARLY_DATE = '2026-08-20'; // antes del 15 de septiembre (restricción ACB art. 17.4.5)
 
-function realTeam(id) { return new Team({ ...REAL_DATA_TEAMS[id], roster: [] }); }
+// CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un Club
+// real enlazado — fixture legacy permitido: `clubId === teamId`.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
+function realTeam(id) { return linkLegacyClub(new Team({ ...REAL_DATA_TEAMS[id], roster: [] })); }
 
 function makeWorld() {
   const playerRegistry = new PlayerRegistry();
@@ -1116,7 +1129,12 @@ check('BUG-TRANSFER1-19: la cadena histórica solo contrasta el ÚLTIMO movimien
   world.transferRegistry.registerTransactionRecord(new TransferEntities.TransactionRecord({
     id: 'tx-bug19-2', transferCaseId: 'case-bug19-2', playerId: player.id, operationType: 'negotiated-transfer', mechanism: 'mutual-transfer', effectiveDate: '2026-08-01', completedAt: '2026-08-01', originClubId: 'team-a', destinationClubId: 'team-c',
   }));
-  const report = world.transferRegistry.validateIntegrity({ playerRegistry: world.playerRegistry, teams: [] });
+  // CLUB-CORE-1: `playerClubId` se resuelve vía `player.teamId` -> Team ->
+  // `team.clubId` — el fixture necesita un Team real (clubId legacy ===
+  // teamId) para que "team-c" resuelva a sí mismo como clubId.
+  const report = world.transferRegistry.validateIntegrity({
+    playerRegistry: world.playerRegistry, teams: [{ id: 'team-c', clubId: 'team-c' }],
+  });
   assert.strictEqual(report.valid, true, JSON.stringify(report.errors));
 });
 

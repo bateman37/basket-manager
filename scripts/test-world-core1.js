@@ -299,7 +299,10 @@ check('un scheduleProfileId real (1ª/2ª) sigue funcionando exactamente igual',
 // =========================================================================
 check('MoraBanc Andorra: área de origen y jurisdicción laboral en Andorra, participación en ACB', () => {
   const { world } = buildSpainWorld('2026-27');
-  const club = world.registries.clubs.require('team-morabanc-andorra');
+  // CLUB-CORE-1: el clubId real es distinto del teamId ('club-morabanc-andorra'
+  // vs 'team-morabanc-andorra') — la participación en ACB sigue resolviéndose
+  // por el TEAM id (CompetitionEntry.participantId es siempre un Team).
+  const club = world.registries.clubs.require('club-morabanc-andorra');
   assert.strictEqual(club.homeAreaId, 'area-country-ad');
   assert.strictEqual(club.employerJurisdictionAreaId, 'area-country-ad');
   const entries = world.registries.competitionEntries.forParticipant('team-morabanc-andorra');
@@ -339,7 +342,9 @@ check('los aliases de domainRegistries son identidad estricta, nunca copias', ()
 
 check('un id de club duplicado con otra instancia lanza descriptivo', () => {
   const { world } = buildSpainWorld();
-  assert.throws(() => world.registries.clubs.register({ id: 'team-real-madrid', name: 'otra instancia' }), /id duplicado incompatible/);
+  // CLUB-CORE-1: el clubId real de Real Madrid es 'club-real-madrid', no
+  // 'team-real-madrid' (ese es su teamId).
+  assert.throws(() => world.registries.clubs.register({ id: 'club-real-madrid', name: 'otra instancia' }), /id duplicado incompatible/);
 });
 
 check('si la instalación de un paquete falla, no queda un mundo parcial reutilizado', () => {

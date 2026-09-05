@@ -23,6 +23,7 @@ const path = require('path');
 
 const { Player } = require('../src/entities/Player.js');
 const { Team, TEST_MATCH_SQUAD_POLICY } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
 const { ContractRegistry } = require('../src/core/ContractRegistry.js');
@@ -516,8 +517,8 @@ check('El mismo perfil puede dar clasificaciones DISTINTAS bajo ACB y bajo Prime
 
 check('MoraBanc Andorra: contrato bajo AD, registro bajo ACB en la misma competición', () => {
   const employment = CompetitionRules.resolveEmploymentRules({
-    clubId: 'team-morabanc-andorra',
-    employerJurisdictionId: ClubEmploymentContextCatalog.getClubEmploymentContext('team-morabanc-andorra').employerJurisdictionId,
+    clubId: 'club-morabanc-andorra',
+    employerJurisdictionId: ClubEmploymentContextCatalog.requireJurisdictionIdForArea('area-country-ad'),
     domesticCompetitionId: CompetitionRules.COMPETITION_IDS.ACB,
     federationId: 'feb-general',
     seasonKey: SEASON,
@@ -625,7 +626,7 @@ check('ACB: doble acta misma jornada se rechaza (EligibilityService)', () => {
     validity: { startDate: '2026-07-01', endDate: '2027-06-30' }, documentStatuses: {}, date: '2026-08-01',
   });
   RegistrationService.createRegistration({
-    registry, playerId: 'p1', licenseId: lic.id, teamId: 'c1', competitionId: 'acb', registrationScopeId: resolved.registrationScopeId,
+    registry, playerId: 'p1', licenseId: lic.id, teamId: 'c1', clubId: 'c1', competitionId: 'acb', registrationScopeId: resolved.registrationScopeId,
     seasonKey: SEASON, accessCategory: 'senior', contractId: 'contract1', date: '2026-08-01', resolved,
   });
   registry.registerMatchAct(new MatchActSnapshot({
@@ -657,7 +658,7 @@ check('ACB: una inscripción suspendida se reporta como REGISTRATION_SUSPENDED, 
     validity: { startDate: '2026-07-01', endDate: '2027-06-30' }, documentStatuses: {}, date: '2026-08-01',
   });
   const registration = RegistrationService.createRegistration({
-    registry, playerId: 'p1', licenseId: lic.id, teamId: 'c1', competitionId: 'acb', registrationScopeId: resolved.registrationScopeId,
+    registry, playerId: 'p1', licenseId: lic.id, teamId: 'c1', clubId: 'c1', competitionId: 'acb', registrationScopeId: resolved.registrationScopeId,
     seasonKey: SEASON, accessCategory: 'senior', contractId: 'contract1', date: '2026-08-01', resolved,
   });
   RegistrationService.suspendRegistrationForStatus(registration, '2026-11-01', 'disciplinary-suspension', resolved);
@@ -856,6 +857,19 @@ check('RegulatoryCalendar: último día hábil de un mes retrocede sobre fin de 
 group('9. Seeder/datos');
 // =====================================================================
 
+// CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un Club
+// real enlazado para resolver contexto laboral (ContractSeeder). Fixture
+// legacy permitido: `clubId === teamId`.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
 function buildRealWorld() {
   const refDate = LocalDate.toJsDate(GAME_DATE);
   const teams = REAL_DATA_INDEX.map((entry) => {
@@ -871,7 +885,7 @@ function buildRealWorld() {
       competitionId: CompetitionRules.competitionIdFromLegacyDivision(teamData.division), seasonKey: SEASON, date: refDate, operation: 'buildMatchSquad',
     }).squadRules;
     padRosterToMinimum(roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate: refDate });
-    return new Team({ ...teamData, roster });
+    return linkLegacyClub(new Team({ ...teamData, roster }));
   });
   const playerRegistry = new PlayerRegistry();
   teams.forEach((team) => playerRegistry.registerMany(team.roster));
@@ -1041,7 +1055,7 @@ check('Propio de categoría inferior y vinculado participan en el pool sin alter
   const ownLowerPlayer = makePlayer({ id: 'own1', age: 17 });
   ownLowerPlayer.teamId = 'academy-team';
   const fixture = RegistrationSeeder.seedOwnLowerCategoryFixture({
-    player: ownLowerPlayer, team: { id: 'c1' }, seasonKey: SEASON, date: '2026-08-01', registrationRegistry: registry, resolved,
+    player: ownLowerPlayer, team: { id: 'c1', clubId: 'c1' }, seasonKey: SEASON, date: '2026-08-01', registrationRegistry: registry, resolved,
   });
   assert.strictEqual(fixture.registration.accessCategory, 'own-lower-category');
   assert.strictEqual(fixture.registration.cumulativeCap.counted, false);
@@ -1050,7 +1064,7 @@ check('Propio de categoría inferior y vinculado participan en el pool sin alter
   const linkedPlayer = makePlayer({ id: 'linked1', age: 20 });
   linkedPlayer.teamId = 'lower-club';
   const linkFixture = RegistrationSeeder.seedLinkedPlayerFixture({
-    player: linkedPlayer, lowerClub: { id: 'lower-club', division: '2ª' }, upperClub: { id: 'c1', division: '1ª' },
+    player: linkedPlayer, lowerClub: { id: 'lower-club', clubId: 'lower-club', division: '2ª' }, upperClub: { id: 'c1', clubId: 'c1', division: '1ª' },
     seasonKey: SEASON, date: '2026-08-01', registrationRegistry: registry, resolved, direction: 'lowerToUpper',
   });
   assert.strictEqual(linkFixture.registration.accessCategory, 'linked');

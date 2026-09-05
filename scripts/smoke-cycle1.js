@@ -20,6 +20,7 @@ const assert = require('assert');
 
 const { Player } = require('../src/entities/Player.js');
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
 const PD = require('../src/core/PlayerDevelopment.js');
 const PC = require('../src/core/PlayerCareer.js');
@@ -87,6 +88,18 @@ function buildWorld(options) {
   const { annualCycleRegistry, academyRegistry } = harness.createCycleRegistries();
   const classificationCache = new Map();
 
+  // CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un
+  // Club real enlazado — fixture legacy permitido: `clubId === teamId`.
+  function linkLegacyClub(team) {
+    const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+    const club = new Club({
+      id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+    });
+    team.clubId = club.id;
+    team.club = club;
+    return team;
+  }
+
   function buildRealTeam(teamData) {
     const roster = teamData.roster.map((playerData) => {
       const { dataSource, ...playerFields } = playerData;
@@ -114,7 +127,7 @@ function buildWorld(options) {
         seasonKey, historyCompleteness: 'complete', annualCycleRegistry, retirementService: harness.RetirementService, careerSeed,
       });
     });
-    return new Team({ ...teamData, roster });
+    return linkLegacyClub(new Team({ ...teamData, roster }));
   }
 
   let teamsByDivision = {};

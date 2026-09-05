@@ -13,6 +13,7 @@
 const assert = require('assert');
 const { Player } = require('../src/entities/Player.js');
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
 const PD = require('../src/core/PlayerDevelopment.js');
 const PC = require('../src/core/PlayerCareer.js');
@@ -58,6 +59,20 @@ function resolveSquadRulesForDivision(division, seasonKey, date) {
   }).squadRules;
 }
 
+// CLUB-CORE-1 (DESIGN.md sección 10): este smoke construye equipos SIN
+// GameWorld (no es su alcance, ver smoke-world-core1.js/smoke-club-core1.js
+// para eso) — un Team vivo necesita igualmente un Club real enlazado para
+// resolver contexto laboral. Fixture legacy permitido: `clubId === teamId`.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
 function buildRealTeam(teamData, referenceDate, seasonKey) {
   const roster = teamData.roster.map((playerData) => {
     const { dataSource, ...playerFields } = playerData;
@@ -83,7 +98,7 @@ function buildRealTeam(teamData, referenceDate, seasonKey) {
   fallbackPlayers.forEach((player) => {
     PC.ensureCareerHistory(player, CONFIG_BASE, referenceDate, { historyCompleteness: 'complete', seasonKey });
   });
-  return new Team({ ...teamData, roster });
+  return linkLegacyClub(new Team({ ...teamData, roster }));
 }
 
 // =====================================================================
@@ -109,7 +124,7 @@ allTeams.forEach((team) => playerRegistry.registerMany(team.roster));
 const catalogCheck = ClubEmploymentContextCatalog.validateCatalog(allTeams);
 assert.ok(catalogCheck.valid, `contexto laboral incompleto: ${JSON.stringify(catalogCheck.errors)}`);
 const jurisdictionCounts = allTeams.reduce((acc, team) => {
-  const context = ClubEmploymentContextCatalog.requireClubEmploymentContext(team.id);
+  const context = ContractService.resolveEmploymentContext(team, {});
   acc[context.employerJurisdictionId] = (acc[context.employerJurisdictionId] || 0) + 1;
   return acc;
 }, {});

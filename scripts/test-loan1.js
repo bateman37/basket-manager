@@ -28,6 +28,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
 const { ContractRegistry } = require('../src/core/ContractRegistry.js');
 const { RegistrationRegistry } = require('../src/core/RegistrationRegistry.js');
@@ -67,7 +68,19 @@ const GAME_DATE = '2026-10-15';
 const SERVICE_START = '2026-10-20';
 const RETURN_DATE = '2027-07-31';
 
-function realTeam(id) { return new Team({ ...REAL_DATA_TEAMS[id], roster: [] }); }
+// CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un Club
+// real enlazado — fixture legacy permitido: `clubId === teamId`.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
+function realTeam(id) { return linkLegacyClub(new Team({ ...REAL_DATA_TEAMS[id], roster: [] })); }
 
 function makeWorld() {
   const playerRegistry = new PlayerRegistry();
@@ -416,6 +429,7 @@ check('EligibilityService: el cedido es elegible por el CESIONARIO (base laboral
     date: SERVICE_START, seasonKey: SEASON, competitionId: 'acb', phaseId: 'league',
   }, {
     playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry, registrationRegistry: fx.world.registrationRegistry,
+    clubId: fx.borrowerTeam.clubId,
   });
   assert.strictEqual(evalResult.eligible, true, JSON.stringify(evalResult.reasons));
 });
@@ -541,17 +555,20 @@ check('parent-club-match-eligibility: prohíbe jugar contra el propietario con r
       type: 'parent-club-match-eligibility', scope: 'competition', prohibited: true, reason: 'Cláusula pactada en la cesión',
     }],
   });
+  // CLUB-CORE-1: `opponentClubId`/`deps.clubId` son SIEMPRE Club ids reales.
   const evalResult = EligibilityService.evaluateEligibility(fx.player.id, fx.borrowerTeam.id, {
-    date: SERVICE_START, seasonKey: SEASON, competitionId: 'acb', phaseId: 'league', opponentClubId: fx.ownerTeam.id,
+    date: SERVICE_START, seasonKey: SEASON, competitionId: 'acb', phaseId: 'league', opponentClubId: fx.ownerTeam.clubId,
   }, {
     playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry, registrationRegistry: fx.world.registrationRegistry, loanRegistry: fx.world.loanRegistry,
+    clubId: fx.borrowerTeam.clubId,
   });
   assert.strictEqual(evalResult.eligible, false);
   assert.ok(evalResult.reasons.some((r) => r.code === 'PARENT_CLUB_MATCH_RESTRICTED'));
   const evalVsOther = EligibilityService.evaluateEligibility(fx.player.id, fx.borrowerTeam.id, {
-    date: SERVICE_START, seasonKey: SEASON, competitionId: 'acb', phaseId: 'league', opponentClubId: 'team-unicaja',
+    date: SERVICE_START, seasonKey: SEASON, competitionId: 'acb', phaseId: 'league', opponentClubId: 'club-unicaja',
   }, {
     playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry, registrationRegistry: fx.world.registrationRegistry, loanRegistry: fx.world.loanRegistry,
+    clubId: fx.borrowerTeam.clubId,
   });
   assert.strictEqual(evalVsOther.eligible, true, JSON.stringify(evalVsOther.reasons));
 });
