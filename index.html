@@ -344,6 +344,11 @@
   <script src="src/entities/Geography.js"></script>
   <script src="src/entities/Organization.js"></script>
   <script src="src/entities/Club.js"></script>
+  <!-- CLUB-CORE-1 (DESIGN.md sección 10): `Squad` es el contenedor
+       operativo de jugadores de un Team — depende solo de Player, sin
+       dependencia de carga real con Club/Team (accesores perezosos, ver
+       Team.js). -->
+  <script src="src/entities/Squad.js"></script>
   <script src="src/entities/Competition.js"></script>
   <!-- ROSTER-1 (DESIGN.md 9.16): PlayerRegistry.js es un módulo puro (no
        conoce Player/Team como clases, solo duck-typing sobre player.id/
@@ -529,6 +534,10 @@
   <script src="src/core/WorldRegistry.js"></script>
   <script src="src/entities/World.js"></script>
   <script src="src/core/WorldFactory.js"></script>
+  <!-- CLUB-CORE-1 (DESIGN.md sección 10): frontera pura Club/Team/Squad —
+       solo depende de una instancia de WorldRegistries recibida explícita,
+       ningún orden de carga real con los archivos de arriba. -->
+  <script src="src/core/ClubStructureService.js"></script>
   <script src="src/core/SpainLegacyCompetitionRuntime.js"></script>
   <script src="data/world/world-core-2026.1.js"></script>
   <script src="data/world/spain-2026.1.js"></script>

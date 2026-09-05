@@ -281,7 +281,7 @@
       const resolved = ContractSvc().resolveRulesForClub(team, {
         seasonKey: targetSeasonKey, date: iso, operation: 'signContract',
       });
-      contractRegistry.forClub(team.id)
+      contractRegistry.forClub(team.clubId)
         .filter((contract) => contract.isCurrentOn(iso))
         .forEach((contract) => {
           contract.clauses
@@ -383,7 +383,7 @@
         skipped.push({ clubId: team.id, reason: 'NO_LAST_MATCH_EVIDENCE' });
         return;
       }
-      contractRegistry.forClub(team.id)
+      contractRegistry.forClub(team.clubId)
         .filter((contract) => contract.isCurrentOn(iso))
         // Contrato REALMENTE expirable: termina con esta temporada.
         .filter((contract) => !contract.coveredSeasonKeys.includes(targetSeasonKey))
@@ -392,17 +392,17 @@
           if (!player) return;
           // Sin duplicado previo para el MISMO hecho.
           const alreadyOpen = marketRegistry.rightsCasesForPlayer(contract.playerId)
-            .some((entry) => entry.originClubId === team.id && entry.lastOfficialMatchDate === clubLastMatchDate);
+            .some((entry) => entry.originClubId === team.clubId && entry.lastOfficialMatchDate === clubLastMatchDate);
           if (alreadyOpen) return;
           // Evidencia de deuda: sin ledger, "no existe deuda confirmada".
           const compliance = paymentComplianceEvidence({
-            contractId: contract.id, clubId: team.id, date: iso, paymentLedger,
+            contractId: contract.id, clubId: team.clubId, date: iso, paymentLedger,
           });
           try {
             const rightsCase = RofrSvc().openCase({
               marketRegistry,
               playerId: contract.playerId,
-              originClubId: team.id,
+              originClubId: team.clubId,
               lastOfficialMatchDate: clubLastMatchDate,
               procedureType: 'right-of-first-refusal',
               marketContext,
@@ -410,7 +410,7 @@
             });
             rightsCases.push({
               rightsCaseId: rightsCase.id,
-              clubId: team.id,
+              clubId: team.clubId,
               playerId: contract.playerId,
               lastOfficialMatchDate: clubLastMatchDate,
               paymentCompliance: compliance.status,
@@ -504,8 +504,10 @@
     const decisions = [];
     const promotions = [];
     [...(teams || [])].sort((a, b) => (a.id < b.id ? -1 : 1)).forEach((team) => {
-      // (1) Decisión anual del pool ACTUAL, antes del intake nuevo.
-      const pool = academyRegistry.activePoolForClub(team.id, iso);
+      // (1) Decisión anual del pool ACTUAL, antes del intake nuevo. La
+      // cantera es del Club institucional (`team.clubId`), nunca de
+      // `team.id` (invariante 18).
+      const pool = academyRegistry.activePoolForClub(team.clubId, iso);
       const qualityIndex = AcademySvc().buildPoolQualityIndex(pool, playerRegistry, config);
       [...pool].sort((a, b) => (a.id < b.id ? -1 : 1)).forEach((membership) => {
         const decision = AcademySvc().decideForMembership({

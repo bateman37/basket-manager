@@ -45,8 +45,8 @@
     const originCtx = originTeam ? ContractSvc().resolveEmploymentContext(originTeam) : null;
     return {
       playerId,
-      originClubId: originTeam ? originTeam.id : destinationTeam.id,
-      destinationClubId: destinationTeam.id,
+      originClubId: originTeam ? originTeam.clubId : destinationTeam.clubId,
+      destinationClubId: destinationTeam.clubId,
       originEmployerJurisdictionId: originCtx ? originCtx.employerJurisdictionId : destinationCtx.employerJurisdictionId,
       destinationEmployerJurisdictionId: destinationCtx.employerJurisdictionId,
       originCompetitionId: originCtx ? originCtx.domesticCompetitionId : null,
@@ -309,7 +309,7 @@
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
-      transferRegistry, marketRegistry, agreement, operationType: 'free-agent-signing', initiatingClubId: destinationTeam.id, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
+      transferRegistry, marketRegistry, agreement, operationType: 'free-agent-signing', initiatingClubId: destinationTeam.clubId, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
     const destinationRegistration = buildDestinationRegistrationCommand({ destinationTeam, seasonKey, date: effectiveDate, registrationRegistry });
     const command = {
@@ -318,7 +318,7 @@
       operationType: 'free-agent-signing',
       mechanism: 'free-agent-signing',
       playerId: agreement.playerId,
-      destinationClubId: destinationTeam.id,
+      destinationClubId: destinationTeam.clubId,
       effectiveDate,
       seasonKey,
       agreementInPrincipleId: agreement.id,
@@ -354,7 +354,7 @@
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
-      transferRegistry, marketRegistry, agreement, operationType: 'negotiated-transfer', originClubId: originTeam.id, initiatingClubId: destinationTeam.id, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
+      transferRegistry, marketRegistry, agreement, operationType: 'negotiated-transfer', originClubId: originTeam.clubId, initiatingClubId: destinationTeam.clubId, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
     // Sección 9.2 del prompt: la oferta club-club ACEPTADA es una entidad
     // CANÓNICA propia (`ClubTransferOffer`, nunca el objeto suelto
@@ -366,8 +366,8 @@
       id: clubOffer.id,
       transferCaseId: transferCase.id,
       version: 1,
-      offeredByClubId: destinationTeam.id,
-      addressedToClubId: originTeam.id,
+      offeredByClubId: destinationTeam.clubId,
+      addressedToClubId: originTeam.clubId,
       createdAt: effectiveDate,
       expiresAt: effectiveDate,
       fee: clubOffer.fee,
@@ -378,8 +378,8 @@
       id: `transfer-agreement:${transferCase.id}`,
       transferCaseId: transferCase.id,
       playerId: agreement.playerId,
-      originClubId: originTeam.id,
-      destinationClubId: destinationTeam.id,
+      originClubId: originTeam.clubId,
+      destinationClubId: destinationTeam.clubId,
       acceptedClubOfferId: clubOffer.id,
       fee: clubOffer.fee,
       agreedAt: effectiveDate,
@@ -406,8 +406,8 @@
       operationType: 'negotiated-transfer',
       mechanism: 'negotiated-transfer',
       playerId: agreement.playerId,
-      originClubId: originTeam.id,
-      destinationClubId: destinationTeam.id,
+      originClubId: originTeam.clubId,
+      destinationClubId: destinationTeam.clubId,
       effectiveDate,
       seasonKey,
       agreementInPrincipleId: agreement.id,
@@ -456,7 +456,7 @@
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
-      transferRegistry, marketRegistry, agreement, operationType: 'release-clause-exercise', originClubId: originTeam.id, initiatingClubId: destinationTeam.id, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
+      transferRegistry, marketRegistry, agreement, operationType: 'release-clause-exercise', originClubId: originTeam.clubId, initiatingClubId: destinationTeam.clubId, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
     const exercise = new TransferEntities.ReleaseClauseExercise({
       id: `release-clause:${transferCase.id}`,
@@ -479,8 +479,8 @@
       operationType: 'release-clause-exercise',
       mechanism: 'release-clause-exercise',
       playerId: agreement.playerId,
-      originClubId: originTeam.id,
-      destinationClubId: destinationTeam.id,
+      originClubId: originTeam.clubId,
+      destinationClubId: destinationTeam.clubId,
       effectiveDate,
       seasonKey,
       agreementInPrincipleId: agreement.id,
@@ -530,9 +530,9 @@
     const transferCase = new TransferEntities.TransferCase({
       id,
       playerId,
-      initiatingClubId: originTeam.id,
-      originClubId: originTeam.id,
-      destinationClubId: destinationTeam ? destinationTeam.id : originTeam.id,
+      initiatingClubId: originTeam.clubId,
+      originClubId: originTeam.clubId,
+      destinationClubId: destinationTeam ? destinationTeam.clubId : originTeam.clubId,
       agreementInPrincipleId: agreement ? agreement.id : `self:release:${playerId}`,
       operationType: 'mutual-agreement',
       openedAt: now,
@@ -549,8 +549,8 @@
       operationType: 'mutual-agreement',
       mechanism: 'mutual-agreement',
       playerId,
-      originClubId: originTeam.id,
-      destinationClubId: destinationTeam ? destinationTeam.id : originTeam.id,
+      originClubId: originTeam.clubId,
+      destinationClubId: destinationTeam ? destinationTeam.clubId : originTeam.clubId,
       releaseOnly,
       effectiveDate,
       seasonKey,

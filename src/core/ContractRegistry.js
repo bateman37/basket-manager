@@ -154,14 +154,17 @@
       } = options || {};
       const errors = [];
       const iso = date ? toIso(date) : null;
-      const teamIds = new Set((teams || []).map((team) => team.id));
+      // CLUB-CORE-1: `Contract.clubId` es un Club real — se valida contra
+      // los clubes de los equipos vivos (`team.clubId`), nunca contra
+      // `team.id` (invariante 11 del prompt: "contratos... usan Club ids").
+      const clubIds = new Set((teams || []).map((team) => team.clubId).filter(Boolean));
 
       this.all().forEach((contract) => {
         if (playerRegistry && !playerRegistry.has(contract.playerId)) {
           errors.push(`El contrato "${contract.id}" referencia al jugador "${contract.playerId}", que no está en PlayerRegistry.`);
         }
-        if (teams && !teamIds.has(contract.clubId)) {
-          errors.push(`El contrato "${contract.id}" referencia al club "${contract.clubId}", que no existe entre los equipos vivos.`);
+        if (teams && !clubIds.has(contract.clubId)) {
+          errors.push(`El contrato "${contract.id}" referencia al club "${contract.clubId}", que no existe entre los clubes vivos.`);
         }
         const scheduleCheck = contract.validatePaymentScheduleIntegrity();
         if (!scheduleCheck.valid) {
@@ -201,7 +204,7 @@
                 `El jugador "${player.id}" (${player.fullName || '?'}) está en la plantilla de `
                 + `"${team.fullName || team.id}" pero no tiene ningún contrato vigente ni pendiente a ${iso}.`,
               );
-            } else if (current.clubId !== team.id) {
+            } else if (current.clubId !== team.clubId) {
               // LOAN-1 (DESIGN.md 9.21, sección 12 del prompt) — durante una
               // cesión, el contrato matriz sigue siendo con el PROPIETARIO
               // pero el roster operativo es el del CESIONARIO. Esta
@@ -217,7 +220,7 @@
                   explainedByLoan = Boolean(agreement)
                     && agreement.masterContractId === current.id
                     && agreement.ownerClubId === current.clubId
-                    && agreement.borrowerClubId === team.id;
+                    && agreement.borrowerClubId === team.clubId;
                 } catch (err) {
                   errors.push(err.message);
                 }

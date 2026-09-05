@@ -11,6 +11,17 @@
 // DOS sitios permitidos para literales de España ('1ª'/'2ª'/ACB/Primera
 // FEB) fuera del catálogo de identidad — ningún archivo mundial GENÉRICO
 // nuevo puede contenerlos (auditado en `scripts/test-world-core1.js`).
+//
+// CLUB-CORE-1 (DESIGN.md sección 10): retira el puente
+// `club.id === primaryTeam.id` — cada uno de los 36 clubes recibe un
+// `clubId` institucional EXPLÍCITO, distinto de su `teamId` deportivo (ver
+// `CLUB_CONTENT` más abajo), y un `Squad` senior activo con las MISMAS
+// instancias de `Player` del roster ya construido. El estado institucional
+// heredado de `Team` (presupuesto/instalaciones/junta/afición/finanzas/ADN)
+// se migra al `Club` recién creado SIN duplicarlo — se lee UNA vez de la
+// forma de "bootstrap" que `Team` ya construyó desde los mismos datos
+// reales, y a partir de ahí `Team` delega en esta misma instancia (ver
+// `src/entities/Team.js`).
 
 (function (global) {
   const isNode = (typeof module !== 'undefined' && module.exports);
@@ -19,17 +30,17 @@
   const GeographyModule = dep('../../src/entities/Geography.js');
   const OrganizationModule = dep('../../src/entities/Organization.js');
   const ClubModule = dep('../../src/entities/Club.js');
+  const SquadModule = dep('../../src/entities/Squad.js');
   const CompetitionCatalogModule = dep('../../src/core/CompetitionCatalog.js');
   const SpainLegacyRuntimeModule = dep('../../src/core/SpainLegacyCompetitionRuntime.js');
   const WorldCoreManifestModule = dep('./world-core-2026.1.js');
-  const ClubEmploymentModule = dep('../../src/core/ClubEmploymentContextCatalog.js');
 
   function Geo() { return GeographyModule; }
   function Org() { return OrganizationModule; }
   function ClubEntity() { return ClubModule; }
+  function SquadEntity() { return SquadModule; }
   function Catalog() { return CompetitionCatalogModule; }
   function Runtime() { return SpainLegacyRuntimeModule.SpainLegacyCompetitionRuntime; }
-  function EmploymentCatalog() { return ClubEmploymentModule.ClubEmploymentContextCatalog; }
   function EuropeAreaId() {
     return (WorldCoreManifestModule.WORLD_CORE_AREA_IDS || { EUROPE: 'area-continent-europe' }).EUROPE;
   }
@@ -38,6 +49,62 @@
 
   const AREA_IDS = { SPAIN: 'area-country-es', ANDORRA: 'area-country-ad' };
   const ORG_IDS = { FEB: 'org-feb', ACB: 'org-acb' };
+
+  // --- CLUB-CORE-1 (DESIGN.md sección 10, apartado 8.1 del prompt) -------
+  // Tabla de contenido EXPLÍCITA de los 36 clubes: `clubId` institucional
+  // distinto de `teamId` deportivo, jurisdicción laboral del empleador y
+  // ciudad institucional (documental, mismo dato que antes vivía en
+  // `ClubEmploymentContextCatalog.ES_CLUBS` — CLUB-CORE-1 lo traslada aquí
+  // porque es contenido de ESTE paquete, no una regla normativa
+  // reutilizable). **No se deriva `clubId` de `teamId` con una
+  // transformación genérica en tiempo de ejecución** (`teamId.replace(...)`
+  // como regla universal está prohibido, sección 8.1 del prompt) — los 36
+  // pares están listados aquí de forma explícita y estable.
+  // MoraBanc Andorra sigue siendo el ÚNICO caso con
+  // `employerJurisdictionId: 'AD'` — el test transfronterizo obligatorio de
+  // toda la EPIC (organizador ACB/España, empleador domiciliado en
+  // Andorra).
+  const CLUB_CONTENT = [
+    { teamId: 'team-asisa-joventut', clubId: 'club-asisa-joventut', city: 'Badalona', employerJurisdictionId: 'ES' },
+    { teamId: 'team-barca', clubId: 'club-barca', city: 'Barcelona', employerJurisdictionId: 'ES' },
+    { teamId: 'team-casademont-zaragoza', clubId: 'club-casademont-zaragoza', city: 'Zaragoza', employerJurisdictionId: 'ES' },
+    { teamId: 'team-fiatc-girona', clubId: 'club-fiatc-girona', city: 'Girona', employerJurisdictionId: 'ES' },
+    { teamId: 'team-ilerna-lleida', clubId: 'club-ilerna-lleida', city: 'Lleida', employerJurisdictionId: 'ES' },
+    { teamId: 'team-kids-and-us-manresa', clubId: 'club-kids-and-us-manresa', city: 'Manresa', employerJurisdictionId: 'ES' },
+    { teamId: 'team-kosner-baskonia', clubId: 'club-kosner-baskonia', city: 'Vitoria-Gasteiz', employerJurisdictionId: 'ES' },
+    { teamId: 'team-la-laguna-tenerife', clubId: 'club-la-laguna-tenerife', city: 'San Cristóbal de La Laguna', employerJurisdictionId: 'ES' },
+    { teamId: 'team-leyma-coruna', clubId: 'club-leyma-coruna', city: 'A Coruña', employerJurisdictionId: 'ES' },
+    { teamId: 'team-monbus-obradoiro', clubId: 'club-monbus-obradoiro', city: 'Santiago de Compostela', employerJurisdictionId: 'ES' },
+    { teamId: 'team-real-madrid', clubId: 'club-real-madrid', city: 'Madrid', employerJurisdictionId: 'ES' },
+    { teamId: 'team-recoletas-salud-san-pablo-burgos', clubId: 'club-recoletas-salud-san-pablo-burgos', city: 'Burgos', employerJurisdictionId: 'ES' },
+    { teamId: 'team-rio-breogan', clubId: 'club-rio-breogan', city: 'Lugo', employerJurisdictionId: 'ES' },
+    { teamId: 'team-surne-bilbao-basket', clubId: 'club-surne-bilbao-basket', city: 'Bilbao', employerJurisdictionId: 'ES' },
+    { teamId: 'team-ucam-murcia', clubId: 'club-ucam-murcia', city: 'Murcia', employerJurisdictionId: 'ES' },
+    { teamId: 'team-unicaja', clubId: 'club-unicaja', city: 'Málaga', employerJurisdictionId: 'ES' },
+    { teamId: 'team-valencia-basket', clubId: 'club-valencia-basket', city: 'Valencia', employerJurisdictionId: 'ES' },
+    { teamId: 'team-alimerka-oviedo', clubId: 'club-alimerka-oviedo', city: 'Oviedo', employerJurisdictionId: 'ES' },
+    { teamId: 'team-grupo-alega-cantabria', clubId: 'club-grupo-alega-cantabria', city: 'Santander', employerJurisdictionId: 'ES' },
+    { teamId: 'team-bueno-arenas-albacete', clubId: 'club-bueno-arenas-albacete', city: 'Albacete', employerJurisdictionId: 'ES' },
+    { teamId: 'team-grupo-ureta-tizona-burgos', clubId: 'club-grupo-ureta-tizona-burgos', city: 'Burgos', employerJurisdictionId: 'ES' },
+    { teamId: 'team-caja-rural-cb-zamora', clubId: 'club-caja-rural-cb-zamora', city: 'Zamora', employerJurisdictionId: 'ES' },
+    { teamId: 'team-basquet-menorca', clubId: 'club-basquet-menorca', city: 'Maó', employerJurisdictionId: 'ES' },
+    { teamId: 'team-cajasol-coto-cordoba', clubId: 'club-cajasol-coto-cordoba', city: 'Córdoba', employerJurisdictionId: 'ES' },
+    { teamId: 'team-insolac-caja87', clubId: 'club-insolac-caja87', city: 'Huelva', employerJurisdictionId: 'ES' },
+    { teamId: 'team-club-ourense-baloncesto', clubId: 'club-ourense-baloncesto', city: 'Ourense', employerJurisdictionId: 'ES' },
+    { teamId: 'team-inveready-askatuak-gipuzkoa', clubId: 'club-inveready-askatuak-gipuzkoa', city: 'San Sebastián', employerJurisdictionId: 'ES' },
+    { teamId: 'team-coviran-granada', clubId: 'club-coviran-granada', city: 'Granada', employerJurisdictionId: 'ES' },
+    { teamId: 'team-hla-alicante', clubId: 'club-hla-alicante', city: 'Alicante', employerJurisdictionId: 'ES' },
+    { teamId: 'team-fibwi-mallorca-basquet-palma', clubId: 'club-fibwi-mallorca-basquet-palma', city: 'Palma', employerJurisdictionId: 'ES' },
+    { teamId: 'team-movistar-estudiantes', clubId: 'club-movistar-estudiantes', city: 'Madrid', employerJurisdictionId: 'ES' },
+    { teamId: 'team-flexicar-fuenlabrada', clubId: 'club-flexicar-fuenlabrada', city: 'Fuenlabrada', employerJurisdictionId: 'ES' },
+    { teamId: 'team-palmer-basket-mallorca-palma', clubId: 'club-palmer-basket-mallorca-palma', city: 'Palma', employerJurisdictionId: 'ES' },
+    { teamId: 'team-gran-canaria', clubId: 'club-gran-canaria', city: 'Las Palmas de Gran Canaria', employerJurisdictionId: 'ES' },
+    { teamId: 'team-palencia-baloncesto', clubId: 'club-palencia-baloncesto', city: 'Palencia', employerJurisdictionId: 'ES' },
+    // El caso transfronterizo obligatorio de esta EPIC.
+    { teamId: 'team-morabanc-andorra', clubId: 'club-morabanc-andorra', city: 'Andorra la Vella', employerJurisdictionId: 'AD' },
+  ];
+
+  const CLUB_CONTENT_BY_TEAM_ID = new Map(CLUB_CONTENT.map((entry) => [entry.teamId, entry]));
 
   function registerAreas(world) {
     const europeAreaId = EuropeAreaId();
@@ -88,16 +155,30 @@
     }));
   }
 
-  // Registra Club + Team para cada equipo YA CONSTRUIDO por game.js.
-  // `club.id === team.id` es la decisión de COMPATIBILIDAD documentada en
-  // `src/entities/Club.js` — no una invariante universal.
+  // Registra Club + Team + Squad para cada equipo YA CONSTRUIDO por
+  // game.js. CLUB-CORE-1 retira el puente `club.id === team.id`: cada club
+  // recibe su `clubId` institucional real de `CLUB_CONTENT` (arriba),
+  // distinto de `team.id`.
   function registerClubsAndTeams(world, teamsByDivision) {
     const allTeams = [...teamsByDivision['1ª'], ...teamsByDivision['2ª']];
     allTeams.forEach((team) => {
-      const employment = EmploymentCatalog().requireClubEmploymentContext(team.id);
-      const homeAreaId = employment.employerJurisdictionId === 'AD' ? AREA_IDS.ANDORRA : AREA_IDS.SPAIN;
+      const entry = CLUB_CONTENT_BY_TEAM_ID.get(team.id);
+      if (!entry) {
+        throw new Error(
+          `spain-2026.1: el equipo "${team.id}" no tiene entrada en la tabla de contenido de clubes `
+          + '(CLUB_CONTENT) — los 36 mapeos clubId/teamId deben declararse explícitamente.',
+        );
+      }
+      const homeAreaId = entry.employerJurisdictionId === 'AD' ? AREA_IDS.ANDORRA : AREA_IDS.SPAIN;
+
+      // El estado institucional se LEE de `team` (todavía sin `club`
+      // enlazado, así que estos accesores devuelven el "bootstrap" ya
+      // construido por Team.js desde los mismos datos reales, ver
+      // `src/entities/Team.js`) — se migra al `Club` nuevo SIN duplicarlo:
+      // en cuanto se asigne `team.club` más abajo, `team.budget`/
+      // `team.facilities`/etc. delegarán en esta MISMA instancia.
       const club = new (ClubEntity().Club)({
-        id: team.id,
+        id: entry.clubId,
         name: team.name,
         shortName: team.name,
         homeAreaId,
@@ -107,17 +188,42 @@
         status: 'active',
         dataSource: MANIFEST_ID,
         provenance: { dataSource: MANIFEST_ID, status: 'verified' },
+        foundationYear: team.foundationYear,
+        budget: team.budget,
+        reputation: { financial: team.reputation.financial, youth: team.reputation.youth },
+        facilities: team.facilities,
+        board: team.board,
+        fanbase: team.fanbase,
+        finances: team.finances,
+        clubDNA: team.clubDNA,
       });
       world.registries.registerClub(club);
 
-      // Campos puente en la instancia REAL de Team, asignados APARTE tras
-      // construirla (mismo patrón que `player.dataSource`, ver Team.js) —
-      // nunca se reconstruye el equipo.
+      // Enlaza Club <-> Team (referencias VIVAS, nunca copias) — mismo
+      // patrón que ya usaba `team.clubId` desde WORLD-CORE-1, ahora con un
+      // id realmente distinto.
       team.clubId = club.id;
-      team.teamType = 'senior-men-first-team';
-      team.homeAreaId = club.homeAreaId;
+      team.club = club;
+      team.homeAreaId = homeAreaId;
       team.legacyDivision = team.division;
       world.registries.registerTeam(team);
+
+      // Squad senior activo — reutiliza las MISMAS instancias de Player
+      // del roster ya construido (invariante 9: Squad/Team.roster/
+      // PlayerRegistry referencian la misma instancia viva).
+      const squad = new (SquadEntity().Squad)({
+        id: `squad:${team.id}:senior`,
+        teamId: team.id,
+        name: `${team.fullName} — primer equipo`,
+        squadType: 'first-team-senior',
+        status: 'active',
+        players: team.roster,
+        dataSource: MANIFEST_ID,
+        provenance: { dataSource: MANIFEST_ID, status: 'verified' },
+      });
+      world.registries.registerSquad(squad);
+      team.primarySquadId = squad.id;
+      team.squad = squad;
     });
   }
 
@@ -169,7 +275,7 @@
     provides: {
       areas: [AREA_IDS.SPAIN, AREA_IDS.ANDORRA],
       organizations: [ORG_IDS.FEB, ORG_IDS.ACB],
-      clubs: EmploymentCatalog().listClubEmploymentContexts().map((c) => c.clubId),
+      clubs: CLUB_CONTENT.map((entry) => entry.clubId),
       competitionDefinitions: [
         Catalog().COMPETITION_IDS.ACB,
         Catalog().COMPETITION_IDS.PRIMERA_FEB,
@@ -182,7 +288,9 @@
     install,
   };
 
-  const exportsObj = { SPAIN_MANIFEST, SPAIN_AREA_IDS: AREA_IDS, SPAIN_ORG_IDS: ORG_IDS };
+  const exportsObj = {
+    SPAIN_MANIFEST, SPAIN_AREA_IDS: AREA_IDS, SPAIN_ORG_IDS: ORG_IDS, SPAIN_CLUB_CONTENT: CLUB_CONTENT,
+  };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

@@ -298,14 +298,17 @@
       } = opts;
       const errors = [];
       const warnings = [];
-      const teamIds = new Set((teams || []).map((t) => t.id));
+      // CLUB-CORE-1: `LoanCase.ownerClubId`/`.borrowerClubId` son Club ids
+      // reales — se validan contra los clubes de los equipos vivos, nunca
+      // contra sus ids de Team.
+      const clubIds = new Set((teams || []).map((t) => t.clubId).filter(Boolean));
 
       this.allCases().forEach((loanCase) => {
         if (playerRegistry && !playerRegistry.has(loanCase.playerId)) {
           errors.push(`El expediente "${loanCase.id}" referencia al jugador "${loanCase.playerId}", ausente de PlayerRegistry.`);
         }
-        if (teams && !teamIds.has(loanCase.ownerClubId)) errors.push(`El expediente "${loanCase.id}" referencia el club propietario "${loanCase.ownerClubId}", inexistente.`);
-        if (teams && !teamIds.has(loanCase.borrowerClubId)) errors.push(`El expediente "${loanCase.id}" referencia el club cesionario "${loanCase.borrowerClubId}", inexistente.`);
+        if (teams && !clubIds.has(loanCase.ownerClubId)) errors.push(`El expediente "${loanCase.id}" referencia el club propietario "${loanCase.ownerClubId}", inexistente.`);
+        if (teams && !clubIds.has(loanCase.borrowerClubId)) errors.push(`El expediente "${loanCase.id}" referencia el club cesionario "${loanCase.borrowerClubId}", inexistente.`);
         if (contractRegistry && !contractRegistry.get(loanCase.masterContractId)) {
           errors.push(`El expediente "${loanCase.id}" referencia el contrato matriz "${loanCase.masterContractId}", inexistente.`);
         }

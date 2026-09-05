@@ -156,7 +156,7 @@
     return {
       id: `contract:renewal:${team.id}:${player.id}:${seasonKey}`,
       playerId: player.id,
-      clubId: team.id,
+      clubId: team.clubId,
       contractType: 'professional-player',
       signedDate,
       startDate,
@@ -212,7 +212,7 @@
       id: `renewal:${cycle.id}:${team.id}:${player.id}`,
       cycleId: cycle.id,
       playerId: player.id,
-      clubId: team.id,
+      clubId: team.clubId,
       expiringContractId: expiringContract.id,
       expiringEndDate: expiringContract.endDate,
       employmentContextSnapshot: {
@@ -275,7 +275,7 @@
         marketRegistry,
         agentRegistry,
         playerId: player.id,
-        actingClubId: team.id,
+        actingClubId: team.clubId,
         prospectiveCompetitionIds: [resolved.competitionId || null].filter(Boolean),
         date: iso,
         marketContext,

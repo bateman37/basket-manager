@@ -8,11 +8,19 @@
   const TeamCore = (typeof module !== 'undefined' && module.exports)
     ? require('../entities/Team.js')
     : global.BasketManager;
+  // CLUB-CORE-1: las constantes de instalaciones/ADN de club viven ahora en
+  // `Club.js` (fuente única, ver `src/entities/Team.js`) — este generador de
+  // prueba las pasa tal cual al `Team` (que las guarda en su estado de
+  // "bootstrap" mientras no exista un `Club` real enlazado, modo prueba).
+  const ClubCore = (typeof module !== 'undefined' && module.exports)
+    ? require('../entities/Club.js')
+    : global.BasketManager;
   const PlayerGenerator = (typeof module !== 'undefined' && module.exports)
     ? require('./playerGenerator.js')
     : global.BasketManager;
 
-  const { Team, DIVISIONS, CLUB_DNA_EXAMPLES, FACILITY_KEYS } = TeamCore;
+  const { Team, DIVISIONS } = TeamCore;
+  const { CLUB_DNA_EXAMPLES, FACILITY_KEYS } = ClubCore;
   const { generateFictionalPlayers } = PlayerGenerator;
 
   // Nombres claramente ficticios (ciudades inventadas), para no mezclar

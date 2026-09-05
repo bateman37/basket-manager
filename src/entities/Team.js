@@ -23,7 +23,63 @@
     ? require('../core/Tactics.js')
     : global.BasketManager;
 
+  // CLUB-CORE-1 (DESIGN.md sección 10) — `Club.js` es la fuente ÚNICA de
+  // los constructores de estado institucional (instalaciones/junta/afición/
+  // finanzas/ADN de club). Se accede perezosamente DENTRO del constructor
+  // (mismo criterio que `TacticsCore` arriba: `Club.js` carga DESPUÉS de
+  // `Team.js` en `index.html`, así que destructurar aquí arriba fallaría en
+  // el navegador) — solo para construir el estado de "bootstrap" de un Team
+  // todavía sin `Club` enlazado (modo prueba / tests legacy, ver más abajo).
+  const ClubEntityModule = (typeof module !== 'undefined' && module.exports)
+    ? require('./Club.js')
+    : global.BasketManager;
+
+  function ClubCore() { return ClubEntityModule; }
+
   const DIVISIONS = ['1ª', '2ª'];
+
+  // CLUB-CORE-1 (DESIGN.md sección 10, "no combines género, edad y rol en
+  // un único string imposible de extender"): rol/categoría estructurados,
+  // con `teamType` conservado como ALIAS legacy derivado (nunca fuente de
+  // verdad nueva — nada en el motor lo lee, solo se serializa por
+  // compatibilidad, ver auditoría en CLAUDE.md).
+  const TEAM_ROLES = ['first-team', 'reserve', 'youth', 'other'];
+  const TEAM_GENDERS = ['men', 'women', 'mixed'];
+  const TEAM_AGE_TIERS = ['senior', 'youth'];
+  const ROLE_TEAM_TYPE_SUFFIX = {
+    'first-team': 'first-team',
+    reserve: 'reserve-team',
+    youth: 'youth-team',
+    other: 'other-team',
+  };
+
+  function validateTeamRole(role) {
+    if (!TEAM_ROLES.includes(role)) {
+      throw new Error(`Team: role "${role}" no válido — debe ser uno de ${TEAM_ROLES.join(', ')}.`);
+    }
+    return role;
+  }
+
+  function buildTeamCategory(data = {}) {
+    const gender = data.gender || 'men';
+    const ageTier = data.ageTier || 'senior';
+    if (!TEAM_GENDERS.includes(gender)) {
+      throw new Error(`Team: category.gender "${gender}" no válido — debe ser uno de ${TEAM_GENDERS.join(', ')}.`);
+    }
+    if (!TEAM_AGE_TIERS.includes(ageTier)) {
+      throw new Error(`Team: category.ageTier "${ageTier}" no válido — debe ser uno de ${TEAM_AGE_TIERS.join(', ')}.`);
+    }
+    return { gender, ageTier };
+  }
+
+  // `teamType` legacy — compuesto a partir de rol+categoría cuando no llega
+  // explícito. El default (role 'first-team' + category senior/men) produce
+  // EXACTAMENTE el mismo string que antes de esta entrega
+  // ('senior-men-first-team'), así que ningún dato existente cambia de
+  // forma.
+  function composeLegacyTeamType(role, category) {
+    return `${category.ageTier}-${category.gender}-${ROLE_TEAM_TYPE_SUFFIX[role] || role}`;
+  }
 
   // ROSTER-1 (DESIGN.md 9.16) + REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-03):
   // estos dos valores NUNCA son la regla universal de convocatoria — cada
@@ -39,43 +95,13 @@
   const MATCH_SQUAD_MAX = 12;
   const TEST_MATCH_SQUAD_POLICY = Object.freeze({ min: MATCH_SQUAD_MIN, max: MATCH_SQUAD_MAX });
 
-  const FACILITY_MIN = 1;
-  const FACILITY_MAX = 20;
-
-  // Las 7 instalaciones de DESIGN.md 6.2.2, con su nombre descriptivo.
-  const FACILITY_KEYS = [
-    'trainingCenter',
-    'medicalCenter',
-    'physicalPreparation',
-    'academy',
-    'scoutingNetwork',
-    'analyticsDepartment',
-    'hospitality',
-  ];
-
-  const FACILITY_LABELS = {
-    trainingCenter: 'Centro de Entrenamiento',
-    medicalCenter: 'Centro Médico',
-    physicalPreparation: 'Preparación Física',
-    academy: 'Cantera/Academia',
-    scoutingNetwork: 'Red de Scouting',
-    analyticsDepartment: 'Departamento de Análisis/Dirección Deportiva',
-    hospitality: 'Hospitality/Patrocinio',
-  };
-
-  // Ejemplos de ADN de club citados en DESIGN.md 6.2.8 — no es una lista
-  // cerrada, un club puede tener cualquier texto descriptivo de identidad.
-  const CLUB_DNA_EXAMPLES = ['Cantera', 'Ritmo alto', 'Defensa', 'Veteranía'];
-
-  // Niveles de leyenda de club — DESIGN.md 6.2.10.
+  // Niveles de leyenda de club — DESIGN.md 6.2.10. (Histórico deportivo:
+  // sigue viviendo en `Team`, ver DESIGN.md 5.2 — "rivalidades e histórico
+  // deportivo ya existentes".)
   const LEGEND_STATUSES = ['Predilecto', 'Ídolo', 'Leyenda'];
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
-  }
-
-  function clampFacilityLevel(value) {
-    return clamp(Math.round(value), FACILITY_MIN, FACILITY_MAX);
   }
 
   function generateId() {
@@ -130,22 +156,27 @@
     };
   }
 
-  // Construye las 7 instalaciones a partir de los datos recibidos (o valores
-  // por defecto razonables). El coste de mantenimiento y la obsolescencia
-  // son solo datos por ahora — la lógica temporal de cuándo se vuelve
-  // obsoleta una instalación queda pendiente (DESIGN.md 6.2.2).
-  function buildFacilities(data = {}) {
-    const facilities = {};
-    FACILITY_KEYS.forEach((key) => {
-      const source = data[key] || {};
-      facilities[key] = {
-        name: FACILITY_LABELS[key],
-        level: clampFacilityLevel(source.level !== undefined ? source.level : 10),
-        maintenanceCost: source.maintenanceCost !== undefined ? source.maintenanceCost : 0,
-        obsolete: Boolean(source.obsolete),
-      };
-    });
-    return facilities;
+  // Estado institucional de "bootstrap" (DESIGN.md sección 10, apartado 10 del
+  // prompt de CLUB-CORE-1: "un Team aislado usado por tests legacy puede
+  // conservar un pequeño estado de bootstrap antes de ser enlazado") — usa
+  // los MISMOS constructores que `Club.js` (fuente única de esa forma), así
+  // que un Team sin `Club` (modo prueba / tests antiguos) se comporta
+  // EXACTAMENTE igual que antes de esta entrega. En cuanto `team.club` se
+  // enlaza a una instancia real, este objeto deja de leerse — Club pasa a
+  // ser la única fuente de verdad (ver los accesores más abajo).
+  function buildInstitutionalBootstrap(data = {}) {
+    const reputation = data.reputation || {};
+    return {
+      foundationYear: data.foundationYear || null,
+      budget: data.budget || 0,
+      reputationFinancial: clamp(reputation.financial !== undefined ? reputation.financial : 50, 0, 100),
+      reputationYouth: clamp(reputation.youth !== undefined ? reputation.youth : 50, 0, 100),
+      facilities: ClubCore().buildFacilities(data.facilities),
+      board: ClubCore().buildBoard(data.board),
+      fanbase: ClubCore().buildFanbase(data.fanbase),
+      finances: ClubCore().buildFinances(data.finances),
+      clubDNA: data.clubDNA || ClubCore().CLUB_DNA_EXAMPLES[0],
+    };
   }
 
   class Team {
@@ -155,31 +186,47 @@
       // --- Datos básicos ---
       this.name = data.name || '';
       this.city = data.city || '';
-      this.foundationYear = data.foundationYear || null;
+      // `foundationYear` es un accesor institucional (ver más abajo) —
+      // `buildInstitutionalBootstrap(data)` lo inicializa desde `data`
+      // unas líneas más abajo; asignarlo aquí (antes de que exista
+      // `this._institutionalBootstrap`) invocaría el setter sobre un
+      // bootstrap todavía inexistente.
       this.division = Team.validateDivision(data.division);
 
       // --- World Architecture (WORLD-CORE-1, ARCH-WORLD-06/07) ---
-      // Estos cuatro campos son puente de compatibilidad hacia la nueva
-      // jerarquía mundial (`Club`/`CompetitionEntry`, ver `src/entities/
-      // Club.js`/`Competition.js`): opcionales aquí (Team sigue
-      // instanciándose sin mundo en tests/modo prueba), se asignan aparte
-      // tras construir el equipo cuando un paquete de contenido (`data/world/
-      // spain-2026.1.js`) lo afilia a un `Club` — mismo patrón ya establecido
-      // para `player.dataSource` (fuera del constructor de Player).
-      // `division` NUNCA es la fuente de verdad de participación desde esta
-      // entrega (invariante 8): sigue existiendo como alias legacy para el
-      // runtime todavía no migrado (Liga/Copa/Playoffs/Ascenso), pero
-      // `legacyDivision` es el nombre explícito para código NUEVO que
-      // necesite leer ese puente sabiendo que es compatibilidad, no verdad.
+      // Puente de compatibilidad hacia la nueva jerarquía mundial (`Club`/
+      // `CompetitionEntry`, ver `src/entities/Club.js`/`Competition.js`):
+      // opcional aquí (Team sigue instanciándose sin mundo en tests/modo
+      // prueba), se asigna aparte tras construir el equipo cuando un
+      // paquete de contenido (`data/world/spain-2026.1.js`) lo afilia a un
+      // `Club` — mismo patrón ya establecido para `player.dataSource`
+      // (fuera del constructor de Player). `division` NUNCA es la fuente
+      // de verdad de participación desde WORLD-CORE-1 (invariante 8):
+      // sigue existiendo como alias legacy para el runtime todavía no
+      // migrado (Liga/Copa/Playoffs/Ascenso), pero `legacyDivision` es el
+      // nombre explícito para código NUEVO que necesite leer ese puente
+      // sabiendo que es compatibilidad, no verdad.
       this.clubId = data.clubId || null;
-      this.teamType = data.teamType || 'senior-men-first-team';
+      // CLUB-CORE-1: referencia VIVA a la instancia real de `Club` (nunca
+      // una copia) — `null` hasta que un paquete de contenido la enlace
+      // (`team.club = clubInstance`, mismo patrón que `team.clubId`). Los
+      // accesores institucionales de más abajo delegan en esta instancia
+      // en cuanto existe; antes de eso, leen `this._institutionalBootstrap`
+      // (sección 10 del prompt: "un Team aislado usado por tests legacy
+      // puede conservar un pequeño estado de bootstrap antes de ser
+      // enlazado, pero al entrar en GameWorld debe quedar una sola fuente
+      // mutable").
+      this.club = null;
+      this._institutionalBootstrap = buildInstitutionalBootstrap(data);
+
+      // CLUB-CORE-1 (DESIGN.md sección 10, "rol dentro del club... categoría
+      // explícita, al menos género y tramo de edad"): estructurados, con
+      // `teamType` conservado como alias legacy derivado (ver arriba).
+      this.role = validateTeamRole(data.role || 'first-team');
+      this.category = buildTeamCategory(data.category);
+      this.teamType = data.teamType || composeLegacyTeamType(this.role, this.category);
       this.homeAreaId = data.homeAreaId || null;
       this.legacyDivision = data.legacyDivision || this.division;
-
-      // Presupuesto: caja actual del club. El desglose completo de
-      // ingresos/gastos vive en `finances` (DESIGN.md 6.2.6) — este campo
-      // es el saldo, no una fuente de ingreso más.
-      this.budget = data.budget || 0;
 
       // Estadio: entidad propia todavía no implementada (DESIGN.md 6.2:
       // "el equipo solo referencia su instancia de estadio"). Aforo y
@@ -187,89 +234,32 @@
       this.stadium = data.stadium || null;
 
       // --- Plantilla ---
-      // Plantilla total sin límite duro; la convocatoria de partido (8-12)
-      // se valida aparte con buildMatchSquad().
-      this.roster = Array.isArray(data.roster) ? [...data.roster] : [];
+      // CLUB-CORE-1: `Squad` (`src/entities/Squad.js`) es la fuente de
+      // verdad operativa — `this.squad` es la referencia VIVA al squad
+      // activo (`null` hasta que un paquete de contenido lo enlace, mismo
+      // patrón que `this.club`). Antes de enlazar, `this._legacyRoster`
+      // sostiene la plantilla de "bootstrap" (modo prueba/tests legacy) —
+      // `this.roster` (getter, más abajo) es SIEMPRE una vista de una única
+      // fuente mutable, nunca una segunda copia independiente.
+      this.squad = null;
+      this.primarySquadId = null;
+      this._legacyRoster = Array.isArray(data.roster) ? [...data.roster] : [];
       // Si el roster llega ya poblado (equipos cargados desde datos
       // guardados/generados con jugadores ya creados), aseguramos que cada
       // jugador quede con teamId sincronizado, por si viene de una fuente
       // que no lo puso.
-      this.roster.forEach((player) => { player.teamId = this.id; });
+      this._legacyRoster.forEach((player) => { player.teamId = this.id; });
 
-      // --- Reputación (DESIGN.md 6.2.1) ---
+      // --- Reputación DEPORTIVA (DESIGN.md 6.2.1) ---
       // Escala provisional 0-100: a diferencia de los atributos de jugador
       // (1-20, ya fijados en 6.1), DESIGN.md todavía no fija la escala
       // numérica de la reputación — pendiente de confirmar con Dennis.
-      //
-      // Asignación factor → componente (aclarada en DESIGN.md 6.2.1; solo
-      // documentada aquí, sin lógica de cálculo todavía — eso llegará con
-      // el módulo de fichajes):
-      //   - sporting (deportiva)  ← títulos ganados (this.history.titles) y
-      //     división en la que compite (this.division), calidad de la
-      //     plantilla actual e histórica (this.roster).
-      //   - financial (financiera) ← poder económico del club (this.budget,
-      //     this.finances) y nivel general de instalaciones (this.facilities,
-      //     inversión acumulada).
-      //   - youth (cantera)       ← éxito desarrollando canteranos propios
-      //     (de momento sin trackear el origen de cada jugador, ver nota de
-      //     la sesión) y nivel de las instalaciones Cantera/Academia y Red
-      //     de Scouting (this.facilities.academy, this.facilities.scoutingNetwork).
+      // CLUB-CORE-1: solo el componente DEPORTIVO (títulos, calidad de
+      // plantilla) sigue siendo del `Team` — financiera/cantera son
+      // institucionales y viven en `Club` (ver `this.reputation` getter
+      // más abajo, que compone los 3 de solo lectura).
       const reputation = data.reputation || {};
-      this.reputation = {
-        sporting: clamp(reputation.sporting !== undefined ? reputation.sporting : 50, 0, 100),
-        financial: clamp(reputation.financial !== undefined ? reputation.financial : 50, 0, 100),
-        youth: clamp(reputation.youth !== undefined ? reputation.youth : 50, 0, 100),
-      };
-
-      // --- Instalaciones (DESIGN.md 6.2.2) ---
-      this.facilities = buildFacilities(data.facilities);
-
-      // --- Junta/Propietario (DESIGN.md 6.2.4) ---
-      const board = data.board || {};
-      this.board = {
-        patience: board.patience !== undefined ? board.patience : 50,
-        sportingGoal: board.sportingGoal || 'Permanencia',
-        financialGoal: board.financialGoal || 'Equilibrio presupuestario',
-        multiYearPlan: Array.isArray(board.multiYearPlan) ? [...board.multiYearPlan] : [],
-      };
-
-      // --- Afición (DESIGN.md 6.2.5) ---
-      // El "factor cancha" (fórmula ocupación × satisfacción × importancia
-      // del partido) se calculará en el motor de simulación (sección 7,
-      // aún no implementado) — aquí solo viven los datos de partida.
-      const fanbase = data.fanbase || {};
-      this.fanbase = {
-        seasonTicketHolders: fanbase.seasonTicketHolders !== undefined ? fanbase.seasonTicketHolders : 0,
-        satisfaction: clamp(fanbase.satisfaction !== undefined ? fanbase.satisfaction : 50, 0, 100),
-        averageAttendance: clamp(fanbase.averageAttendance !== undefined ? fanbase.averageAttendance : 70, 0, 100),
-      };
-
-      // --- Finanzas (DESIGN.md 6.2.6) ---
-      const finances = data.finances || {};
-      const income = finances.income || {};
-      const expenses = finances.expenses || {};
-      this.finances = {
-        income: {
-          mainSponsorship: income.mainSponsorship || 0,
-          secondarySponsorship: income.secondarySponsorship || 0,
-          tvRights: income.tvRights || 0,
-          leagueRevenueShare: income.leagueRevenueShare || 0,
-          europeanCompetition: income.europeanCompetition || 0,
-          ticketSales: income.ticketSales || 0,
-          merchandising: income.merchandising || 0,
-        },
-        expenses: {
-          playerSalaries: expenses.playerSalaries || 0,
-          // Cuerpo técnico: partida anotada, importe pendiente de definir
-          // hasta que exista esa entidad (DESIGN.md 6.2.7).
-          coachingStaff: expenses.coachingStaff || 0,
-          // El mantenimiento de las 7 instalaciones NO se duplica aquí:
-          // se calcula a partir de `facilities` — ver facilitiesMaintenanceCost.
-        },
-      };
-
-      // --- ADN de Club (DESIGN.md 6.2.8) ---
-      this.clubDNA = data.clubDNA || CLUB_DNA_EXAMPLES[0];
+      this._sportingReputation = clamp(reputation.sporting !== undefined ? reputation.sporting : 50, 0, 100);
 
       // --- Perfil táctico (DESIGN.md 7.12.2, persistido desde TAC-2) ---
       // Instancia real de TacticalProfile (nunca un objeto plano suelto),
@@ -309,8 +299,17 @@
       };
     }
 
+    // BUG-WORLDCORE-09 (CLUB-CORE-1, corregido): antes devolvía '1ª' en
+    // silencio ante `undefined`, aunque WORLD-CORE-1 ya afirmaba (comentarios,
+    // CHANGELOG, invariante 14) que no existía fallback universal a la
+    // primera división. Un `Team` genérico sin división legacy conserva
+    // `division: null` (y por tanto `legacyDivision: null`, ver
+    // constructor); un valor explícito no reconocido sigue fallando de
+    // forma descriptiva. El contenido español sigue pasando siempre '1ª' o
+    // '2ª' de forma explícita mientras exista el runtime legacy (ver
+    // `data/world/spain-2026.1.js`/`src/utils/teamGenerator.js`).
     static validateDivision(division) {
-      if (division === undefined) return DIVISIONS[0];
+      if (division === undefined || division === null) return null;
       if (!DIVISIONS.includes(division)) {
         throw new Error('División no válida: debe ser una de ' + DIVISIONS.join(', '));
       }
@@ -321,17 +320,72 @@
       return this.city ? `${this.name} (${this.city})` : this.name;
     }
 
-    // Mantenimiento anual de las 7 instalaciones — se calcula a partir de
-    // `facilities` en vez de guardarse por duplicado en `finances`.
+    // ---------------------------------------------------------------------
+    // CLUB-CORE-1 — accesores institucionales legacy: PROYECCIONES/
+    // DELEGACIONES hacia la MISMA instancia de `Club` en cuanto existe
+    // (`this.club`), nunca una segunda copia mutable (DESIGN.md sección 10).
+    // Antes de enlazar (`this.club === null`, modo prueba/tests legacy),
+    // leen/escriben `this._institutionalBootstrap` — la MISMA forma que
+    // tenían estos campos antes de esta entrega, así que un Team aislado se
+    // comporta exactamente igual que antes.
+    // ---------------------------------------------------------------------
+    get foundationYear() { return this.club ? this.club.foundationYear : this._institutionalBootstrap.foundationYear; }
+
+    set foundationYear(value) {
+      if (this.club) this.club.foundationYear = value; else this._institutionalBootstrap.foundationYear = value;
+    }
+
+    get budget() { return this.club ? this.club.budget : this._institutionalBootstrap.budget; }
+
+    set budget(value) {
+      if (this.club) this.club.budget = value; else this._institutionalBootstrap.budget = value;
+    }
+
+    get clubDNA() { return this.club ? this.club.clubDNA : this._institutionalBootstrap.clubDNA; }
+
+    set clubDNA(value) {
+      if (this.club) this.club.clubDNA = value; else this._institutionalBootstrap.clubDNA = value;
+    }
+
+    // Objetos anidados: la MISMA referencia vive en `Club` (o en el
+    // bootstrap) — quien mute `team.facilities.trainingCenter.level = X`
+    // está mutando esa única instancia, nunca una copia (sección 10 del
+    // prompt: "nunca objetos copiados").
+    get facilities() { return this.club ? this.club.facilities : this._institutionalBootstrap.facilities; }
+
+    get board() { return this.club ? this.club.board : this._institutionalBootstrap.board; }
+
+    get fanbase() { return this.club ? this.club.fanbase : this._institutionalBootstrap.fanbase; }
+
+    get finances() { return this.club ? this.club.finances : this._institutionalBootstrap.finances; }
+
+    // Reputación (DESIGN.md 6.2.1): compone SIEMPRE los 3 sub-componentes —
+    // "deportiva" es del propio `Team` (`this._sportingReputation`, nunca
+    // mutada fuera del constructor hoy), "financiera"/"cantera" son
+    // institucionales (`Club`). Objeto NUEVO en cada lectura (de solo
+    // lectura: nada en el motor escribe `team.reputation.*` directamente,
+    // auditado en CLAUDE.md) — nunca una segunda copia mutable persistente.
+    get reputation() {
+      const institutional = this.club
+        ? { financial: this.club.reputationFinancial, youth: this.club.reputationYouth }
+        : { financial: this._institutionalBootstrap.reputationFinancial, youth: this._institutionalBootstrap.reputationYouth };
+      return { sporting: this._sportingReputation, ...institutional };
+    }
+
+    // Mantenimiento anual de las 7 instalaciones — delegado en `Club`
+    // (bootstrap si aún no hay Club enlazado).
     get facilitiesMaintenanceCost() {
-      return Object.values(this.facilities).reduce((sum, facility) => sum + facility.maintenanceCost, 0);
+      return this.club ? this.club.facilitiesMaintenanceCost
+        : Object.values(this.facilities).reduce((sum, facility) => sum + facility.maintenanceCost, 0);
     }
 
     get totalIncome() {
+      if (this.club) return this.club.totalIncome;
       return Object.values(this.finances.income).reduce((sum, value) => sum + value, 0);
     }
 
     get totalExpenses() {
+      if (this.club) return this.club.totalExpenses;
       return Object.values(this.finances.expenses).reduce((sum, value) => sum + value, 0)
         + this.facilitiesMaintenanceCost;
     }
@@ -341,15 +395,22 @@
     }
 
     // --- Plantilla ---
+    // CLUB-CORE-1: vista de compatibilidad del squad activo — SIEMPRE
+    // devuelve la misma referencia de array que `this.squad.players` (o
+    // `this._legacyRoster` en modo bootstrap), nunca una copia (DESIGN.md
+    // sección 5.3: "Team.roster... debe devolver las mismas referencias").
+    get roster() { return this.squad ? this.squad.players : this._legacyRoster; }
+
     addPlayer(player) {
       player.teamId = this.id;
-      this.roster.push(player);
+      if (this.squad) this.squad.addPlayer(player); else this._legacyRoster.push(player);
     }
 
     removePlayer(playerId) {
       const leaving = this.roster.find((player) => player.id === playerId);
       if (leaving) leaving.teamId = null;
-      this.roster = this.roster.filter((player) => player.id !== playerId);
+      if (this.squad) this.squad.removePlayer(playerId);
+      else this._legacyRoster = this._legacyRoster.filter((player) => player.id !== playerId);
       // LIFE-2 (sección 4): un jugador que sale de la plantilla no deja un
       // foco individual huérfano en el plan de entrenamiento.
       delete this.trainingPlan.individualFocuses[playerId];
@@ -472,8 +533,7 @@
           seed: `legacy-academy-intake|${this.id}|${referenceIso}|${i}`,
           id: `legacy-academy:${this.id}:${referenceIso}:${i}`,
         });
-        player.teamId = this.id;
-        this.roster.push(player);
+        this.addPlayer(player);
         newPlayers.push(player);
       }
       return newPlayers;
@@ -492,26 +552,27 @@
     }
 
     // Representación plana, útil para guardar partidas (saves/) más adelante.
+    // CLUB-CORE-1: ya NO incrusta los objetos institucionales canónicos
+    // (facilities/board/fanbase/finances/clubDNA/budget/foundationYear) —
+    // esos viven en `Club.toJSON()`, nunca duplicados aquí (DESIGN.md
+    // sección 10). `reputation` solo serializa el componente DEPORTIVO
+    // (el único que es realmente de `Team`).
     toJSON() {
       return {
         id: this.id,
         name: this.name,
         city: this.city,
-        foundationYear: this.foundationYear,
         division: this.division,
         clubId: this.clubId,
         teamType: this.teamType,
+        role: this.role,
+        category: { ...this.category },
         homeAreaId: this.homeAreaId,
         legacyDivision: this.legacyDivision,
-        budget: this.budget,
+        primarySquadId: this.primarySquadId,
         stadium: this.stadium,
         roster: this.roster.map((player) => (typeof player.toJSON === 'function' ? player.toJSON() : player)),
-        reputation: this.reputation,
-        facilities: this.facilities,
-        board: this.board,
-        fanbase: this.fanbase,
-        finances: this.finances,
-        clubDNA: this.clubDNA,
+        reputation: { sporting: this._sportingReputation },
         medicalStaffContext: this.medicalStaffContext,
         tacticalProfile: this.tacticalProfile,
         rivalries: this.rivalries,
@@ -541,11 +602,9 @@
     MATCH_SQUAD_MIN,
     MATCH_SQUAD_MAX,
     TEST_MATCH_SQUAD_POLICY,
-    FACILITY_KEYS,
-    FACILITY_LABELS,
-    FACILITY_MIN,
-    FACILITY_MAX,
-    CLUB_DNA_EXAMPLES,
+    TEAM_ROLES,
+    TEAM_GENDERS,
+    TEAM_AGE_TIERS,
     LEGEND_STATUSES,
   };
 

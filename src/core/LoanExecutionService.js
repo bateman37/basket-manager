@@ -88,8 +88,11 @@
 
     const player = playerRegistry.get(cmd.playerId);
     check(`El jugador "${cmd.playerId}" existe en el Player Registry mundial.`, Boolean(player), 'PLAYER_NOT_FOUND');
-    const fromTeam = (teams || []).find((t) => t.id === cmd.fromClubId);
-    const toTeam = (teams || []).find((t) => t.id === cmd.toClubId);
+    // CLUB-CORE-1: `cmd.fromClubId`/`cmd.toClubId` son Club ids reales — se
+    // resuelve el Team principal de cada club (misma decisión que
+    // TRANSFER-1, DESIGN.md sección 9.5), nunca comparando contra `t.id`.
+    const fromTeam = (teams || []).find((t) => t.clubId === cmd.fromClubId);
+    const toTeam = (teams || []).find((t) => t.clubId === cmd.toClubId);
     check(`El club de origen "${cmd.fromClubId}" existe entre los equipos vivos.`, Boolean(fromTeam), 'FROM_CLUB_NOT_FOUND');
     check(`El club de destino "${cmd.toClubId}" existe entre los equipos vivos.`, Boolean(toTeam), 'TO_CLUB_NOT_FOUND');
 
@@ -184,7 +187,7 @@
 
     // -- Documentos/registro de destino (validación de disponibilidad) ------
     if (registrationRegistry && cmd.toRegistration && cmd.toRegistration.registrationScopeId) {
-      const currentCumulative = registrationRegistry.cumulativeCountForClub(cmd.toClubId, cmd.toRegistration.registrationScopeId, cmd.seasonKey);
+      const currentCumulative = registrationRegistry.cumulativeCountForClub(toTeam.id, cmd.toRegistration.registrationScopeId, cmd.seasonKey);
       const cap = cmd.toRegistration.cumulativeRegistrationCapMax;
       if (cap !== undefined && cap !== null && cmd.movementType === 'activation') {
         check(`El club de destino no ha agotado el cupo acumulado de inscripción declarado (${currentCumulative}/${cap}).`, currentCumulative < cap, 'REGISTRATION_CAP_EXCEEDED');
@@ -200,7 +203,7 @@
       fromRosterPlayerIds: fromTeam.roster.map((p) => p.id).sort(),
       toRosterPlayerIds: toTeam.roster.map((p) => p.id).sort(),
       destinationCumulativeRegistrationCount: (registrationRegistry && cmd.toRegistration && cmd.toRegistration.registrationScopeId)
-        ? registrationRegistry.cumulativeCountForClub(cmd.toClubId, cmd.toRegistration.registrationScopeId, cmd.seasonKey)
+        ? registrationRegistry.cumulativeCountForClub(toTeam.id, cmd.toRegistration.registrationScopeId, cmd.seasonKey)
         : null,
       resolvedLoanRulesHash: resolvedLoanRules ? stableHash(resolvedLoanRules.trace) : null,
       pendingUserMatchBlocks: hasOperationalContext ? deps.operationalContext.pendingUserMatchBlocks : null,
@@ -275,7 +278,8 @@
     try {
       const { agreement, resolvedLoanRules } = resolvedPlan.newObjects;
       const player = playerRegistry.require(cmd.playerId);
-      const fromTeam = (teams || []).find((t) => t.id === cmd.fromClubId);
+      const fromTeam = (teams || []).find((t) => t.clubId === cmd.fromClubId);
+      const toTeam = (teams || []).find((t) => t.clubId === cmd.toClubId);
 
       // 1) baja regulatoria de origen (propietario en activación, cesionario
       //    en retorno/terminación anticipada).
@@ -298,7 +302,7 @@
       // 2) mover afiliación canónica (frontera única) — captura/limpia
       //    referencias operativas del club de ORIGEN de este movimiento.
       const rosterReport = RosterSvc().transferPlayer({
-        playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.fromClubId, toTeamId: cmd.toClubId, lineup: deps.lineup,
+        playerRegistry, teams, playerId: cmd.playerId, fromTeamId: fromTeam.id, toTeamId: toTeam.id, lineup: deps.lineup,
       });
       registerUndo(() => {
         const backTeam = (teams || []).find((t) => t.id === rosterReport.fromTeamId);
@@ -360,7 +364,8 @@
           id: `registration:${plan.transactionId}`,
           playerId: cmd.playerId,
           licenseId: license.id,
-          teamId: cmd.toClubId,
+          teamId: toTeam.id,
+          clubId: cmd.toClubId,
           competitionId: regCmd.competitionId,
           competitionInstanceId: regCmd.competitionInstanceId,
           registrationScopeId: regCmd.registrationScopeId,
@@ -440,7 +445,8 @@
           id: `registration:return:${plan.transactionId}`,
           playerId: cmd.playerId,
           licenseId: license.id,
-          teamId: cmd.toClubId,
+          teamId: toTeam.id,
+          clubId: cmd.toClubId,
           competitionId: regCmd.competitionId,
           competitionInstanceId: regCmd.competitionInstanceId,
           registrationScopeId: regCmd.registrationScopeId,

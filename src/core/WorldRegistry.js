@@ -112,6 +112,27 @@
     forClub(clubId) { return this.all().filter((team) => team.clubId === clubId); }
   }
 
+  // CLUB-CORE-1 (DESIGN.md sección 10) — envuelve instancias REALES de
+  // `Squad` (nunca objetos planos), mismo criterio que `TeamRegistry`.
+  class SquadRegistry extends BaseRegistry {
+    constructor() { super('SquadRegistry'); }
+
+    forTeam(teamId) { return this.all().filter((squad) => squad.teamId === teamId); }
+
+    // Un equipo activo tiene exactamente un squad operativo activo en esta
+    // versión (invariante 7 del prompt de CLUB-CORE-1) — `null` si el
+    // equipo todavía no tiene ninguno.
+    activeForTeam(teamId) {
+      return this.forTeam(teamId).find((squad) => squad.status === 'active') || null;
+    }
+
+    // Squad ACTIVO que contiene actualmente a un jugador concreto — un
+    // Player aparece como máximo en un squad activo del mundo (invariante 8).
+    activeSquadForPlayer(playerId) {
+      return this.all().find((squad) => squad.status === 'active' && squad.hasPlayer(playerId)) || null;
+    }
+  }
+
   // Referencias a `CompetitionDefinition` del catálogo mundial
   // (`CompetitionCatalog.js`) — nunca copias (ARCH-WORLD-04).
   class CompetitionDefinitionRegistry extends BaseRegistry {
@@ -160,6 +181,7 @@
       this.organizations = new OrganizationRegistry();
       this.clubs = new ClubRegistry();
       this.teams = new TeamRegistry();
+      this.squads = new SquadRegistry();
       this.competitionDefinitions = new CompetitionDefinitionRegistry();
       this.competitionEditions = new CompetitionEditionRegistry();
       this.competitionStages = new CompetitionStageRegistry();
@@ -207,6 +229,35 @@
       const club = this.clubs.require(team.clubId);
       if (!club) throw new Error(`WorldRegistries: el equipo "${team.id}" referencia un club inexistente "${team.clubId}".`);
       return this.teams.register(team);
+    }
+
+    // CLUB-CORE-1 — `squad` es la instancia REAL ya construida (invariante
+    // 26, mismas instancias que el runtime de partidos). Protege aquí,
+    // ANTES de registrar, las dos unicidades que Squad no puede comprobar
+    // por sí solo (no conoce a los demás squads del mundo): un squad activo
+    // por equipo (invariante 7) y un jugador en como máximo un squad activo
+    // de TODO el mundo (invariante 8) — nunca repartidas por quien llama.
+    registerSquad(squad) {
+      this.teams.require(squad.teamId);
+      if (squad.status === 'active') {
+        const existingActive = this.squads.forTeam(squad.teamId).find((s) => s.status === 'active' && s.id !== squad.id);
+        if (existingActive) {
+          throw new Error(
+            `WorldRegistries: el equipo "${squad.teamId}" ya tiene un squad activo "${existingActive.id}" — `
+            + `no puede registrarse también "${squad.id}" como activo.`,
+          );
+        }
+        squad.players.forEach((player) => {
+          const already = this.squads.all().find((s) => s.status === 'active' && s.id !== squad.id && s.hasPlayer(player.id));
+          if (already) {
+            throw new Error(
+              `WorldRegistries: el jugador "${player.id}" ya está en el squad activo "${already.id}" — no puede `
+              + `estar también en "${squad.id}".`,
+            );
+          }
+        });
+      }
+      return this.squads.register(squad);
     }
 
     registerCompetitionDefinition(definition) {
@@ -270,6 +321,30 @@
       });
       this.teams.all().forEach((team) => {
         if (!team.clubId || !this.clubs.has(team.clubId)) errors.push(`Equipo "${team.id}": club inexistente "${team.clubId}".`);
+        if (team.primarySquadId && !this.squads.has(team.primarySquadId)) {
+          errors.push(`Equipo "${team.id}": primarySquadId inexistente "${team.primarySquadId}".`);
+        }
+      });
+      // CLUB-CORE-1 — mismas dos unicidades que `registerSquad()` ya evita
+      // al registrar, revalidadas aquí de forma agregada (un squad podría,
+      // en teoría, mutar su `status` después de registrado).
+      const activeSquadsByTeam = new Map();
+      const activeSquadByPlayer = new Map();
+      this.squads.all().forEach((squad) => {
+        if (!this.teams.has(squad.teamId)) errors.push(`Squad "${squad.id}": equipo inexistente "${squad.teamId}".`);
+        if (squad.status !== 'active') return;
+        const existing = activeSquadsByTeam.get(squad.teamId);
+        if (existing && existing !== squad.id) {
+          errors.push(`Equipo "${squad.teamId}": más de un squad activo ("${existing}" y "${squad.id}").`);
+        }
+        activeSquadsByTeam.set(squad.teamId, squad.id);
+        squad.players.forEach((player) => {
+          const already = activeSquadByPlayer.get(player.id);
+          if (already && already !== squad.id) {
+            errors.push(`Jugador "${player.id}": presente en más de un squad activo ("${already}" y "${squad.id}").`);
+          }
+          activeSquadByPlayer.set(player.id, squad.id);
+        });
       });
       this.competitionEditions.all().forEach((edition) => {
         if (!this.competitionDefinitions.has(edition.competitionDefinitionId)) {
@@ -298,6 +373,7 @@
         organizations: this.organizations.all().map((o) => o.toJSON()),
         clubs: this.clubs.all().map((c) => c.toJSON()),
         teamIds: this.teams.all().map((t) => t.id),
+        squads: this.squads.all().map((s) => s.toJSON()),
         competitionDefinitions: this.competitionDefinitions.all().map((d) => d.toJSON()),
         competitionEditions: this.competitionEditions.all().map((e) => e.toJSON()),
         competitionStages: this.competitionStages.all().map((s) => s.toJSON()),
@@ -312,6 +388,7 @@
     OrganizationRegistry,
     ClubRegistry,
     TeamRegistry,
+    SquadRegistry,
     CompetitionDefinitionRegistry,
     CompetitionEditionRegistry,
     CompetitionStageRegistry,
