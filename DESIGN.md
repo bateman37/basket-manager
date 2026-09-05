@@ -1168,11 +1168,19 @@ Manager) — el enfoque es **europeo/ACB**, evitando deliberadamente
 mecánicas específicas de NBA (salary cap, draft, franquicias sin
 ascenso/descenso). La adaptación de una eventual comparación con clubes
 americanos queda pendiente para cuando se aborde esa parte del proyecto.
-Esta ficha sigue siendo la de `Team` (equipo deportivo) — WORLD-CORE-1
-(sección 10) introduce `Club` (identidad institucional) como entidad
-DISTINTA, vinculada por `clubId`; la migración completa de finanzas/
-instalaciones/junta/afición de `Team` a `Club` es CLUB-CORE-1, todavía no
-hecha.
+Esta ficha describe el CONCEPTO de "club" tal como lo ve el usuario —
+técnicamente, desde CLUB-CORE-1 (sección 10.12), vive repartida entre TRES
+entidades distintas: `Club` (identidad institucional — presupuesto,
+instalaciones, junta, afición, finanzas, ADN de club, reputación
+financiera/de cantera), `Team` (sección deportiva — reputación deportiva,
+perfil táctico, rivalidades, histórico de títulos/leyendas) y `Squad`
+(contenedor operativo real de la plantilla que juega, `src/entities/
+Squad.js`). `Team.roster` sigue siendo la forma de leer "la plantilla del
+club" para cualquier pantalla — es una vista de compatibilidad sobre el
+`Squad` activo del equipo, nunca un array paralelo. Ninguna de las reglas
+de diseño de esta sección cambia por esa separación técnica; solo cambia
+DÓNDE vive cada dato en el código (ver 10.3 para el detalle técnico
+completo).
 
 #### Datos básicos
 Nombre, ciudad, año de fundación, división actual (1ª o 2ª), presupuesto
@@ -1213,7 +1221,11 @@ ambigua a la hora de implementar):
 
 La reputación (los 3 sub-componentes en conjunto) gobierna la atracción
 de jugadores en fichajes, el interés de patrocinadores, y las
-expectativas que fija la junta/propietario (ver 6.2.4).
+expectativas que fija la junta/propietario (ver 6.2.4). **Nota técnica
+(CLUB-CORE-1)**: `team.reputation` sigue exponiendo los 3 juntos como
+vista compuesta de solo lectura — deportiva vive en `Team`
+(`_sportingReputation`), financiera y de cantera viven en `Club`
+(`reputationFinancial`/`reputationYouth`).
 
 #### 6.2.2 Instalaciones (escala 1-20 cada una)
 Siete instalaciones internas del club, cada una mejorable con dinero
@@ -1266,7 +1278,12 @@ explícita (anual, o una promoción real desde la pantalla "Planificación")
 la incorpora al roster senior vía `promoteToFirstTeam()`. Sigue sin existir
 filial ni categorías inferiores reales — eso sigue pendiente de la sesión
 de diseño dedicada mencionada arriba —, pero el pool de cantera ya no se
-confunde con la plantilla que juega los partidos.
+confunde con la plantilla que juega los partidos. **Nota técnica
+(CLUB-CORE-1)**: `AcademyMembership.clubId` (y el pool de
+`AcademyRegistry.activePoolForClub()`) es SIEMPRE el `clubId` institucional
+real — la cantera pertenece al Club, nunca a un `teamId` deportivo;
+`promoteToFirstTeam()` sigue afiliando al jugador al `Team` real (roster/
+`Squad`) a través de `RosterMutationService`.
 
 #### 6.2.4 Junta/Propietario y objetivos de temporada
 Existe una **junta/propietario** por encima del usuario (que ocupa el
@@ -7552,7 +7569,7 @@ ninguna sea el caso por defecto.
 | Orden | Entrega | Resultado | Estado |
 |---:|---|---|---|
 | 1 | **WORLD-CORE-1** | `GameWorld` canónico, geografía, organizaciones, catálogos/registros, paquetes de contenido, identidad de competición y migración compatible de España. | **hecha**, esta sección |
-| 2 | **CLUB-CORE-1** | Separación completa `Club` institucional / `Team`-`Squad` deportivo; primer equipo, filial, cantera y futuras secciones sin duplicar el club. | pendiente |
+| 2 | **CLUB-CORE-1** | Separación completa `Club` institucional / `Team`-`Squad` deportivo; primer equipo, filial, cantera y futuras secciones sin duplicar el club. | **hecha**, ver 10.12 |
 | 3 | **COMP-CORE-1** | Motor genérico `CompetitionEdition → Stage → Entry`; migra Liga/Copa/playoff por el título/ascenso fuera de los mapas fijos por división — retira `SpainLegacyCompetitionRuntime`. | pendiente |
 | 4 | **WORLD-CALENDAR-1** | Calendario mundial y cola cronológica única; varias competiciones simultáneas, paradas de usuario y simulación de fondo sin el concepto especial de "la otra división". | pendiente |
 | 5 | **PATHWAYS-1** | Clasificación entre fases/torneos, ascenso/descenso, acceso a copas y plazas continentales mediante reglas declarativas versionadas. | pendiente |
@@ -7608,29 +7625,69 @@ national-federation|league-operator|tournament-organizer|other`),
 una federación continental, ni que todo operador de liga es una
 federación.
 
-#### `Club` (`src/entities/Club.js`) — ARCH-WORLD-07
+#### `Club` (`src/entities/Club.js`) — ARCH-WORLD-07, ampliada en CLUB-CORE-1
 
-Identidad institucional, SEPARADA del equipo deportivo. Campos de esta
-entrega: `id`, `name`, `shortName`, `homeAreaId`, `employerJurisdictionAreaId`
-explícito, `federationMembershipOrganizationIds`, `primaryTeamId`, `status`,
-`dataSource`/`provenance`. **Decisión de compatibilidad de `spain-2026.1`,
-NO invariante universal**: `club.id === primaryTeam.id`, para preservar
-todos los `clubId` legacy ya usados por CONTRACT-1..CYCLE-1
-(`ClubEmploymentContextCatalog`, `ContractRegistry`, etc.). Finanzas,
-instalaciones, junta, afición y táctica SIGUEN en `Team` (6.2) —
-CLUB-CORE-1 decide y ejecuta esa migración completa; WORLD-CORE-1 no la
-adelanta ni duplica valores mutables entre `Club` y `Team`.
+Identidad institucional, SEPARADA del equipo deportivo — fuente CANÓNICA
+única del estado institucional de un club. Campos: `id`, `name`,
+`shortName`, `homeAreaId`, `employerJurisdictionAreaId` explícito,
+`federationMembershipOrganizationIds`, `primaryTeamId`, `status`,
+`dataSource`/`provenance`, y (migrados desde `Team` en CLUB-CORE-1)
+`foundationYear`, `budget`, `reputationFinancial`/`reputationYouth`
+(0-100), `facilities` (las 7 de 6.2.2), `board`, `fanbase`, `finances`,
+`clubDNA`, más los getters derivados `facilitiesMaintenanceCost`,
+`totalIncome`, `totalExpenses`, `netResult`. **`club.id === primaryTeam.id`
+QUEDA RETIRADO como invariante de `spain-2026.1`** (ver 10.8): el paquete
+español declara 36 pares `clubId`/`teamId` EXPLÍCITOS y distintos
+(`SPAIN_CLUB_CONTENT` en `data/world/spain-2026.1.js`) — MoraBanc Andorra es
+`club-morabanc-andorra`/`team-morabanc-andorra`. Un test/fixture legacy
+puede seguir usando `clubId === teamId` (compatibilidad documentada, nunca
+invariante universal para contenido nuevo).
 
-#### `Team` (`src/entities/Team.js`, ampliado)
+#### `Squad` (`src/entities/Squad.js`) — CLUB-CORE-1
 
-Añade `clubId` explícito, `teamType` (hoy siempre
-`'senior-men-first-team'`), `homeAreaId`, `legacyDivision` (puente de
-compatibilidad de los datos españoles). `division` se conserva como alias
+Contenedor OPERATIVO actual de jugadores de un `Team` — la única fuente de
+verdad de qué jugadores están afiliados operativamente a un equipo (nunca
+un array paralelo en `Team`). Campos: `id`, `teamId`, `name`, `squadType`
+(`first-team-senior` por defecto), `status`
+(`active|inactive|historical|fictional-test`), `players` (instancias REALES
+de `Player`, nunca copias — misma colección que `Team.roster` devuelve),
+`dataSource`/`provenance`. `addPlayer()`/`removePlayer()`/`hasPlayer()`;
+`toJSON()` serializa `playerIds`, nunca jugadores embebidos. `SquadRegistry`
+(en `WorldRegistries.squads`) exige exactamente un squad ACTIVO por equipo y
+que un jugador esté en como máximo un squad ACTIVO de todo el mundo —
+ambas invariantes se comprueban al registrar y se revalidan en
+`WorldRegistries.validateIntegrity()`.
+
+#### `Team` (`src/entities/Team.js`, ampliado en WORLD-CORE-1 y CLUB-CORE-1)
+
+Añade `clubId` explícito (Club real, nunca `team.id`), `club` (referencia
+VIVA a la instancia, `null` hasta enlazar), `role`
+(`first-team|reserve|youth|other`), `category` (`{gender, ageTier}`
+explícitos), `teamType` (alias legacy derivado de `role`+`category`, sigue
+produciendo `'senior-men-first-team'` por defecto — misma forma que antes
+de CLUB-CORE-1), `homeAreaId`, `legacyDivision`, `squad` (referencia VIVA
+al `Squad` activo), `primarySquadId`. `division` se conserva como alias
 legacy durante la EPIC: ya NO recibe `1ª` por defecto cuando no se
-proporciona, no es fuente de verdad de participación, y no debe usarse en
-código mundial nuevo. Un club puede tener varios equipos en el modelo (el
-pack actual solo crea uno) — `TeamRegistry.forClub(clubId)` ya lo consulta
-así.
+proporciona (BUG-WORLDCORE-09, ver 10.12), no es fuente de verdad de
+participación, y no debe usarse en código mundial nuevo. Un club puede
+tener varios equipos en el modelo (el pack actual solo crea uno por club)
+— `TeamRegistry.forClub(clubId)` ya lo consulta así.
+
+**Migración institucional (CLUB-CORE-1)**: `foundationYear`, `budget`,
+`clubDNA`, `facilities`, `board`, `fanbase`, `finances` y los totales
+derivados dejan de vivir en `Team` — sus antiguos getters/setters
+SOBREVIVEN como accesores legacy que DELEGAN en la MISMA instancia de
+`Club` en cuanto `team.club` está enlazado (nunca una segunda copia
+mutable); antes de enlazar (`team.club === null`, modo bootstrap de tests
+legacy/modo prueba), leen/escriben un pequeño estado de bootstrap propio
+con la MISMA forma que tenían antes de esta entrega, así que un `Team`
+aislado se comporta exactamente igual que antes. `team.reputation` sigue
+existiendo como vista compuesta de solo lectura: `sporting` (del propio
+`Team`, la única componente genuinamente deportiva) + `financial`/`youth`
+(del `Club`). `Team.roster` pasa a ser una VISTA de compatibilidad del
+`Squad` activo (`this.squad.players`, o el roster de bootstrap antes de
+enlazar) — misma referencia de array siempre, `Team.addPlayer()`/
+`removePlayer()` delegan en el `Squad` cuando existe.
 
 #### `CompetitionDefinition` (`src/entities/Competition.js` + catálogo en
 `src/core/CompetitionCatalog.js`) — ARCH-WORLD-04
@@ -7809,8 +7866,8 @@ datos reales modificados.
 | `SpainLegacyCompetitionRuntime` | `src/core/SpainLegacyCompetitionRuntime.js` | COMP-CORE-1 / WORLD-CALENDAR-1 |
 | `League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` como runner fijo | `src/core/*.js` | COMP-CORE-1 |
 | `competitionIdFromLegacyDivision()` | `CompetitionRules.js` | COMP-CORE-1 (cuando ya no exista ninguna "división" que traducir) |
-| `Club.id === primaryTeam.id` | `data/world/spain-2026.1.js` | CLUB-CORE-1 (varios equipos por club) |
-| Finanzas/instalaciones/junta/afición en `Team` en vez de `Club` | `Team.js` | CLUB-CORE-1 |
+| ~~`Club.id === primaryTeam.id`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — `spain-2026.1` declara 36 pares `clubId`/`teamId` distintos (`SPAIN_CLUB_CONTENT`) |
+| ~~Finanzas/instalaciones/junta/afición en `Team` en vez de `Club`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — viven en `Club.js`; `Team.js` conserva solo accesores legacy que delegan (ver 10.3) |
 | `external-abstract` como categoría de `WorldLifecycleService` | `src/core/WorldLifecycleService.js` | WORLD-SIM-1 |
 | Calendario por `scheduleProfileId` de contenido español (`1ª`/`2ª`) | `MatchConfig.js`/`Calendar.js` | WORLD-CALENDAR-1 |
 | `state.leagues`/`state.brackets` como mapa fijo de dos divisiones | `src/ui/game.js` | WORLD-CALENDAR-1 |
@@ -7912,6 +7969,127 @@ scripts/test-cycle1.js` (42 OK), `node scripts/test-roster1.js` (31 OK),
 `node scripts/test-contract1.js` (102 OK), `node --check` sobre todo el
 repositorio — 0 fallos en los cuatro. Checklist manual (móvil/escritorio,
 Playwright) diferida a Dennis al terminar la EPIC completa.
+
+### 10.12 CLUB-CORE-1 — resultado
+
+Segunda entrega de la EPIC (ver 10.1). Retira la deuda que WORLD-CORE-1
+dejó señalada explícitamente en 10.3/10.8: `club.id === primaryTeam.id`
+como invariante de `spain-2026.1`, y finanzas/instalaciones/junta/afición
+viviendo en `Team` en vez de en `Club`.
+
+**Modelo**: `Club` (identidad institucional — quién emplea, quién negocia,
+quién tiene la cantera) y `Team` (sección deportiva — quién compite, quién
+entrena) son entidades DISTINTAS con ids DISTINTOS, vinculadas por
+`team.clubId`/`team.club`. `Squad` (nueva, `src/entities/Squad.js`) es el
+contenedor operativo real de jugadores de un `Team` — `Team.roster` pasa a
+ser una vista de compatibilidad sobre el squad activo, nunca un array
+paralelo. Tabla de identidad (nunca violada, auditada por los tests
+dirigidos): contrato/mandato/negociación/tanteo/traspaso/cesión/cantera/
+licencia federativa → **clubId**; `CompetitionEntry`/inscripción/partido/
+táctica/entrenamiento/`Player.teamId` → **teamId**; contenedor operativo →
+**squadId**.
+
+**BUG-WORLDCORE-09 corregido**: `Team.validateDivision(undefined)` ya no
+devuelve `'1ª'` en silencio — devuelve `null` (y por tanto
+`legacyDivision: null`); un valor explícito no reconocido sigue lanzando;
+el contenido español sigue pasando `'1ª'`/`'2ª'` explícitos sin cambiar de
+forma.
+
+**Migración de los 36 clubes/equipos reales**: `data/world/spain-2026.1.js`
+declara una tabla EXPLÍCITA de 36 pares `clubId`/`teamId` distintos
+(`SPAIN_CLUB_CONTENT`, nunca derivada por sufijo/regla genérica) —
+`club-real-madrid`/`team-real-madrid`, `club-morabanc-andorra`/
+`team-morabanc-andorra`, etc. Cada equipo real conserva su estado
+institucional de bootstrap (facilities/board/fanbase/finances/budget/
+foundationYear/clubDNA/reputación financiera y de cantera) LEÍDO antes de
+enlazar un `Club` real, así que ningún dato institucional generado se
+pierde ni se recalibra al migrar. `ClubEmploymentContextCatalog.js` deja de
+ser una segunda tabla de 36 entradas indexada por `teamId`: la identidad,
+jurisdicción y afiliación de cada club se resuelven SIEMPRE desde el `Club`
+real instalado (`team.club`) y las áreas/organizaciones del mundo — un
+equipo vivo sin `Club` real enlazado falla explícito
+(`CLUB-CORE-1 exige un Club real enlazado`), nunca hereda España/ACB por
+defecto.
+
+**Migración de dominio**: Contract/Registration/Market/Transfer/Loan/
+Academy/Cycle (ROSTER-1..CYCLE-1) migrados campo a campo, por semántica,
+nunca mecánicamente: todo campo `clubId`-shaped (empleador, mandato,
+negociación, tanteo, compra-venta, cesión propietaria/cesionaria, cantera,
+licencia) pasa a usar el `clubId` real; todo campo `teamId`-shaped
+(inscripción, `CompetitionEntry`, afiliación de plantilla, `Player.teamId`)
+sigue usando el `teamId` real. `RosterMutationService` sigue siendo la
+ÚNICA frontera de `Team.roster`/`player.teamId`, ahora operando sobre
+`Squad` por debajo. `EligibilityService.evaluateEligibility()` exige un
+`deps.clubId` explícito (el Club real del equipo evaluado) para resolver el
+empleador del contrato — sin él, ningún jugador con contrato real puede
+declararse elegible (detectado y corregido en varios scripts de humo
+durante la regresión, ver más abajo).
+
+**Compatibilidad que permanece** (documentada, con destino de retirada
+cuando corresponda): `Team.roster` como vista del `Squad` activo
+(decisión PERMANENTE, no deuda); accesores institucionales legacy en
+`Team` que delegan en `Club` (permanente, mismo criterio); un `Team`
+aislado de tests/modo prueba sin `Club` real conserva un pequeño estado de
+bootstrap institucional antes de enlazar (permanente, documentado en
+CLAUDE.md); fixtures de test antiguos con `clubId === teamId` explícito
+(legacy, nunca contenido nuevo real). **Deuda identificada pero
+DELIBERADAMENTE no tocada esta entrega** (naming-only, campos
+`clubId`/`opponentClubId` que en realidad guardan un `team.id` en
+entidades de contabilidad/diagnóstico del dominio Cycle —
+`ClubCycleCase`, `RosterLegalityReport`, `EmergencyRosterAction`, la
+evidencia de `SeasonHistoryService`/`cycle1-harness.js` —, nunca
+cruzados contra un `Club` real en ningún sitio, así que no rompen ninguna
+regla; se dejan para una entrega futura que documente y renombre esta
+categoría completa en vez de tocarla campo a campo sin plan).
+
+**Verificación dirigida** (nunca la matriz completa de la EPIC anterior):
+
+- `node scripts/test-club-core1.js`: 36 comprobaciones dirigidas — ids
+  distintos Club/Team/Squad, un Club con varias secciones, unicidad de
+  squad activo por equipo y de jugador por squad activo, `Team.roster`
+  como vista real del squad, serialización por ids, migración
+  institucional sin copias mutables, BUG-WORLDCORE-09,
+  `ClubEmploymentContextCatalog` sin fallback a España, `ClubStructureService`
+  (frontera pura Club↔Team↔Squad), paquete de test SIN España/ACB, y los
+  36 clubes/equipos reales (MoraBanc Andorra, Contract.clubId/
+  License.clubId/Registration.teamId, AcademyMembership.clubId +
+  promoción real al Team). **36 OK, 0 fallos.**
+- `node scripts/smoke-club-core1.js`: reutiliza EXACTAMENTE la
+  construcción de `smoke-world-core1.js` (36 equipos reales, `world-core-
+  2026.1`+`spain-2026.1`, registros de dominio) y añade las
+  comprobaciones específicas de esta entrega, UNA temporada completa +
+  UNA transición anual con el arnés de CYCLE-1, revalidando identidad
+  Club/Team/Squad y el caso MoraBanc Andorra tanto antes como después de
+  la transición (sin cambio de división en la ejecución registrada).
+  **OK en ~6s.**
+- Regresión completa de la EPIC anterior, TODA vuelta a pasar tras
+  parchear sus fixtures (helpers de construcción de equipo de prueba
+  actualizados para enlazar un `Club` real — legacy `clubId === teamId` —
+  y, donde hacía falta, pasar `deps.clubId`/`opponentClubId` real a
+  `EligibilityService`, nunca lógica de dominio nueva): `test-world-core1.js`
+  (27 OK, 2 fixtures corregidos: MoraBanc/Real Madrid ya no comparten
+  `clubId`/`teamId`), `smoke-world-core1.js` (OK), `test-roster1.js` (31 OK,
+  sin cambios), `test-contract1.js` (102 OK, 2 fixtures corregidos),
+  `smoke-contract1.js` (OK, 3 temporadas), `test-reg1.js` (88 OK, 3
+  fixtures corregidos), `smoke-reg1.js` (OK, 3 temporadas — bug real
+  detectado y corregido: el pool elegible del smoke no pasaba `deps.clubId`),
+  `test-transfer1.js` (67 OK, 1 fixture corregido), `smoke-transfer1.js`
+  (OK, 3 temporadas), `test-loan1.js` (52 OK, 2 fixtures corregidos),
+  `smoke-loan1.js` (OK, 3 temporadas), `test-market1.js` (82 OK, 3 fixtures
+  corregidos), `smoke-market1.js` (OK, 3 temporadas), `test-cycle1.js` (42
+  OK, 1 fixture corregido), `smoke-cycle1.js` (OK, 10 temporadas
+  completas). `node --check` sobre todos los archivos `.js` modificados/
+  nuevos y `git diff --check`: sin errores. **0 fallos en toda la
+  regresión.** Checklist manual (móvil/escritorio, Playwright) sigue
+  diferida a Dennis al terminar la EPIC completa (mismo criterio que
+  10.11).
+
+**Fuera de alcance de esta entrega** (igual que 10.7, sin cambios):
+persistencia SQL/save-load real, motor genérico de competiciones
+(COMP-CORE-1), calendario mundial único (WORLD-CALENDAR-1), transfer
+internacional (EUROPE-1 replanteado), traspasos/cesiones CPU-a-CPU
+orgánicos, `SpainLegacyCompetitionRuntime`/`League`/`Bracket`/`Cup`/
+`Playoffs`/`Promotion` (siguen intactos), datos reales modificados.
 
 ## 11. Modo Manager (futuro, derivado del modo Completo)
 
