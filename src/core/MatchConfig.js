@@ -2156,6 +2156,18 @@
     },
   };
 
+  // COMP-CORE-1 (DESIGN.md 10.13, sección 11.2 del prompt): alias ESTABLE
+  // por el `scheduleProfileId` que YA declara `CompetitionCatalog.js` en
+  // `bindings.scheduleProfileId` de ACB/Primera FEB — MISMO dato canónico
+  // que '1ª'/'2ª' (nunca una copia), así que `Calendar.getScheduleProfile()`
+  // puede resolverlos sin fallback oculto. `'1ª'`/`'2ª'` siguen siendo los
+  // literales reales que usa `game.js` hoy — puente de compatibilidad
+  // marcado para retirada en WORLD-CALENDAR-1 (ver DESIGN.md 10.8), cuando
+  // el calendario mundial sustituya `scheduleProfileId` por perfiles de
+  // paquete reales sin ningún literal de división.
+  CONFIG_BASE.calendar.scheduleProfiles['spain-2026.1:schedule:1a'] = CONFIG_BASE.calendar.scheduleProfiles['1ª'];
+  CONFIG_BASE.calendar.scheduleProfiles['spain-2026.1:schedule:2a'] = CONFIG_BASE.calendar.scheduleProfiles['2ª'];
+
   // Hueco para modificadores multiplicativos por competición (7.2) — NO
   // rellenar todavía. Cuando se aborde NBA (48 min, otro pace, etc.), este
   // objeto llevará los factores multiplicativos sobre CONFIG_BASE, sin

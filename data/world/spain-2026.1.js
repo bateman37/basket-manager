@@ -32,7 +32,8 @@
   const ClubModule = dep('../../src/entities/Club.js');
   const SquadModule = dep('../../src/entities/Squad.js');
   const CompetitionCatalogModule = dep('../../src/core/CompetitionCatalog.js');
-  const SpainLegacyRuntimeModule = dep('../../src/core/SpainLegacyCompetitionRuntime.js');
+  const CompetitionFormatCatalogModule = dep('../../src/core/CompetitionFormatCatalog.js');
+  const CompetitionEngineModule = dep('../../src/core/CompetitionEngine.js');
   const WorldCoreManifestModule = dep('./world-core-2026.1.js');
 
   function Geo() { return GeographyModule; }
@@ -40,7 +41,8 @@
   function ClubEntity() { return ClubModule; }
   function SquadEntity() { return SquadModule; }
   function Catalog() { return CompetitionCatalogModule; }
-  function Runtime() { return SpainLegacyRuntimeModule.SpainLegacyCompetitionRuntime; }
+  function FormatCatalog() { return CompetitionFormatCatalogModule; }
+  function Engine() { return CompetitionEngineModule; }
   function EuropeAreaId() {
     return (WorldCoreManifestModule.WORLD_CORE_AREA_IDS || { EUROPE: 'area-continent-europe' }).EUROPE;
   }
@@ -240,6 +242,255 @@
     ids.forEach((id) => world.registries.registerCompetitionDefinition(Catalog().getCompetitionDefinition(id)));
   }
 
+  // -----------------------------------------------------------------------
+  // COMP-CORE-1 (DESIGN.md 10.13) — formato de cada competición como DATO,
+  // registrado en el catálogo GENÉRICO de formatos (`CompetitionFormatCatalog.js`).
+  // Ninguno de los runners/engine genéricos contiene estos números — viven
+  // SOLO aquí, exactamente igual que el resto de literales de España
+  // permitidos en este archivo (ver cabecera).
+  //
+  // Los 5 pasos de desempate son GENÉRICOS (ver CompetitionRunners.js:
+  // ningún paso se llama "ACB" dentro del runner) — ACB y Primera FEB
+  // declaran la MISMA secuencia por compatibilidad (DESIGN.md 3.1), nunca
+  // presentada como normativa nueva si el repositorio no lo documentaba así.
+  // -----------------------------------------------------------------------
+  const TIEBREAK_STEPS = [
+    { type: 'group-head-to-head-balance' },
+    { type: 'group-head-to-head-point-diff' },
+    { type: 'overall-point-diff' },
+    { type: 'overall-points-for' },
+    { type: 'overall-quotient-sum' },
+  ];
+
+  const FORMAT_IDS = {
+    ACB_LIGA_PLAYOFF: 'spain-2026.1:format:acb-liga-playoff',
+    PRIMERA_FEB_LIGA_ASCENSO: 'spain-2026.1:format:primera-feb-liga-ascenso',
+    COPA_ACB_KNOCKOUT: 'spain-2026.1:format:copa-acb-knockout',
+  };
+
+  function registerFormats() {
+    const FC = FormatCatalog();
+    if (FC.hasFormat(FORMAT_IDS.ACB_LIGA_PLAYOFF)) return; // idempotente (recarga del mismo módulo)
+
+    // ACB: Liga regular (18, ida/vuelta, 2/1 puntos) + Playoff por el
+    // título (top 8, cuadro 1-8/4-5/2-7/3-6, cuartos BO3, semis/final BO5)
+    // — DESIGN.md 3.1/3.2.2.
+    FC.registerFormat({
+      id: FORMAT_IDS.ACB_LIGA_PLAYOFF,
+      version: '2026.1.0',
+      status: 'active',
+      participantType: 'club-team',
+      provenance: { dataSource: MANIFEST_ID, status: 'verified', notes: 'DESIGN.md 3.1/3.2.2 — Liga ACB + Playoff por el título.' },
+      stageTemplates: [
+        {
+          key: 'regular-season',
+          name: 'Liga regular',
+          stageType: 'round-robin',
+          runnerType: 'round-robin',
+          sequence: 1,
+          activation: { type: 'edition-start' },
+          entrySource: { type: 'initial-participants' },
+          runnerConfig: {
+            legs: 2, pointsWin: 2, pointsLoss: 1, requireExactParticipantCount: 18, tiebreakSteps: TIEBREAK_STEPS,
+          },
+          completesEdition: false,
+        },
+        {
+          key: 'title-playoff',
+          name: 'Playoff por el título',
+          stageType: 'knockout',
+          runnerType: 'bracket',
+          sequence: 2,
+          activation: { type: 'stage-completed', sourceStageKey: 'regular-season' },
+          entrySource: {
+            type: 'stage-standings-range', sourceStageKey: 'regular-season', fromRank: 1, toRank: 8, sourceScope: 'same-edition',
+          },
+          runnerConfig: {
+            firstRoundPairing: [[1, 8], [4, 5], [2, 7], [3, 6]],
+            roundPatterns: ['best-of-3-1-1-1', 'best-of-5-2-2-1', 'best-of-5-2-2-1'],
+          },
+          completesEdition: true,
+        },
+      ],
+    });
+
+    // Primera FEB: Liga regular (18, ida/vuelta, misma secuencia de
+    // desempate) + Playoff de ascenso (campeón asciende directo; 2º-9º
+    // juegan cuartos BO5 2-2-1 [2v9/3v8/4v7/5v6] + Final Four a partido
+    // único, con reseed best-vs-worst de los 4 ganadores) — DESIGN.md
+    // 3.1/3.2.3. El "1º asciende directo" es una vista de compatibilidad
+    // (nunca una Entry/Stage) — ver `describeDirectPromotion()` en game.js.
+    FC.registerFormat({
+      id: FORMAT_IDS.PRIMERA_FEB_LIGA_ASCENSO,
+      version: '2026.1.0',
+      status: 'active',
+      participantType: 'club-team',
+      provenance: { dataSource: MANIFEST_ID, status: 'verified', notes: 'DESIGN.md 3.1/3.2.3 — Primera FEB + Playoff de ascenso.' },
+      stageTemplates: [
+        {
+          key: 'regular-season',
+          name: 'Liga regular',
+          stageType: 'round-robin',
+          runnerType: 'round-robin',
+          sequence: 1,
+          activation: { type: 'edition-start' },
+          entrySource: { type: 'initial-participants' },
+          runnerConfig: {
+            legs: 2, pointsWin: 2, pointsLoss: 1, requireExactParticipantCount: 18, tiebreakSteps: TIEBREAK_STEPS,
+          },
+          completesEdition: false,
+        },
+        {
+          key: 'promotion-quarterfinals',
+          name: 'Cuartos de ascenso',
+          stageType: 'knockout',
+          runnerType: 'bracket',
+          sequence: 2,
+          activation: { type: 'stage-completed', sourceStageKey: 'regular-season' },
+          entrySource: {
+            type: 'stage-standings-range', sourceStageKey: 'regular-season', fromRank: 2, toRank: 9, sourceScope: 'same-edition',
+          },
+          runnerConfig: {
+            firstRoundPairing: [[2, 9], [3, 8], [4, 7], [5, 6]],
+            roundPatterns: ['best-of-5-2-2-1'],
+          },
+          completesEdition: false,
+        },
+        {
+          key: 'promotion-final-four',
+          name: 'Final Four de ascenso',
+          stageType: 'final-four',
+          runnerType: 'bracket',
+          sequence: 3,
+          activation: { type: 'stage-completed', sourceStageKey: 'promotion-quarterfinals' },
+          entrySource: {
+            type: 'stage-bracket-final-round-winners', sourceStageKey: 'promotion-quarterfinals', reseedStrategy: 'best-vs-worst-by-seed',
+          },
+          runnerConfig: { roundPatterns: ['single-game', 'single-game'] },
+          completesEdition: true,
+        },
+      ],
+    });
+
+    // Copa ACB: `CompetitionDefinition`/Edition SEPARADA (invariante 12/13)
+    // — mismo cuadro que el playoff por el título, tres rondas a partido
+    // único, con la foto de clasificación de la jornada 17 de ACB
+    // (activación CRUZADA, ver `buildSeasonActivationPlan()`). DESIGN.md
+    // 3.2.4.
+    FC.registerFormat({
+      id: FORMAT_IDS.COPA_ACB_KNOCKOUT,
+      version: '2026.1.0',
+      status: 'active',
+      participantType: 'club-team',
+      provenance: { dataSource: MANIFEST_ID, status: 'verified', notes: 'DESIGN.md 3.2.4 — Copa ACB, foto de la jornada 17 de ACB.' },
+      stageTemplates: [
+        {
+          key: 'knockout',
+          name: 'Eliminatoria de Copa',
+          stageType: 'knockout',
+          runnerType: 'bracket',
+          sequence: 1,
+          activation: { type: 'edition-start' },
+          entrySource: { type: 'initial-participants' },
+          runnerConfig: {
+            firstRoundPairing: [[1, 8], [4, 5], [2, 7], [3, 6]],
+            roundPatterns: ['single-game', 'single-game', 'single-game'],
+          },
+          completesEdition: true,
+        },
+      ],
+    });
+  }
+
+  // Jornada de ACB que dispara la Copa (DESIGN.md 3.2.4) — mismo número que
+  // usaba `Cup.CUP_TRIGGER_ROUND`, declarado aquí como DATO del contenido
+  // (no un literal dentro del engine genérico).
+  const CUP_TRIGGER_ROUND = 17;
+
+  // Bindings congelados por edición (sección 11.2 del prompt): ids de
+  // formato/calendario/ruleset EXPLÍCITOS, nunca el objeto de reglas
+  // incrustado. `scheduleProfileId` usa el MISMO id ya declarado en
+  // `CompetitionCatalog.js` (`bindings.scheduleProfileId`) — `Calendar`
+  // ya sabe resolverlo (alias añadido a `MatchConfig.js`, sección 11.2).
+  function editionBindings(competitionId) {
+    const definition = Catalog().getCompetitionDefinition(competitionId);
+    if (competitionId === Catalog().COMPETITION_IDS.ACB) {
+      return { formatBindingId: FORMAT_IDS.ACB_LIGA_PLAYOFF, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'acb-domestic-2025-26-v1' };
+    }
+    if (competitionId === Catalog().COMPETITION_IDS.PRIMERA_FEB) {
+      return { formatBindingId: FORMAT_IDS.PRIMERA_FEB_LIGA_ASCENSO, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'primera-feb-domestic-2026-27-v1' };
+    }
+    if (competitionId === Catalog().COMPETITION_IDS.COPA_ACB) {
+      return { formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT, scheduleProfileId: null, rulesetBundleId: 'copa-acb-domestic-2025-26-v1' };
+    }
+    throw new Error(`spain-2026.1: sin bindings declarados para la competición "${competitionId}".`);
+  }
+
+  // Arranque de carrera (`startSeason()`): crea la Edition + stage de
+  // Liga regular + 18 Entries de ACB y de Primera FEB — mismo id/esquema
+  // que usaba `SpainLegacyCompetitionRuntime.bindCareerStart` (retirado de
+  // la ruta productiva, sección 14 del prompt), ahora vía el helper
+  // GENÉRICO del engine (`registerEditionWithInitialEntries`). El playoff
+  // por el título / de ascenso y la Copa se activan más tarde, cuando el
+  // engine procesa los hechos reales (`stage-completed`/`round-completed`)
+  // — nunca se fabrican aquí de antemano.
+  function bindCareerStartEditions(world, { seasonKey, teamsByDivision, startDate }) {
+    const acbBindings = editionBindings(Catalog().COMPETITION_IDS.ACB);
+    const febBindings = editionBindings(Catalog().COMPETITION_IDS.PRIMERA_FEB);
+    const { edition: acbEdition } = Engine().registerEditionWithInitialEntries(world, {
+      competitionDefinitionId: Catalog().COMPETITION_IDS.ACB,
+      seasonKey,
+      startDate: startDate || null,
+      participants: teamsByDivision['1ª'].map((team) => ({ id: team.id })),
+      ...acbBindings,
+    });
+    const { edition: febEdition } = Engine().registerEditionWithInitialEntries(world, {
+      competitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB,
+      seasonKey,
+      startDate: startDate || null,
+      participants: teamsByDivision['2ª'].map((team) => ({ id: team.id })),
+      ...febBindings,
+    });
+    return { acbEdition, febEdition };
+  }
+
+  // Cierre de temporada (`closeSeasonAndPrepareNext()`): cierra las
+  // ediciones/stages ACTIVOS previos de ACB/Primera FEB (nunca los borra,
+  // sección 13.3) y abre las de la temporada nueva — mismo criterio que el
+  // histórico `bindNewSeason`.
+  function bindNewSeasonEditions(world, { seasonKey, teamsByDivision, startDate }) {
+    [Catalog().COMPETITION_IDS.ACB, Catalog().COMPETITION_IDS.PRIMERA_FEB].forEach((competitionId) => {
+      Engine().completePreviousEditions(world, competitionId);
+    });
+    return bindCareerStartEditions(world, { seasonKey, teamsByDivision, startDate });
+  }
+
+  // Plan de activación de TEMPORADA (sección 11.1 del prompt) — la ÚNICA
+  // pieza de contenido que declara un checkpoint CRUZADO entre
+  // competiciones (Copa disparada por la jornada 17 de ACB, invariante 12:
+  // Copa es Definition/Edition separada). El core (`CompetitionEngine`)
+  // procesa esto de forma GENÉRICA (`triggerType`/`triggerStageId`/
+  // `triggerRound`) — nunca contiene `if (competitionId === 'acb')`.
+  function buildSeasonActivationPlan(seasonKey) {
+    const acbRegularSeasonStageId = Engine().buildStageId(Catalog().COMPETITION_IDS.ACB, seasonKey, 'regular-season');
+    return [
+      {
+        id: `copa-acb-activation:${seasonKey}`,
+        triggerStageId: acbRegularSeasonStageId,
+        triggerType: 'round-completed',
+        triggerRound: CUP_TRIGGER_ROUND,
+        action: {
+          competitionDefinitionId: Catalog().COMPETITION_IDS.COPA_ACB,
+          seasonKey,
+          formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT,
+          entrySource: {
+            type: 'stage-standings-range', sourceStageKey: 'regular-season', fromRank: 1, toRank: 8,
+          },
+        },
+      },
+    ];
+  }
+
   function install(world, context) {
     const ctx = context || {};
     if (!ctx.teamsByDivision || !ctx.teamsByDivision['1ª'] || !ctx.teamsByDivision['2ª']) {
@@ -253,13 +504,17 @@
     registerOrganizations(world);
     registerClubsAndTeams(world, ctx.teamsByDivision);
     registerCompetitionDefinitions(world);
+    registerFormats();
 
-    // Ediciones/stages/entries de la temporada de arranque (Liga regular de
-    // ACB + Primera FEB). Copa/playoff por el título/playoff de ascenso se
-    // enlazan más tarde, cuando el runtime real los crea de verdad (jornada
-    // 17 / fin de liga regular) — ver `SpainLegacyCompetitionRuntime.bindCup/
-    // bindTitlePlayoff/bindPromotionPlayoff`, llamados desde `game.js`.
-    Runtime().bindCareerStart(world, {
+    // Ediciones/stage de Liga regular + Entries de la temporada de
+    // arranque (ACB + Primera FEB) — declarativo, SIN construir ningún
+    // runner todavía (eso lo hace `CompetitionEngine.initializeEdition()`,
+    // llamado desde `game.js` una vez el engine existe, sección 13.1 del
+    // prompt: paso 3 antes que el paso 4). Copa/playoff por el
+    // título/playoff de ascenso se activan más tarde, cuando el engine
+    // procesa el hecho real (jornada 17 / fin de liga regular) — nunca
+    // fabricados aquí de antemano.
+    bindCareerStartEditions(world, {
       seasonKey: ctx.seasonKey,
       teamsByDivision: ctx.teamsByDivision,
       startDate: ctx.seasonStartDate || null,
@@ -289,7 +544,21 @@
   };
 
   const exportsObj = {
-    SPAIN_MANIFEST, SPAIN_AREA_IDS: AREA_IDS, SPAIN_ORG_IDS: ORG_IDS, SPAIN_CLUB_CONTENT: CLUB_CONTENT,
+    SPAIN_MANIFEST,
+    SPAIN_AREA_IDS: AREA_IDS,
+    SPAIN_ORG_IDS: ORG_IDS,
+    SPAIN_CLUB_CONTENT: CLUB_CONTENT,
+    // COMP-CORE-1 (DESIGN.md 10.13): API productiva que usa `game.js` para
+    // el ciclo de vida de las competiciones españolas — ninguna de estas
+    // funciones vive ya en `SpainLegacyCompetitionRuntime` (retirado de la
+    // ruta productiva, sigue existiendo solo como shim de scripts
+    // históricos, ver CLAUDE.md/DESIGN.md 10.8).
+    SPAIN_FORMAT_IDS: FORMAT_IDS,
+    SPAIN_CUP_TRIGGER_ROUND: CUP_TRIGGER_ROUND,
+    registerSpainFormats: registerFormats,
+    bindCareerStartEditions,
+    bindNewSeasonEditions,
+    buildSeasonActivationPlan,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

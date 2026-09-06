@@ -440,14 +440,18 @@
     // inmediato — invariante 12 (Copa es Definition/Edition separada).
     _fireCrossEditionRule(rule, triggerStage) {
       const { action } = rule;
-      const format = FormatCatalog().requireFormat(action.formatBindingId);
-      const editionStartTemplates = format.stageTemplatesWithActivation('edition-start');
-      const primaryTemplate = editionStartTemplates[0];
+      // `CompetitionStage` no guarda `competitionDefinitionId` directo — se
+      // deriva de su propia Edition (la del disparador, ej. la Liga cuyo
+      // checkpoint activa la Copa).
+      const triggerEdition = this.world.registries.competitionEditions.require(triggerStage.editionId);
       const entries = this._computeEntrySourceEntries(
-        { competitionDefinitionId: triggerStage.competitionDefinitionId, seasonKey: action.seasonKey },
-        { ...action.entrySource, sourceScope: 'external', externalCompetitionDefinitionId: triggerStage.competitionDefinitionId },
+        { competitionDefinitionId: action.competitionDefinitionId, seasonKey: action.seasonKey },
+        {
+          ...action.entrySource,
+          sourceScope: 'external',
+          externalCompetitionDefinitionId: triggerEdition.competitionDefinitionId,
+        },
       );
-      void primaryTemplate;
       const { edition } = registerEditionWithInitialEntries(this.world, {
         competitionDefinitionId: action.competitionDefinitionId,
         seasonKey: action.seasonKey,

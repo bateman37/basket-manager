@@ -518,6 +518,14 @@
 
     _findSeriesById(seriesId) { return this._seriesById.get(seriesId) || null; }
 
+    // `champion`: SOLO tiene sentido cuando la última ronda declarada
+    // converge a una única Series (el bracket clásico "octavos->...->
+    // final") — `null` si la ronda final tiene más de una serie (ej. unos
+    // cuartos de ascenso en paralelo que alimentan una Final Four
+    // reseedeada en OTRO stage, ver `entrySource`
+    // "stage-bracket-final-round-winners"). Nunca confundir con
+    // `isComplete`: un stage sin campeón único puede estar igualmente
+    // COMPLETO (todas sus series decididas).
     get champion() {
       if (this.rounds.length < this.roundPatterns.length) return null;
       const finalRound = this.rounds[this.rounds.length - 1];
@@ -525,7 +533,14 @@
       return this._seriesWinner(finalRound[0]);
     }
 
-    get isComplete() { return this.champion !== null; }
+    // Completo cuando se alcanzó la última ronda declarada Y todas sus
+    // series están decididas — independientemente de si esa ronda final
+    // converge a un único campeón (invariante: consultar nunca resuelve).
+    get isComplete() {
+      if (this.rounds.length < this.roundPatterns.length) return false;
+      const finalRound = this.rounds[this.rounds.length - 1];
+      return finalRound.every((s) => this._isSeriesDecided(s));
+    }
 
     getPendingMatches() {
       const pending = this.peekNextPendingMatch();

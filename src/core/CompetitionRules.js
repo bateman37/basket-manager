@@ -2494,6 +2494,42 @@
         retrievedAt: '2026-08-24',
       }],
     },
+    // COMP-CORE-1 (DESIGN.md 10.13, sección 11.2 del prompt, corrige
+    // BUG-COMPCORE-02): Copa ACB tenía identidad mundial propia
+    // (`copa-acb`, ver CompetitionCatalog.js) pero NUNCA un RulesetBundle
+    // registrado — antes de esta corrección, un partido de Copa recibía
+    // normativa de `team.division` (siempre "acb"), nunca de su
+    // competición real. Este bundle REUTILIZA por id (nunca copia) el
+    // mismo módulo de inscripción y el mismo `registrationScopeId` que
+    // `acb-domestic-2025-26-v1` — las Normas Internas ACB se aplican por
+    // igual a Liga, Copa y Playoff por el título (mismo comentario que ya
+    // documentaba `acb-domestic-2025-26-v1.registrationScopeId`). Mercado/
+    // transfer quedan `null`: la Copa no tiene procedimiento propio de
+    // tanteo/traspaso distinto del de sus clubes en ACB.
+    'copa-acb-domestic-2025-26-v1': {
+      id: 'copa-acb-domestic-2025-26-v1',
+      version: 1,
+      status: 'verified',
+      competitionId: COMPETITION_IDS.COPA_ACB,
+      validity: buildValidity({ seasonFrom: '2025-26', seasonTo: '2025-26', carryForwardUntilSuperseded: true }),
+      organizerCountry: 'ES',
+      federationId: 'feb-general',
+      collectiveAgreementId: 'acb-abp',
+      registrationScopeId: 'acb-domestic-registration-2025-26',
+      modules: {
+        registration: 'acb-registration-2025-26-v1',
+        employmentMembershipOverlay: 'acb-abp-cba-2018-22-operational-provisional-v1',
+        market: null,
+        transfer: null,
+        transferAdmin: null,
+        internationalTransfer: null,
+      },
+      sourceRefs: [{
+        title: 'ACB — Normas Internas 2025-26',
+        url: 'https://www.acb.com/docs/descarga/pdf/transparencia/normas_internas_25-26_180825.pdf',
+        retrievedAt: '2026-08-24',
+      }],
+    },
     'primera-feb-domestic-2026-27-v1': {
       id: 'primera-feb-domestic-2026-27-v1',
       version: 1,
