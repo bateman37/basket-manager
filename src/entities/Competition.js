@@ -17,6 +17,13 @@
 // `Promotion` siguen resolviendo los partidos de verdad.
 
 (function (global) {
+  const isNode = (typeof module !== 'undefined' && module.exports);
+  function dep(path) { return isNode ? require(path) : global.BasketManager; }
+
+  // WORLD-SIM-1 (DESIGN.md 10.16) — vocabulario CERRADO de nivel de
+  // detalle, definido UNA sola vez en `WorldSimulation.js`.
+  const WorldSimulationModule = dep('./WorldSimulation.js');
+
   const SCOPE_LEVELS = ['world', 'continental', 'national', 'regional'];
   const PARTICIPANT_TYPES = ['club-team', 'national-team'];
   const COMPETITION_KINDS = ['league', 'cup', 'supercup', 'championship', 'qualifier', 'other'];
@@ -136,10 +143,17 @@
       // congelados por esta edición al crearse — nunca reescritos después
       // (mismo criterio que formatBindingId/scheduleProfileId/rulesetBundleId).
       this.pathwayBindingIds = Array.isArray(data.pathwayBindingIds) ? [...data.pathwayBindingIds] : [];
-      // WORLD-SIM-1 (futuro): nivel de detalle de simulación de esta
-      // edición. WORLD-CORE-1 solo declara el campo — todas las ediciones
-      // reales de esta entrega son 'playable'.
-      this.detailLevel = data.detailLevel || 'playable';
+      // WORLD-SIM-1 (DESIGN.md 10.16, BUG-WORLDSIM-01): "detailLevel" es
+      // OBLIGATORIO y validado contra el vocabulario cerrado — ninguna
+      // Edition productiva cae en 'playable' por omisión. Se congela aquí
+      // y nunca se reescribe después de crearse (invariante 3).
+      if (data.detailLevel === undefined || data.detailLevel === null) {
+        throw new Error(`${label}: falta "detailLevel" explícito (playable|full|standard|abstract) — ningún nivel se infiere por defecto.`);
+      }
+      if (!WorldSimulationModule.DETAIL_LEVELS.includes(data.detailLevel)) {
+        throw new Error(`${label}: "detailLevel" = "${data.detailLevel}" no válido — debe ser uno de ${WorldSimulationModule.DETAIL_LEVELS.join(', ')}.`);
+      }
+      this.detailLevel = data.detailLevel;
       // Enlace TRANSITORIO al runtime legacy (League/Bracket/Cup/Playoffs/
       // Promotion) — NUNCA debe aparecer en un snapshot/diagnóstico plano.
       this.runtimeBinding = data.runtimeBinding !== undefined ? data.runtimeBinding : null;

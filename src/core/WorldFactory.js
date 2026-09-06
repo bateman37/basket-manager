@@ -41,13 +41,18 @@
   }
 
   // Punto de entrada de conveniencia usado por `game.js`/scripts de prueba:
-  // crea el mundo e instala los paquetes de una tacada.
+  // crea el mundo e instala los paquetes de una tacada. WORLD-SIM-1
+  // (DESIGN.md 10.16): `simulationProfile`, si se aporta, se asigna ANTES
+  // de instalar ningún paquete — un paquete de contenido (ej. Spain) puede
+  // crear Editions dentro de `install()` y necesita resolver su nivel de
+  // detalle desde el perfil YA presente en el mundo, nunca a posteriori.
   function buildCareerWorld({
-    id, name, careerSeed, createdAtGameDate, packs, context,
+    id, name, careerSeed, createdAtGameDate, packs, context, simulationProfile,
   }) {
     const world = createWorld({
       id, name, careerSeed, createdAtGameDate,
     });
+    if (simulationProfile) world.setSimulationProfile(simulationProfile);
     installContentPacks(world, packs || [], context);
     return world;
   }
