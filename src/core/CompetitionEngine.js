@@ -84,6 +84,11 @@
     // pathway) — `null` para el arranque de carrera (participantes
     // aportados al bootstrap, sin ninguna decisión de clasificación previa).
     pathwayBindingIds, qualificationReceiptId,
+    // WORLD-SIM-1 (DESIGN.md 10.16): nivel de detalle OBLIGATORIO,
+    // resuelto SIEMPRE por quien llama desde el perfil de simulación de la
+    // carrera (`CompetitionSimulationService.resolveDetailLevelForCompetition()`)
+    // — nunca deducido aquí ni heredado de otra Edition (invariante 2/3).
+    detailLevel,
   }) {
     const format = FormatCatalog().requireFormat(formatBindingId);
     const definition = world.registries.competitionDefinitions.require(competitionDefinitionId);
@@ -97,6 +102,7 @@
       scheduleProfileId: scheduleProfileId || definition.bindings.scheduleProfileId || null,
       rulesetBundleId: rulesetBundleId || definition.bindings.rulesetBundleId || null,
       pathwayBindingIds: pathwayBindingIds || [],
+      detailLevel,
     });
     world.registries.registerCompetitionEdition(edition);
 
@@ -162,11 +168,18 @@
     // reales desde `world.registries.teams` (el único `participantType` que
     // esta entrega ejecuta de verdad, `club-team`); un paquete futuro de
     // selecciones inyectaría su propio resolver, nunca una rama nueva aquí.
-    constructor({ world, participantResolver } = {}) {
+    // WORLD-SIM-1 (DESIGN.md 10.16): `simulationService` (opcional, nunca
+    // requerido) es la única pieza que sabe producir un marcador
+    // "standard"/resolver un hito "abstract" — sin él, el engine sigue
+    // funcionando exactamente igual que antes de esta entrega para
+    // Editions `playable`/`full` (todos los fixtures/scripts históricos que
+    // no lo inyectan nunca construyen una Edition "standard"/"abstract").
+    constructor({ world, participantResolver, simulationService } = {}) {
       if (!world) throw new Error('CompetitionEngine: falta "world" explícito.');
       this.world = world;
       this.runtimeRegistry = new (CompetitionRuntimeRegistryModule.CompetitionRuntimeRegistry)();
       this._participantResolver = participantResolver || ((id) => world.registries.teams.require(id));
+      this._simulationService = simulationService || null;
       // Proveedor de fechas — INYECTADO una vez (nunca `state.calendar`
       // leído por dentro): `(activationContext) => dateResolver` con la
       // firma que exige el runnerType de la fase que se está activando.
@@ -237,6 +250,16 @@
       }
       const format = FormatCatalog().requireFormat(edition.formatBindingId);
       this.runtimeRegistry.registerEditionFormat(edition.id, format.id);
+      // WORLD-SIM-1 (DESIGN.md 10.16, sección 9 del prompt): cobertura
+      // exigida por el nivel de detalle — solo si hay `simulationService`
+      // inyectado (fixtures/tests históricos sin él se comportan como
+      // siempre). Nunca completa en silencio ni cambia de nivel para
+      // sortear una cobertura insuficiente.
+      if (this._simulationService) {
+        const participantIds = this.world.registries.competitionEntries.forEdition(edition.id)
+          .map((entry) => entry.participantId);
+        this._simulationService.validateCoverageForEdition(edition, participantIds);
+      }
       this.world.registries.competitionStages.forEdition(edition.id)
         .filter((stage) => stage.status === 'active' && !this.runtimeRegistry.hasRunner(stage.id))
         .forEach((stage) => {
@@ -260,6 +283,32 @@
       return map;
     }
 
+    // WORLD-SIM-1 (DESIGN.md 10.16, sección 6 del prompt, "límite
+    // consciente"): un formato "abstract" solo puede resolverse como UNA
+    // sola fase — nunca varias fases dependientes, nunca un trigger
+    // `round-completed` intermedio. Bloquea ANTES de mutar nada.
+    _validateAbstractFormatSupported(edition, format) {
+      if (format.stageTemplates.length !== 1) {
+        throw new Error(
+          `CompetitionEngine: la edición "${edition.id}" es "abstract" pero su formato "${format.id}" declara `
+          + `${format.stageTemplates.length} fases — WORLD-SIM-1 solo soporta formatos de una sola fase resoluble `
+          + '(usa "standard"/"full"/"playable" para formatos multi-fase).',
+        );
+      }
+    }
+
+    // Entries de una fase en el shape uniforme {participantId, seed,
+    // entryId} — reutiliza `_resolveBracketEntries` para bracket (mismo
+    // cálculo que ya usa el runner detallado) y un mapeo directo para
+    // round-robin. Usado tanto por el runner real como por el runtime
+    // agregado "abstract" (misma fuente de participantes en ambos casos).
+    _resolveParticipantEntriesForStage(edition, template, entries, entriesByParticipantId) {
+      if (template.runnerType === 'bracket') {
+        return this._resolveBracketEntries(edition, template, entries, entriesByParticipantId).entries;
+      }
+      return entries.map((e) => ({ participantId: e.participantId, seed: e.seed, entryId: e.id }));
+    }
+
     _buildRunnerForStage(edition, format, template, stage, options = {}) {
       const entries = this.world.registries.competitionEntries.forStage(stage.id);
       const entriesByParticipantId = this._entriesByParticipantIdForStage(stage);
@@ -271,6 +320,36 @@
           this._maybeCompleteEdition(edition, format);
         },
       };
+      if (edition.detailLevel === 'abstract') {
+        if (!this._simulationService) {
+          throw new Error(`CompetitionEngine: la edición "${edition.id}" es "abstract" pero el engine no tiene "simulationService" inyectado.`);
+        }
+        this._validateAbstractFormatSupported(edition, format);
+        const participantEntries = this._resolveParticipantEntriesForStage(edition, template, entries, entriesByParticipantId);
+        const firstRoundPairing = options.firstRoundPairing || template.runnerConfig.firstRoundPairing || null;
+        // `_dateResolverProvider(activationContext)` devuelve, igual que
+        // para round-robin/bracket, un resolver POR PARTIDO — un hito
+        // agregado no tiene ronda/índice real, así que se invoca UNA vez
+        // con una `meta` sintética mínima para obtener su fecha final.
+        const perMatchDateResolver = this._dateResolverProvider({
+          template, edition, stage, triggerType: template.activation.type, triggerRound: template.activation.round,
+        }) || null;
+        const runtime = this._simulationService.buildAbstractRuntime({
+          stageId: stage.id,
+          competitionDefinitionId: edition.competitionDefinitionId,
+          competitionEditionId: edition.id,
+          stageKey: template.key,
+          entries: participantEntries,
+          runnerType: template.runnerType,
+          firstRoundPairing,
+          dateResolver: () => (perMatchDateResolver ? perMatchDateResolver({
+            round: 1, matchIndexInRound: 0, matchesInRound: 1, totalRounds: 1,
+          }) : null),
+          onStageCompleted: commonHooks.onStageCompleted,
+        });
+        this.runtimeRegistry.registerRunner(stage.id, runtime);
+        return runtime;
+      }
       if (template.runnerType === 'round-robin') {
         const dateResolver = this._dateResolverProvider({
           template, edition, stage, triggerType: 'edition-start', triggerRound: null,
@@ -498,6 +577,11 @@
         // plano; el engine nunca sabe de qué competición se trata.
         scheduleProfileId: action.scheduleProfileId || null,
         rulesetBundleId: action.rulesetBundleId || null,
+        // WORLD-SIM-1: la regla legacy transporta el nivel como dato plano
+        // igual que el resto de bindings — este mecanismo solo sobrevive
+        // para fixtures/tests históricos (BUG-PATHWAYS-01/02 lo retiraron
+        // de la ruta productiva).
+        detailLevel: action.detailLevel,
       });
       this.initializeEdition(edition.id);
       this._activationEvents.push({ type: 'edition-activated', editionId: edition.id, competitionDefinitionId: action.competitionDefinitionId });
@@ -590,9 +674,73 @@
       return pending.length ? pending[0] : null;
     }
 
-    resolveMatch(stageId, matchId, options) {
+    // WORLD-SIM-1 (DESIGN.md 10.16): nivel de detalle de la Edition dueña
+    // de `stageId` — SIEMPRE por identidad (`Stage -> Edition`), nunca
+    // supuesto desde el nombre de la competición.
+    _detailLevelForStage(stageId) {
+      const stage = this.world.registries.competitionStages.require(stageId);
+      return this.world.registries.competitionEditions.require(stage.editionId).detailLevel;
+    }
+
+    // WORLD-SIM-1: para una Edition "standard", el resultado lo produce
+    // SIEMPRE `CompetitionSimulationService.computeStandardResult()` — se
+    // inyecta como `precomputedResult` reutilizando el mismo punto de
+    // encaje que ya existía para el partido del usuario (TAC-5,
+    // `MatchEngine.options.precomputedResult`), sin duplicar `_recordResult`
+    // ni el avance de ronda/bracket de `CompetitionRunners.js`. "playable"/
+    // "full" nunca pasan por aquí (comportamiento IDÉNTICO a antes de esta
+    // entrega).
+    resolveMatch(stageId, matchId, options = {}) {
       const runner = this.runtimeRegistry.requireRunner(stageId);
+      const detailLevel = this._detailLevelForStage(stageId);
+      const alreadyPrecomputed = options.matchEngineOptions && options.matchEngineOptions.precomputedResult;
+      if (detailLevel === 'standard' && !alreadyPrecomputed) {
+        if (!this._simulationService) {
+          throw new Error(`CompetitionEngine.resolveMatch: el stage "${stageId}" es "standard" pero el engine no tiene "simulationService" inyectado.`);
+        }
+        const edition = this.world.registries.competitionEditions.require(this.world.registries.competitionStages.require(stageId).editionId);
+        const descriptor = runner.getPendingMatches().find((d) => d.id === matchId);
+        if (!descriptor) throw new Error(`CompetitionEngine.resolveMatch: partido desconocido/no pendiente "${matchId}" en "${stageId}".`);
+        const compactResult = this._simulationService.computeStandardResult({
+          homeParticipantId: descriptor.homeParticipantId,
+          awayParticipantId: descriptor.awayParticipantId,
+          editionId: edition.id,
+          stageId,
+          matchId,
+          seasonKey: edition.seasonKey,
+        });
+        return runner.resolveMatch(matchId, {
+          ...options,
+          matchEngineOptions: { ...(options.matchEngineOptions || {}), precomputedResult: compactResult },
+        });
+      }
       return runner.resolveMatch(matchId, options);
+    }
+
+    // -----------------------------------------------------------------
+    // WORLD-SIM-1 — hitos agregados "abstract" (fuente `competition-
+    // simulation` del calendario mundial, ver `WorldCalendarCoordinator.js`).
+    // Nunca disfrazados de partidos `home vs away` (invariante 9).
+    // -----------------------------------------------------------------
+    listAllPendingAbstractMilestones() {
+      const all = [];
+      this.runtimeRegistry.allStageIds().forEach((stageId) => {
+        const runner = this.runtimeRegistry.requireRunner(stageId);
+        if (typeof runner.getPendingMilestones === 'function') all.push(...runner.getPendingMilestones());
+      });
+      return all.sort((a, b) => {
+        const ia = a.scheduledAt || ''; const ib = b.scheduledAt || '';
+        if (ia !== ib) return ia < ib ? -1 : 1;
+        return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+      });
+    }
+
+    resolveAbstractMilestone(stageId, milestoneId, options) {
+      const runner = this.runtimeRegistry.requireRunner(stageId);
+      if (typeof runner.resolveMilestone !== 'function') {
+        throw new Error(`CompetitionEngine.resolveAbstractMilestone: el stage "${stageId}" no es un runtime "abstract".`);
+      }
+      return runner.resolveMilestone(milestoneId, options);
     }
 
     getStandings(stageId) { return this.runtimeRegistry.requireRunner(stageId).getStandings(); }
@@ -616,6 +764,9 @@
     // todavía no alcanzó su última ronda (nunca se fuerza a resolver nada).
     getBracketFinalRoundWinners(competitionDefinitionId, seasonKey, stageKey) {
       const runner = this.runtimeRegistry.requireRunner(this._resolveStageId(competitionDefinitionId, seasonKey, stageKey));
+      // WORLD-SIM-1: un runtime "abstract" (nunca tiene `.rounds`) expone su
+      // propio equivalente agregado — mismo contrato de retorno.
+      if (typeof runner.getFinalRoundWinners === 'function') return runner.getFinalRoundWinners();
       const finalRound = runner.rounds[runner.rounds.length - 1];
       if (!finalRound.every((series) => series.wins.better >= series.gamesNeededToWin || series.wins.worse >= series.gamesNeededToWin)) {
         return null;
@@ -699,11 +850,16 @@
     // id.
     activateEditionFromDecision({
       competitionDefinitionId, seasonKey, startDate, formatBindingId, scheduleProfileId, rulesetBundleId,
-      pathwayBindingIds, qualifiers, receiptId,
+      pathwayBindingIds, qualifiers, receiptId, detailLevel,
     }) {
       const existingEditionId = buildEditionId(competitionDefinitionId, seasonKey);
       const existingEdition = this.world.registries.competitionEditions.get(existingEditionId);
       if (existingEdition) return { edition: existingEdition, stages: this.world.registries.competitionStages.forEdition(existingEdition.id) };
+      // WORLD-SIM-1 (DESIGN.md 10.16, sección 8 del prompt):
+      // `CompetitionPathwayService` NUNCA copia el nivel de la Edition
+      // fuente — el destino resuelve su PROPIO nivel (competición+perfil),
+      // así que `detailLevel` llega siempre explícito desde quien invoca
+      // esta activación (nunca deducido aquí).
       const { edition, stages } = registerEditionWithInitialEntries(this.world, {
         competitionDefinitionId,
         seasonKey,
@@ -714,6 +870,7 @@
         rulesetBundleId: rulesetBundleId || null,
         pathwayBindingIds: pathwayBindingIds || [],
         qualificationReceiptId: receiptId || null,
+        detailLevel,
       });
       this.initializeEdition(edition.id);
       this._activationEvents.push({ type: 'edition-activated', editionId: edition.id, competitionDefinitionId });

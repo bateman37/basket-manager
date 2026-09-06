@@ -25,6 +25,10 @@
 
   const SOURCE_TYPES = {
     COMPETITION_MATCH: 'competition-match',
+    // WORLD-SIM-1 (DESIGN.md 10.16, sección 12 del prompt): hitos
+    // agregados de fases "abstract" — nunca partidos, nunca parada del
+    // usuario.
+    COMPETITION_SIMULATION: 'competition-simulation',
     MARKET_EVENT: 'market-event',
     TRANSFER_EVENT: 'transfer-event',
     LOAN_EVENT: 'loan-event',
@@ -72,6 +76,11 @@
               + 'por defecto — nunca se asume el huso del proceso (BUG-WORLDCALENDAR-03).',
             );
           }
+          // WORLD-SIM-1 (DESIGN.md 10.16, sección 12 del prompt): el nivel
+          // de detalle de la Edition dueña viaja en la metadata para que el
+          // coordinador pueda detectar (nunca simular a escondidas) un Team
+          // controlado inscrito en una Edition no "playable".
+          const edition = engine.world.registries.competitionEditions.get(descriptor.competitionEditionId);
           return {
             sourceId: descriptor.id,
             moment: { precision: 'instant', instant: descriptor.scheduledAt, timeZoneId: zone },
@@ -83,6 +92,7 @@
               matchId: descriptor.id,
               competitionDefinitionId: descriptor.competitionDefinitionId,
               competitionEditionId: descriptor.competitionEditionId,
+              detailLevel: edition ? edition.detailLevel : null,
               homeParticipantId: descriptor.homeParticipantId,
               awayParticipantId: descriptor.awayParticipantId,
               round: descriptor.round === undefined ? null : descriptor.round,
@@ -97,6 +107,57 @@
         return resolveMatch({
           stageId: item.metadata.stageId,
           matchId: item.metadata.matchId,
+          item,
+        });
+      },
+    };
+  }
+
+  // =======================================================================
+  // Fuente NUEVA — `competition-simulation` (WORLD-SIM-1, DESIGN.md 10.16,
+  // sección 12 del prompt): hitos AGREGADOS de fases "abstract" ya
+  // declarados por runtimes activos del `CompetitionEngine`. Listar es
+  // PURO (nunca resuelve ni consume RNG); resolver delega SIEMPRE en
+  // `CompetitionEngine.resolveAbstractMilestone()` — nunca es parada del
+  // usuario (invariante: "abstract" no tiene control humano).
+  // =======================================================================
+  function createCompetitionSimulationSource({ engine, resolveMilestone, timeZoneId }) {
+    if (!engine) throw new Error('createCompetitionSimulationSource: falta "engine".');
+    requireFunction(resolveMilestone, 'resolveMilestone(descriptor)');
+    const fallbackZone = timeZoneId || null;
+    return {
+      sourceType: SOURCE_TYPES.COMPETITION_SIMULATION,
+      listPendingItems() {
+        return engine.listAllPendingAbstractMilestones().map((milestone) => {
+          const zone = milestone.timeZoneId || fallbackZone;
+          if (!milestone.scheduledAt || !zone) {
+            throw new Error(
+              `competition-simulation: el hito "${milestone.id}" no tiene instante/huso explícitos (invariante: `
+              + 'nunca el reloj del proceso).',
+            );
+          }
+          return {
+            sourceId: milestone.id,
+            moment: { precision: 'instant', instant: milestone.scheduledAt, timeZoneId: zone },
+            // Nunca teamIds/clubIds de atención — un hito agregado JAMÁS
+            // exige intervención del usuario (sección 6: "abstract" no
+            // tiene control humano).
+            attentionScope: { teamIds: [], clubIds: [] },
+            metadata: {
+              kind: 'competition-simulation',
+              stageId: milestone.stageId,
+              stageKey: milestone.stageKey,
+              milestoneId: milestone.id,
+              competitionDefinitionId: milestone.competitionDefinitionId,
+              competitionEditionId: milestone.competitionEditionId,
+            },
+          };
+        });
+      },
+      resolveItem(item) {
+        return resolveMilestone({
+          stageId: item.metadata.stageId,
+          milestoneId: item.metadata.milestoneId,
           item,
         });
       },
@@ -276,7 +337,18 @@
     //  - transfer/loan: automáticos (su ejecución ya está acordada).
     requiresUser(item) {
       if (item.sourceType === SOURCE_TYPES.COMPETITION_MATCH) {
-        return item.attentionScope.teamIds.some((teamId) => this.controlledTeamIds.has(teamId));
+        const involvesControlled = item.attentionScope.teamIds.some((teamId) => this.controlledTeamIds.has(teamId));
+        // WORLD-SIM-1 (DESIGN.md 10.16, sección 12 del prompt): un Team
+        // controlado inscrito en una Edition NO "playable" es una
+        // configuración inválida — se detecta AQUÍ, antes de avanzar,
+        // nunca se autosimula a escondidas (invariante 6).
+        if (involvesControlled && item.metadata.detailLevel !== 'playable') {
+          throw new Error(
+            `WorldCalendarCoordinator: el partido "${item.sourceId}" involucra a un Team controlado pero su Edition `
+            + `es "${item.metadata.detailLevel}" (no "playable") — configuración inválida.`,
+          );
+        }
+        return involvesControlled;
       }
       if (item.sourceType === SOURCE_TYPES.MARKET_EVENT) {
         return !!item.metadata.requiresAttention
@@ -442,6 +514,7 @@
     WORLD_CALENDAR_SOURCE_TYPES: SOURCE_TYPES,
     WORLD_CALENDAR_STOP_TYPES: STOP_TYPES,
     createCompetitionMatchSource,
+    createCompetitionSimulationSource,
     createMarketEventSource,
     createTransferEventSource,
     createLoanEventSource,
