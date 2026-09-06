@@ -182,9 +182,14 @@
         outcome = 'released-to-free-agency';
 
         // (4) Baja regulatoria donde proceda, por servicios canónicos.
+        // CLUB-CORE-1: `registration.teamId` es un Team id, `contract.clubId`
+        // es un Club id — se compara resolviendo el Team cuyo `clubId` real
+        // coincide con el del contrato, nunca comparando ids de espacios
+        // distintos directamente.
+        const contractTeam = (teams || []).find((team) => team.clubId === contract.clubId);
         if (registrationRegistry) {
           registrationRegistry.registrationsForPlayer(player.id)
-            .filter((registration) => registration.teamId === contract.clubId && registration.statusOn(iso) === 'active')
+            .filter((registration) => contractTeam && registration.teamId === contractTeam.id && registration.statusOn(iso) === 'active')
             .forEach((registration) => {
               const eventId = `${registration.id}:deactivated:${registration.events.length}`;
               const previousReason = registration.trace.deactivationReasonCode;
@@ -276,7 +281,7 @@
 
       // Proyección de nómina del club refrescada desde el registro (nunca
       // una segunda verdad editable).
-      const clubTeam = (teams || []).find((team) => team.id === contract.clubId);
+      const clubTeam = (teams || []).find((team) => team.clubId === contract.clubId);
       if (clubTeam && seasonKey) {
         const before = clubTeam.finances.expenses.playerSalaries;
         ContractSvc().refreshTeamSalaryProjection(clubTeam, contractRegistry, seasonKey);

@@ -108,9 +108,12 @@
       playerRegistry, teams, annualCycleRegistry, academyRegistry, externalClubMembership,
     } = deps || {};
     const iso = toIso(date);
+    // CLUB-CORE-1: `serviceClubId` es SIEMPRE un Club real (para poder
+    // resolver uniformemente instalaciones/afiliación institucional más
+    // abajo, ver `processWorldToDate()`) — nunca `team.id`.
     const serviceClubByPlayerId = new Map();
     (teams || []).forEach((team) => {
-      team.roster.forEach((player) => serviceClubByPlayerId.set(player.id, team.id));
+      team.roster.forEach((player) => serviceClubByPlayerId.set(player.id, team.clubId));
     });
 
     const byPlayerId = new Map();
@@ -173,7 +176,10 @@
     const targetJsDate = toJsDate(date);
     const classification = classifyWorld(deps, date);
     const processedCount = new Map();
-    const teamsById = new Map((teams || []).map((team) => [team.id, team]));
+    // CLUB-CORE-1: `classification.byPlayerId[...].serviceClubId` es
+    // SIEMPRE un Club real (ver `classifyWorld()`) — se resuelve el Team
+    // por `team.clubId`, nunca por `team.id`.
+    const teamsByClubId = new Map((teams || []).map((team) => [team.clubId, team]));
 
     function markProcessed(playerId) {
       processedCount.set(playerId, (processedCount.get(playerId) || 0) + 1);
@@ -192,7 +198,7 @@
       const player = playerRegistry.get(playerId);
       if (!player) return;
       const entry = classification.byPlayerId.get(playerId);
-      const club = entry.serviceClubId ? teamsById.get(entry.serviceClubId) : null;
+      const club = entry.serviceClubId ? teamsByClubId.get(entry.serviceClubId) : null;
       const facilityLevel = (club && club.facilities && club.facilities.academy)
         ? club.facilities.academy.level : NEUTRAL_FACILITY_LEVEL;
       PD().processPlayerToDate(player, targetJsDate, config, { facilityLevel });
@@ -246,7 +252,7 @@
       valid: exclusivityErrors.length === 0,
       academyPoolSizes: academyRegistry
         ? (teams || []).reduce((acc, team) => {
-          acc[team.id] = academyRegistry.activePoolForClub(team.id, classification.date).length;
+          acc[team.id] = academyRegistry.activePoolForClub(team.clubId, classification.date).length;
           return acc;
         }, {})
         : null,

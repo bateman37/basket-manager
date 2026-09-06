@@ -282,17 +282,21 @@
       } = opts;
       const errors = [];
       const warnings = [];
-      const teamIds = new Set((teams || []).map((t) => t.id));
+      // CLUB-CORE-1: `TransferCase.originClubId`/`.destinationClubId` son
+      // Club ids reales — se validan contra los clubes de los equipos
+      // vivos, nunca contra sus ids de Team.
+      const clubIds = new Set((teams || []).map((t) => t.clubId).filter(Boolean));
+      const teamByTeamId = new Map((teams || []).map((t) => [t.id, t]));
       const iso = date ? toIso(date) : null;
 
       this.allCases().forEach((tCase) => {
         if (playerRegistry && !playerRegistry.has(tCase.playerId)) {
           errors.push(`El expediente "${tCase.id}" referencia al jugador "${tCase.playerId}", ausente de PlayerRegistry.`);
         }
-        if (teams && tCase.destinationClubId && !teamIds.has(tCase.destinationClubId)) {
+        if (teams && tCase.destinationClubId && !clubIds.has(tCase.destinationClubId)) {
           errors.push(`El expediente "${tCase.id}" referencia el club de destino "${tCase.destinationClubId}", inexistente.`);
         }
-        if (teams && tCase.originClubId && !teamIds.has(tCase.originClubId)) {
+        if (teams && tCase.originClubId && !clubIds.has(tCase.originClubId)) {
           errors.push(`El expediente "${tCase.id}" referencia el club de origen "${tCase.originClubId}", inexistente.`);
         }
         // `agreementInPrincipleId` empieza por "self:" cuando un mutuo
@@ -381,7 +385,13 @@
         if (playerRegistry && last) {
           const player = playerRegistry.get(last.playerId);
           if (player) {
-            const expectedTeamId = last.mechanism === 'mutual-release' ? null : last.destinationClubId;
+            // CLUB-CORE-1: `last.destinationClubId` es un Club real —
+            // `player.teamId` es un Team real. Se compara resolviendo el
+            // Club REAL del equipo actual del jugador, nunca `teamId` contra
+            // `clubId` directamente.
+            const expectedClubId = last.mechanism === 'mutual-release' ? null : last.destinationClubId;
+            const playerTeam = player.teamId ? teamByTeamId.get(player.teamId) : null;
+            const playerClubId = playerTeam ? playerTeam.clubId : null;
             // Un jugador puede estar cedido (LOAN-1: club de servicio
             // distinto del propietario contractual) sin que ningún
             // TransactionRecord de ESTE registro lo refleje — LoanRegistry
@@ -409,14 +419,14 @@
               ? contractRegistry.currentForPlayer(playerId, iso || last.effectiveDate) : null;
             const explainedByCurrentContract = Boolean(
               contractRegistry && (
-                (currentContract && currentContract.clubId === player.teamId)
+                (currentContract && currentContract.clubId === playerClubId)
                 || (!currentContract && player.teamId === null)
               ),
             );
-            if (!explainedByActiveLoan && !explainedByCurrentContract && player.teamId !== expectedTeamId) {
+            if (!explainedByActiveLoan && !explainedByCurrentContract && playerClubId !== expectedClubId) {
               errors.push(
-                `El TransactionRecord "${last.id}" (el más reciente de "${playerId}") completó un movimiento a `
-                + `"${expectedTeamId}" pero player.teamId es "${player.teamId}".`,
+                `El TransactionRecord "${last.id}" (el más reciente de "${playerId}") completó un movimiento al club `
+                + `"${expectedClubId}" pero el club actual del jugador ("${playerClubId}", equipo "${player.teamId}") no coincide.`,
               );
             }
           }

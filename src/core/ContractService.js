@@ -49,8 +49,13 @@
   // ---------------------------------------------------------------------
   // 1. Contexto y reglas
   // ---------------------------------------------------------------------
+  // CLUB-CORE-1 (DESIGN.md sección 10): el Club real vive en `team.club`
+  // (referencia viva enlazada por el paquete de contenido) — nunca se
+  // sustituye por `team.id`. Un `team` sin Club enlazado (fixture legacy
+  // de una prueba de motor que no construye mundo) falla explícito en
+  // `buildEmploymentContext()`, nunca hereda silenciosamente su propio id.
   function resolveEmploymentContext(team, options) {
-    return Catalog().buildEmploymentContext(team, options || {});
+    return Catalog().buildEmploymentContext(team, team.club, options || {});
   }
 
   // Resuelve la normativa laboral de UN club en una temporada/fecha. Nunca
@@ -248,8 +253,8 @@
         + 'un contrato siempre referencia a un jugador que existe en el registro mundial.',
       );
     }
-    if (draft.clubId !== team.id) {
-      throw new Error(`ContractService.createContract: el contrato declara el club "${draft.clubId}" pero se está firmando con "${team.id}".`);
+    if (draft.clubId !== team.clubId) {
+      throw new Error(`ContractService.createContract: el contrato declara el club "${draft.clubId}" pero se está firmando con el club "${team.clubId}" (equipo "${team.id}").`);
     }
 
     const contract = new ContractModule.Contract(draft);
@@ -308,8 +313,8 @@
     if (playerRegistry && !playerRegistry.has(draft.playerId)) {
       errors.push(`El jugador "${draft.playerId}" no está en PlayerRegistry.`);
     }
-    if (draft.clubId !== team.id) {
-      errors.push(`El borrador declara el club "${draft.clubId}" pero se está validando contra "${team.id}".`);
+    if (draft.clubId !== team.clubId) {
+      errors.push(`El borrador declara el club "${draft.clubId}" pero se está validando contra el club "${team.clubId}" (equipo "${team.id}").`);
     }
 
     let contract = null;
@@ -433,8 +438,13 @@
   // ser una PROYECCIÓN refrescada por esta única función desde el registro
   // (los tests comprueban que ambos coinciden). No se deduce de ninguna
   // caja: CONTRACT-1 no mueve dinero.
+  // CLUB-CORE-1: la nómina se agrega por `clubId` REAL (`team.clubId`,
+  // nunca `team.id`) — la escritura en `team.finances.expenses.
+  // playerSalaries` sigue funcionando sin cambios porque `Team.finances` es
+  // ahora una delegación hacia la MISMA instancia de `Club` (ver
+  // `src/entities/Team.js`), nunca una copia.
   function refreshTeamSalaryProjection(team, registry, seasonKey) {
-    const payroll = guaranteedPayrollForClub(registry, team.id, seasonKey);
+    const payroll = guaranteedPayrollForClub(registry, team.clubId, seasonKey);
     team.finances.expenses.playerSalaries = M().toMajorUnits(payroll.amountMinor, payroll.currency);
     return payroll;
   }

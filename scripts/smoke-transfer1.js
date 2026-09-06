@@ -15,6 +15,7 @@
 const assert = require('assert');
 const { Player } = require('../src/entities/Player.js');
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
 const PD = require('../src/core/PlayerDevelopment.js');
 const PC = require('../src/core/PlayerCareer.js');
@@ -76,6 +77,19 @@ function resolveRegistrationRulesForDivision(division, seasonKey, date, phaseId)
   });
 }
 
+// CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un Club
+// real enlazado para resolver contexto laboral. Fixture legacy permitido:
+// `clubId === teamId`.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
 function buildRealTeam(teamData, referenceDate, seasonKey) {
   const roster = teamData.roster.map((playerData) => {
     const { dataSource, ...playerFields } = playerData;
@@ -101,7 +115,7 @@ function buildRealTeam(teamData, referenceDate, seasonKey) {
   fallbackPlayers.forEach((player) => {
     PC.ensureCareerHistory(player, CONFIG_BASE, referenceDate, { historyCompleteness: 'complete', seasonKey });
   });
-  return new Team({ ...teamData, roster });
+  return linkLegacyClub(new Team({ ...teamData, roster }));
 }
 
 function buildEligiblePool(team, context, deps) {
@@ -115,6 +129,7 @@ function buildEligiblePool(team, context, deps) {
     }
     const evaluation = EligibilityService.evaluateEligibility(player.id, team.id, context, {
       playerRegistry, contractRegistry, registrationRegistry,
+      clubId: team.clubId,
       medicalAvailability: CONFIG_BASE.medical.enabled ? medicalAvailability : null,
       classificationCache, ...extraDeps,
     });
@@ -128,10 +143,12 @@ function buildEligiblePool(team, context, deps) {
       const player = playerRegistry.get(r.playerId);
       if (player) pool.push(evaluateFor(player, 'own-lower-category'));
     });
-  registrationRegistry.linkAgreementsAsBeneficiary(team.id).forEach((agreement) => {
-    const direction = agreement.upperClubId === team.id ? 'lowerToUpper' : 'upperToLower';
+  // CLUB-CORE-1: `ClubLinkAgreement.lowerClubId`/`upperClubId` son Club ids
+  // reales — se resuelven contra `team.clubId`, nunca contra `team.id`.
+  registrationRegistry.linkAgreementsAsBeneficiary(team.clubId).forEach((agreement) => {
+    const direction = agreement.upperClubId === team.clubId ? 'lowerToUpper' : 'upperToLower';
     const originClubId = direction === 'lowerToUpper' ? agreement.lowerClubId : agreement.upperClubId;
-    const originTeam = allTeamsById.get(originClubId);
+    const originTeam = [...allTeamsById.values()].find((t) => t.clubId === originClubId);
     if (!originTeam) return;
     const lowerClubTeam = direction === 'lowerToUpper' ? originTeam : team;
     const upperClubTeam = direction === 'lowerToUpper' ? team : originTeam;

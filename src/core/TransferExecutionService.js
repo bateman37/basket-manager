@@ -138,7 +138,12 @@
     // -- Identidad canónica ------------------------------------------------
     const player = playerRegistry.get(cmd.playerId);
     check(`El jugador "${cmd.playerId}" existe en el Player Registry mundial.`, Boolean(player), 'PLAYER_NOT_FOUND');
-    const destinationTeam = (teams || []).find((t) => t.id === cmd.destinationClubId);
+    // CLUB-CORE-1: `cmd.destinationClubId`/`cmd.originClubId` son Club ids
+    // reales — se resuelve el Team PRINCIPAL de ese club (decisión
+    // explícita de la vertical actual, DESIGN.md sección 9.5: "las
+    // operaciones de la UI se dirigen al Team principal del Club"), nunca
+    // comparando contra `t.id` directamente.
+    const destinationTeam = (teams || []).find((t) => t.clubId === cmd.destinationClubId);
     check(`El club de destino "${cmd.destinationClubId}" existe entre los equipos vivos.`, Boolean(destinationTeam), 'DESTINATION_CLUB_NOT_FOUND');
     if (!player || !destinationTeam) {
       return new TransferEntities.TransferExecutionPlan({
@@ -253,7 +258,10 @@
     // -- Documentos/registro de destino (validación de disponibilidad, sin
     //    mutar: la creación real ocurre en commit) -----------------------
     if (registrationRegistry && cmd.registrationScopeId) {
-      const currentCumulative = registrationRegistry.cumulativeCountForClub(cmd.destinationClubId, cmd.registrationScopeId, cmd.seasonKey);
+      // `cumulativeCountForClub` cuenta por Team real (así indexa
+      // internamente el registro, ver RegistrationRegistry.js) — nunca por
+      // Club id directamente.
+      const currentCumulative = registrationRegistry.cumulativeCountForClub(destinationTeam.id, cmd.registrationScopeId, cmd.seasonKey);
       const cap = resolvedTransferRules && resolvedTransferRules.destinationRegistrationRules
         ? resolvedTransferRules.destinationRegistrationRules.cumulativeRegistrationCapReference : null;
       if (cmd.cumulativeRegistrationCapMax !== undefined && cmd.cumulativeRegistrationCapMax !== null) {
@@ -354,7 +362,7 @@
       originContractLifecycleHash: originContract ? stableHash(originContract.lifecycleEvents) : null,
       destinationRosterPlayerIds: destinationTeam.roster.map((p) => p.id).sort(),
       destinationCumulativeRegistrationCount: (registrationRegistry && cmd.registrationScopeId)
-        ? registrationRegistry.cumulativeCountForClub(cmd.destinationClubId, cmd.registrationScopeId, cmd.seasonKey)
+        ? registrationRegistry.cumulativeCountForClub(destinationTeam.id, cmd.registrationScopeId, cmd.seasonKey)
         : null,
       resolvedTransferRulesHash: resolvedTransferRules ? stableHash(resolvedTransferRules.trace) : null,
       pendingUserMatchBlocks: hasOperationalContext ? deps.operationalContext.pendingUserMatchBlocks : null,
@@ -508,7 +516,7 @@
     }
     const resolvedPlan = freshPlan;
     const agreement = marketRegistry.getAgreement(cmd.agreementInPrincipleId);
-    const destinationTeam = (teams || []).find((t) => t.id === cmd.destinationClubId);
+    const destinationTeam = (teams || []).find((t) => t.clubId === cmd.destinationClubId);
 
     // --- Commit por pasos con "undo" acumulado (saga) -----------------------
     // Cada paso muta primero y ACTO SEGUIDO registra su propio cierre de
@@ -521,7 +529,7 @@
     try {
       const { contract, terminationPlan } = resolvedPlan.newObjects;
       const player = playerRegistry.require(cmd.playerId);
-      const originTeam = cmd.originClubId ? (teams || []).find((t) => t.id === cmd.originClubId) : null;
+      const originTeam = cmd.originClubId ? (teams || []).find((t) => t.clubId === cmd.originClubId) : null;
 
       // 1) reservar transactionId — ya comprobado arriba (idempotencia).
 
@@ -594,12 +602,15 @@
       // operativo (foco de entrenamiento, rol táctico, `state.lineup` si se
       // pasó) se captura ANTES de mover y se restaura EXACTO en el
       // rollback vía `restoreOperationalReferences()` (BUG-TRANSFER1-15).
+      // CLUB-CORE-1: `RosterMutationService` mueve TEAMS/squads reales —
+      // nunca los Club ids del comando (`originTeam`/`destinationTeam` ya
+      // resueltos arriba por `clubId`).
       const rosterReport = cmd.releaseOnly
         ? RosterSvc().releasePlayer({
-          playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId, lineup: deps.lineup,
+          playerRegistry, teams, playerId: cmd.playerId, fromTeamId: originTeam ? originTeam.id : null, lineup: deps.lineup,
         })
         : RosterSvc().transferPlayer({
-          playerRegistry, teams, playerId: cmd.playerId, fromTeamId: cmd.originClubId, toTeamId: cmd.destinationClubId, lineup: deps.lineup,
+          playerRegistry, teams, playerId: cmd.playerId, fromTeamId: originTeam ? originTeam.id : null, toTeamId: destinationTeam.id, lineup: deps.lineup,
         });
       registerUndo(() => {
         if (cmd.releaseOnly) {
@@ -658,7 +669,8 @@
           id: `registration:${plan.transactionId}`,
           playerId: cmd.playerId,
           licenseId: license.id,
-          teamId: cmd.destinationClubId,
+          teamId: destinationTeam.id,
+          clubId: cmd.destinationClubId,
           competitionId: regCmd.competitionId,
           competitionInstanceId: regCmd.competitionInstanceId,
           registrationScopeId: regCmd.registrationScopeId,

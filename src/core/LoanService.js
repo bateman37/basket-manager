@@ -47,8 +47,8 @@
     return {
       playerId: params.playerId,
       masterContractId: masterContractId || null,
-      ownerClubId: ownerTeam.id,
-      borrowerClubId: borrowerTeam.id,
+      ownerClubId: ownerTeam.clubId,
+      borrowerClubId: borrowerTeam.clubId,
       ownerEmployerJurisdictionId: ownerCtx.employerJurisdictionId,
       borrowerEmployerJurisdictionId: borrowerCtx.employerJurisdictionId,
       originCompetitionId: ownerCtx.domesticCompetitionId,
@@ -78,7 +78,7 @@
     } = params;
     const masterContract = contractRegistry.currentForPlayer(playerId, toIso(now));
     if (!masterContract) throw new Error('LoanService.openCaseAndPropose: el jugador no tiene contrato vigente con el club propietario.');
-    if (masterContract.clubId !== ownerTeam.id) {
+    if (masterContract.clubId !== ownerTeam.clubId) {
       throw new Error('LoanService.openCaseAndPropose: el contrato vigente del jugador no es con el club propietario declarado.');
     }
     if (!masterContract.isActiveOn(toIso(serviceStartDate))) {
@@ -95,8 +95,8 @@
     const loanCase = new LoanEntities.LoanCase({
       id: loanCaseId,
       playerId,
-      ownerClubId: ownerTeam.id,
-      borrowerClubId: borrowerTeam.id,
+      ownerClubId: ownerTeam.clubId,
+      borrowerClubId: borrowerTeam.clubId,
       masterContractId: masterContract.id,
       initiatingClubId,
       createdAt: now,

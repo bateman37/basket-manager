@@ -81,6 +81,7 @@
         contractRegistry,
         registrationRegistry,
         loanRegistry,
+        clubId: team.clubId,
         medicalAvailability: medicalAvailability || null,
         classificationCache: classificationCache || null,
         ...extraDeps,
@@ -494,7 +495,7 @@
       academyRegistry, playerRegistry, contractRegistry, registrationRegistry, teams, lineup, calibration,
     } = deps;
     if (!academyRegistry) return { succeeded: false };
-    const pool = academyRegistry.activePoolForClub(team.id, iso);
+    const pool = academyRegistry.activePoolForClub(team.clubId, iso);
     if (!pool.length) return { succeeded: false };
     const qualityIndex = AcademySvc().buildPoolQualityIndex(pool, playerRegistry, config);
     // El mejor disponible por calidad VISIBLE, desempate por id.

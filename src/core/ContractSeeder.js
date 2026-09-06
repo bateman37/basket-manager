@@ -366,7 +366,10 @@
       // incluido el identificador — nunca un UUID aleatorio.
       id: `contract:${GENERATOR_VERSION}:${team.id}:${player.id}:${seasonKey}`,
       playerId: player.id,
-      clubId: team.id,
+      // CLUB-CORE-1: el empleador real es `team.clubId` (Club, nunca
+      // Team) — el id determinista de arriba sigue incluyendo `team.id`
+      // sin cambios (es solo entropía estable, no identidad contractual).
+      clubId: team.clubId,
       contractType: 'professional-player',
       signedDate,
       startDate,

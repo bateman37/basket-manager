@@ -171,7 +171,10 @@
     validateIntegrity(options) {
       const { playerRegistry, teams, date } = options || {};
       const errors = [];
-      const teamIds = new Set((teams || []).map((team) => team.id));
+      // CLUB-CORE-1: `AcademyMembership.clubId` es el titular INSTITUCIONAL
+      // (Club) — se valida contra los clubes reales de los equipos vivos,
+      // nunca contra sus ids de Team (invariante 18 del prompt).
+      const clubIds = new Set((teams || []).map((team) => team.clubId).filter(Boolean));
       const iso = date ? toIso(date) : null;
       const rosterByPlayerId = new Map();
       (teams || []).forEach((team) => team.roster.forEach((player) => rosterByPlayerId.set(player.id, team.id)));
@@ -180,8 +183,8 @@
         if (playerRegistry && !playerRegistry.has(membership.playerId)) {
           errors.push(`La pertenencia "${membership.id}" referencia al jugador "${membership.playerId}", que no está en PlayerRegistry.`);
         }
-        if (teams && !teamIds.has(membership.clubId)) {
-          errors.push(`La pertenencia "${membership.id}" referencia el club "${membership.clubId}", inexistente entre los equipos vivos.`);
+        if (teams && !clubIds.has(membership.clubId)) {
+          errors.push(`La pertenencia "${membership.id}" referencia el club "${membership.clubId}", inexistente entre los clubes vivos.`);
         }
         if (iso && membership.isActiveOn(iso) && rosterByPlayerId.has(membership.playerId)) {
           // Un joven de academia NO está en el roster senior sin promoción

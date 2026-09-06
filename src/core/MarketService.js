@@ -109,7 +109,7 @@
   const MARKET_BUDGET_FLOOR_MINOR = 20000000; // suelo de staging para clubes sin payroll comprometido aún
 
   function computeInternalBudgetLimit(team, contractRegistry, seasonKey) {
-    const payroll = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.id, seasonKey);
+    const payroll = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, seasonKey);
     const financial = (team.reputation && team.reputation.financial !== undefined) ? team.reputation.financial : 50;
     const multiplier = 1.15 + (financial / 100) * 0.85; // rango [1.15, 2.0]
     const base = Math.max(payroll.amountMinor, MARKET_BUDGET_FLOOR_MINOR);
@@ -137,8 +137,8 @@
     const {
       team, contractRegistry, marketRegistry, seasonKey, limitOverrideMinor,
     } = params;
-    const committed = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.id, seasonKey);
-    const reserved = marketRegistry.reservedTotalForClubSeason(team.id, seasonKey);
+    const committed = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, seasonKey);
+    const reserved = marketRegistry.reservedTotalForClubSeason(team.clubId, seasonKey);
     const limit = (limitOverrideMinor !== undefined && limitOverrideMinor !== null)
       ? { amountMinor: limitOverrideMinor, currency: committed.currency, policyVersion: 'cycle-frozen-opening-payroll-v1' }
       : computeInternalBudgetLimit(team, contractRegistry, seasonKey);

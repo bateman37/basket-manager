@@ -79,7 +79,7 @@
             player, team, contractRegistry, registrationRegistry, loanRegistry, iso, seasonKey, config,
           }));
         const academyPool = academyRegistry
-          ? academyRegistry.activePoolForClub(team.id, iso)
+          ? academyRegistry.activePoolForClub(team.clubId, iso)
             .map((membership) => ({
               membershipId: membership.id,
               playerId: membership.playerId,
@@ -95,7 +95,7 @@
             .sort((a, b) => (a.playerId < b.playerId ? -1 : 1))
           : [];
         return {
-          clubId: team.id,
+          clubId: team.clubId,
           competitionId,
           division: team.division,
           sportingGoal: team.board ? team.board.sportingGoal : null,
@@ -104,7 +104,7 @@
           openingPayrollReferenceMinor: clubCase && clubCase.openingPayrollReference
             ? clubCase.openingPayrollReference.amountMinor : null,
           committedMinor: contractRegistry
-            ? ContractSvc().guaranteedPayrollForClub(contractRegistry, team.id, seasonKey).amountMinor : 0,
+            ? ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, seasonKey).amountMinor : 0,
         };
       });
 
@@ -157,8 +157,8 @@
       contractCoversTargetSeason: contract ? contract.coveredSeasonKeys.includes(seasonKey) : false,
       seasonSalaryMinor: contract ? contract.breakdownForSeason(seasonKey).guaranteedTotalMinor : 0,
       availability: availability.status,
-      onLoanIn: Boolean(loan && loan.borrowerClubId === team.id),
-      onLoanOut: Boolean(loan && loan.ownerClubId === team.id && loan.borrowerClubId !== team.id),
+      onLoanIn: Boolean(loan && loan.borrowerClubId === team.clubId),
+      onLoanOut: Boolean(loan && loan.ownerClubId === team.clubId && loan.borrowerClubId !== team.clubId),
       hasActiveRegistration: registrationRegistry
         ? Boolean(registrationRegistry.registrationsForPlayer(player.id).find((r) => r.teamId === team.id && r.statusOn(iso) === 'active'))
         : false,
@@ -371,11 +371,13 @@
     const {
       snapshot, teams, cycle, roundIndex, marketRegistry, careerSeed, resolvedByCompetitionId,
     } = params;
-    const teamsById = new Map((teams || []).map((team) => [team.id, team]));
+    // CLUB-CORE-1: `clubSnapshot.clubId` es un Club real — se resuelve el
+    // Team por `team.clubId`, nunca por `team.id`.
+    const teamsByClubId = new Map((teams || []).map((team) => [team.clubId, team]));
     return snapshot.clubs.map((clubSnapshot) => buildPlanForClub({
       snapshot,
       clubSnapshot,
-      team: teamsById.get(clubSnapshot.clubId),
+      team: teamsByClubId.get(clubSnapshot.clubId),
       cycle,
       roundIndex,
       marketRegistry,

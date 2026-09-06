@@ -23,12 +23,12 @@
   // a "el contrato debe ser del club que inscribe": una base laboral
   // "temporary-assignment" verificada contra la PROPIA inscripción (nunca
   // se acepta un `employmentBasis` que no cuadre con el contrato/club real).
-  function isValidTemporaryAssignment(registration, contract) {
+  function isValidTemporaryAssignment(registration, contract, clubId) {
     const basis = registration.employmentBasis;
     if (!basis || basis.type !== 'temporary-assignment') return false;
     return basis.contractId === contract.id
       && basis.employerClubId === contract.clubId
-      && basis.serviceClubId === registration.teamId
+      && basis.serviceClubId === clubId
       && Boolean(basis.loanAgreementId);
   }
 
@@ -144,7 +144,7 @@
           // BUG-REG1-07: el contrato existe pero es de OTRO jugador —
           // nunca se acepta como si acreditara relación laboral de este.
           reasons.push(reason(REASON_CODES.CONTRACT_PLAYER_MISMATCH, 'blocking'));
-        } else if (contract.clubId !== registration.teamId && !isValidTemporaryAssignment(registration, contract)) {
+        } else if (contract.clubId !== deps.clubId && !isValidTemporaryAssignment(registration, contract, deps.clubId)) {
           // BUG-REG1-07: el contrato existe, es del jugador correcto, pero
           // con OTRO club — tampoco acredita relación laboral con el club
           // que está inscribiéndolo. LOAN-1 (DESIGN.md 9.21, sección 12 del
@@ -208,7 +208,10 @@
     if (context.opponentClubId && deps.loanRegistry) {
       let activeLoan = null;
       try { activeLoan = deps.loanRegistry.activeAgreementForPlayer(playerId, context.date); } catch (err) { activeLoan = null; }
-      if (activeLoan && activeLoan.borrowerClubId === teamId && activeLoan.ownerClubId === context.opponentClubId) {
+      // CLUB-CORE-1: `activeLoan.borrowerClubId` es un Club real — se
+      // compara contra `deps.clubId` (el Club REAL de `teamId`, que el
+      // llamador debe pasar explícito), nunca contra `teamId` directamente.
+      if (activeLoan && activeLoan.borrowerClubId === deps.clubId && activeLoan.ownerClubId === context.opponentClubId) {
         const restriction = activeLoan.clauses.find((c) => c.type === 'parent-club-match-eligibility' && c.prohibited
           && (c.scope === 'competition' || (c.scope === 'match' && context.matchId)));
         if (restriction) {

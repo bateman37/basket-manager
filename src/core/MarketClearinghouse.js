@@ -123,7 +123,7 @@
     return {
       id: `contract:free-agent:${team.id}:${player.id}:${seasonKey}`,
       playerId: player.id,
-      clubId: team.id,
+      clubId: team.clubId,
       contractType: 'professional-player',
       signedDate: startDate,
       startDate,
@@ -211,7 +211,9 @@
     round.canonicalResolutionOrder.push(...resolutionOrder);
 
     const decisions = [];
-    const teamsById = new Map((teams || []).map((team) => [team.id, team]));
+    // CLUB-CORE-1: `proposal.clubId` es un Club real — se resuelve el Team
+    // por `team.clubId`, nunca por `team.id`.
+    const teamsByClubId = new Map((teams || []).map((team) => [team.clubId, team]));
 
     resolutionOrder.forEach((playerId) => {
       const competing = byPlayer.get(playerId).sort((a, b) => (a.id < b.id ? -1 : 1));
@@ -229,7 +231,7 @@
       // utilidad CUALITATIVA de MARKET-1 (`NegotiationService.qualityIndex`
       // + importe garantizado ofrecido) y se desempata de forma estable.
       const scored = competing.map((proposal) => {
-        const team = teamsById.get(proposal.clubId);
+        const team = teamsByClubId.get(proposal.clubId);
         const resolvedRules = resolvedByCompetitionId
           ? resolvedByCompetitionId[CompetitionRules.competitionIdFromLegacyDivision(team.division)] : null;
         return {
@@ -446,7 +448,7 @@
       marketRegistry,
       agentRegistry,
       playerId: player.id,
-      actingClubId: team.id,
+      actingClubId: team.clubId,
       prospectiveCompetitionIds: [resolved.competitionId || null].filter(Boolean),
       date: iso,
       marketContext,

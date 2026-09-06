@@ -170,8 +170,18 @@
       // explícita; por defecto "direct-contract" (retrocompatible con
       // TRANSFER-1/REG-1, ningún llamador existente pasa este campo).
       employmentBasis,
+      // CLUB-CORE-1 (DESIGN.md sección 10): `clubId` REAL del equipo que se
+      // inscribe (`team.clubId`) — obligatorio para poder default
+      // `employmentBasis` sin caer de vuelta en `teamId` como si fuera un
+      // Club (el bug que esta entrega retira). Los llamadores YA tienen el
+      // `Team` a mano (nunca solo su id), así que pasan `team.clubId`
+      // explícito.
+      clubId,
     } = params;
-    const basis = employmentBasis || { type: 'direct-contract', contractId, employerClubId: teamId, serviceClubId: teamId };
+    if (!clubId) {
+      throw new Error('RegistrationService.createRegistration: falta "clubId" (team.clubId) explícito — nunca se infiere de "teamId".');
+    }
+    const basis = employmentBasis || { type: 'direct-contract', contractId, employerClubId: clubId, serviceClubId: clubId };
     // BUG-REG1-07 (DESIGN.md 9.19): antes se aceptaba cualquier `contractId`
     // sin comprobar que el contrato referenciado fuera REALMENTE de este
     // jugador y este club — una inscripción podía referenciar un contrato
@@ -197,17 +207,17 @@
       // inscribe (`teamId`) — la ruta normal ("direct-contract") sigue
       // exigiendo la coincidencia directa contrato-club, nunca se
       // desactiva globalmente para todas las inscripciones.
-      const expectedContractClubId = basis.type === 'temporary-assignment' ? basis.employerClubId : teamId;
+      const expectedContractClubId = basis.type === 'temporary-assignment' ? basis.employerClubId : clubId;
       if (contract.clubId !== expectedContractClubId) {
         throw new Error(
           `RegistrationService.createRegistration: el contrato "${contractId}" pertenece al club "${contract.clubId}", `
           + `no a "${expectedContractClubId}" (REGISTRATION_CONTRACT_CLUB_MISMATCH).`,
         );
       }
-      if (basis.type === 'temporary-assignment' && basis.serviceClubId !== teamId) {
+      if (basis.type === 'temporary-assignment' && basis.serviceClubId !== clubId) {
         throw new Error(
           `RegistrationService.createRegistration: employmentBasis.serviceClubId ("${basis.serviceClubId}") `
-          + `no coincide con "teamId" ("${teamId}") — la inscripción temporal debe ser con el club cesionario declarado.`,
+          + `no coincide con "clubId" ("${clubId}") — la inscripción temporal debe ser con el club cesionario declarado.`,
         );
       }
     }

@@ -293,13 +293,18 @@
       const warnings = [];
       const iso = date ? toIso(date) : null;
       const teamIds = new Set((teams || []).map((team) => team.id));
+      // CLUB-CORE-1: `license.clubId` es un Club real (invariante 11 del
+      // prompt) — se valida contra los clubes de los equipos vivos, nunca
+      // contra sus ids de Team.
+      const clubIds = new Set((teams || []).map((team) => team.clubId).filter(Boolean));
+      const teamById = new Map((teams || []).map((team) => [team.id, team]));
 
       this.allLicenses().forEach((license) => {
         if (playerRegistry && !playerRegistry.has(license.playerId)) {
           errors.push(`La licencia "${license.id}" referencia al jugador "${license.playerId}", ausente de PlayerRegistry.`);
         }
-        if (teams && !teamIds.has(license.clubId)) {
-          errors.push(`La licencia "${license.id}" referencia al club "${license.clubId}", ausente de los equipos vivos.`);
+        if (teams && !clubIds.has(license.clubId)) {
+          errors.push(`La licencia "${license.id}" referencia al club "${license.clubId}", ausente de los clubes vivos.`);
         }
       });
 
@@ -335,7 +340,14 @@
               + `al jugador "${contract.playerId}", no a "${registration.playerId}".`,
             );
           }
-          if (contract && contract.clubId !== registration.teamId) {
+          // CLUB-CORE-1: `contract.clubId` es un Club real — se compara
+          // contra el Club REAL del equipo inscrito (`registeredTeam.
+          // clubId`), nunca contra `registration.teamId` directamente
+          // (invariante 13 del prompt: "una inscripción valida el contrato
+          // mediante el Club del Team inscrito").
+          const registeredTeam = teamById.get(registration.teamId);
+          const registeredTeamClubId = registeredTeam ? registeredTeam.clubId : null;
+          if (contract && contract.clubId !== registeredTeamClubId) {
             // LOAN-1 (DESIGN.md 9.21): excepción EXPLÍCITA para una cesión
             // real — el contrato sigue siendo del club EMPLEADOR (nunca se
             // mueve durante la cesión), la inscripción es del club de
@@ -347,11 +359,11 @@
               && basis.type === 'temporary-assignment'
               && basis.contractId === registration.contractId
               && basis.employerClubId === contract.clubId
-              && basis.serviceClubId === registration.teamId;
+              && basis.serviceClubId === registeredTeamClubId;
             if (!explainedByLoanBasis) {
               errors.push(
                 `La inscripción "${registration.id}" referencia el contrato "${registration.contractId}", que pertenece `
-                + `al club "${contract.clubId}", no a "${registration.teamId}".`,
+                + `al club "${contract.clubId}", no al club "${registeredTeamClubId}" del equipo inscrito "${registration.teamId}".`,
               );
             }
           }

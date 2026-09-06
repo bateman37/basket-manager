@@ -74,7 +74,9 @@
     } = params;
     const iso = toIso(date);
     const cfg = CC().ACADEMY;
-    const currentPool = academyRegistry.activePoolForClub(team.id, iso);
+    // CLUB-CORE-1: la cantera pertenece al Club institucional (`team.
+    // clubId`, invariante 18 del prompt), nunca al `team.id` deportivo.
+    const currentPool = academyRegistry.activePoolForClub(team.clubId, iso);
     const vacancies = Math.max(0, cfg.poolMaxPerClub - currentPool.length);
     const intakeCount = Math.min(cfg.annualIntakeMaxPerClub, vacancies);
     const created = [];
@@ -102,9 +104,9 @@
         careerSeed,
       });
       const membership = new CycleEntities.AcademyMembership({
-        id: `academy-membership:${team.id}:${player.id}`,
+        id: `academy-membership:${team.clubId}:${player.id}`,
         playerId: player.id,
-        clubId: team.id,
+        clubId: team.clubId,
         joinedAt: iso,
         cohortSeasonKey: seasonKey,
         origin: ACADEMY_DATA_SOURCE,
@@ -116,7 +118,7 @@
         formationPeriods: [{
           fromDate: iso,
           toDate: null,
-          clubId: team.id,
+          clubId: team.clubId,
           federationId: 'feb-general',
           provenance: 'simulated-academy-period',
         }],
@@ -125,16 +127,16 @@
         },
       });
       academyRegistry.registerMembership(membership);
-      membership.addEvent({ id: `${membership.id}:joined`, type: 'joined', date: iso, actor: team.id });
+      membership.addEvent({ id: `${membership.id}:joined`, type: 'joined', date: iso, actor: team.clubId });
       created.push({ player, membership });
     }
     return {
-      clubId: team.id,
+      clubId: team.clubId,
       cycleId: cycle ? cycle.id : null,
       poolBefore: currentPool.length,
       vacancies,
       created,
-      poolAfter: academyRegistry.activePoolForClub(team.id, iso).length,
+      poolAfter: academyRegistry.activePoolForClub(team.clubId, iso).length,
     };
   }
 

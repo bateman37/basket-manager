@@ -22,6 +22,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { Player } = require('../src/entities/Player.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
 const { ContractRegistry } = require('../src/core/ContractRegistry.js');
@@ -82,6 +83,18 @@ const CAREER_SEED = 'test-cycle1-seed-v1';
 // scripts/smoke-cycle1.js's buildRealTeam(): instancias reales de Player,
 // lifecycle inicializado UNA vez al importar (BUG-CYCLE1-03), relleno
 // determinista si el bundle se queda corto (BUG-CYCLE1-02).
+// CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un Club
+// real enlazado — fixture legacy permitido: `clubId === teamId`.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
 function realTeam(id, isoDate, annualCycleRegistry) {
   const iso = isoDate || GAME_DATE;
   const acr = annualCycleRegistry || new AnnualCycleRegistry();
@@ -109,7 +122,7 @@ function buildRealTeamInner(id, isoDate, annualCycleRegistry) {
       seasonKey: SEASON, historyCompleteness: 'complete', annualCycleRegistry, retirementService: RetirementService, careerSeed: CAREER_SEED,
     });
   });
-  return new Team({ ...teamData, roster });
+  return linkLegacyClub(new Team({ ...teamData, roster }));
 }
 
 function readSrc(relPath) {
@@ -536,8 +549,12 @@ check('MoraBanc Andorra: su régimen laboral sigue resolviendo AD, nunca ACB por
   // Prueba indirecta y estable: el catálogo de contexto laboral por club
   // (ya usado por CONTRACT-1/TRANSFER-1/LOAN-1) sigue resolviendo AD para
   // MoraBanc — CYCLE-1 reutiliza ese mismo catálogo sin ninguna capa nueva.
+  // CLUB-CORE-1: el contexto se resuelve desde el Club REAL enlazado
+  // (`team.club`, fixture legacy `clubId === teamId`), nunca desde una
+  // segunda tabla estática indexada por teamId.
   const { ClubEmploymentContextCatalog } = require('../src/core/ClubEmploymentContextCatalog.js');
-  const ctx = ClubEmploymentContextCatalog.requireClubEmploymentContext('team-morabanc-andorra');
+  const team = realTeam('team-morabanc-andorra');
+  const ctx = ClubEmploymentContextCatalog.buildEmploymentContext(team, team.club, { domesticCompetitionId: 'acb' });
   assert.strictEqual(ctx.employerJurisdictionId, 'AD');
 });
 

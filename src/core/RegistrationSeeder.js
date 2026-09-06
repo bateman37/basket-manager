@@ -181,7 +181,7 @@
     const license = RegSvc().issueLicense({
       registry: registrationRegistry,
       playerId: player.id,
-      clubId: team.id,
+      clubId: team.clubId,
       federationId: 'feb-general',
       seasonKey,
       licenseClass: licenseClass || 'professional-senior',
@@ -223,6 +223,7 @@
       playerId: player.id,
       licenseId: license.id,
       teamId: team.id,
+      clubId: team.clubId,
       competitionId: resolved.competitionId,
       registrationScopeId: resolved.registrationScopeId,
       seasonKey,
@@ -341,7 +342,7 @@
     const license = RegSvc().issueLicense({
       registry: registrationRegistry,
       playerId: player.id,
-      clubId: team.id,
+      clubId: team.clubId,
       federationId: 'feb-general',
       seasonKey,
       licenseClass: 'own-lower-category',
@@ -357,6 +358,7 @@
       playerId: player.id,
       licenseId: license.id,
       teamId: team.id,
+      clubId: team.clubId,
       competitionId: resolved.competitionId,
       registrationScopeId: resolved.registrationScopeId,
       seasonKey,
@@ -379,14 +381,18 @@
     const isoDate = typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
     const dir = direction || 'lowerToUpper';
     const linkRules = resolved.registration && resolved.registration.linkedPlayerRules;
-    const agreementId = `link:${lowerClub.id}:${upperClub.id}:${seasonKey}`;
+    // `ClubLinkAgreement` es un acuerdo INSTITUCIONAL entre dos clubes — usa
+    // sus `clubId` reales (nunca `team.id`, aunque los parámetros se llamen
+    // `lowerClub`/`upperClub` por herencia de nombres de REG-1, en realidad
+    // son instancias de `Team`).
+    const agreementId = `link:${lowerClub.clubId}:${upperClub.clubId}:${seasonKey}`;
     let agreement = registrationRegistry.getLinkAgreement(agreementId);
     if (!agreement) {
       agreement = RegSvc().createLinkAgreement({
         registry: registrationRegistry,
         id: agreementId,
-        lowerClubId: lowerClub.id,
-        upperClubId: upperClub.id,
+        lowerClubId: lowerClub.clubId,
+        upperClubId: upperClub.clubId,
         competitionId: resolved.competitionId,
         federationId: 'feb-general',
         seasonKey,
@@ -413,12 +419,17 @@
     // `player.teamId` (sección 5.4: "no se añade permanentemente a
     // Team.roster del club beneficiario").
     const beneficiaryClub = dir === 'lowerToUpper' ? upperClub : lowerClub;
+    // La licencia del vinculado sigue siendo la de su club de ORIGEN (nunca
+    // el beneficiario) — `player.teamId` es un Team id, se resuelve al
+    // `clubId` REAL de ESE equipo (nunca `player.teamId` usado directamente
+    // como si fuera un Club id).
+    const originClub = dir === 'lowerToUpper' ? lowerClub : upperClub;
     const fingerprint = seedFingerprint(player.id, beneficiaryClub.id, seasonKey);
     const license = registrationRegistry.currentLicenseForPlayer(player.id, isoDate)
       || RegSvc().issueLicense({
         registry: registrationRegistry,
         playerId: player.id,
-        clubId: player.teamId,
+        clubId: originClub.clubId,
         federationId: 'feb-general',
         seasonKey,
         licenseClass: 'linked-player',
@@ -434,6 +445,7 @@
       playerId: player.id,
       licenseId: license.id,
       teamId: beneficiaryClub.id,
+      clubId: beneficiaryClub.clubId,
       competitionId: resolved.competitionId,
       registrationScopeId: resolved.registrationScopeId,
       seasonKey,

@@ -20,6 +20,7 @@ const path = require('path');
 
 const { Player } = require('../src/entities/Player.js');
 const { Team } = require('../src/entities/Team.js');
+const { Club } = require('../src/entities/Club.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
 const PD = require('../src/core/PlayerDevelopment.js');
 const { PlayerRegistry } = require('../src/core/PlayerRegistry.js');
@@ -33,6 +34,9 @@ const { ContractService } = require('../src/core/ContractService.js');
 const { ContractSeeder } = require('../src/core/ContractSeeder.js');
 const { Money } = require('../src/utils/Money.js');
 const { LocalDate } = require('../src/utils/LocalDate.js');
+const WorldFactory = require('../src/core/WorldFactory.js');
+const { WORLD_CORE_MANIFEST } = require('../data/world/world-core-2026.1.js');
+const { SPAIN_MANIFEST } = require('../data/world/spain-2026.1.js');
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
 const { padRosterToMinimum, FICTIONAL_FALLBACK_DATA_SOURCE } = require('../src/utils/playerGenerator.js');
 
@@ -80,12 +84,26 @@ function makePlayer(overrides = {}) {
   return player;
 }
 
+// CLUB-CORE-1 (DESIGN.md sección 10): un Team vivo necesita SIEMPRE un Club
+// real enlazado (`team.club`) para resolver contexto laboral — un fixture
+// legacy puede usar `clubId === teamId` (compatibilidad documentada), nunca
+// dejar `team.club` sin enlazar.
+function linkLegacyClub(team) {
+  const employerJurisdictionAreaId = team.id === 'team-morabanc-andorra' ? 'area-country-ad' : 'area-country-es';
+  const club = new Club({
+    id: team.id, name: team.name, homeAreaId: employerJurisdictionAreaId, employerJurisdictionAreaId,
+  });
+  team.clubId = club.id;
+  team.club = club;
+  return team;
+}
+
 function makeTeam(clubId, division, rosterSize = 10) {
   const roster = [];
   for (let i = 0; i < rosterSize; i += 1) roster.push(makePlayer({ id: `${clubId}-p${i}` }));
-  return new Team({
+  return linkLegacyClub(new Team({
     id: clubId, name: clubId, city: 'Test', division, roster,
-  });
+  }));
 }
 
 const ES_ACB_TEAM = () => makeTeam('team-real-madrid', '1ª');
@@ -284,9 +302,14 @@ check('una temporada anterior a toda vigencia registrada falla explícito (nunca
 });
 
 check('un club desconocido falla explícito y no hereda España ni ACB', () => {
+  // CLUB-CORE-1: "desconocido" ya no es "ausente de una tabla estática de
+  // 36 clubId" (esa tabla se retiró) — es un Team SIN Club real enlazado, o
+  // un Club cuya área de empleador no está en el catálogo de jurisdicciones.
+  // Ninguno de los dos casos hereda España/ACB por defecto.
+  const teamWithoutClub = new Team({ id: 'team-unknown-club', name: 'team-unknown-club', division: '1ª' });
   assert.throws(
-    () => ContractService.resolveRulesForClub(makeTeam('team-unknown-club', '1ª'), { seasonKey: SEASON, date: GAME_DATE }),
-    /no tiene contexto laboral declarado/,
+    () => ContractService.resolveRulesForClub(teamWithoutClub, { seasonKey: SEASON, date: GAME_DATE }),
+    /CLUB-CORE-1 exige un Club real enlazado/,
   );
 });
 
@@ -351,16 +374,24 @@ check('un módulo extranjero reference-only NO se activa por sí solo', () => {
 });
 
 check('los 36 clubes reales tienen contexto laboral EXPLÍCITO (35 ES + 1 AD)', () => {
-  const contexts = ClubEmploymentContextCatalog.listClubEmploymentContexts();
-  assert.strictEqual(contexts.length, 36);
-  REAL_DATA_INDEX.forEach((entry) => {
-    assert.ok(ClubEmploymentContextCatalog.getClubEmploymentContext(entry.id), `sin contexto: ${entry.id}`);
+  // CLUB-CORE-1: ya no existe una segunda tabla estática de 36 "clubes" —
+  // el contexto laboral se resuelve desde el Club REAL instalado por
+  // `spain-2026.1` en un GameWorld real (mismo criterio que game.js).
+  const teamsByDivision = { '1ª': [], '2ª': [] };
+  ['1ª', '2ª'].forEach((div) => {
+    teamsByDivision[div] = REAL_DATA_INDEX.filter((e) => e.division === div).map((e) => new Team({ ...REAL_DATA_TEAMS[e.id], roster: [] }));
   });
+  const world = WorldFactory.buildCareerWorld({
+    id: 'world:test-contract1', careerSeed: 'test-contract1-seed', packs: [WORLD_CORE_MANIFEST, SPAIN_MANIFEST],
+    context: { teamsByDivision, seasonKey: SEASON, seasonStartDate: GAME_DATE },
+  });
+  const allTeams = world.registries.teams.all();
+  assert.strictEqual(allTeams.length, 36);
+  const contexts = allTeams.map((team) => ContractService.resolveEmploymentContext(team, {}));
   assert.strictEqual(contexts.filter((c) => c.employerJurisdictionId === 'ES').length, 35);
   assert.strictEqual(contexts.filter((c) => c.employerJurisdictionId === 'AD').length, 1);
-  assert.strictEqual(
-    ClubEmploymentContextCatalog.getClubEmploymentContext('team-morabanc-andorra').employerJurisdictionId, 'AD',
-  );
+  const moraBanc = world.registries.teams.require('team-morabanc-andorra');
+  assert.strictEqual(ContractService.resolveEmploymentContext(moraBanc, {}).employerJurisdictionId, 'AD');
 });
 
 // =====================================================================
@@ -1099,7 +1130,7 @@ function buildRealWorld() {
       operation: 'buildMatchSquad',
     }).squadRules;
     padRosterToMinimum(roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate: refDate });
-    return new Team({ ...teamData, roster });
+    return linkLegacyClub(new Team({ ...teamData, roster }));
   });
   const playerRegistry = new PlayerRegistry();
   teams.forEach((team) => playerRegistry.registerMany(team.roster));

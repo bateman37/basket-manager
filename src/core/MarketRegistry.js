@@ -381,13 +381,16 @@
       const { playerRegistry, teams, date } = opts;
       const errors = [];
       const warnings = [];
-      const teamIds = new Set((teams || []).map((t) => t.id));
+      // CLUB-CORE-1: `NegotiationThread.actingClubId`/`RightsCase.
+      // originClubId` son Club ids reales — se validan contra los clubes
+      // de los equipos vivos, nunca contra sus ids de Team.
+      const clubIds = new Set((teams || []).map((t) => t.clubId).filter(Boolean));
 
       this.allThreads().forEach((thread) => {
         if (playerRegistry && !playerRegistry.has(thread.playerId)) {
           errors.push(`El hilo "${thread.id}" referencia al jugador "${thread.playerId}", ausente de PlayerRegistry.`);
         }
-        if (teams && !teamIds.has(thread.actingClubId)) {
+        if (teams && !clubIds.has(thread.actingClubId)) {
           errors.push(`El hilo "${thread.id}" referencia al club "${thread.actingClubId}", ausente de los equipos vivos.`);
         }
         thread.offerIds.forEach((offerId) => {

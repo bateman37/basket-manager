@@ -36,6 +36,14 @@
     screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'agenda' | 'news' | 'calendar' | 'competitions' | 'stats' | 'match'
     division: '1ª',
     userTeamId: null,
+    // CLUB-CORE-1 (DESIGN.md sección 10): identidad INSTITUCIONAL del club
+    // controlado — DISTINTA de `userTeamId` (identidad DEPORTIVA). Se
+    // resuelve tras instalar el mundo (`startSeason()`, `team.clubId` del
+    // equipo elegido) — nunca se intercambian: pantallas institucionales
+    // (contratos, mercado, planificación, academia) consultan `userClubId`;
+    // pantallas deportivas (alineación, táctica, entrenamiento, partido,
+    // inscripción) consultan `userTeamId`.
+    userClubId: null,
     // WORLD-CORE-1 (DESIGN.md, "World Architecture"): `GameWorld` canónico
     // de ESTA partida — `null` hasta `startSeason()`, nunca un singleton
     // oculto. `state.playerRegistry`/`contractRegistry`/etc. de abajo son
@@ -352,6 +360,7 @@
         // "parent-club-match-eligibility" — usuario y CPU consultan el
         // MISMO servicio con el MISMO registro.
         loanRegistry: state.loanRegistry,
+        clubId: team.clubId,
         ...extraDeps,
       };
       return { player, accessCategory, evaluation: EligibilityService.evaluateEligibility(player.id, team.id, context, deps) };
@@ -366,10 +375,10 @@
         if (player) pool.push(evaluateFor(player, 'own-lower-category'));
       });
 
-    registry.linkAgreementsAsBeneficiary(team.id).forEach((agreement) => {
-      const direction = agreement.upperClubId === team.id ? 'lowerToUpper' : 'upperToLower';
+    registry.linkAgreementsAsBeneficiary(team.clubId).forEach((agreement) => {
+      const direction = agreement.upperClubId === team.clubId ? 'lowerToUpper' : 'upperToLower';
       const originClubId = direction === 'lowerToUpper' ? agreement.lowerClubId : agreement.upperClubId;
-      const originTeam = getAllTeams().find((t) => t.id === originClubId);
+      const originTeam = teamForClubId(originClubId);
       if (!originTeam) return;
       const lowerClubTeam = direction === 'lowerToUpper' ? originTeam : team;
       const upperClubTeam = direction === 'lowerToUpper' ? team : originTeam;
@@ -414,7 +423,7 @@
       // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt): rival real del
       // próximo partido — habilita "parent-club-match-eligibility" en
       // EligibilityService (usuario y CPU consultan el mismo servicio).
-      opponentClubId: nextMatch ? (nextMatch.homeTeam.id === team.id ? nextMatch.awayTeam.id : nextMatch.homeTeam.id) : null,
+      opponentClubId: nextMatch ? (nextMatch.homeTeam.id === team.id ? nextMatch.awayTeam.clubId : nextMatch.homeTeam.clubId) : null,
     };
   }
 
@@ -631,6 +640,10 @@
       context: { teamsByDivision, seasonKey: worldSeasonKey, seasonStartDate: currentGameIsoDate() },
     });
     state.world = world;
+    // CLUB-CORE-1: `userClubId` se resuelve AQUÍ, con el mundo ya instalado
+    // (el equipo elegido ya tiene `clubId` real enlazado por
+    // `spain-2026.1.js`) — nunca antes, nunca igual a `teamId`.
+    state.userClubId = state.world.registries.teams.require(teamId).clubId;
     ['1ª', '2ª'].forEach((div) => {
       BM.SpainLegacyCompetitionRuntime.bindLeagueRuntime(state.world, {
         division: div, seasonKey: worldSeasonKey, league: state.leagues[div],
@@ -872,7 +885,7 @@
       loanRegistry: state.loanRegistry,
       config: BM.CONFIG_BASE,
       careerSeed: buildCycleCareerSeed(),
-      userClubId: state.userTeamId,
+      userClubId: state.userClubId,
       lineup: state.lineup,
       operationalContext: currentTransferOperationalContext(),
       classificationCache: state.registrationClassificationCache,
@@ -1218,11 +1231,11 @@
     // silencio — cualquier llamador que llegue aquí con un salto real ya
     // debería haber comprobado getMarketAttentionForUser() antes (gating
     // de "Continuar" en Home).
-    if (state.userTeamId && state.marketRegistry) {
+    if (state.userClubId && state.marketRegistry) {
       const { LocalDate } = BM;
       const targetIso = LocalDate.fromJsDate(date instanceof Date ? date : new Date(date));
       const attention = BM.MarketService.computeMarketAttentionForClub({
-        marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: targetIso,
+        marketRegistry: state.marketRegistry, clubId: state.userClubId, date: targetIso,
       });
       // BUG-MARKET1-07 (DESIGN.md 9.20): regla INCLUSIVA compartida con
       // Home (getMarketAttentionForUser) — antes usaba `isAfter` (EXCLUSIVA),
@@ -1277,11 +1290,11 @@
   // existiendo (Agenda/Mercado pueden mostrarla), pero deja de sustituir
   // el botón principal de Home antes de tiempo.
   function getMarketAttentionForUser(throughDate) {
-    if (!state.userTeamId || !state.marketRegistry) return null;
+    if (!state.userClubId || !state.marketRegistry) return null;
     const team = getUserTeam();
     const resolvedThroughDate = throughDate || (team ? resolveNextMatchContextForTeam(team).date : state.calendar.currentGameDateTime);
     const attention = BM.MarketService.computeMarketAttentionForClub({
-      marketRegistry: state.marketRegistry, clubId: state.userTeamId, date: resolvedThroughDate,
+      marketRegistry: state.marketRegistry, clubId: state.userClubId, date: resolvedThroughDate,
     });
     return BM.MarketService.attentionBlocksThrough(attention, resolvedThroughDate) ? attention : null;
   }
@@ -1334,8 +1347,8 @@
   // de un fichaje futuro en advanceGameClockTo().
   function pushTransferCompletionNews(transferCase) {
     const player = state.playerRegistry.get(transferCase.playerId);
-    const destinationTeam = getAllTeams().find((t) => t.id === transferCase.destinationClubId);
-    const originTeam = transferCase.originClubId ? getAllTeams().find((t) => t.id === transferCase.originClubId) : null;
+    const destinationTeam = teamForClubId(transferCase.destinationClubId);
+    const originTeam = transferCase.originClubId ? teamForClubId(transferCase.originClubId) : null;
     if (!player || !destinationTeam) return;
     const isPureRelease = originTeam && originTeam.id === destinationTeam.id;
     const title = isPureRelease
@@ -1343,7 +1356,7 @@
       : (originTeam
         ? `${player.fullName} ficha por ${destinationTeam.fullName}, procedente de ${originTeam.fullName}`
         : `${player.fullName} ficha por ${destinationTeam.fullName}`);
-    const involvesUser = destinationTeam.id === state.userTeamId || (originTeam && originTeam.id === state.userTeamId);
+    const involvesUser = destinationTeam.clubId === state.userClubId || (originTeam && originTeam.clubId === state.userClubId);
     pushNews(BM.buildMarketNewsEvent({
       dateTime: state.calendar.currentGameDateTime,
       title,
@@ -1359,10 +1372,10 @@
   // como tal, nunca como una cesión completada sin matices.
   function pushLoanNews(agreement, kind, extra) {
     const player = state.playerRegistry.get(agreement.playerId);
-    const ownerTeam = getAllTeams().find((t) => t.id === agreement.ownerClubId);
-    const borrowerTeam = getAllTeams().find((t) => t.id === agreement.borrowerClubId);
+    const ownerTeam = teamForClubId(agreement.ownerClubId);
+    const borrowerTeam = teamForClubId(agreement.borrowerClubId);
     if (!player || !ownerTeam || !borrowerTeam) return;
-    const involvesUser = ownerTeam.id === state.userTeamId || borrowerTeam.id === state.userTeamId;
+    const involvesUser = ownerTeam.clubId === state.userClubId || borrowerTeam.clubId === state.userClubId;
     let title;
     let relatedTeam;
     if (kind === 'activated') {
@@ -1409,8 +1422,8 @@
     state.loanRegistry.allAgreements()
       .filter((agreement) => agreement.currentStatus() === 'active' && !BM.LocalDate.isAfter(agreement.returnEffectiveDate, isoDate))
       .forEach((agreement) => {
-        const ownerTeam = deps.teams.find((t) => t.id === agreement.ownerClubId);
-        const borrowerTeam = deps.teams.find((t) => t.id === agreement.borrowerClubId);
+        const ownerTeam = deps.teams.find((t) => t.clubId === agreement.ownerClubId);
+        const borrowerTeam = deps.teams.find((t) => t.clubId === agreement.borrowerClubId);
         if (!ownerTeam || !borrowerTeam) return;
         const { result } = BM.LoanService.returnLoan({
           ...deps, agreement, ownerTeam, borrowerTeam, effectiveDate: agreement.returnEffectiveDate, seasonKey: buildCareerSeasonKey(), commit: true,
@@ -1461,6 +1474,17 @@
       if (league) teams.push(...league.teams);
     });
     return teams;
+  }
+
+  // CLUB-CORE-1 (DESIGN.md sección 10): resuelve el Team principal de un
+  // Club REAL (contratos/mercado/traspasos/cesiones/tanteo usan siempre
+  // `clubId`, nunca `team.id`) — decisión explícita de la vertical actual
+  // (sección 9.5 del prompt: "las operaciones de la UI se dirigen al Team
+  // principal del Club"). `null` si no existe (nunca lanza: muchas de estas
+  // pantallas ya toleraban un club/equipo ausente con `|| null`).
+  function teamForClubId(clubId) {
+    if (!clubId) return null;
+    return getAllTeams().find((t) => t.clubId === clubId) || null;
   }
 
   // LIFE-2: contexto de calendario mínimo que Training.js/TrainingAI.js
@@ -2267,6 +2291,60 @@
       </details>`;
   }
 
+  // CLUB-CORE-1 (DESIGN.md sección 10, apartado 11 del prompt) — vertical
+  // visible mínima, de solo lectura: nombre institucional, primer equipo
+  // controlado, equipos/secciones registrados, squad activo, pool de
+  // academia (si ya está inicializado) y jurisdicción/afiliación con
+  // etiquetas comprensibles. Nunca ids técnicos como información
+  // principal (van en el `<details>` plegado); nunca inventa filial/
+  // cantera competitiva donde no existe (el paquete español actual solo
+  // registra el primer equipo — ver `data/world/spain-2026.1.js`).
+  const TEAM_ROLE_LABELS = {
+    'first-team': 'Primer equipo',
+    reserve: 'Filial/reserva',
+    youth: 'Juvenil',
+    other: 'Otra sección',
+  };
+
+  function buildClubStructureHtml(team) {
+    if (!state.world || !team.club) return '';
+    const club = team.club;
+    const registries = state.world.registries;
+    const teamsOfClub = registries.teams.forClub(club.id);
+    const activeSquad = registries.squads.activeForTeam(team.id);
+    const jurisdictionArea = registries.areas.get(club.employerJurisdictionAreaId);
+    const federationNames = club.federationMembershipOrganizationIds
+      .map((orgId) => {
+        const org = registries.organizations.get(orgId);
+        return org ? org.name : orgId;
+      })
+      .join(', ');
+    const academyCount = state.academyRegistry
+      ? state.academyRegistry.activePoolForClub(club.id, currentGameIsoDate()).length
+      : null;
+    const sectionsHtml = teamsOfClub
+      .map((t) => `<li>${escapeHtml(t.fullName)} — ${escapeHtml(TEAM_ROLE_LABELS[t.role] || t.role)}${t.id === team.id ? ' <span class="gm-badge">Controlado</span>' : ''}</li>`)
+      .join('');
+    return `
+      <div class="gm-card gm-club-structure">
+        <h3>Club y estructura deportiva</h3>
+        <dl class="contract-facts">
+          <div><dt>Club</dt><dd>${escapeHtml(club.name)}</dd></div>
+          <div><dt>Primer equipo controlado</dt><dd>${escapeHtml(team.fullName)}</dd></div>
+          <div><dt>Jurisdicción laboral</dt><dd>${escapeHtml(jurisdictionArea ? jurisdictionArea.name : club.employerJurisdictionAreaId)}</dd></div>
+          <div><dt>Afiliación federativa</dt><dd>${escapeHtml(federationNames || '—')}</dd></div>
+          <div><dt>Squad activo</dt><dd>${activeSquad ? `${escapeHtml(activeSquad.name)} — ${activeSquad.players.length} jugadores` : 'Sin squad activo'}</dd></div>
+          ${academyCount !== null ? `<div><dt>Cantera/Academia</dt><dd>${academyCount} jugador(es) en el pool</dd></div>` : ''}
+        </dl>
+        <p class="gm-muted">Equipos/secciones registrados para este club (${teamsOfClub.length}):</p>
+        <ul>${sectionsHtml}</ul>
+        <details class="gm-muted">
+          <summary>Detalle técnico</summary>
+          <p>clubId: ${escapeHtml(club.id)} · teamId: ${escapeHtml(team.id)} · squadId: ${activeSquad ? escapeHtml(activeSquad.id) : '—'}</p>
+        </details>
+      </div>`;
+  }
+
   function renderHomeScreen() {
     const container = byId('gm-home');
     const league = getUserLeague();
@@ -2371,6 +2449,7 @@
     // jerarquía Mundo > Europa > España/Andorra). Nunca muta ni consume
     // aleatoriedad; es una lectura de `state.world.describe()`.
     const worldDetailHtml = buildWorldDetailHtml();
+    const clubStructureHtml = buildClubStructureHtml(team);
 
     container.innerHTML = `
       <div class="home-clock">
@@ -2403,6 +2482,7 @@
           </div>
         </div>
       </div>
+      ${clubStructureHtml}
       ${worldDetailHtml}
     `;
 
@@ -5087,7 +5167,7 @@
       phaseId: (matchContext && matchContext.phaseId) || competition,
       roundId: matchContext ? matchContext.roundId : null,
       matchId: matchContext ? matchContext.matchId : null,
-      opponentClubId: opponent.id,
+      opponentClubId: opponent.clubId,
     });
     const resolved = BM.resolveRules(context);
     // REG-1 (sección 11.3 del prompt): la CPU consulta EXACTAMENTE
@@ -6201,7 +6281,10 @@
         <h4>Contrato actual</h4>
         ${simulatedContractNoticeHtml()}
         <dl class="contract-facts">
-          <div><dt>Club empleador</dt><dd>${escapeHtml(team ? team.fullName : current.clubId)}</dd></div>
+          <div><dt>Club empleador</dt><dd>${escapeHtml((() => {
+            const employerTeam = teamForClubId(current.clubId);
+            return employerTeam ? employerTeam.fullName : current.clubId;
+          })())}</dd></div>
           <div><dt>Estado</dt><dd>${escapeHtml(CONTRACT_STATUS_LABELS[status])}${expiringSoon ? ' <span class="gm-badge gm-badge--warning">Expira pronto</span>' : ''}</dd></div>
           <div><dt>Vigencia</dt><dd>${escapeHtml(formatIsoDateEs(current.startDate))} → ${escapeHtml(formatIsoDateEs(current.endDate))}</dd></div>
           <div><dt>Temporadas restantes</dt><dd>${remaining}</dd></div>
@@ -6259,7 +6342,7 @@
           <table class="gm-table contract-table">
             <thead><tr><th>Club</th><th>Desde</th><th>Hasta</th><th>Estado</th></tr></thead>
             <tbody>${history.map((contract) => {
-    const club = getAllTeams().find((t) => t.id === contract.clubId);
+    const club = teamForClubId(contract.clubId);
     return `
               <tr>
                 <td>${escapeHtml(club ? club.fullName : contract.clubId)}</td>
@@ -6340,6 +6423,7 @@
         registrationRegistry: registry,
         medicalAvailability: getLineupMedicalAvailability(team),
         classificationCache,
+        clubId: team.clubId,
       });
       const reasonsHtml = evaluation.reasons.length
         ? `<ul>${evaluation.reasons.map((r) => `<li>${escapeHtml(describeReasonCodes([r.code]))} <span class="gm-muted">(${escapeHtml(r.severity)})</span></li>`).join('')}</ul>`
@@ -6686,13 +6770,13 @@
     // nunca se oculta ni se confunde con la plantilla activa.
     const outboundLoansByPlayer = new Map();
     if (state.loanRegistry) {
-      state.loanRegistry.agreementsForOwner(team.id).filter((a) => a.currentStatus() === 'active').forEach((a) => {
+      state.loanRegistry.agreementsForOwner(team.clubId).filter((a) => a.currentStatus() === 'active').forEach((a) => {
         outboundLoansByPlayer.set(a.playerId, a);
       });
     }
     const rosterRows = contracts.map((row) => {
       const outboundLoan = outboundLoansByPlayer.get(row.contract.playerId);
-      const borrowerTeam = outboundLoan ? getAllTeams().find((t) => t.id === outboundLoan.borrowerClubId) : null;
+      const borrowerTeam = outboundLoan ? teamForClubId(outboundLoan.borrowerClubId) : null;
       return `
       <tr>
         <td data-label="Jugador">${row.player ? playerLinkHtml(row.player) : escapeHtml(row.contract.playerId)}
@@ -6714,7 +6798,7 @@
     // "Cedido", propietario, retorno, coste asumido; el contrato de un
     // cedido IN nunca aparece en la tabla de arriba (Contract.clubId sigue
     // siendo del propietario), así que necesita su propia sección.
-    const inboundLoans = state.loanRegistry ? state.loanRegistry.agreementsForBorrower(team.id).filter((a) => a.currentStatus() === 'active') : [];
+    const inboundLoans = state.loanRegistry ? state.loanRegistry.agreementsForBorrower(team.clubId).filter((a) => a.currentStatus() === 'active') : [];
     const inboundLoansHtml = inboundLoans.length ? `
       <div class="gm-card">
         <h3>Jugadores cedidos que refuerzan tu plantilla (${inboundLoans.length})</h3>
@@ -6723,7 +6807,7 @@
             <thead><tr><th>Jugador</th><th>Propietario</th><th>Retorno</th><th>Coste asumido (${seasonKey})</th></tr></thead>
             <tbody>${inboundLoans.map((a) => {
     const p = state.playerRegistry.get(a.playerId);
-    const owner = getAllTeams().find((t) => t.id === a.ownerClubId);
+    const owner = teamForClubId(a.ownerClubId);
     const masterContract = registry.get(a.masterContractId);
     const exposure = BM.LoanCostService.loanExposureForAgreement({ agreement: a, masterContract, seasonKey });
     return `<tr>
@@ -6842,12 +6926,12 @@
       || '<li class="gm-muted">Sin documentos declarados.</li>';
 
     const linkedRules = reg.linkedPlayerRules;
-    const linkAgreements = registry.linkAgreementsForClub(team.id);
+    const linkAgreements = registry.linkAgreementsForClub(team.clubId);
     const linkAgreementsHtml = linkAgreements.length ? `
       <ul class="contract-modules">${linkAgreements.map((agreement) => {
-        const other = agreement.lowerClubId === team.id ? agreement.upperClubId : agreement.lowerClubId;
-        const otherTeam = getAllTeams().find((t) => t.id === other);
-        const direction = agreement.lowerClubId === team.id ? 'club inferior' : 'club superior';
+        const other = agreement.lowerClubId === team.clubId ? agreement.upperClubId : agreement.lowerClubId;
+        const otherTeam = teamForClubId(other);
+        const direction = agreement.lowerClubId === team.clubId ? 'club inferior' : 'club superior';
         return `<li>Acuerdo con ${escapeHtml(otherTeam ? otherTeam.fullName : other)} (${escapeHtml(direction)}) —
           lowerToUpper: ${agreement.lists.lowerToUpper.length}/${agreement.limits.lowerToUpper},
           upperToLower: ${agreement.lists.upperToLower.length}/${agreement.limits.upperToLower}
@@ -6874,6 +6958,7 @@
           registrationRegistry: registry,
           medicalAvailability,
           classificationCache,
+          clubId: team.clubId,
         });
         const provenance = license ? (license.provenance.isReal ? 'Real' : 'Simulado') : 'Desconocido';
         const reasonsText = evaluation.reasons.filter((r) => r.severity === 'blocking').map((r) => r.code);
@@ -7222,7 +7307,7 @@
     });
     return {
       playerId: player.id,
-      clubId: team.id,
+      clubId: team.clubId,
       signedDate: isoDate,
       startDate,
       endDate,
@@ -7274,7 +7359,7 @@
   function determineTransferMechanism(team, agreement, isoDate) {
     const originContract = state.contractRegistry.currentForPlayer(agreement.playerId, isoDate);
     if (!originContract) return { mechanism: 'free-agent-signing', originContract: null, clause: null };
-    if (originContract.clubId === team.id) return { mechanism: 'free-agent-signing', originContract, clause: null };
+    if (originContract.clubId === team.clubId) return { mechanism: 'free-agent-signing', originContract, clause: null };
     const clause = originContract.clauses.find((c) => c.type === 'player-release' && c.amount);
     if (clause) return { mechanism: 'release-clause-exercise', originContract, clause };
     return { mechanism: 'negotiated-transfer', originContract, clause: null };
@@ -7299,12 +7384,12 @@
     } else if (mechanism === 'release-clause-exercise') {
       mechanismLabel = 'Ejercicio de cláusula de rescisión';
       body = `
-        <p>Cláusula congelada del contrato con <strong>${escapeHtml((getAllTeams().find((t) => t.id === originContract.clubId) || {}).fullName || originContract.clubId)}</strong>:
+        <p>Cláusula congelada del contrato con <strong>${escapeHtml((teamForClubId(originContract.clubId) || {}).fullName || originContract.clubId)}</strong>:
           <strong>${formatMoneyMinor(clause.amount.amountMinor, clause.amount.currency)}</strong>. No exige aceptación del club de origen.</p>
         <button type="button" class="gm-btn gm-btn--primary gm-transfer-formalize-btn" data-mechanism="release-clause-exercise" data-agreement-id="${agreement.id}" data-clause-id="${clause.id}">Ejercitar cláusula y formalizar</button>`;
     } else {
       mechanismLabel = 'Traspaso definitivo negociado';
-      const originTeam = getAllTeams().find((t) => t.id === originContract.clubId);
+      const originTeam = teamForClubId(originContract.clubId);
       body = `
         <p>${escapeHtml(player ? player.fullName : agreement.playerId)} sigue bajo contrato con <strong>${escapeHtml(originTeam ? originTeam.fullName : originContract.clubId)}</strong>
           sin cláusula de rescisión ejecutable — negocia un traspaso club-club antes de poder formalizar.</p>
@@ -7414,15 +7499,15 @@
   function renderMarketOperationsTab(team) {
     if (!state.transferRegistry) return '<div class="gm-card"><p class="gm-muted">Sin expedientes todavía.</p></div>';
     const isoDate = currentGameIsoDate();
-    const cases = state.transferRegistry.casesForClub(team.id);
+    const cases = state.transferRegistry.casesForClub(team.clubId);
     if (!cases.length) {
       return '<div class="gm-card"><p class="gm-muted">Sin expedientes de traspaso/fichaje para este club — se crean al formalizar un Acuerdo en Principio desde Negociaciones.</p></div>';
     }
     const rows = cases.map((tCase) => {
       const player = state.playerRegistry.get(tCase.playerId);
       const status = tCase.statusOn(isoDate);
-      const originTeam = tCase.originClubId ? getAllTeams().find((t) => t.id === tCase.originClubId) : null;
-      const destinationTeam = getAllTeams().find((t) => t.id === tCase.destinationClubId);
+      const originTeam = tCase.originClubId ? teamForClubId(tCase.originClubId) : null;
+      const destinationTeam = teamForClubId(tCase.destinationClubId);
       const record = tCase.transactionId ? state.transferRegistry.getTransactionRecord(tCase.transactionId) : null;
       const blockersText = status === 'blocked' && tCase.lastBlockers ? tCase.lastBlockers.map((b) => b.message).join(' · ') : '';
       return `
@@ -7460,7 +7545,7 @@
       if (includeTeamId && t.id !== includeTeamId) return;
       t.roster.forEach((player) => {
         const contract = state.contractRegistry.currentForPlayer(player.id, isoDate);
-        if (!contract || contract.clubId !== t.id || !contract.isActiveOn(isoDate)) return;
+        if (!contract || contract.clubId !== t.clubId || !contract.isActiveOn(isoDate)) return;
         if (state.loanRegistry.activeAgreementForPlayer(player.id, isoDate)) return;
         if (state.loanRegistry.liveCasesForPlayer(player.id, isoDate).length) return;
         out.push({
@@ -7474,22 +7559,22 @@
   function loanCaseRowHtml(loanCase, team) {
     const isoDate = currentGameIsoDate();
     const player = state.playerRegistry.get(loanCase.playerId);
-    const ownerTeam = getAllTeams().find((t) => t.id === loanCase.ownerClubId);
-    const borrowerTeam = getAllTeams().find((t) => t.id === loanCase.borrowerClubId);
+    const ownerTeam = teamForClubId(loanCase.ownerClubId);
+    const borrowerTeam = teamForClubId(loanCase.borrowerClubId);
     const status = loanCase.statusOn(isoDate);
     const agreement = loanCase.agreementId ? state.loanRegistry.getAgreement(loanCase.agreementId) : null;
-    const counterpart = loanCase.ownerClubId === team.id ? borrowerTeam : ownerTeam;
-    const role = loanCase.ownerClubId === team.id ? 'Cedes' : 'Recibes';
+    const counterpart = loanCase.ownerClubId === team.clubId ? borrowerTeam : ownerTeam;
+    const role = loanCase.ownerClubId === team.clubId ? 'Cedes' : 'Recibes';
     let actionsHtml = '';
     if (agreement && agreement.currentStatus() === 'active') {
       const recallClause = agreement.clauses.find((c) => c.type === 'recall-right' && c.holderClubId === 'owner');
-      const canRecall = loanCase.ownerClubId === team.id && recallClause
+      const canRecall = loanCase.ownerClubId === team.clubId && recallClause
         && recallClause.windows.some((w) => !BM.LocalDate.isBefore(isoDate, w.startDate) && !BM.LocalDate.isAfter(isoDate, w.endDate));
       const earlyTerminationClause = agreement.clauses.find((c) => c.type === 'early-termination');
       if (canRecall) actionsHtml += `<button type="button" class="gm-btn gm-loan-recall-btn" data-agreement-id="${agreement.id}" data-recall-clause-id="${recallClause.id}">Ejercer recall</button> `;
       if (earlyTerminationClause) actionsHtml += `<button type="button" class="gm-btn gm-loan-early-term-btn" data-agreement-id="${agreement.id}" data-clause-id="${earlyTerminationClause.id}">Terminar anticipadamente</button>`;
       const purchaseClause = agreement.clauses.find((c) => (c.type === 'purchase-option' || c.type === 'purchase-obligation')
-        && (c.beneficiaryClubId === 'owner' ? loanCase.ownerClubId : loanCase.borrowerClubId) === team.id);
+        && (c.beneficiaryClubId === 'owner' ? loanCase.ownerClubId : loanCase.borrowerClubId) === team.clubId);
       if (purchaseClause && !BM.LocalDate.isBefore(isoDate, purchaseClause.windowStart) && !BM.LocalDate.isAfter(isoDate, purchaseClause.windowEnd)) {
         actionsHtml += ` <button type="button" class="gm-btn gm-loan-exercise-option-btn" data-agreement-id="${agreement.id}" data-clause-id="${purchaseClause.id}">Ejercer ${escapeHtml(formatMoneyMinor(purchaseClause.price.amountMinor, purchaseClause.price.currency))}</button>`;
       }
@@ -7509,8 +7594,8 @@
   function renderMarketLoansTab(team) {
     if (!state.loanRegistry) return '<div class="gm-card"><p class="gm-muted">Cesiones no disponibles todavía.</p></div>';
     const isoDate = currentGameIsoDate();
-    const ownCases = state.loanRegistry.casesForOwner(team.id);
-    const inCases = state.loanRegistry.casesForBorrower(team.id);
+    const ownCases = state.loanRegistry.casesForOwner(team.clubId);
+    const inCases = state.loanRegistry.casesForBorrower(team.clubId);
     const allCases = [...ownCases, ...inCases].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
     const casesHtml = allCases.length
       ? `<div class="gm-table-scroll"><table class="gm-table">
@@ -7568,7 +7653,7 @@
     if (!marketContext.capabilities.has('supportsRightOfFirstRefusal')) {
       return '<div class="gm-card"><p class="gm-muted">Esta competición no tiene procedimiento doméstico de derecho preferente codificado.</p></div>';
     }
-    const cases = state.marketRegistry.rightsCasesForClub(team.id);
+    const cases = state.marketRegistry.rightsCasesForClub(team.clubId);
     const isoDate = currentGameIsoDate();
     if (!cases.length) {
       return `<div class="gm-card"><p class="gm-muted">Sin casos de derecho preferente abiertos para este club por ahora.</p>
@@ -7577,7 +7662,7 @@
     const cards = cases.map((rightsCase) => {
       const player = state.playerRegistry.get(rightsCase.playerId);
       const status = rightsCase.statusOn(isoDate);
-      const isOrigin = rightsCase.originClubId === team.id;
+      const isOrigin = rightsCase.originClubId === team.clubId;
       let decisionHtml = '';
       if (isOrigin && status === 'matching-window-open') {
         decisionHtml = `
@@ -7619,8 +7704,8 @@
     container.querySelectorAll('.gm-market-watch-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const playerId = btn.dataset.playerId;
-        if (state.marketRegistry.isWatched(team.id, playerId)) BM.MarketService.removeWatch(state.marketRegistry, team.id, playerId);
-        else BM.MarketService.addWatch(state.marketRegistry, team.id, playerId);
+        if (state.marketRegistry.isWatched(team.clubId, playerId)) BM.MarketService.removeWatch(state.marketRegistry, team.clubId, playerId);
+        else BM.MarketService.addWatch(state.marketRegistry, team.clubId, playerId);
         renderMarketScreen();
       });
     });
@@ -7629,7 +7714,7 @@
       btn.addEventListener('click', () => {
         const playerId = btn.dataset.playerId;
         BM.MarketService.openInquiry({
-          marketRegistry: state.marketRegistry, agentRegistry: state.agentRegistry, playerId, actingClubId: team.id,
+          marketRegistry: state.marketRegistry, agentRegistry: state.agentRegistry, playerId, actingClubId: team.clubId,
           prospectiveCompetitionIds: [BM.competitionIdFromLegacyDivision(team.division)], date: isoDate, marketContext, careerSeed,
         });
         container.dataset.activeTab = 'negotiations';
@@ -7752,7 +7837,7 @@
             });
           } else if (btn.dataset.mechanism === 'release-clause-exercise') {
             const originContract = state.contractRegistry.currentForPlayer(agreement.playerId, isoDate);
-            const originTeam = getAllTeams().find((t) => t.id === originContract.clubId);
+            const originTeam = teamForClubId(originContract.clubId);
             outcome = BM.TransferService.formalizeReleaseClauseExercise({
               ...deps, agreement, originTeam, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
               clauseId: btn.dataset.clauseId, exercisedBy: 'player',
@@ -7782,7 +7867,7 @@
         const playerConsent = Boolean(data.get('playerConsent'));
         if (!feeEuros || feeEuros <= 0) { resultEl.textContent = 'Introduce un importe válido.'; return; }
         const originContract = state.contractRegistry.currentForPlayer(agreement.playerId, isoDate);
-        const originTeam = getAllTeams().find((t) => t.id === originContract.clubId);
+        const originTeam = teamForClubId(originContract.clubId);
         const player = state.playerRegistry.get(agreement.playerId);
         const feeMinor = Math.round(feeEuros * 100);
         // BUG-TRANSFER1-18 (DESIGN.md 9.21): id determinista por ronda de
@@ -7891,7 +7976,7 @@
       resultEl.textContent = resolvedRules.blockers.map((b) => b.message).join(' · ');
       return;
     }
-    const initiatingIsOwner = initiatingClubId === ownerTeam.id;
+    const initiatingIsOwner = initiatingClubId === ownerTeam.clubId;
     BM.LoanService.grantConsent({
       loanRegistry, loanCase, partyType: initiatingIsOwner ? 'ownerClub' : 'borrowerClub', partyId: initiatingClubId, now, grantedBy: 'gm',
     });
@@ -7910,7 +7995,7 @@
       return;
     }
     BM.LoanService.grantConsent({
-      loanRegistry, loanCase, partyType: initiatingIsOwner ? 'borrowerClub' : 'ownerClub', partyId: initiatingIsOwner ? borrowerTeam.id : ownerTeam.id, now, grantedBy: 'gm',
+      loanRegistry, loanCase, partyType: initiatingIsOwner ? 'borrowerClub' : 'ownerClub', partyId: initiatingIsOwner ? borrowerTeam.clubId : ownerTeam.clubId, now, grantedBy: 'gm',
     });
     const playerEvaluation = BM.LoanService.evaluatePlayerReaction({
       player, proposal, borrowerTeam, careerSeed, date: now,
@@ -7968,7 +8053,7 @@
         try {
           runLoanNegotiation({
             loanRegistry: state.loanRegistry, contractRegistry: state.contractRegistry, teams: getAllTeams(),
-            ownerTeam: team, borrowerTeam: counterpartTeam, playerId: data.get('playerId'), initiatingClubId: team.id,
+            ownerTeam: team, borrowerTeam: counterpartTeam, playerId: data.get('playerId'), initiatingClubId: team.clubId,
             now: isoDate, seasonKey: buildCareerSeasonKey(), serviceStartDate: data.get('serviceStartDate'), returnEffectiveDate: data.get('returnEffectiveDate'),
             loanFee: feeEuros > 0 ? { amountMinor: Math.round(feeEuros * 100), currency: 'EUR' } : null,
             salaryAllocation: { ownerShareBasisPoints: ownerShare, borrowerShareBasisPoints: 10000 - ownerShare },
@@ -7988,14 +8073,14 @@
         const data = new FormData(inForm);
         const playerId = data.get('playerId');
         const sourceContract = state.contractRegistry.currentForPlayer(playerId, isoDate);
-        const ownerTeam = sourceContract ? getAllTeams().find((t) => t.id === sourceContract.clubId) : null;
+        const ownerTeam = sourceContract ? teamForClubId(sourceContract.clubId) : null;
         if (!ownerTeam) { resultEl.textContent = 'El jugador seleccionado ya no está disponible.'; return; }
         const feeEuros = Number(data.get('loanFeeEuros')) || 0;
         const borrowerShare = Math.round(Number(data.get('borrowerSharePercent')) * 100);
         try {
           runLoanNegotiation({
             loanRegistry: state.loanRegistry, contractRegistry: state.contractRegistry, teams: getAllTeams(),
-            ownerTeam, borrowerTeam: team, playerId, initiatingClubId: team.id,
+            ownerTeam, borrowerTeam: team, playerId, initiatingClubId: team.clubId,
             now: isoDate, seasonKey: buildCareerSeasonKey(), serviceStartDate: data.get('serviceStartDate'), returnEffectiveDate: data.get('returnEffectiveDate'),
             loanFee: feeEuros > 0 ? { amountMinor: Math.round(feeEuros * 100), currency: 'EUR' } : null,
             salaryAllocation: { ownerShareBasisPoints: 10000 - borrowerShare, borrowerShareBasisPoints: borrowerShare },
@@ -8011,8 +8096,8 @@
       btn.addEventListener('click', () => {
         const agreement = state.loanRegistry.getAgreement(btn.dataset.agreementId);
         if (!agreement) return;
-        const ownerTeam = getAllTeams().find((t) => t.id === agreement.ownerClubId);
-        const borrowerTeam = getAllTeams().find((t) => t.id === agreement.borrowerClubId);
+        const ownerTeam = teamForClubId(agreement.ownerClubId);
+        const borrowerTeam = teamForClubId(agreement.borrowerClubId);
         const isRecall = btn.classList.contains('gm-loan-recall-btn');
         try {
           const { plan, result } = isRecall
@@ -8049,7 +8134,7 @@
           const exercise = BM.LoanService.exercisePurchaseOption({
             loanRegistry: state.loanRegistry, agreement, clauseId: btn.dataset.clauseId, exercisedAt: isoDate,
           });
-          const beneficiaryTeam = getAllTeams().find((t) => t.id === exercise.beneficiaryClubId);
+          const beneficiaryTeam = teamForClubId(exercise.beneficiaryClubId);
           pushLoanNews(agreement, 'option-exercised', { beneficiaryTeamName: beneficiaryTeam ? beneficiaryTeam.fullName : '' });
           window.alert('Opción ejercida — el propietario queda obligado a vender según los términos pactados. La operación definitiva se formaliza como un traspaso normal en Mercado > Buscar jugadores / Negociaciones una vez el jugador dé su consentimiento.');
           renderMarketScreen();
@@ -8161,8 +8246,8 @@
     if (completed.length) {
       const rows = completed.map((tCase) => {
         const record = tCase.transactionId ? state.transferRegistry.getTransactionRecord(tCase.transactionId) : null;
-        const originTeam = tCase.originClubId ? getAllTeams().find((t) => t.id === tCase.originClubId) : null;
-        const destinationTeam = getAllTeams().find((t) => t.id === tCase.destinationClubId);
+        const originTeam = tCase.originClubId ? teamForClubId(tCase.originClubId) : null;
+        const destinationTeam = teamForClubId(tCase.destinationClubId);
         const obligations = record ? state.transferRegistry.obligationsForTransaction(record.id) : [];
         const compensationText = obligations.length
           ? obligations.map((o) => `${escapeHtml(o.concept)}: ${formatMoneyMinor(o.amountMinor, o.currency)}`).join(' · ')
@@ -8302,6 +8387,7 @@
       state.leagues = { '1ª': null, '2ª': null };
       state.brackets = { '1ª': { cup: null, titlePlayoff: null }, '2ª': { promotionPlayoff: null } };
       state.userTeamId = null;
+      state.userClubId = null;
       // WORLD-CORE-1: mismo criterio que el resto de registros de esta
       // sección — el mundo pertenece a UNA partida, nunca sobrevive a
       // "Volver a selección de equipo".
