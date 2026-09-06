@@ -1,5 +1,215 @@
 # CHANGELOG.md
 
+## 2026-09-06 — PATHWAYS-1: clasificación y ascenso/descenso declarativos (DESIGN.md sección 10.15)
+
+Quinta entrega de la EPIC **World Architecture** (WORLD-CORE-1 →
+CLUB-CORE-1 → COMP-CORE-1 → WORLD-CALENDAR-1 → **PATHWAYS-1** →
+WORLD-SIM-1 → NATIONAL-TEAMS-1 → WORLD-UI-1 → WORLD-HARDEN-1). Base:
+`af115cb` (`origin/main`, merge de la PR #49 WORLD-CALENDAR-1). Rama
+`claude/modest-gauss-ab8bat`.
+
+Decidir quién avanza a una fase, entra en otro torneo, asciende, desciende
+o conserva plaza dejaba de ser comportamiento repartido entre el formato,
+`CompetitionEngine`, `game.js` y `SeasonHistoryService`. Esta entrega
+aísla esas decisiones en reglas de pathway declarativas, versionadas,
+serializables y con receipt — España sigue siendo la primera vertical
+funcional (ACB, Primera FEB, Copa ACB), no el modelo universal; no se
+añade ninguna competición real nueva.
+
+### Bugs corregidos
+
+- **`BUG-PATHWAYS-01`** — formato y clasificación eran la misma
+  autoridad. *Causa*: `title-playoff`/`promotion-quarterfinals`/
+  `promotion-final-four` declaraban `activation`/`entrySource` con el
+  rango de puestos, el reseed y el disparador incrustados en el propio
+  `CompetitionFormatDefinition` español. *Corrección*: esas tres fases
+  pasan a `activation`/`entrySource: 'pathway-managed'` (dos tipos nuevos,
+  cerrados, en `src/entities/Competition.js`) — el formato conserva solo
+  `runnerConfig` (cuadro, patrones de campo); la clasificación real vive
+  en `spain-2026.1:pathway:domestic-club-v1`
+  (`data/world/spain-2026.1.js`). El engine nunca autoactiva una fase
+  `'pathway-managed'` por su cascada legacy (ningún hecho real coincide
+  con ese tipo de activación).
+- **`BUG-PATHWAYS-02`** — la clasificación a Copa no dejaba recibo
+  canónico. *Causa*: la foto de la jornada 17 se resolvía en
+  `buildSeasonActivationPlan()`/`registerCrossEditionActivation()`, un
+  plan estacional + un marcador transitorio del runtime, sin ningún
+  registro estable de qué 8 equipos clasificaron ni con qué seeds.
+  *Corrección*: regla `acb-copa-qualification`
+  (`competition-qualification`, trigger `round-completed` en la jornada
+  17) — deja un `CompetitionPathwayReceipt` con qualifiers/seeds/instante
+  real. `buildSeasonActivationPlan()`/`registerCrossEditionActivation()`
+  quedan sin call-sites productivos en `game.js`.
+- **`BUG-PATHWAYS-03`** — el campeón de ascenso directo se recalculaba
+  dos veces. *Causa*: `buildPromotionPlayoffCompatView()` extraía el 1º de
+  Primera FEB en vivo, y el cierre de temporada lo volvía a extraer por su
+  cuenta — dos cálculos independientes del mismo hecho, sin garantía de
+  coherencia. *Corrección*: `feb-direct-promotion` (regla
+  `next-season-membership` del transition group) resuelve el hecho UNA
+  vez; `SeasonHistoryService.deriveSeasonMovesFromTransitionReceipt()` es
+  la ÚNICA fuente que leen honores y ciclo anual. La vista LIVE de la
+  pantalla en curso sigue existiendo como previsualización de solo
+  lectura, nunca como segunda autoridad.
+- **`BUG-PATHWAYS-04`** — `Team.division` gobernaba la temporada
+  siguiente. *Causa*: `closeSeasonAndPrepareNext()` mutaba
+  `team.division` primero (`SeasonHistoryService.
+  applyPromotionsAndRelegations()`), agrupaba equipos por ese string
+  después y solo entonces creaba las Editions/Entries de la temporada
+  siguiente (`bindNewSeasonEditions()`) — el alias legacy decidía la
+  composición real. *Corrección*: invertido por completo.
+  `CompetitionPathwayService.applyTransitionGroup()` construye y VALIDA
+  18+18 de forma atómica (preflight puro + commit); `team.division`/
+  `legacyDivision` se proyectan DESPUÉS, desde esa membership ya
+  comprometida
+  (`CompetitionParticipationService.projectLegacyDivisionForTeams()`).
+  `SeasonHistoryService.applyPromotionsAndRelegations()`/
+  `bindNewSeasonEditions()` quedan sin call-sites productivos.
+- **`BUG-PATHWAYS-05`** (acotado) — `teamId`/`clubId` se confundían en
+  varios puntos del ciclo anual (`ClubCycleCase`, evidencia de último
+  partido oficial). *Corrección aplicada*: el transition receipt y sus
+  `moves` usan siempre `participantId` real (`teamId` deportivo),
+  verificado explícitamente en `scripts/test-pathways1.js`. *Deuda NO
+  tocada, documentada explícitamente*: `ClubCycleCase.clubId`/
+  `RosterLegalityReport.clubId`/`EmergencyRosterAction.clubId`/
+  `LastOfficialMatchEvidenceCollector` siguen guardando `team.id` bajo
+  campos llamados `clubId` (deuda ya señalada en CLAUDE.md, bloque
+  CLUB-CORE-1) — corregirla exige tocar
+  `AnnualCycleService.freezeSnapshot()`, compartida por
+  `scripts/cycle1-harness.js` y seis scripts de humo ajenos a esta
+  entrega (fuera del presupuesto de pruebas autorizado de PATHWAYS-1).
+  Propietario: la primera sesión que reabra esa ruta.
+
+### Arquitectura — Format ≠ Engine ≠ Pathway
+
+- `src/entities/CompetitionPathway.js` (nuevo): `CompetitionPathwayRule`/
+  `CompetitionPathwayDefinition` (vocabulario cerrado — `kind`/`trigger`/
+  `selector`/`seedPolicy`/`destination` — congeladas, serializables) y los
+  dos receipts (`CompetitionPathwayReceipt`,
+  `CompetitionSeasonTransitionReceipt`).
+- `src/core/CompetitionPathwayCatalog.js` (nuevo): mismo contrato que
+  `CompetitionFormatCatalog.js` (idempotente por id+version).
+- `src/core/CompetitionPathwayService.js` (nuevo): `handleEngineFact()`
+  (reacciona a hechos del engine dentro de temporada) +
+  `applyTransitionGroup()` (transición anual atómica) +
+  `isTransitionGroupReady()` (consulta pura).
+- `src/core/CompetitionEngine.js`: `setFactHandler()`, consultas puras
+  (`getStandingsFacts`/`getBracketFinalRoundWinners`/`getBracketChampion`/
+  `isStageCompleted`), API pública de activación
+  (`activateStageFromQualifiers`/`activateEditionFromDecision`, ambas
+  idempotentes), `registerEditionWithInitialEntries()` acepta
+  `pathwayBindingIds`/`qualificationReceiptId` opcionales — todo aditivo,
+  la cascada legacy de `activation`/`entrySource` sigue intacta para
+  fixtures/tests históricos.
+- `src/core/WorldRegistry.js`: registros nuevos por carrera
+  (`pathwayReceipts`, `seasonTransitionReceipts`), integrados en
+  `validateIntegrity()`/`describe()`.
+- `src/entities/Competition.js`: `CompetitionStage.stageKey` explícito,
+  `CompetitionEdition.pathwayBindingIds` congelado,
+  `CompetitionEntry.qualificationReceiptId`, tipos `'pathway-managed'`
+  añadidos a `ACTIVATION_TYPES`/`ENTRY_SOURCE_TYPES`.
+- `src/core/CompetitionParticipationService.js`: `projectLegacyDivision()`/
+  `projectLegacyDivisionForTeams()` — proyección legacy SIEMPRE posterior
+  al commit real, `null` explícito sin `legacyDivision` (nunca `'1ª'` por
+  defecto).
+- `src/core/SeasonHistoryService.js`: `deriveSeasonMovesFromTransitionReceipt()`
+  nuevo (lee el receipt, nunca recalcula standings);
+  `applyPromotionsAndRelegations()` se conserva para scripts de humo
+  anteriores a esta entrega.
+- `src/core/AnnualCycleService.js`: `closeSeasonHistory()` acepta
+  `targetCompetitionIdForTeam` opcional (resuelve desde la Entry real
+  cuando el llamador lo aporta; conserva el comportamiento histórico si
+  no).
+
+### Contenido español migrado
+
+`data/world/spain-2026.1.js` registra `spain-2026.1:pathway:domestic-club-v1`
+(9 reglas): playoff por el título (top-8), Copa (foto jornada 17,
+`competition-qualification`), cuartos de ascenso (2º-9º), Final Four
+(reseed `best-vs-worst-by-seed`), y el transition group
+`acb-feb-domestic-v1` (descenso 17º-18º, ascenso directo 1º, ascenso por
+playoff, `remaining-participants` de ambas ligas). Los tres formatos
+`acb-liga-playoff`/`primera-feb-liga-ascenso` migran sus fases de
+playoff/ascenso a `'pathway-managed'`. `game.js` conecta
+`CompetitionPathwayService` en `startSeason()` (`setFactHandler`) y
+reescribe `closeSeasonAndPrepareNext()`: captura `divisionsBefore` →
+`applyTransitionGroup()` → deriva `promotedTeams`/`relegatedTeams` del
+receipt → proyecta `team.division`/`legacyDivision` → abre el ciclo anual
+con `targetCompetitionIdForTeam` resuelto desde la Entry real. Se elimina
+el helper muerto duplicado `buildSeasonHonoursByTeamId()` de `game.js`
+(sin call-sites).
+
+### Pruebas exactas ejecutadas
+
+- `node scripts/test-pathways1.js` — **19 OK, 0 FAIL** (validación/
+  inmutabilidad/serialización/versionado, `stageKey`/`pathwayBindingIds`
+  congelados, selectors/seed policies, `stage-qualification`/
+  `competition-qualification` reales con seeds verificados, fixture
+  nacional→continental sin instalar España, receipt estable e idempotente
+  ante trigger repetido, orden de participantes invertido con resultado
+  idéntico, preview sin mutación/RNG, lote inválido sin mutación parcial,
+  transición anual 4+4 con cardinalidad/exclusividad/idempotencia real y
+  Entry enlazada al receipt, idempotencia de `activateStageFromQualifiers`/
+  `activateEditionFromDecision`, selector `bracket-champion` sin campeón
+  bloquea, auditorías estáticas).
+- `node scripts/smoke-pathways1.js` — **OK en ~7s** (36 clubes/equipos
+  reales, 659 partidos resueltos por la cola mundial, 42 paradas del
+  usuario; Copa (8 qualifiers), playoff ACB (top-8 real), cuartos de
+  ascenso (2º-9º real) y Final Four (4, reseed verificado) con receipts
+  únicos; transición anual real — ascienden Gran Canaria y Covirán
+  Granada, descienden Recoletas Salud San Pablo Burgos y Leyma Coruña,
+  18+18 Entries target, proyección legacy correcta; integridad World/
+  Competition/Calendar, MoraBanc Andorra con `teamId`/`clubId` distintos,
+  Supercopa sin runtime; no juega la segunda temporada).
+- `node scripts/test-comp-core1.js` — **32 OK, 0 FAIL** (sin cambios de
+  fixture).
+- `node scripts/test-world-calendar1.js` — **25 OK, 0 FAIL** (sin cambios
+  de fixture).
+- `node --check` sobre todo el JS nuevo/modificado y `git diff --check`:
+  sin errores.
+
+### Shims que quedan (propietario: WORLD-HARDEN-1)
+
+`buildSeasonActivationPlan()`/`registerCrossEditionActivation()`/
+`bindNewSeasonEditions()` (`data/world/spain-2026.1.js`) y
+`SeasonHistoryService.applyPromotionsAndRelegations()` — sin call-sites
+productivos nuevos, conservados solo para
+`scripts/test-world-calendar1.js`/`scripts/smoke-world-calendar1.js` y
+scripts de humo anteriores a esta entrega. La deuda de naming
+`clubId`/`teamId` en `ClubCycleCase`/`RosterLegalityReport`/
+`EmergencyRosterAction`/`LastOfficialMatchEvidenceCollector` sigue sin
+tocar (ver BUG-PATHWAYS-05 arriba).
+
+### Archivos principales
+
+Nuevos: `src/entities/CompetitionPathway.js`,
+`src/core/CompetitionPathwayCatalog.js`,
+`src/core/CompetitionPathwayService.js`, `scripts/test-pathways1.js`,
+`scripts/smoke-pathways1.js`. Modificados: `src/entities/Competition.js`,
+`src/core/CompetitionEngine.js`, `src/core/WorldRegistry.js`,
+`src/core/CompetitionParticipationService.js`,
+`src/core/SeasonHistoryService.js`, `src/core/AnnualCycleService.js`,
+`data/world/spain-2026.1.js`, `src/ui/game.js`, `index.html`,
+`DESIGN.md`, `CLAUDE.md`.
+
+### Fuera de alcance
+
+Euroliga/EuroCup/BCL/Intercontinental/Supercopa jugable o cualquier
+competición real nueva; asignar plazas europeas reales a ACB (solo
+capacidad genérica de test); niveles `playable/full/standard/abstract` y
+simulación exterior (WORLD-SIM-1); selecciones (NATIONAL-TEAMS-1);
+navegación mundial/selector de ligas (WORLD-UI-1); persistencia SQL/
+save-load (WORLD-HARDEN-1); sanciones/renuncias/vacantes/wildcards;
+traspasos/cesiones CPU-a-CPU orgánicos; cambios de reglas ACB/FEB/
+contrato/mercado/inscripción/cantera/retirada/economía; migración global
+de la deuda naming-only de Cycle fuera del camino anual tocado.
+
+Confirmado: `data/real/*` no cambió; no se añadió SQL/save-load/backend/
+dependencias; no se añadió ninguna competición real nueva; no se ejecutó
+Playwright ni simulación larga (una sola temporada + una transición). La
+PR queda abierta contra `main`, sin fusionar.
+
+Siguiente entrega: **WORLD-SIM-1**.
+
 ## 2026-09-06 — WORLD-CALENDAR-1: cronología mundial única (DESIGN.md sección 10.14)
 
 Cuarta entrega de la EPIC **World Architecture** (WORLD-CORE-1 →
