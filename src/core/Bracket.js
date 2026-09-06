@@ -79,9 +79,13 @@
   // `{ runner, entryIdFor(teamId), matchIdResolver }` — cuando el engine ya
   // construyó el `BracketStageRunner` real, esta fachada solo lo envuelve.
   class Bracket {
+    // `entries`/`firstRoundPairing`/`roundPatterns` solo se usan para
+    // construir un runner nuevo (rama standalone, sin `runtimeOptions.
+    // runner`) — con un runner YA vivo (ruta productiva), solo hace falta
+    // `entries` (para poder resolver Team reales por id, ver
+    // `_teamsById`); los otros dos pueden pasarse vacíos.
     constructor(entries, firstRoundPairing, roundPatterns, dateResolver, runtimeOptions) {
       const opts = runtimeOptions || {};
-      this.roundPatterns = roundPatterns;
       this.dateResolver = dateResolver || null;
       this._teamsById = new Map(entries.map((e) => [e.team.id, e.team]));
       const canonicalEntries = entries.map((e) => ({
@@ -101,6 +105,7 @@
         matchIdResolver: opts.matchIdResolver || null,
         resolveParticipant: (id) => this._teamsById.get(id),
       });
+      this.roundPatterns = this.runner.roundPatterns;
       this._legacySeriesByCanonicalId = new Map();
       this.rounds = [this._wrapRound(this.runner.rounds[0])];
     }
@@ -132,6 +137,24 @@
     }
 
     get isComplete() { return this.runner.isComplete; }
+
+    // Descriptor del siguiente partido pendiente (sin resolverlo) —
+    // BUG-COMPCORE-03: expone `scheduledDate`/`matchId` REALES para que
+    // los sistemas prepartido (descanso/entrenamiento/elegibilidad/acta)
+    // puedan prepararse ANTES de que nadie llame a `playNextGame()`, en
+    // vez de aproximar con el reloj de mundo. `null` si el bracket ya
+    // está completo.
+    peekNextPendingGame() {
+      const pending = this.runner.peekNextPendingMatch();
+      if (!pending) return null;
+      const { descriptor } = pending;
+      return {
+        homeEntry: { team: this._teamsById.get(descriptor.homeParticipantId), seed: descriptor.homeSeed },
+        awayEntry: { team: this._teamsById.get(descriptor.awayParticipantId), seed: descriptor.awaySeed },
+        scheduledDate: descriptor.scheduledDate,
+        matchId: descriptor.id,
+      };
+    }
 
     // Juega el siguiente partido pendiente de TODO el bracket.
     // `resolveOptions(homeEntry, awayEntry, scheduledDate, matchId)` —

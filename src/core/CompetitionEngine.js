@@ -452,7 +452,7 @@
           externalCompetitionDefinitionId: triggerEdition.competitionDefinitionId,
         },
       );
-      const { edition } = registerEditionWithInitialEntries(this.world, {
+      const { edition, stages } = registerEditionWithInitialEntries(this.world, {
         competitionDefinitionId: action.competitionDefinitionId,
         seasonKey: action.seasonKey,
         startDate: action.startDate || null,
@@ -461,6 +461,15 @@
       });
       this.initializeEdition(edition.id);
       this._activationEvents.push({ type: 'edition-activated', editionId: edition.id, competitionDefinitionId: action.competitionDefinitionId });
+      // El adaptador de UI (game.js) necesita también el/los stage(s)
+      // 'edition-start' recién creados para construir su vista legacy —
+      // misma información que ya recibe una activación intra-edición
+      // normal (ver `_activateStageFromTemplate`).
+      stages.forEach((stage) => {
+        this._activationEvents.push({
+          type: 'stage-activated', editionId: edition.id, stageId: stage.id, stageKey: this._stageKeyFromId(stage.id, edition),
+        });
+      });
     }
 
     _maybeCompleteEdition(edition, format) {

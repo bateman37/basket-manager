@@ -50,6 +50,18 @@
     // ALIASES de identidad estricta a `state.world.domainRegistries.*`
     // (misma instancia, nunca una copia) desde que se construye el mundo.
     world: null,
+    // COMP-CORE-1 (DESIGN.md 10.13): instancia EXPLÍCITA por carrera del
+    // motor genérico de competiciones — `null` hasta `startSeason()`,
+    // nunca un singleton (mismo criterio que el resto de registries de la
+    // EPIC). `state.leagues`/`state.brackets` (más abajo) son SIEMPRE
+    // vistas legacy construidas a partir de los runners que vivan aquí —
+    // nunca un segundo estado sincronizado a mano.
+    competitionEngine: null,
+    // `CompetitionEdition`/`CompetitionStage` activos para el Team del
+    // usuario ahora mismo (sección 13.1 del prompt, paso 6) — se
+    // refrescan en cada progresión real (nunca leídos por `team.division`).
+    activeCompetitionEditionId: null,
+    activeStageId: null,
     // ROSTER-1 (DESIGN.md 9.16): instancia EXPLÍCITA del registro mundial
     // de jugadores de ESTA partida — `null` hasta `startSeason()` (nunca
     // un singleton global oculto: cada partida nueva construye la suya).
@@ -272,22 +284,26 @@
   // punto de traducción, nunca repetido.
   const BRACKET_PHASE_IDS = { cup: 'cup', playoff: 'title-playoff', promotion: 'promotion' };
 
-  // Identificador ESTABLE equivalente a `matchId` (sección 6.2 del prompt
-  // de REG-1: "matchId o identificador estable equivalente") — los
-  // partidos de `League.js` no llevan un `id` propio; ronda+enfrentamiento
-  // ya es único dentro de una temporada/división.
+  // Identificador ESTABLE de partido (sección 6.2 del prompt de REG-1:
+  // "matchId o identificador estable equivalente"; BUG-COMPCORE-03,
+  // COMP-CORE-1): el descriptor canónico del runner YA trae un `id` global
+  // estable (edition/stage/ronda/enfrentamiento) — se usa tal cual. El
+  // fallback local solo cubre un `match` legacy sin ese campo (defensivo,
+  // no debería darse ya en la ruta productiva).
   function matchStableId(match) {
-    return `league:${match.round}:${match.homeTeam.id}:${match.awayTeam.id}`;
+    return match.id || `league:${match.round}:${match.homeTeam.id}:${match.awayTeam.id}`;
   }
 
   // ROSTER-1 (DESIGN.md 9.16) + REG-1 (DESIGN.md 9.18, BUG-CONTRACT1-02):
-  // resuelve el `competitionId` real de una división legacy ('1ª'/'2ª') y
-  // construye el CONTEXTO EXPLÍCITO de competición/ámbito/fecha/jornada
-  // que exige `CompetitionRules.resolveRules()` — ÚNICO punto de game.js
-  // que debe tocar el adaptador legacy `team.division` para esto, nunca
-  // repetido a mano en otro sitio, y NUNCA leyendo `state.calendar.
-  // currentGameDateTime` por su cuenta: la fecha SIEMPRE llega como
-  // parámetro explícito de quien conoce el partido concreto.
+  // construye el CONTEXTO EXPLÍCITO de competición/ámbito/fecha/jornada que
+  // exige `CompetitionRules.resolveRules()`. COMP-CORE-1 (BUG-COMPCORE-02):
+  // `options.competitionId` es la competición REAL del partido concreto,
+  // aportada por el descriptor canónico de quien conoce ese partido (liga,
+  // Copa, playoff...) — nunca derivada de `team.division` (eso devolvía
+  // SIEMPRE la Liga, incluso para un partido de Copa). Sin ese dato
+  // (todavía no hay partido concreto — ver `resolveNextMatchContextForTeam`),
+  // se resuelve la Liga doméstica PRINCIPAL del Team por participación real
+  // (`CompetitionParticipationService`, nunca "la primera del array").
   //
   // `options.phaseId`: 'league' | 'cup' | 'title-playoff' | 'promotion' —
   // ACB comparte el mismo `registrationScopeId` en las tres fases (Copa y
@@ -302,7 +318,9 @@
         + 'encuentro, nunca un reloj global leído dentro del resolver.',
       );
     }
-    const competitionId = BM.competitionIdFromLegacyDivision(team.division);
+    const seasonKey = buildCareerSeasonKey();
+    const competitionId = opts.competitionId
+      || BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, team.id, { seasonKey });
     return {
       competitionId,
       // Sin competiciones estructuralmente distintas para Copa/Playoff en
@@ -310,7 +328,7 @@
       // CLAUDE.md), `competitionInstanceId` coincide con `competitionId`;
       // documentado explícitamente, no un campo inventado sin uso.
       competitionInstanceId: competitionId,
-      seasonKey: buildCareerSeasonKey(),
+      seasonKey,
       date: opts.date,
       phaseId: opts.phaseId || 'league',
       roundId: opts.roundId || null,
@@ -388,8 +406,12 @@
         pool.push(evaluateFor(player, 'linked', {
           linkAgreement: agreement,
           linkDirection: direction,
-          lowerClubCompetitionId: BM.competitionIdFromLegacyDivision(lowerClubTeam.division),
-          upperClubCompetitionId: BM.competitionIdFromLegacyDivision(upperClubTeam.division),
+          lowerClubCompetitionId: BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+            state.world.registries, lowerClubTeam.id, { seasonKey: context.seasonKey },
+          ),
+          upperClubCompetitionId: BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+            state.world.registries, upperClubTeam.id, { seasonKey: context.seasonKey },
+          ),
         }));
       });
     });
@@ -399,18 +421,27 @@
 
   // Contexto del PRÓXIMO partido real de `team` — usado por la pantalla de
   // Alineación (que no conoce todavía si el usuario va a pulsar "jugar"):
-  // liga → fecha exacta programada del próximo partido pendiente; bracket
-  // activo (Copa/Playoff/Ascenso) → todavía sin fecha programada de verdad
-  // (Bracket.Series.playNextGame la calcula DESPUÉS de simular, igual que
-  // ya asumía `resolveBracketOptions` antes de esta entrega) — se usa el
-  // reloj de mundo como mejor aproximación disponible, pero SIEMPRE pasado
-  // como parámetro explícito, nunca leído dentro del resolver de reglas.
+  // liga → fecha/id exactos del próximo partido pendiente; bracket activo
+  // (Copa/Playoff/Ascenso) → BUG-COMPCORE-03 (corregido): el descriptor ya
+  // se crea ANTES de simular, así que `Bracket.peekNextPendingGame()`
+  // también da fecha/id REALES aquí — ya no hace falta aproximar con el
+  // reloj de mundo. `competitionId` (BUG-COMPCORE-02): siempre la
+  // competición REAL de ese partido concreto (Copa tiene la suya propia),
+  // nunca derivada de `team.division`.
   function resolveNextMatchContextForTeam(team) {
     const activeBracket = getActiveBracket();
     if (activeBracket) {
+      const pendingGame = activeBracket.bracket.peekNextPendingGame();
+      const competitionId = activeBracket.competitionKey === 'cup'
+        ? BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB
+        : BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, team.id, { seasonKey: buildCareerSeasonKey() });
       return {
-        date: state.calendar.currentGameDateTime,
+        date: pendingGame ? pendingGame.scheduledDate : state.calendar.currentGameDateTime,
         phaseId: BRACKET_PHASE_IDS[activeBracket.competitionKey] || activeBracket.competitionKey,
+        matchId: pendingGame ? pendingGame.matchId : null,
+        competitionId,
+        opponentClubId: pendingGame && pendingGame.homeEntry.team.id !== team.id ? pendingGame.homeEntry.team.clubId
+          : (pendingGame ? pendingGame.awayEntry.team.clubId : null),
       };
     }
     const league = getUserLeague();
@@ -420,6 +451,7 @@
       phaseId: 'league',
       roundId: nextMatch ? nextMatch.round : null,
       matchId: nextMatch ? matchStableId(nextMatch) : null,
+      competitionId: nextMatch ? nextMatch.competitionDefinitionId : undefined,
       // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt): rival real del
       // próximo partido — habilita "parent-club-match-eligibility" en
       // EligibilityService (usuario y CPU consultan el mismo servicio).
@@ -557,11 +589,220 @@
   }
 
   // ---------------------------------------------------------------------
+  // COMP-CORE-1 (DESIGN.md 10.13) — integración del motor genérico de
+  // competiciones. `game.js` es la ÚNICA capa que conoce ACB/Primera
+  // FEB/Copa como literales — el engine (`CompetitionEngine`/
+  // `CompetitionRunners`) nunca los ve.
+  // ---------------------------------------------------------------------
+
+  // Único punto de esta capa que traduce la división visible ('1ª'/'2ª')
+  // al `competitionDefinitionId` real — reemplaza el uso productivo de
+  // `BM.competitionIdFromLegacyDivision` para arranque/cierre de
+  // temporada (ese adaptador queda deprecado, sección 12.1 del prompt:
+  // sin nuevos call-sites productivos, solo scripts históricos).
+  function competitionIdForDivision(division) {
+    if (division === '1ª') return BM.CompetitionCatalog.COMPETITION_IDS.ACB;
+    if (division === '2ª') return BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB;
+    throw new Error(`competitionIdForDivision: división desconocida "${division}".`);
+  }
+
+  // Proveedor de fechas del engine (sección 8/11.1 del prompt): ÚNICA
+  // frontera entre el motor genérico y el `Calendar` real de la partida —
+  // el engine nunca lee `state.calendar` por dentro, solo invoca este
+  // callback cuando activa una fase nueva. Decide qué método de
+  // `Calendar.js` llamar según el `runnerType`/tipo de activación
+  // GENÉRICOS de la plantilla (nunca por nombre de competición); solo la
+  // composición de rondas entre cuartos de ascenso y su Final Four (misma
+  // fecha de arranque, índice de ronda desplazado +1 — ver Promotion.js
+  // histórico) es conocimiento propio de ESTA capa de contenido/interfaz,
+  // nunca del engine.
+  function buildCompetitionDateResolverProvider() {
+    return ({
+      template, edition, stage,
+    }) => {
+      if (!state.calendar) return null;
+      if (template.runnerType === 'round-robin') {
+        if (!edition.scheduleProfileId) return null;
+        return (meta) => state.calendar.leagueMatchDateTime(
+          meta.round, meta.matchIndexInRound, meta.matchesInRound, meta.totalRounds, edition.scheduleProfileId,
+        );
+      }
+      // Bracket. Copa (checkpoint de jornada, DESIGN.md 3.2.4): hueco fijo
+      // entre la jornada que dispara la activación (su PROPIA Edition
+      // arranca aquí, `activation.type` es 'edition-start' desde el punto
+      // de vista de la Copa) y la siguiente jornada de ACB.
+      if (edition.competitionDefinitionId === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB) {
+        const dates = state.calendar.cupRoundDates();
+        return (roundIndex) => dates[roundIndex];
+      }
+      // Bracket disparado por fin de fase regular (playoff por el título /
+      // cuartos y Final Four de ascenso, DESIGN.md 3.3.3): arranca tras el
+      // hueco configurado desde la última jornada de SU PROPIA liga — SIEMPRE
+      // la fase 'regular-season' de esta misma edición, nunca
+      // `stage.sourceStageIds[0]` directo: para la Final Four ese id
+      // apunta a los cuartos (un bracket, sin `totalRounds`), no a la liga.
+      const regularSeasonStage = state.world.registries.competitionStages.get(
+        BM.buildStageId(edition.competitionDefinitionId, edition.seasonKey, 'regular-season'),
+      );
+      const regularSeasonRunner = regularSeasonStage ? state.competitionEngine.getRunner(regularSeasonStage.id) : null;
+      if (!regularSeasonRunner) return null;
+      const startDate = state.calendar.titlePlayoffStartDate(state.calendar.leagueRoundDate(regularSeasonRunner.totalRounds));
+      if (template.key === 'promotion-final-four') {
+        // La Final Four (DESIGN.md 3.2.3) comparte el MISMO tramo de
+        // fechas que sus propios cuartos — que ya consumieron la ronda 0
+        // del resolver — así que desplaza su índice de ronda +1 para
+        // seguir la numeración continua (mismo criterio documentado antes
+        // en Promotion.js).
+        const resolver = state.calendar.buildBracketDateResolver(
+          startDate, [BM.VENUE_PATTERNS.BEST_OF_5_2_2_1, BM.VENUE_PATTERNS.SINGLE_GAME, BM.VENUE_PATTERNS.SINGLE_GAME],
+        );
+        return (roundIndex, gameIndexInSeries) => resolver(roundIndex + 1, gameIndexInSeries);
+      }
+      if (template.key === 'promotion-quarterfinals') {
+        return state.calendar.buildBracketDateResolver(
+          startDate, [BM.VENUE_PATTERNS.BEST_OF_5_2_2_1, BM.VENUE_PATTERNS.SINGLE_GAME, BM.VENUE_PATTERNS.SINGLE_GAME],
+        );
+      }
+      return state.calendar.buildBracketDateResolver(
+        startDate, [BM.VENUE_PATTERNS.BEST_OF_3_1_1_1, BM.VENUE_PATTERNS.BEST_OF_5_2_2_1, BM.VENUE_PATTERNS.BEST_OF_5_2_2_1],
+      );
+    };
+  }
+
+  // Construye la Liga regular de `competitionId` a partir del runner que
+  // el engine YA inicializó (`initializeEdition`) — vista legacy
+  // ESTABLE, nunca un segundo estado (`League` delega en el MISMO runner
+  // que consulta `state.competitionEngine`).
+  function buildLeagueFacadeForCompetition(competitionId, seasonKey, teams) {
+    const stageId = BM.buildStageId(competitionId, seasonKey, 'regular-season');
+    const runner = state.competitionEngine.getRunner(stageId);
+    return new BM.League(teams, null, { runner });
+  }
+
+  // Construye la vista legacy (`Bracket`-shaped) de un stage de tipo
+  // bracket YA activado por el engine — `entries` se reconstruye desde
+  // la PRIMERA ronda del runner real (nunca se recalcula la clasificación
+  // que ya decidió el engine).
+  function buildBracketFacadeForStage(stageId) {
+    const runner = state.competitionEngine.getRunner(stageId);
+    const teamsById = new Map(getAllTeams().map((t) => [t.id, t]));
+    const seen = new Set();
+    const entries = [];
+    runner.rounds[0].forEach((series) => {
+      [series.better, series.worse].forEach((entry) => {
+        if (seen.has(entry.participantId)) return;
+        seen.add(entry.participantId);
+        entries.push({ team: teamsById.get(entry.participantId), seed: entry.seed });
+      });
+    });
+    return new BM.Bracket(entries, [], [], null, { runner });
+  }
+
+  // Vista de compatibilidad de `PromotionPlayoff` (Promotion.js histórico)
+  // COMPUESTA a partir de DOS stages/runners INDEPENDIENTES del engine
+  // (`promotion-quarterfinals` + `promotion-final-four`, activados en
+  // instantes distintos) — mismo shape exacto que consumen game.js/
+  // SeasonHistoryService/cycle1-harness.js (`directPromotion`,
+  // `quarterFinals`, `finalFour`, `isQuarterFinalsComplete`,
+  // `secondPromotedEntry`, `isComplete`, `playNextGame`, `getStatus`).
+  // `directPromotion` (DESIGN.md 3.2.3: "1º asciende directo, sin jugar
+  // playoff") es una vista de solo lectura sobre la clasificación YA
+  // decidida por el runner de liga regular — nunca una Entry/Stage nueva
+  // (sección 10.2 del prompt).
+  function buildPromotionPlayoffCompatView(regularSeasonStageId, quarterfinalsStageId) {
+    const regularRunner = state.competitionEngine.getRunner(regularSeasonStageId);
+    const standings = regularRunner.getStandings();
+    const teamsById = new Map(getAllTeams().map((t) => [t.id, t]));
+    const view = {
+      directPromotion: { team: teamsById.get(standings[0].participantId), seed: 1 },
+      quarterFinals: buildBracketFacadeForStage(quarterfinalsStageId),
+      finalFour: null,
+      get isQuarterFinalsComplete() { return view.quarterFinals.isComplete; },
+      // El engine ya activa la Final Four automáticamente en cuanto los
+      // cuartos se completan (cascada intra-edición) — este método se
+      // conserva por compatibilidad de forma (llamadas históricas a
+      // `promo.ensureFinalFour()`), nunca construye nada por sí mismo.
+      ensureFinalFour() {},
+      get secondPromotedEntry() { return view.finalFour ? view.finalFour.champion : null; },
+      get isComplete() { return view.secondPromotedEntry !== null; },
+      playNextGame(config, resolveOptions) {
+        if (!view.isQuarterFinalsComplete) return view.quarterFinals.playNextGame(config, resolveOptions);
+        if (!view.finalFour) throw new Error('PromotionPlayoff: la Final Four todavía no está activada.');
+        return view.finalFour.playNextGame(config, resolveOptions);
+      },
+      getStatus() {
+        return {
+          directPromotion: view.directPromotion,
+          quarterFinals: view.quarterFinals.getStatus(),
+          finalFour: view.finalFour ? view.finalFour.getStatus() : null,
+          secondPromotedEntry: view.secondPromotedEntry,
+          isComplete: view.isComplete,
+        };
+      },
+    };
+    return view;
+  }
+
+  // Refresca `state.activeCompetitionEditionId`/`activeStageId` para el
+  // Team del usuario (sección 13.1 del prompt, paso 6) — SIEMPRE desde
+  // `CompetitionParticipationService` (Entry real), nunca desde
+  // `team.division`.
+  function refreshActiveCompetitionIdsForUser() {
+    const userTeam = getUserTeam();
+    if (!userTeam || !state.world) return;
+    const seasonKey = buildCareerSeasonKey();
+    const competitionId = BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+      state.world.registries, userTeam.id, { seasonKey },
+    );
+    const edition = state.competitionEngine.getActiveEdition(competitionId)
+      || state.world.registries.competitionEditions.get(BM.buildEditionId(competitionId, seasonKey));
+    state.activeCompetitionEditionId = edition ? edition.id : null;
+    const activeStage = edition ? state.competitionEngine.getActiveStage(edition.id) : null;
+    state.activeStageId = activeStage ? activeStage.id : null;
+  }
+
+  // Aplica los hechos de activación que el engine acaba de producir al
+  // resolver un partido (sección 13.2 del prompt: "el engine procesa
+  // round-completed/stage-completed; game.js publica noticias SOLO
+  // después del commit real") — construye la vista legacy que falte en
+  // `state.brackets` y devuelve los eventos consumidos para que el
+  // llamador decida qué noticia publicar (nunca antes de este punto).
+  function drainCompetitionActivationEvents() {
+    if (!state.competitionEngine) return [];
+    const events = state.competitionEngine.drainActivationEvents();
+    events.filter((e) => e.type === 'stage-activated').forEach((event) => {
+      const edition = state.world.registries.competitionEditions.require(event.editionId);
+      const definition = state.world.registries.competitionDefinitions.require(edition.competitionDefinitionId);
+      if (definition.id === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB) {
+        // Copa: competición SEPARADA (invariante 12) — su vista legacy
+        // vive en `brackets['1ª'].cup` por decisión de interfaz (sigue
+        // siendo la ÚNICA Copa jugable, aunque su Definition/Edition no
+        // tenga `legacyDivision`).
+        getBrackets('1ª').cup = buildBracketFacadeForStage(event.stageId);
+        return;
+      }
+      const division = definition.legacyDivision;
+      if (!division) return;
+      const brackets = getBrackets(division);
+      if (event.stageKey === 'title-playoff') {
+        brackets.titlePlayoff = buildBracketFacadeForStage(event.stageId);
+      } else if (event.stageKey === 'promotion-quarterfinals') {
+        const regularSeasonStageId = BM.buildStageId(edition.competitionDefinitionId, edition.seasonKey, 'regular-season');
+        brackets.promotionPlayoff = buildPromotionPlayoffCompatView(regularSeasonStageId, event.stageId);
+      } else if (event.stageKey === 'promotion-final-four') {
+        brackets.promotionPlayoff.finalFour = buildBracketFacadeForStage(event.stageId);
+      }
+    });
+    refreshActiveCompetitionIdsForUser();
+    return events;
+  }
+
+  // ---------------------------------------------------------------------
   // Arranque de temporada
   // ---------------------------------------------------------------------
   function startSeason(teamId, division) {
     const {
-      League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision, PlayerRegistry,
+      Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision, PlayerRegistry,
     } = BM;
     state.division = division;
     state.userTeamId = teamId;
@@ -615,21 +856,17 @@
         // reloj del ordenador vía `player.age`.
         team.tacticalProfile = BM.buildCpuTacticalIdentity(team, CONFIG_BASE, state.calendar.currentGameDateTime);
       });
-      // CAL-1: dateResolver con la firma ampliada de League.generateSchedule
-      // (round, matchIndexInRound, matchesInRound, totalRounds) — reparte
-      // horario real por partido dentro de la jornada, no una única fecha
-      // compartida (ver Calendar.leagueMatchDateTime/DESIGN.md 3.3.1).
-      state.leagues[div] = new League(teams, (round, matchIndexInRound, matchesInRound, totalRounds) => (
-        state.calendar.leagueMatchDateTime(round, matchIndexInRound, matchesInRound, totalRounds, div)
-      ));
     });
 
     // WORLD-CORE-1 (DESIGN.md, "World Architecture") — `GameWorld` canónico
-    // de la carrera: se construye AQUÍ (equipos y ligas de las dos
-    // divisiones ya existen, como MISMAS instancias, nunca reconstruidas) e
-    // instala `world-core-2026.1` + `spain-2026.1`. Si la instalación
-    // lanzara, `state.world` NUNCA llega a asignarse (invariante 22: no debe
-    // quedar un mundo parcial utilizable) — el error se propaga tal cual.
+    // de la carrera: se construye AQUÍ (los 36 equipos ya existen, como
+    // MISMAS instancias, nunca reconstruidas) e instala `world-core-2026.1`
+    // + `spain-2026.1` — sección 13.1 del prompt de COMP-CORE-1, pasos 1-3:
+    // equipos ya construidos, mundo/paquetes instalados (Editions/Stage de
+    // Liga regular/Entries YA declarados por el contenido), TODAVÍA sin
+    // ningún runner vivo. Si la instalación lanzara, `state.world` NUNCA
+    // llega a asignarse (invariante 22: no debe quedar un mundo parcial
+    // utilizable) — el error se propaga tal cual.
     const worldSeasonKey = buildCareerSeasonKey();
     const world = BM.buildCareerWorld({
       id: `world:${teamId}:${state.seasonStartYear}`,
@@ -644,11 +881,24 @@
     // (el equipo elegido ya tiene `clubId` real enlazado por
     // `spain-2026.1.js`) — nunca antes, nunca igual a `teamId`.
     state.userClubId = state.world.registries.teams.require(teamId).clubId;
-    ['1ª', '2ª'].forEach((div) => {
-      BM.SpainLegacyCompetitionRuntime.bindLeagueRuntime(state.world, {
-        division: div, seasonKey: worldSeasonKey, league: state.leagues[div],
-      });
-    });
+
+    // COMP-CORE-1 (DESIGN.md 10.13, sección 13.1 del prompt, pasos 4-6):
+    // UNA única instancia de `CompetitionEngine` por carrera, adjuntada al
+    // MISMO `GameWorld` — inicializa los runners desde las Entries YA
+    // registradas y guarda `activeCompetitionEditionId`/`activeStageId`
+    // reales para el Team del usuario. `SpainLegacyCompetitionRuntime` NO
+    // participa en esta ruta productiva (retirado, ver CLAUDE.md/DESIGN.md
+    // 10.8) — `state.leagues`/`state.brackets` son SIEMPRE vistas legacy
+    // construidas desde este mismo engine.
+    state.competitionEngine = new BM.CompetitionEngine({ world: state.world });
+    state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
+    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.ACB, worldSeasonKey));
+    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, worldSeasonKey));
+    BM.buildSeasonActivationPlan(worldSeasonKey).forEach((rule) => state.competitionEngine.registerCrossEditionActivation(rule));
+    state.leagues = {
+      '1ª': buildLeagueFacadeForCompetition(BM.CompetitionCatalog.COMPETITION_IDS.ACB, worldSeasonKey, teamsByDivision['1ª']),
+      '2ª': buildLeagueFacadeForCompetition(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, worldSeasonKey, teamsByDivision['2ª']),
+    };
 
     // CONTRACT-1 (DESIGN.md 9.17, sección 11 del prompt): con los 36
     // equipos ya construidos y el Player Registry completo, se crea el
@@ -695,6 +945,7 @@
       '1ª': { cup: null, titlePlayoff: null },
       '2ª': { promotionPlayoff: null },
     };
+    refreshActiveCompetitionIdsForUser();
     state.seasonCloseSummary = null;
     state.newsLog = [];
     state.agendaAnchorDate = null;
@@ -1010,9 +1261,15 @@
     // divisiones REALES con las que compitieron los equipos esa temporada
     // (nunca un literal fijo de competición).
     const scopeIds = new Set();
+    // COMP-CORE-1: la competición real con la que compitió cada equipo en
+    // `prevSeasonKey` se resuelve por participación (Entry, aunque
+    // `team.division` ya haya mutado por el ascenso/descenso de este
+    // cierre) — `divisionBeforeByTeamId` se conserva por compatibilidad de
+    // la firma, ya no se traduce a mano.
     teamsWithOldAffiliation.forEach((team) => {
-      const oldDivision = divisionBeforeByTeamId.get(team.id);
-      const oldCompetitionId = BM.competitionIdFromLegacyDivision(oldDivision);
+      const oldCompetitionId = BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+        state.world.registries, team.id, { seasonKey: prevSeasonKey },
+      );
       const oldResolved = BM.resolveRules({
         domain: 'registration', competitionId: oldCompetitionId, seasonKey: prevSeasonKey, date: isoDate,
         phaseId: 'league', operation: 'bootstrap',
@@ -1561,11 +1818,19 @@
     // plazos de verano desde la fecha REAL de cierre de cada club y nunca
     // desde la final para los 36. No se recorre el calendario a posteriori.
     if (state.lastOfficialMatchEvidence) {
+      // BUG-COMPCORE-02 (COMP-CORE-1): un partido de Copa NUNCA debe
+      // registrarse con el competitionId de la Liga — Copa es competición
+      // SEPARADA (invariante 12).
+      const evidenceCompetitionId = competitionKey === 'cup'
+        ? BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB
+        : BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+          state.world.registries, homeTeam.id, { seasonKey: buildCareerSeasonKey() },
+        );
       state.lastOfficialMatchEvidence.recordMatch({
         homeClubId: homeTeam.id,
         awayClubId: awayTeam.id,
         date,
-        competitionId: BM.competitionIdFromLegacyDivision(homeTeam.division),
+        competitionId: evidenceCompetitionId,
         phaseId: competitionKey,
         matchId: result.gameId || null,
       });
@@ -1646,88 +1911,39 @@
   }
 
   // ---------------------------------------------------------------------
-  // Progresión de temporada: simular jornada, disparar Copa (jornada
-  // 17→18, solo 1ª división) y construir playoffs al terminar la liga
-  // regular (título en 1ª, ascenso en 2ª) — todo reutilizando Playoffs.js/
-  // Cup.js/Promotion.js tal cual, sin tocarlos.
+  // Progresión de temporada: la Copa (jornada 17→18, activación cruzada de
+  // edición) y los playoffs al terminar la liga regular (título en 1ª,
+  // ascenso en 2ª) ya NO los decide esta función a mano — los activa el
+  // `CompetitionEngine` como efecto de haber resuelto el partido real que
+  // completa la jornada/fase (sección 13.2 del prompt: "game.js ya no
+  // decide con ramas por división cuándo crear Copa/playoff, el
+  // procesamiento genérico de hechos del engine sí"). Esta función solo
+  // RECOGE lo que el engine ya activó (`drainCompetitionActivationEvents`)
+  // y publica la noticia correspondiente DESPUÉS del commit real.
   // ---------------------------------------------------------------------
 
-  // Construye Copa/Playoff/Ascenso para UNA división cuando corresponda
-  // (jornada 17→18 para la Copa, fin de jornada 34 para playoff/ascenso)
-  // — compartido entre la liga visible (más abajo) y la de fondo
+  // Compartida entre la liga visible (más abajo) y la de fondo
   // (simulateBackgroundRound): DESIGN.md 3.4.1, "no dupliques esa lógica,
-  // extrae la parte de construir brackets a una función compartida". Solo
-  // CONSTRUYE — cómo se avanzan después (botón con reveal para la visible,
-  // de golpe sin reveal para la de fondo) vive en cada camino por separado.
-  // Idempotente (comprueba que no exista ya) para poder llamarse en cada
-  // jornada sin recrear nada.
+  // extrae la parte de construir brackets a una función compartida".
+  // `division`/`league` se conservan por compatibilidad de los call-sites
+  // existentes — el hecho real que decide qué se activa ya lo procesó el
+  // engine al resolver el partido, no esta función.
   function createBracketsIfDue(division, league) {
-    const {
-      createTitlePlayoff, createCup, PromotionPlayoff, CUP_TRIGGER_ROUND,
-      TITLE_PLAYOFF_ROUND_PATTERNS, PROMOTION_ROUND_PATTERNS,
-    } = BM;
-    const brackets = getBrackets(division);
-
-    // Copa: solo 1ª división, justo al completar la jornada 17 (DESIGN.md
-    // 3.2.2) — createCup() exige el valor EXACTO de currentRound.
-    if (division === '1ª' && league.currentRound === CUP_TRIGGER_ROUND + 1 && !brackets.cup) {
-      const cupDates = state.calendar ? state.calendar.cupRoundDates() : undefined;
-      const cupQualifiedTeams = league.getStandingsTable().slice(0, 8).map((standing) => standing.team);
-      brackets.cup = createCup(league, cupDates);
-      // WORLD-CORE-1 (sección 8.2 del prompt): enlaza la Copa recién creada
-      // con su propia CompetitionEdition/Stage (competición SEPARADA de la
-      // Liga, invariante 13) — misma foto de clasificación que ya usa
-      // `createCup()` por dentro.
-      BM.SpainLegacyCompetitionRuntime.bindCup(state.world, {
-        seasonKey: buildCareerSeasonKey(), bracket: brackets.cup, qualifiedTeams: cupQualifiedTeams,
-      });
-      // CAL-2 (DESIGN.md 3.5): noticia de competición SOLO si es la división
-      // visible del usuario — la Copa de la división de fondo no genera
-      // noticias (ver decisión documentada en finishRoundBookkeeping).
-      if (division === state.division) {
-        const qualified = brackets.cup.rounds[0].flatMap((s) => [s.betterEntry.team, s.worseEntry.team]);
-        pushNews(BM.buildBracketCreatedNewsEvent(qualified, {
-          competitionLabel: 'la Copa', relatedCompetition: 'cup', userTeamId: state.userTeamId, dateTime: state.calendar.currentGameDateTime,
-        }));
-      }
-    }
-
-    if (!league.isSeasonComplete) return;
-
-    // DESIGN.md 3.3.3: startDate del playoff = fecha de la última jornada
-    // de ESTA liga (1ª o 2ª) + el hueco configurado — "independiente" de
-    // la otra división simplemente porque cada una calcula la suya a
-    // partir de SU PROPIO calendario, nunca del ajeno.
-    const playoffStartDate = state.calendar
-      ? state.calendar.titlePlayoffStartDate(state.calendar.leagueRoundDate(league.totalRounds))
-      : undefined;
-    if (division === '1ª') {
-      if (brackets.titlePlayoff) return;
-      const dateResolver = state.calendar
-        ? state.calendar.buildBracketDateResolver(playoffStartDate, TITLE_PLAYOFF_ROUND_PATTERNS)
-        : undefined;
-      const titleQualifiedTeams = league.getStandingsTable().slice(0, 8).map((standing) => standing.team);
-      brackets.titlePlayoff = createTitlePlayoff(league, dateResolver);
-      // WORLD-CORE-1: invariante 13 — el playoff por el título es un STAGE
-      // de la MISMA edición de Liga de esta temporada, nunca una
-      // competición aparte.
-      BM.SpainLegacyCompetitionRuntime.bindTitlePlayoff(state.world, {
-        seasonKey: buildCareerSeasonKey(), bracket: brackets.titlePlayoff, qualifiedTeams: titleQualifiedTeams,
-      });
-    } else {
-      if (brackets.promotionPlayoff) return;
-      const dateResolver = state.calendar
-        ? state.calendar.buildBracketDateResolver(playoffStartDate, PROMOTION_ROUND_PATTERNS)
-        : undefined;
-      const promotionQualifiedTeams = league.getStandingsTable().slice(0, 9).map((standing) => standing.team);
-      brackets.promotionPlayoff = new PromotionPlayoff(league, dateResolver);
-      // WORLD-CORE-1: mismo criterio — stage de la edición de Primera FEB,
-      // nunca una competición aparte (9 participantes: 1º asciende directo +
-      // 2º-9º juegan la eliminatoria, DESIGN.md 3.2.3).
-      BM.SpainLegacyCompetitionRuntime.bindPromotionPlayoff(state.world, {
-        seasonKey: buildCareerSeasonKey(), bracket: brackets.promotionPlayoff, qualifiedTeams: promotionQualifiedTeams,
-      });
-    }
+    void league;
+    const events = drainCompetitionActivationEvents();
+    // CAL-2 (DESIGN.md 3.5): noticia de competición SOLO si es la división
+    // visible del usuario — la Copa de la división de fondo no genera
+    // noticias (ver decisión documentada en finishRoundBookkeeping).
+    if (division !== state.division) return;
+    events.forEach((event) => {
+      if (event.type !== 'edition-activated' || event.competitionDefinitionId !== BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB) return;
+      const cup = getBrackets('1ª').cup;
+      if (!cup) return;
+      const qualified = cup.rounds[0].flatMap((s) => [s.betterEntry.team, s.worseEntry.team]);
+      pushNews(BM.buildBracketCreatedNewsEvent(qualified, {
+        competitionLabel: 'la Copa', relatedCompetition: 'cup', userTeamId: state.userTeamId, dateTime: state.calendar.currentGameDateTime,
+      }));
+    });
   }
 
   // `resolveMatchOptions` (opcional, DESIGN.md 7.11.6): callback que recibe
@@ -1988,7 +2204,7 @@
   // publica noticias DESPUÉS de cada commit real.
   function closeSeasonAndPrepareNext() {
     const {
-      League, Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision,
+      Calendar, CONFIG_BASE, recalculateSportingGoalsForDivision,
       SeasonHistoryService, AnnualCycleService, WorldLifecycleService, CycleConfig,
     } = BM;
 
@@ -2121,26 +2337,13 @@
     // temporada que entra, siempre desde el registro contractual.
     refreshAllSalaryProjections(targetSeasonKey);
 
-    // Nuevo Calendar + nuevas League (DESIGN.md 3.4.4 pasos 3-4) — SOLO
-    // después de que el ciclo haya alcanzado `new-season-started`.
+    // Nuevo Calendar + nuevas Editions/League (DESIGN.md 3.4.4 pasos 3-4) —
+    // SOLO después de que el ciclo haya alcanzado `new-season-started`.
     state.seasonStartYear += 1;
     state.calendar = new Calendar(state.seasonStartYear, CONFIG_BASE);
     const teamsByDivision = {
       '1ª': teams.filter((team) => team.division === '1ª'),
       '2ª': teams.filter((team) => team.division === '2ª'),
-    };
-    function buildLeagueDateResolver(div) {
-      return (round, matchIndexInRound, matchesInRound, totalRounds) => (
-        state.calendar.leagueMatchDateTime(round, matchIndexInRound, matchesInRound, totalRounds, div)
-      );
-    }
-    state.leagues = {
-      '1ª': new League(teamsByDivision['1ª'], buildLeagueDateResolver('1ª')),
-      '2ª': new League(teamsByDivision['2ª'], buildLeagueDateResolver('2ª')),
-    };
-    state.brackets = {
-      '1ª': { cup: null, titlePlayoff: null },
-      '2ª': { promotionPlayoff: null },
     };
 
     // WORLD-CORE-1: `legacyDivision` sigue el ascenso/descenso real de
@@ -2148,19 +2351,28 @@
     // la fuente real es `CompetitionEntry`, reconstruida justo debajo).
     teams.forEach((team) => { team.legacyDivision = team.division; });
 
-    // WORLD-CORE-1: cierra las ediciones/stages de la temporada que termina
-    // y abre las de `targetSeasonKey` sobre el MISMO `state.world` (nunca se
-    // reconstruye el mundo completo al cerrar temporada) — enlaza además las
-    // `League` recién creadas con sus stages canónicos.
-    BM.SpainLegacyCompetitionRuntime.bindNewSeason(state.world, {
+    // COMP-CORE-1 (DESIGN.md 10.13, sección 13.3 del prompt): cierra las
+    // ediciones/stages ACTIVOS de la temporada que termina (nunca se
+    // borran) y abre las de `targetSeasonKey` sobre el MISMO `GameWorld` Y
+    // el MISMO `state.competitionEngine` de la carrera — nunca se
+    // reconstruye ninguno de los dos al cerrar temporada.
+    BM.bindNewSeasonEditions(state.world, {
       seasonKey: targetSeasonKey, teamsByDivision, startDate: BM.LocalDate.fromJsDate(state.calendar.seasonStartDate),
     });
-    ['1ª', '2ª'].forEach((div) => {
-      BM.SpainLegacyCompetitionRuntime.bindLeagueRuntime(state.world, {
-        division: div, seasonKey: targetSeasonKey, league: state.leagues[div],
-      });
-    });
+    state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
+    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.ACB, targetSeasonKey));
+    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, targetSeasonKey));
+    BM.buildSeasonActivationPlan(targetSeasonKey).forEach((rule) => state.competitionEngine.registerCrossEditionActivation(rule));
+    state.leagues = {
+      '1ª': buildLeagueFacadeForCompetition(BM.CompetitionCatalog.COMPETITION_IDS.ACB, targetSeasonKey, teamsByDivision['1ª']),
+      '2ª': buildLeagueFacadeForCompetition(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, targetSeasonKey, teamsByDivision['2ª']),
+    };
+    state.brackets = {
+      '1ª': { cup: null, titlePlayoff: null },
+      '2ª': { promotionPlayoff: null },
+    };
     state.world.setCalendar(state.calendar);
+    refreshActiveCompetitionIdsForUser();
 
     // La evidencia de último partido oficial se reinicia para la temporada
     // que empieza — la del verano ya consumido queda en el ciclo cerrado.
@@ -5167,6 +5379,7 @@
       phaseId: (matchContext && matchContext.phaseId) || competition,
       roundId: matchContext ? matchContext.roundId : null,
       matchId: matchContext ? matchContext.matchId : null,
+      competitionId: matchContext ? matchContext.competitionId : undefined,
       opponentClubId: opponent.clubId,
     });
     const resolved = BM.resolveRules(context);
@@ -5245,7 +5458,11 @@
   function recordMatchActSnapshot(team, squad, date, matchContext) {
     if (!state.registrationRegistry) return;
     const context = buildMatchCompetitionContext(team, {
-      date, phaseId: matchContext.phaseId, roundId: matchContext.roundId, matchId: matchContext.matchId,
+      date,
+      phaseId: matchContext.phaseId,
+      roundId: matchContext.roundId,
+      matchId: matchContext.matchId,
+      competitionId: matchContext.competitionId,
     });
     const resolved = BM.resolveRules(context);
     const pool = buildEligiblePoolForMatch(team, context) || [];
@@ -5337,7 +5554,9 @@
     return {
       resolveMatchOptions(match) {
         prepareBothTeamsForMatch(match.homeTeam, match.awayTeam, match.date);
-        const matchContext = { phaseId: 'league', roundId: match.round, matchId: matchStableId(match) };
+        const matchContext = {
+          phaseId: 'league', roundId: match.round, matchId: matchStableId(match), competitionId: match.competitionDefinitionId,
+        };
         return {
           matchDate: match.date, // LIFE-3 (DESIGN.md 9.14): ver MatchEngine.createMatchState
           ...sideOptions(match.homeTeam, match.awayTeam, true, 'league', match.date, matchContext),
@@ -5350,18 +5569,13 @@
       // reutiliza el MISMO resolver para Copa/Playoff/Ascenso de la
       // división de fondo, cada uno con su propio bracket y fase real.
       resolveBracketOptionsFor(bracket, phaseId) {
-        return (homeEntry, awayEntry) => {
-          // Bracket.Series.playNextGame (DESIGN.md 3.3, Bracket.js — no se
-          // toca en esta entrega, §43) solo calcula la fecha real del
-          // partido DESPUÉS de simularlo (`dateResolver(gameIndex)`), así
-          // que aquí no hay una fecha exacta disponible todavía. Se usa el
-          // reloj de mundo actual como referencia — aproximación razonable
-          // (los partidos de una misma Series/ronda están separados solo
-          // unos pocos días, `seriesGameGapDays`/`seriesRoundGapDays`), que
-          // sigue corrigiendo lo importante: la recuperación/entrenamiento
-          // se resuelve ANTES de simular, nunca después.
-          const approxDate = state.calendar.currentGameDateTime;
-          prepareBothTeamsForMatch(homeEntry.team, awayEntry.team, approxDate);
+        return (homeEntry, awayEntry, scheduledDate, descriptorMatchId) => {
+          // BUG-COMPCORE-03 (corregido): el descriptor del bracket ya trae
+          // fecha/id REALES (asignados ANTES de simular) — solo se usa el
+          // reloj de mundo como último recurso si algún camino legacy sin
+          // Calendar inyectado llamara aquí sin descriptor.
+          const matchDate = scheduledDate || state.calendar.currentGameDateTime;
+          prepareBothTeamsForMatch(homeEntry.team, awayEntry.team, matchDate);
           const roundId = currentBracketRoundKey(phaseId, bracket);
           // Emparejamiento en orden CANÓNICO (ids ordenados), nunca
           // home/away — una Series a mejor de N (BEST_OF_5_2_2_1) ALTERNA
@@ -5370,12 +5584,19 @@
           // rompiendo la exclusión de "esta misma acta" en
           // `RegistrationRegistry.playerAlreadyOnActThisRound()` y marcando
           // a la propia plantilla como si ya estuviera en OTRA acta.
-          const matchId = `${phaseId}:${roundId}:${[homeEntry.team.id, awayEntry.team.id].sort().join('-')}`;
-          const matchContext = { phaseId, roundId, matchId };
+          const matchId = descriptorMatchId || `${phaseId}:${roundId}:${[homeEntry.team.id, awayEntry.team.id].sort().join('-')}`;
+          const competitionId = phaseId === 'cup'
+            ? BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB
+            : BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+              state.world.registries, homeEntry.team.id, { seasonKey: buildCareerSeasonKey() },
+            );
+          const matchContext = {
+            phaseId, roundId, matchId, competitionId,
+          };
           return {
-            matchDate: approxDate,
-            ...sideOptions(homeEntry.team, awayEntry.team, true, phaseId, approxDate, matchContext),
-            ...sideOptions(awayEntry.team, homeEntry.team, false, phaseId, approxDate, matchContext),
+            matchDate,
+            ...sideOptions(homeEntry.team, awayEntry.team, true, phaseId, matchDate, matchContext),
+            ...sideOptions(awayEntry.team, homeEntry.team, false, phaseId, matchDate, matchContext),
           };
         };
       },
@@ -6499,7 +6720,9 @@
       annualCycleRegistry: state.annualCycleRegistry, cycle: { id: cycleId }, player, team, expiringContract: contract, date: isoDate, seasonKey,
     });
     const marketContext = BM.MarketService.resolveMarketContext({
-      domesticCompetitionId: BM.competitionIdFromLegacyDivision(team.division), seasonKey, date: isoDate,
+      domesticCompetitionId: BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, team.id, { seasonKey }),
+      seasonKey,
+      date: isoDate,
     });
     let round = 0;
     let outcome = null;
@@ -6663,7 +6886,10 @@
         const isoDate = currentGameIsoDate();
         const seasonKey = buildCareerSeasonKey();
         const resolved = BM.RegistrationService.resolveRegistrationRules({
-          competitionId: BM.competitionIdFromLegacyDivision(team.division), seasonKey, date: isoDate, phaseId: 'league',
+          competitionId: BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, team.id, { seasonKey }),
+          seasonKey,
+          date: isoDate,
+          phaseId: 'league',
         });
         const calibration = BM.ContractSeeder.buildCompetitionCalibration(getAllTeams(), BM.CONFIG_BASE);
         const player = state.playerRegistry.get(membership.playerId);
@@ -7110,7 +7336,7 @@
   function buildMarketContextForTeam(team) {
     const seasonKey = buildCareerSeasonKey();
     const isoDate = currentGameIsoDate();
-    const competitionId = BM.competitionIdFromLegacyDivision(team.division);
+    const competitionId = BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, team.id, { seasonKey });
     return BM.MarketService.resolveMarketContext({
       domesticCompetitionId: competitionId, seasonKey, date: isoDate, operation: 'market-screen',
     });
@@ -7715,7 +7941,10 @@
         const playerId = btn.dataset.playerId;
         BM.MarketService.openInquiry({
           marketRegistry: state.marketRegistry, agentRegistry: state.agentRegistry, playerId, actingClubId: team.clubId,
-          prospectiveCompetitionIds: [BM.competitionIdFromLegacyDivision(team.division)], date: isoDate, marketContext, careerSeed,
+          prospectiveCompetitionIds: [BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, team.id, { seasonKey: buildCareerSeasonKey() })],
+          date: isoDate,
+          marketContext,
+          careerSeed,
         });
         container.dataset.activeTab = 'negotiations';
         renderMarketScreen();
