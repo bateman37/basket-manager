@@ -6,8 +6,9 @@
 // configurable, avance FIJO entre rondas). Convención del proyecto:
 // identificadores en inglés, comentarios en español.
 //
-// Ninguno de los dos runners conoce geografía, nombre de país/liga ni ids de
-// España (invariante 10) — auditado en `scripts/test-comp-core1.js`. Ambos:
+// Ninguno de los dos runners conoce geografía, nombre de país/liga ni ningún
+// literal de contenido concreto (invariante 10) — auditado en
+// `scripts/test-comp-core1.js`. Ambos:
 //  - guardan SOLO ids en su estado (invariante 20): las instancias Team se
 //    resuelven vía `resolveParticipant(id)` justo en la frontera con
 //    `MatchEngine.simulateMatch`, nunca antes;

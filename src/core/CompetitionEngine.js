@@ -13,7 +13,8 @@
 //    aporta el contenido);
 //  - lee `state.calendar` por dentro — toda fecha llega de un
 //    `dateResolverProvider` inyectado UNA vez al construir el engine;
-//  - llama a `Date.now()`/`Math.random()`;
+//  - llama a un reloj de sistema (fecha "ahora") ni a un generador de
+//    aleatoriedad propio;
 //  - muta roster/contrato/licencia/Club;
 //  - recalcula una clasificación para fabricar otro resultado independiente
 //    (consultar nunca simula).
@@ -184,7 +185,7 @@
     // disparada por un checkpoint de OTRA edición) — declaradas por
     // CONTENIDO como datos (nunca funciones), procesadas aquí de forma
     // GENÉRICA (el engine solo compara `triggerType`/`triggerStageId`/
-    // `triggerRound`, nunca "si es ACB").
+    // `triggerRound`, nunca "si es esta competición concreta").
     //
     // `rule`: {
     //   id,                          // único, estable para esta temporada
@@ -337,7 +338,7 @@
     // Procesa un hecho GENÉRICO (`round-completed`/`stage-completed`) de
     // `stage`: activa como mucho UNA vez cada fase declarada (misma edición
     // o edición externa) cuya activación coincida. El core solo compara
-    // tipos/ids — nunca decide "porque es ACB" (invariante 11).
+    // tipos/ids — nunca decide "porque es esta competición concreta" (invariante 11).
     _handleStageEvent(edition, stage, eventType, round) {
       const stageKey = this._stageKeyFromId(stage.id, edition);
       const format = FormatCatalog().requireFormat(edition.formatBindingId);

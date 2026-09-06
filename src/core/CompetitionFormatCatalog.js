@@ -5,7 +5,7 @@
 // disponible en Node como en el navegador, cargado una sola vez. Convención
 // del proyecto: identificadores en inglés, comentarios en español.
 //
-// Este catálogo NO conoce España/ACB/Primera FEB — los paquetes de contenido
+// Este catálogo NO conoce ningún país/liga/competición concretos — los paquetes de contenido
 // (`data/world/spain-2026.1.js`) registran aquí sus propios formatos vía
 // `registerFormat()`. Ningún literal de país/competición aparece en este
 // archivo.

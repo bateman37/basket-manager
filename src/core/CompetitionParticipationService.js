@@ -8,7 +8,7 @@
 // Invariante 7/8 (DESIGN.md): un Team puede tener Entry simultánea en
 // Liga, Copa y, en el futuro, Europa — por eso NUNCA se añade
 // `team.competitionId` como fuente única, y ninguna función de aquí
-// "elige la primera del array" ni asume ACB/la competición del próximo
+// "elige la primera del array" ni asume una competición fija/la del próximo
 // partido por defecto: si no hay coincidencia, o hay más de una cuando se
 // pidió una sola, falla de forma descriptiva.
 //
@@ -46,7 +46,7 @@
   // Liga doméstica PRINCIPAL de un Team — el llamador declara criterios
   // EXPLÍCITOS (`kind: 'league'`, `seasonKey`); si no hay ninguna
   // competición de liga o hay más de una, falla descriptivo (nunca elige
-  // "la primera", ni la de tier menor, ni ACB por defecto).
+  // "la primera", ni la de tier menor, ni ninguna competición fija por defecto).
   function primaryLeagueCompetitionId(registries, participantId, { seasonKey } = {}) {
     if (!seasonKey) throw new Error('CompetitionParticipationService.primaryLeagueCompetitionId: falta "seasonKey" explícito.');
     const competitions = activeCompetitionsForParticipant(registries, participantId, { seasonKey })
