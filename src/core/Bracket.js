@@ -1,207 +1,173 @@
 // src/core/Bracket.js
-// Piezas reutilizables de eliminatoria — FASE 2 de Liga/Calendario (ver
-// DESIGN.md sección 3.2). Convención del proyecto: identificadores en
-// inglés, comentarios en español.
+// Piezas reutilizables de eliminatoria — ver DESIGN.md sección 3.2.
+// Convención del proyecto: identificadores en inglés, comentarios en
+// español.
 //
-// Series: eliminatoria al mejor de N partidos entre dos equipos, con un
-// patrón de campo dado (1-1-1, 2-2-1, o partido único = mejor de 1).
-// Bracket: encadena rondas de Series desde un conjunto de entradas
-// semilladas (seed 1 = mejor), con emparejamientos FIJOS — nunca se
-// reordena por resultado (DESIGN.md exige bracket fijo tanto en playoffs
-// como en Copa; el playoff de ascenso de 2ª división es la única
-// excepción, y esa reordenación se implementa en Promotion.js, no aquí).
+// COMP-CORE-1 (DESIGN.md 10.13): `Series`/`Bracket` dejan de contener el
+// algoritmo de avance/patrón de campo — son FACHADAS FINAS sobre el runner
+// genérico `BracketStageRunner` (`src/core/CompetitionRunners.js`),
+// conservadas por el mismo motivo que `League.js`: compatibilidad de
+// scripts/tests históricos que construyen `new Bracket(...)` directamente,
+// Y fachada que usa el runtime productivo cuando `CompetitionEngine` ya
+// construyó el runner real (`runtimeOptions`). Nunca hay dos algoritmos.
+//
+// BUG-COMPCORE-03 (corregido aquí): antes, `Series.playNextGame()`
+// calculaba la fecha DESPUÉS de simular — todo el prepartido (descanso,
+// entrenamiento, elegibilidad, acta) recibía una aproximación. Ahora el
+// descriptor (id global + fecha real) se crea ANTES de invocar
+// `resolveOptions`/`MatchEngine` (`BracketStageRunner._ensureNextGameDescriptor`),
+// así que `resolveOptions` recibe también `(scheduledDate, matchId)` reales.
+//
+// Destino: `game.js` ya NO construye `new Bracket()` en la ruta productiva
+// (retirado, ver CLAUDE.md/DESIGN.md 10.8) — la construye
+// `CompetitionEngine`.
 
 (function (global) {
-  const MatchEngineCore = (typeof module !== 'undefined' && module.exports)
-    ? require('./MatchEngine.js')
+  const RunnersCore = (typeof module !== 'undefined' && module.exports)
+    ? require('./CompetitionRunners.js')
     : global.BasketManager;
 
-  const { simulateMatch } = MatchEngineCore;
+  const { BracketStageRunner, VENUE_PATTERNS } = RunnersCore;
 
-  // Patrones de campo estándar (DESIGN.md 3.2). Cada posición del array
-  // indica quién es local en ese partido de la serie: 'better' = el
-  // equipo mejor clasificado de los dos (seed más bajo), 'worse' = el
-  // otro. La longitud del patrón es el nº máximo de partidos de la serie.
-  const VENUE_PATTERNS = {
-    SINGLE_GAME: ['better'],
-    BEST_OF_3_1_1_1: ['better', 'worse', 'better'],
-    BEST_OF_5_2_2_1: ['better', 'better', 'worse', 'worse', 'better'],
-  };
-
-  // --- Series: al mejor de N partidos entre dos equipos ---
-  class Series {
-    // `betterEntry`/`worseEntry`: { team, seed } — seed = posición de
-    // origen (liga regular u otra fuente), 1 = mejor. La ventaja de campo
-    // en cada partido la decide `pattern`, siempre en términos relativos
-    // a quién es "better"/"worse", nunca en términos de un equipo fijo.
-    // `dateResolver` (opcional, DESIGN.md 3.3): `(gameIndexInSeries) =>
-    // Date`, ya fijado a la ronda de esta Series por Bracket.buildRound().
-    constructor(betterEntry, worseEntry, pattern, dateResolver) {
-      this.betterEntry = betterEntry;
-      this.worseEntry = worseEntry;
-      this.pattern = pattern;
-      this.gamesNeededToWin = Math.ceil(pattern.length / 2);
-      this.games = []; // { gameNumber, homeEntry, awayEntry, result, date }
-      this.wins = { better: 0, worse: 0 };
-      this.dateResolver = dateResolver || null;
-    }
-
-    get isDecided() {
-      return this.wins.better >= this.gamesNeededToWin || this.wins.worse >= this.gamesNeededToWin;
-    }
-
-    get winner() {
-      if (!this.isDecided) return null;
-      return this.wins.better > this.wins.worse ? this.betterEntry : this.worseEntry;
-    }
-
-    get loser() {
-      if (!this.isDecided) return null;
-      return this.wins.better > this.wins.worse ? this.worseEntry : this.betterEntry;
-    }
-
-    // Juega el siguiente partido pendiente de la serie, simulándolo de
-    // verdad con MatchEngine.simulateMatch (nunca en bloque).
-    //
-    // `resolveOptions` (opcional, DESIGN.md 7.11.6 — pantalla de
-    // Alineación): callback `(homeEntry, awayEntry) => options|undefined`
-    // que permite pasar `options.home/awaySquad`+`home/awayLineup` para el
-    // equipo del usuario cuando le toque jugar dentro del bracket.
-    playNextGame(config, resolveOptions) {
-      if (this.isDecided) {
-        throw new Error('Series.playNextGame: la serie ya tiene ganador, no quedan partidos por jugar');
-      }
-      const gameIndex = this.games.length;
-      const homeSide = this.pattern[gameIndex];
-      const homeEntry = homeSide === 'better' ? this.betterEntry : this.worseEntry;
-      const awayEntry = homeSide === 'better' ? this.worseEntry : this.betterEntry;
-      const options = resolveOptions ? resolveOptions(homeEntry, awayEntry) : undefined;
-      const result = simulateMatch(homeEntry.team, awayEntry.team, config, options);
-      const homeWon = result.finalScore.home > result.finalScore.away;
-      const winnerSide = homeWon === (homeSide === 'better') ? 'better' : 'worse';
-      this.wins[winnerSide] += 1;
-      const game = {
-        gameNumber: gameIndex + 1,
-        homeEntry,
-        awayEntry,
-        result,
-        // DESIGN.md 3.3: fecha real del partido, si el Bracket recibió un
-        // dateResolver (Calendar.buildBracketDateResolver) — null si no.
-        date: this.dateResolver ? this.dateResolver(gameIndex) : null,
-      };
-      this.games.push(game);
-      return game;
-    }
-
-    getStatus() {
-      return {
-        betterEntry: this.betterEntry,
-        worseEntry: this.worseEntry,
-        wins: { ...this.wins },
-        gamesPlayed: this.games.length,
-        gamesNeededToWin: this.gamesNeededToWin,
-        isDecided: this.isDecided,
-        winner: this.winner,
-      };
-    }
+  // --- Series: vista legacy sobre una serie del runner ---
+  //
+  // Ya no es una clase con estado propio: envuelve la serie CANÓNICA del
+  // runner (misma referencia siempre) y expone la forma histórica
+  // (betterEntry/worseEntry/pattern/games/wins/isDecided/winner/loser/
+  // getStatus) — `games` se rellena en el mismo orden en que se resuelven
+  // los partidos (`Bracket.playNextGame()`), igual que antes.
+  function wrapSeries(canonicalSeries, teamsById) {
+    const wrapEntry = (entry) => ({ team: teamsById.get(entry.participantId), seed: entry.seed });
+    const legacy = {
+      betterEntry: wrapEntry(canonicalSeries.better),
+      worseEntry: wrapEntry(canonicalSeries.worse),
+      pattern: canonicalSeries.pattern,
+      gamesNeededToWin: canonicalSeries.gamesNeededToWin,
+      games: [],
+      wins: canonicalSeries.wins, // MISMA referencia — el runner la muta in-place
+      get isDecided() {
+        return canonicalSeries.wins.better >= canonicalSeries.gamesNeededToWin
+          || canonicalSeries.wins.worse >= canonicalSeries.gamesNeededToWin;
+      },
+      get winner() {
+        if (!legacy.isDecided) return null;
+        return canonicalSeries.wins.better > canonicalSeries.wins.worse ? legacy.betterEntry : legacy.worseEntry;
+      },
+      get loser() {
+        if (!legacy.isDecided) return null;
+        return canonicalSeries.wins.better > canonicalSeries.wins.worse ? legacy.worseEntry : legacy.betterEntry;
+      },
+      getStatus() {
+        return {
+          betterEntry: legacy.betterEntry,
+          worseEntry: legacy.worseEntry,
+          wins: { ...canonicalSeries.wins },
+          gamesPlayed: legacy.games.length,
+          gamesNeededToWin: legacy.gamesNeededToWin,
+          isDecided: legacy.isDecided,
+          winner: legacy.winner,
+        };
+      },
+    };
+    return legacy;
   }
 
-  // --- Bracket: encadena rondas de Series, con emparejamiento FIJO ---
+  // --- Bracket: fachada sobre BracketStageRunner ---
   //
-  // `entries`: array de { team, seed } (no hace falta que estén ordenadas).
-  // `firstRoundPairing`: array de pares [seedA, seedB] EN ORDEN DE BRACKET,
-  // no en orden "de anuncio" — las series consecutivas (0,1), (2,3), ...
-  // son las que se enfrentarán entre sí en la ronda siguiente. Ej.: para
-  // un bracket de 8 con emparejamientos 1v8/2v7/3v6/4v5, el orden de
-  // bracket correcto es [[1,8],[4,5],[2,7],[3,6]] — así el 1 y el 2 solo
-  // pueden cruzarse en la final (formato estándar de seeding). Quien llama
-  // a Bracket es responsable de pasar ya el orden correcto.
-  // `roundPatterns`: array de VENUE_PATTERNS.*, uno por ronda, en el orden
-  // en que se van a jugar (ej. [BEST_OF_3_1_1_1, BEST_OF_5_2_2_1, BEST_OF_5_2_2_1]).
+  // `entries`: array de { team, seed } (Team reales — nunca ids, mismo
+  // contrato histórico). `runtimeOptions` (opcional, COMP-CORE-1):
+  // `{ runner, entryIdFor(teamId), matchIdResolver }` — cuando el engine ya
+  // construyó el `BracketStageRunner` real, esta fachada solo lo envuelve.
   class Bracket {
-    // `dateResolver` (opcional, DESIGN.md 3.3): `(roundIndex,
-    // gameIndexInSeries) => Date`, normalmente
-    // `Calendar.buildBracketDateResolver(startDate, roundPatterns)`. Sin
-    // él, todas las `date` de los partidos quedan en `null` — igual que
-    // antes de existir Calendar.js.
-    constructor(entries, firstRoundPairing, roundPatterns, dateResolver) {
-      const bySeed = new Map(entries.map((entry) => [entry.seed, entry]));
+    constructor(entries, firstRoundPairing, roundPatterns, dateResolver, runtimeOptions) {
+      const opts = runtimeOptions || {};
       this.roundPatterns = roundPatterns;
       this.dateResolver = dateResolver || null;
-      const firstRoundEntryPairs = firstRoundPairing.map(
-        ([seedA, seedB]) => [bySeed.get(seedA), bySeed.get(seedB)],
-      );
-      this.rounds = [this.buildRound(firstRoundEntryPairs, 0)];
-    }
-
-    buildRound(entryPairs, roundIndex) {
-      const pattern = this.roundPatterns[roundIndex];
-      const seriesDateResolver = this.dateResolver
-        ? (gameIndexInSeries) => this.dateResolver(roundIndex, gameIndexInSeries)
-        : null;
-      return entryPairs.map(([entryA, entryB]) => {
-        const better = entryA.seed <= entryB.seed ? entryA : entryB;
-        const worse = entryA.seed <= entryB.seed ? entryB : entryA;
-        return new Series(better, worse, pattern, seriesDateResolver);
+      this._teamsById = new Map(entries.map((e) => [e.team.id, e.team]));
+      const canonicalEntries = entries.map((e) => ({
+        participantId: e.team.id,
+        seed: e.seed,
+        entryId: opts.entryIdFor ? opts.entryIdFor(e.team.id) : null,
+      }));
+      this.runner = opts.runner || new BracketStageRunner({
+        stageId: opts.stageId || null,
+        competitionDefinitionId: opts.competitionDefinitionId || null,
+        competitionEditionId: opts.competitionEditionId || null,
+        stageKey: opts.stageKey || null,
+        entries: canonicalEntries,
+        firstRoundPairing,
+        roundPatterns,
+        dateResolver: dateResolver ? (roundIndex, gameIndexInSeries) => dateResolver(roundIndex, gameIndexInSeries) : null,
+        matchIdResolver: opts.matchIdResolver || null,
+        resolveParticipant: (id) => this._teamsById.get(id),
       });
+      this._legacySeriesByCanonicalId = new Map();
+      this.rounds = [this._wrapRound(this.runner.rounds[0])];
     }
 
-    get currentRound() {
-      return this.rounds[this.rounds.length - 1];
+    _wrapSeries(canonicalSeries) {
+      if (!this._legacySeriesByCanonicalId.has(canonicalSeries.id)) {
+        this._legacySeriesByCanonicalId.set(canonicalSeries.id, wrapSeries(canonicalSeries, this._teamsById));
+      }
+      return this._legacySeriesByCanonicalId.get(canonicalSeries.id);
     }
 
-    isCurrentRoundComplete() {
-      return this.currentRound.every((series) => series.isDecided);
+    _wrapRound(canonicalRound) { return canonicalRound.map((s) => this._wrapSeries(s)); }
+
+    _syncRounds() {
+      while (this.rounds.length < this.runner.rounds.length) {
+        this.rounds.push(this._wrapRound(this.runner.rounds[this.rounds.length]));
+      }
     }
 
-    // Si la ronda actual ya está completa y todavía queda alguna ronda por
-    // jugar, construye la siguiente emparejando a los ganadores en el
-    // mismo orden fijo (sin mirar el resultado para reordenar).
-    advanceIfPossible() {
-      if (!this.isCurrentRoundComplete()) return;
-      if (this.rounds.length >= this.roundPatterns.length) return;
-      const winners = this.currentRound.map((series) => series.winner);
-      const entryPairs = [];
-      for (let i = 0; i < winners.length; i += 2) entryPairs.push([winners[i], winners[i + 1]]);
-      this.rounds.push(this.buildRound(entryPairs, this.rounds.length));
-    }
+    get currentRound() { return this.rounds[this.rounds.length - 1]; }
+
+    isCurrentRoundComplete() { return this.currentRound.every((s) => s.isDecided); }
+
+    advanceIfPossible() { this._syncRounds(); }
 
     get champion() {
-      if (this.rounds.length < this.roundPatterns.length) return null;
-      const finalRound = this.rounds[this.rounds.length - 1];
-      if (finalRound.length !== 1 || !finalRound[0].isDecided) return null;
-      return finalRound[0].winner;
+      const c = this.runner.champion;
+      return c ? { team: this._teamsById.get(c.participantId), seed: c.seed } : null;
     }
 
-    get isComplete() {
-      return this.champion !== null;
-    }
+    get isComplete() { return this.runner.isComplete; }
 
-    // Juega el siguiente partido pendiente de TODO el bracket (detecta en
-    // qué serie/ronda toca) y avanza de ronda automáticamente en cuanto
-    // corresponda. `resolveOptions`: ver Series.playNextGame — se reenvía
-    // tal cual a la serie que le toque jugar.
+    // Juega el siguiente partido pendiente de TODO el bracket.
+    // `resolveOptions(homeEntry, awayEntry, scheduledDate, matchId)` —
+    // BUG-COMPCORE-03: `scheduledDate`/`matchId` YA son reales (el
+    // descriptor se crea antes de simular), nunca una aproximación.
     playNextGame(config, resolveOptions) {
-      this.advanceIfPossible();
-      const pendingSeries = this.currentRound.find((series) => !series.isDecided);
-      if (!pendingSeries) {
-        throw new Error('Bracket.playNextGame: el bracket ya está completo (hay campeón)');
-      }
-      const game = pendingSeries.playNextGame(config, resolveOptions);
-      this.advanceIfPossible();
+      const pending = this.runner.peekNextPendingMatch();
+      if (!pending) throw new Error('Bracket.playNextGame: el bracket ya está completo (hay campeón)');
+      const { series: canonicalSeries, descriptor } = pending;
+      const homeEntry = { team: this._teamsById.get(descriptor.homeParticipantId), seed: descriptor.homeSeed };
+      const awayEntry = { team: this._teamsById.get(descriptor.awayParticipantId), seed: descriptor.awaySeed };
+      const options = resolveOptions ? resolveOptions(homeEntry, awayEntry, descriptor.scheduledDate, descriptor.id) : undefined;
+      this.runner.resolveMatch(descriptor.id, { matchEngineConfig: config, matchEngineOptions: options });
+      this._syncRounds();
+      const legacySeries = this._wrapSeries(canonicalSeries);
+      const game = {
+        gameNumber: descriptor.gameNumber, homeEntry, awayEntry, result: descriptor.result, date: descriptor.scheduledDate,
+      };
+      legacySeries.games.push(game);
       return game;
     }
 
     getStatus() {
       return {
-        rounds: this.rounds.map((round) => round.map((series) => series.getStatus())),
+        rounds: this.rounds.map((round) => round.map((s) => s.getStatus())),
         champion: this.champion,
         isComplete: this.isComplete,
       };
     }
   }
 
-  const exportsObj = { Series, Bracket, VENUE_PATTERNS };
+  const exportsObj = { Series: null, Bracket, VENUE_PATTERNS };
+  // `Series` histórica ya no se instancia de forma independiente (nunca
+  // tuvo consumidores fuera de este archivo, ver auditoría de game.js) —
+  // se conserva el nombre exportado como `null` documentado, en vez de
+  // borrarlo, por si algún script externo lo importa defensivamente.
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

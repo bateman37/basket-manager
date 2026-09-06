@@ -260,9 +260,15 @@
       return this.squads.register(squad);
     }
 
+    // BUG-COMPCORE-01 (COMP-CORE-1): invariante 9 (DESIGN.md) — toda
+    // definición referencia un organizador EXISTENTE. Antes de esta
+    // corrección, `registerCompetitionDefinition()` no lo comprobaba.
     registerCompetitionDefinition(definition) {
       if (definition.scopeAreaId !== null && !this.areas.has(definition.scopeAreaId)) {
         throw new Error(`WorldRegistries: la competición "${definition.id}" referencia un área de ámbito inexistente "${definition.scopeAreaId}".`);
+      }
+      if (!this.organizations.has(definition.organizerId)) {
+        throw new Error(`WorldRegistries: la competición "${definition.id}" referencia un organizador inexistente "${definition.organizerId}".`);
       }
       return this.competitionDefinitions.register(definition);
     }
@@ -277,8 +283,24 @@
     // Único punto que añade un stage a una edición — `edition.stageIds`
     // nunca se empuja desde otro sitio (evita la desincronización que
     // describe la cabecera del archivo).
+    //
+    // BUG-COMPCORE-01: `sourceStageIds`/`nextStageIds` solo pueden conectar
+    // stages de la MISMA edición (invariante 4) — se comprueba aquí contra
+    // cualquier stage YA registrado que referencien (un id que todavía no
+    // existe se revalida en `validateIntegrity()`, que recorre el grafo
+    // completo una vez todo está registrado).
     registerCompetitionStage(stage) {
       const edition = this.competitionEditions.require(stage.editionId);
+      [...stage.sourceStageIds, ...stage.nextStageIds].forEach((referencedId) => {
+        const referenced = this.competitionStages.get(referencedId);
+        if (referenced && referenced.editionId !== stage.editionId) {
+          throw new Error(
+            `WorldRegistries: el stage "${stage.id}" (edición "${stage.editionId}") referencia en `
+            + `sourceStageIds/nextStageIds el stage "${referencedId}" de OTRA edición ("${referenced.editionId}") `
+            + '— solo pueden conectar stages de la MISMA edición (invariante 4).',
+          );
+        }
+      });
       this.competitionStages.register(stage);
       if (!edition.stageIds.includes(stage.id)) edition.stageIds.push(stage.id);
       return stage;
@@ -287,6 +309,11 @@
     // Único punto que añade un entry a una edición (y, si declara stage, a
     // ese stage) — invariante 12: participante compatible con
     // `participantType` de la definición de la edición.
+    //
+    // BUG-COMPCORE-01: además de que el Stage EXISTA, se comprueba que
+    // pertenezca a la MISMA edición que declara el Entry (invariante 5) —
+    // antes de esta corrección era posible registrar un Entry en la
+    // edición B apuntando a un Stage de la edición A.
     registerCompetitionEntry(entry) {
       const edition = this.competitionEditions.require(entry.editionId);
       const definition = this.competitionDefinitions.require(edition.competitionDefinitionId);
@@ -296,7 +323,16 @@
           + `competición "${definition.id}" es de participantType "${definition.participantType}".`,
         );
       }
-      if (entry.stageId) this.competitionStages.require(entry.stageId);
+      if (entry.stageId) {
+        const stage = this.competitionStages.require(entry.stageId);
+        if (stage.editionId !== entry.editionId) {
+          throw new Error(
+            `WorldRegistries: el entry "${entry.id}" declara editionId "${entry.editionId}" pero su stage `
+            + `"${entry.stageId}" pertenece a la edición "${stage.editionId}" — un Entry no puede registrarse en `
+            + 'el Stage de OTRA edición (invariante 5).',
+          );
+        }
+      }
       this.competitionEntries.register(entry);
       if (!edition.entryIds.includes(entry.id)) edition.entryIds.push(entry.id);
       if (entry.stageId) {
@@ -353,9 +389,50 @@
       });
       this.competitionStages.all().forEach((stage) => {
         if (!this.competitionEditions.has(stage.editionId)) errors.push(`Stage "${stage.id}": edición inexistente "${stage.editionId}".`);
+        // BUG-COMPCORE-01: auditoría AGREGADA de sourceStageIds/nextStageIds
+        // (invariante 4) — cubre también referencias hacia adelante que
+        // todavía no existían cuando se registró el stage.
+        [...stage.sourceStageIds, ...stage.nextStageIds].forEach((refId) => {
+          const referenced = this.competitionStages.get(refId);
+          if (!referenced) { errors.push(`Stage "${stage.id}": sourceStageIds/nextStageIds referencia un stage inexistente "${refId}".`); return; }
+          if (referenced.editionId !== stage.editionId) {
+            errors.push(`Stage "${stage.id}": sourceStageIds/nextStageIds referencia el stage "${refId}" de OTRA edición ("${referenced.editionId}").`);
+          }
+        });
+      });
+      // BUG-COMPCORE-01: sourceStageIds/nextStageIds no pueden formar un
+      // ciclo dentro de una misma edición (invariante 4) — DFS por el grafo
+      // de "siguiente stage" (nextStageIds), con el set "en la pila actual"
+      // (no un "ya visto" global, que daría falsos positivos ante nodos
+      // convergentes que no son un ciclo real).
+      const cyclicStageIds = new Set();
+      const stagesById = this.competitionStages;
+      this.competitionStages.all().forEach((startStage) => {
+        const inCurrentPath = new Set();
+        const visitedFromHere = new Set();
+        const dfs = (id) => {
+          if (inCurrentPath.has(id)) return true;
+          if (visitedFromHere.has(id)) return false;
+          visitedFromHere.add(id);
+          inCurrentPath.add(id);
+          const current = stagesById.get(id);
+          const cyclic = current ? current.nextStageIds.some((nextId) => dfs(nextId)) : false;
+          inCurrentPath.delete(id);
+          return cyclic;
+        };
+        if (dfs(startStage.id) && !cyclicStageIds.has(startStage.id)) {
+          cyclicStageIds.add(startStage.id);
+          errors.push(`Stage "${startStage.id}": ciclo detectado en sourceStageIds/nextStageIds.`);
+        }
       });
       this.competitionEntries.all().forEach((entry) => {
         if (!this.competitionEditions.has(entry.editionId)) errors.push(`Entry "${entry.id}": edición inexistente "${entry.editionId}".`);
+        if (entry.stageId) {
+          const stage = this.competitionStages.get(entry.stageId);
+          if (stage && stage.editionId !== entry.editionId) {
+            errors.push(`Entry "${entry.id}": su stage "${entry.stageId}" pertenece a la edición "${stage.editionId}", no a "${entry.editionId}".`);
+          }
+        }
         if (entry.participantType === 'club-team' && !this.teams.has(entry.participantId)) {
           errors.push(`Entry "${entry.id}": equipo inexistente "${entry.participantId}".`);
         }
