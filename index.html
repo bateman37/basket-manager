@@ -318,6 +318,12 @@
        referencia OBLIGATORIA). Se carga junto a LocalDate porque
        ContractService/Tactics/game.js la consumen desde el arranque. -->
   <script src="src/utils/CareerAge.js"></script>
+  <!-- WORLD-CALENDAR-1 (DESIGN.md 10.14): tiempo CANÓNICO del mundo
+       (instante ISO UTC + huso IANA explícito), separado de LocalDate
+       (fechas civiles). Lo consumen el catálogo/servicio de calendarios,
+       WorldCalendar y su coordinador, así que se carga aquí, junto a las
+       demás utilidades sin dependencias. -->
+  <script src="src/utils/GameDateTime.js"></script>
   <!-- BUG-TRANSFER1-13 (DESIGN.md 9.21): utilidad pura compartida de
        auditoría de simetría de índices secundarios (ContractRegistry/
        RegistrationRegistry/TransferRegistry) — no depende de nada. -->
@@ -553,6 +559,16 @@
   <script src="src/core/CompetitionRuntimeRegistry.js"></script>
   <script src="src/core/CompetitionEngine.js"></script>
   <script src="src/core/CompetitionParticipationService.js"></script>
+  <!-- WORLD-CALENDAR-1 (DESIGN.md 10.14): calendarios como CONTENIDO
+       versionado (entidad + catálogo + algoritmo genérico) y cronología
+       mundial única (WorldCalendar + coordinador de "Continuar"). El
+       catálogo debe cargarse ANTES que `data/world/spain-2026.1.js`, que
+       registra en él sus perfiles al instalar el paquete. -->
+  <script src="src/entities/CompetitionSchedule.js"></script>
+  <script src="src/core/CompetitionScheduleCatalog.js"></script>
+  <script src="src/core/CompetitionScheduleService.js"></script>
+  <script src="src/core/WorldCalendar.js"></script>
+  <script src="src/core/WorldCalendarCoordinator.js"></script>
   <script src="data/world/world-core-2026.1.js"></script>
   <script src="data/world/spain-2026.1.js"></script>
   <script src="src/ui/game.js"></script>

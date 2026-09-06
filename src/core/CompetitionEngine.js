@@ -459,6 +459,13 @@
         startDate: action.startDate || null,
         formatBindingId: action.formatBindingId,
         participants: entries.map((e) => ({ id: e.participantId, seed: e.seed })),
+        // WORLD-CALENDAR-1: la edición activada por una regla cruzada
+        // CONGELA también su calendario y su ruleset (antes solo el
+        // formato) — una Copa con runtime fechado ya no puede tener
+        // `scheduleProfileId: null`. La regla los transporta como DATO
+        // plano; el engine nunca sabe de qué competición se trata.
+        scheduleProfileId: action.scheduleProfileId || null,
+        rulesetBundleId: action.rulesetBundleId || null,
       });
       this.initializeEdition(edition.id);
       this._activationEvents.push({ type: 'edition-activated', editionId: edition.id, competitionDefinitionId: action.competitionDefinitionId });
@@ -515,12 +522,30 @@
         .find((s) => s.status === 'active') || null;
     }
 
+    // Partidos PENDIENTES ya materializados de una fase concreta, en orden
+    // estable — WORLD-CALENDAR-1: para round-robin es TODO el calendario
+    // pendiente (no solo la jornada actual: la cola mundial ordena por
+    // fecha, no por puntero de jornada) y para bracket es un descriptor por
+    // CADA serie viva de la ronda. PURO: no materializa ni consume RNG.
     listPendingMatches(stageId) {
-      const runner = this.runtimeRegistry.requireRunner(stageId);
-      if (typeof runner.getCurrentRoundMatches === 'function') {
-        return runner.getCurrentRoundMatches().filter((m) => m.status === 'pending');
-      }
-      return runner.getPendingMatches();
+      return this.runtimeRegistry.requireRunner(stageId).getPendingMatches();
+    }
+
+    // Partidos pendientes de TODOS los runners activos, con orden TOTAL
+    // estable (instante, id) independiente del orden de inserción de
+    // Editions/Stages/`Map` (invariante 12). Fuente `competition-match` de
+    // la cola mundial.
+    listAllPendingMatches() {
+      const all = [];
+      this.runtimeRegistry.allStageIds().forEach((stageId) => {
+        this.runtimeRegistry.requireRunner(stageId).getPendingMatches().forEach((descriptor) => all.push(descriptor));
+      });
+      return all.sort((a, b) => {
+        const ia = a.scheduledAt || '';
+        const ib = b.scheduledAt || '';
+        if (ia !== ib) return ia < ib ? -1 : 1;
+        return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+      });
     }
 
     peekNextPendingMatch(stageId) {

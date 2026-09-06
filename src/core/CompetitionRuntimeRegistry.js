@@ -52,14 +52,23 @@
 
     hasActivationFired(activationKey) { return this._firedActivationIds.has(activationKey); }
 
-    allStageIds() { return [...this._runnersByStageId.keys()]; }
+    // WORLD-CALENDAR-1 (sección 10): orden ESTABLE por id, nunca por orden
+    // de inserción del `Map` — el orden total de la cola mundial no puede
+    // depender de qué fase se registró primero (invariante 12).
+    allStageIds() {
+      return [...this._runnersByStageId.keys()].sort((a, b) => (a < b ? -1 : (a > b ? 1 : 0)));
+    }
+
+    allRunners() {
+      return this.allStageIds().map((stageId) => ({ stageId, runner: this._runnersByStageId.get(stageId) }));
+    }
 
     // Snapshot serializable de TODOS los runners vivos — nunca instancias
     // Team/Map/funciones (invariante 27), usado por `CompetitionEngine.
     // snapshot()`/diagnóstico.
     snapshot() {
       const stages = {};
-      this._runnersByStageId.forEach((runner, stageId) => { stages[stageId] = runner.snapshot(); });
+      this.allStageIds().forEach((stageId) => { stages[stageId] = this._runnersByStageId.get(stageId).snapshot(); });
       return { stages };
     }
   }

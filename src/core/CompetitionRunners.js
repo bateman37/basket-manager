@@ -27,6 +27,53 @@
 
   const { simulateMatch } = MatchEngineCore;
 
+  // WORLD-CALENDAR-1 (DESIGN.md 10.14) — AUTORIDAD temporal de un
+  // descriptor de partido: `scheduledAt` (instante ISO UTC) +
+  // `timeZoneId` IANA explícito. `scheduledDate` (`Date`) se conserva como
+  // VISTA de compatibilidad para motor/UI legacy, SIEMPRE derivada de
+  // `scheduledAt`, nunca como segunda fuente (sección 7 del prompt,
+  // BUG-WORLDCALENDAR-03). Un `dateResolver` histórico que devuelva un
+  // `Date` suelto sigue funcionando (scripts/tests standalone): se deriva
+  // su instante UTC, pero sin huso declarado.
+  const EMPTY_SCHEDULING = Object.freeze({
+    scheduledAt: null, timeZoneId: null, scheduledLocalDate: null, scheduledLocalTime: null, scheduledDate: null,
+  });
+
+  function normalizeScheduling(value) {
+    if (!value) return EMPTY_SCHEDULING;
+    if (value instanceof Date) {
+      return {
+        scheduledAt: value.toISOString().replace(/\.\d{3}Z$/, 'Z'),
+        timeZoneId: null,
+        scheduledLocalDate: null,
+        scheduledLocalTime: null,
+        scheduledDate: value,
+      };
+    }
+    if (!value.scheduledAt) {
+      throw new Error(
+        'CompetitionRunners: el resolver de fechas devolvió un objeto sin "scheduledAt" — la autoridad temporal '
+        + 'de un partido es el instante UTC, nunca un Date sin huso.',
+      );
+    }
+    return {
+      scheduledAt: value.scheduledAt,
+      timeZoneId: value.timeZoneId || null,
+      scheduledLocalDate: value.scheduledLocalDate || null,
+      scheduledLocalTime: value.scheduledLocalTime || null,
+      scheduledDate: value.scheduledDate || new Date(value.scheduledAt),
+    };
+  }
+
+  // Orden ESTABLE de descriptores pendientes: instante y, a igualdad, id
+  // (nunca orden de inserción del array).
+  function compareScheduled(a, b) {
+    const ia = a.scheduledAt || '';
+    const ib = b.scheduledAt || '';
+    if (ia !== ib) return ia < ib ? -1 : 1;
+    return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+  }
+
   // =========================================================================
   // 1. round-robin — algoritmo del círculo, generalizado a N participantes
   //    (par o impar, con bye EXPLÍCITO — nunca un partido contra un equipo
@@ -223,7 +270,7 @@
             const meta = {
               round: roundNumber, matchIndexInRound, matchesInRound: pairs.length, totalRounds: this.totalRounds,
             };
-            const scheduledDate = this.dateResolver ? this.dateResolver(meta) : null;
+            const scheduling = normalizeScheduling(this.dateResolver ? this.dateResolver(meta) : null);
             const descriptor = {
               id: `match:${this.stageId || 'standalone'}:r${roundNumber}:${homeId}:${awayId}`,
               competitionDefinitionId: this.competitionDefinitionId,
@@ -237,7 +284,7 @@
               homeEntryId: entryIdFor(homeId),
               awayEntryId: entryIdFor(awayId),
               status: 'pending',
-              scheduledDate,
+              ...scheduling,
               result: null,
             };
             this.matches.push(descriptor);
@@ -268,7 +315,15 @@
     getPendingMatchesBefore(beforeDateTime) {
       return this.matches
         .filter((m) => m.status === 'pending' && m.scheduledDate && m.scheduledDate < beforeDateTime)
-        .sort((a, b) => a.scheduledDate - b.scheduledDate);
+        .sort(compareScheduled);
+    }
+
+    // WORLD-CALENDAR-1: TODOS los pendientes ya materializados, en orden
+    // estable (instante, id) — consultar no muta nada ni consume RNG
+    // (invariante 11). Es el bloque de construcción de la fuente
+    // `competition-match` de la cola mundial.
+    getPendingMatches() {
+      return this.matches.filter((m) => m.status === 'pending').sort(compareScheduled);
     }
 
     _recordHeadToHead(homeId, awayId, homeScore, awayScore) {
@@ -359,8 +414,10 @@
         totalRounds: this.totalRounds,
         currentRoundPointer: this._currentRoundPointer,
         isComplete: this.isComplete,
+        // Los snapshots serializan STRINGS, nunca instancias `Date`
+        // (sección 7 del prompt) — `scheduledAt` es la autoridad.
         matches: this.matches.map((m) => ({
-          ...m, scheduledDate: m.scheduledDate ? new Date(m.scheduledDate).toISOString() : null,
+          ...m, scheduledDate: m.scheduledAt || null,
         })),
         standings: this.getStandings(),
       };
@@ -478,7 +535,7 @@
       const homeSide = series.pattern[gameIndex];
       const homeEntry = homeSide === 'better' ? series.better : series.worse;
       const awayEntry = homeSide === 'better' ? series.worse : series.better;
-      const scheduledDate = this.dateResolver ? this.dateResolver(series.roundIndex, gameIndex) : null;
+      const scheduling = normalizeScheduling(this.dateResolver ? this.dateResolver(series.roundIndex, gameIndex) : null);
       const id = this.matchIdResolver
         ? this.matchIdResolver(series.roundIndex, series.seriesIndexInRound, gameIndex)
         : `match:${this.stageId || 'standalone'}:r${series.roundIndex}:s${series.seriesIndexInRound}:g${gameIndex}`;
@@ -498,23 +555,46 @@
         homeEntryId: homeEntry.entryId || null,
         awayEntryId: awayEntry.entryId || null,
         status: 'pending',
-        scheduledDate,
+        ...scheduling,
         result: null,
       };
       series.games.push(descriptor);
       return descriptor;
     }
 
+    // Descriptor pendiente YA MATERIALIZADO de una serie (sin crear nada) —
+    // WORLD-CALENDAR-1: `resolveMatch()` materializa explícitamente el
+    // siguiente partido de la serie que continúa, así que consultar después
+    // no debe crear objetos ni avanzar rondas (invariante 11).
+    _materializedPendingGame(series) {
+      if (this._isSeriesDecided(series)) return null;
+      const last = series.games[series.games.length - 1];
+      return last && last.status === 'pending' ? last : null;
+    }
+
     // Descriptor del siguiente partido pendiente de TODO el bracket — el
-    // MISMO orden que el `Bracket.js` histórico (primer series NO decidida
-    // de la ronda actual, tras avanzar de ronda si procede). Consultar
-    // nunca resuelve ni muta el resultado.
+    // MISMO orden que el `Bracket.js` histórico (primera series NO decidida
+    // de la ronda actual). PURO: no materializa ni avanza rondas.
     peekNextPendingMatch() {
-      this._advanceIfPossible();
-      const series = this.currentRound.find((s) => !this._isSeriesDecided(s));
-      if (!series) return null;
-      const descriptor = this._ensureNextGameDescriptor(series);
-      return { series, descriptor };
+      for (let i = 0; i < this.currentRound.length; i++) {
+        const series = this.currentRound[i];
+        const descriptor = this._materializedPendingGame(series);
+        if (descriptor) return { series, descriptor };
+      }
+      return null;
+    }
+
+    // WORLD-CALENDAR-1 (sección 10, "cambios mínimos en COMP-CORE"): un
+    // descriptor pendiente por CADA serie VIVA de la ronda, no solo el
+    // primer cruce del array — sin eso, la cola mundial solo podía ver un
+    // partido de eliminatoria a la vez y una ronda entera se resolvía en
+    // fila india (origen de BUG-WORLDCALENDAR-01/02). Orden estable
+    // (instante, id); PURO.
+    listPendingMatches() {
+      return this.currentRound
+        .map((series) => this._materializedPendingGame(series))
+        .filter(Boolean)
+        .sort(compareScheduled);
     }
 
     _findSeriesById(seriesId) { return this._seriesById.get(seriesId) || null; }
@@ -543,10 +623,7 @@
       return finalRound.every((s) => this._isSeriesDecided(s));
     }
 
-    getPendingMatches() {
-      const pending = this.peekNextPendingMatch();
-      return pending ? [pending.descriptor] : [];
-    }
+    getPendingMatches() { return this.listPendingMatches(); }
 
     resolveMatch(matchId, options = {}) {
       let target = null;
@@ -567,6 +644,10 @@
       const winnerSide = homeWon === (homeSide === 'better') ? 'better' : 'worse';
       targetSeries.wins[winnerSide] += 1;
       if (this._isSeriesDecided(targetSeries) && this.onSeriesDecided) this.onSeriesDecided(targetSeries);
+      // WORLD-CALENDAR-1: al resolver un partido de serie se materializa
+      // AQUÍ el siguiente de ESA serie si aún continúa — así consultar la
+      // cola después es una lectura pura (invariante 11).
+      this._ensureNextGameDescriptor(targetSeries);
       this._advanceIfPossible();
       if (this.isComplete && !this._stageCompletedFired) {
         this._stageCompletedFired = true;
@@ -596,7 +677,7 @@
           wins: { ...series.wins },
           isDecided: this._isSeriesDecided(series),
           games: series.games.filter(Boolean).map((g) => ({
-            ...g, scheduledDate: g.scheduledDate ? new Date(g.scheduledDate).toISOString() : null,
+            ...g, scheduledDate: g.scheduledAt || null,
           })),
         }))),
       };

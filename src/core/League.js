@@ -86,14 +86,23 @@
       this._wrapperByDescriptorId = new Map(this.schedule.map((w) => [w._descriptorId, w]));
     }
 
+    // WORLD-CALENDAR-1 (DESIGN.md 10.14): `status`/`result`/`date` pasan a
+    // ser GETTERS sobre el descriptor real del runner (antes eran copias
+    // refrescadas a mano en `resolveMatch`). Así la vista legacy puede
+    // construirse BAJO DEMANDA desde un `stageId`/runner en cualquier
+    // momento y nunca queda obsoleta si el partido se resolvió por otra vía
+    // (la cola mundial resuelve un descriptor cada vez, sin pasar por esta
+    // fachada) — `state.leagues` deja de ser un mapa fijo de estado.
     _wrapMatch(descriptor) {
       return {
         round: descriptor.round,
         homeTeam: this._teamsById.get(descriptor.homeParticipantId),
         awayTeam: this._teamsById.get(descriptor.awayParticipantId),
-        status: descriptor.status,
-        result: descriptor.result,
-        date: descriptor.scheduledDate,
+        get status() { return descriptor.status; },
+        get result() { return descriptor.result; },
+        get date() { return descriptor.scheduledDate; },
+        get scheduledAt() { return descriptor.scheduledAt || null; },
+        get timeZoneId() { return descriptor.timeZoneId || null; },
         // Identidad global estable (BUG-COMPCORE-03) — `matchStableId()`
         // en game.js usa este campo en vez de reconstruir un id local.
         id: descriptor.id,
@@ -116,10 +125,9 @@
     // `match` es uno de los objetos de `this.schedule` (identidad estable).
     resolveMatch(match, config, resolveMatchOptions) {
       const options = resolveMatchOptions ? resolveMatchOptions(match) : undefined;
-      const descriptor = this.runner.resolveMatch(match._descriptorId, { matchEngineConfig: config, matchEngineOptions: options });
-      match.status = descriptor.status;
-      match.result = descriptor.result;
-      match.date = descriptor.scheduledDate;
+      // `status`/`result`/`date` del wrapper son getters sobre el
+      // descriptor — no hay nada que copiar tras resolver.
+      this.runner.resolveMatch(match._descriptorId, { matchEngineConfig: config, matchEngineOptions: options });
       return match;
     }
 

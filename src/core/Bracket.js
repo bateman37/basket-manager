@@ -36,14 +36,34 @@
   // (betterEntry/worseEntry/pattern/games/wins/isDecided/winner/loser/
   // getStatus) — `games` se rellena en el mismo orden en que se resuelven
   // los partidos (`Bracket.playNextGame()`), igual que antes.
+  // WORLD-CALENDAR-1 (DESIGN.md 10.14): `games` pasa a ser una vista
+  // DERIVADA del runner (antes se rellenaba a mano en
+  // `Bracket.playNextGame()`), para que la vista legacy pueda construirse
+  // BAJO DEMANDA desde un `stageId`/runner real en cualquier momento, sin
+  // guardarla como estado paralelo (`state.brackets` deja de ser un mapa
+  // fijo). Semántica histórica intacta: `games` solo contiene los partidos
+  // ya JUGADOS, en el orden en que se resolvieron; los pendientes ya
+  // materializados se consultan en `pendingGames`.
   function wrapSeries(canonicalSeries, teamsById) {
     const wrapEntry = (entry) => ({ team: teamsById.get(entry.participantId), seed: entry.seed });
+    const wrapGame = (descriptor) => ({
+      id: descriptor.id,
+      gameNumber: descriptor.gameNumber,
+      homeEntry: { team: teamsById.get(descriptor.homeParticipantId), seed: descriptor.homeSeed },
+      awayEntry: { team: teamsById.get(descriptor.awayParticipantId), seed: descriptor.awaySeed },
+      result: descriptor.result,
+      date: descriptor.scheduledDate,
+      scheduledAt: descriptor.scheduledAt || null,
+      timeZoneId: descriptor.timeZoneId || null,
+      status: descriptor.status,
+    });
     const legacy = {
       betterEntry: wrapEntry(canonicalSeries.better),
       worseEntry: wrapEntry(canonicalSeries.worse),
       pattern: canonicalSeries.pattern,
       gamesNeededToWin: canonicalSeries.gamesNeededToWin,
-      games: [],
+      get games() { return canonicalSeries.games.filter((g) => g && g.status === 'played').map(wrapGame); },
+      get pendingGames() { return canonicalSeries.games.filter((g) => g && g.status === 'pending').map(wrapGame); },
       wins: canonicalSeries.wins, // MISMA referencia — el runner la muta in-place
       get isDecided() {
         return canonicalSeries.wins.better >= canonicalSeries.gamesNeededToWin
@@ -107,7 +127,21 @@
       });
       this.roundPatterns = this.runner.roundPatterns;
       this._legacySeriesByCanonicalId = new Map();
-      this.rounds = [this._wrapRound(this.runner.rounds[0])];
+      this._wrappedRounds = [this._wrapRound(this.runner.rounds[0])];
+    }
+
+    // WORLD-CALENDAR-1 (DESIGN.md 10.14): `rounds` es una vista DERIVADA
+    // que se sincroniza con el runner al LEERSE. Antes solo se sincronizaba
+    // dentro de `playNextGame()`, así que una fachada construida bajo
+    // demanda (o construida antes de que el partido se resolviera por la
+    // cola mundial, que resuelve por `stageId`/`matchId` sin pasar por
+    // aquí) se quedaba mostrando únicamente la PRIMERA ronda — y con ella,
+    // el histórico de la temporada perdía los partidos de semifinales y
+    // final. Sincronizar es solo envolver rondas que el runner YA creó: no
+    // materializa partidos, no avanza rondas y no consume aleatoriedad.
+    get rounds() {
+      this._syncRounds();
+      return this._wrappedRounds;
     }
 
     _wrapSeries(canonicalSeries) {
@@ -120,12 +154,15 @@
     _wrapRound(canonicalRound) { return canonicalRound.map((s) => this._wrapSeries(s)); }
 
     _syncRounds() {
-      while (this.rounds.length < this.runner.rounds.length) {
-        this.rounds.push(this._wrapRound(this.runner.rounds[this.rounds.length]));
+      while (this._wrappedRounds.length < this.runner.rounds.length) {
+        this._wrappedRounds.push(this._wrapRound(this.runner.rounds[this._wrappedRounds.length]));
       }
     }
 
-    get currentRound() { return this.rounds[this.rounds.length - 1]; }
+    get currentRound() {
+      const rounds = this.rounds;
+      return rounds[rounds.length - 1];
+    }
 
     isCurrentRoundComplete() { return this.currentRound.every((s) => s.isDecided); }
 
@@ -152,7 +189,10 @@
         homeEntry: { team: this._teamsById.get(descriptor.homeParticipantId), seed: descriptor.homeSeed },
         awayEntry: { team: this._teamsById.get(descriptor.awayParticipantId), seed: descriptor.awaySeed },
         scheduledDate: descriptor.scheduledDate,
+        scheduledAt: descriptor.scheduledAt || null,
+        timeZoneId: descriptor.timeZoneId || null,
         matchId: descriptor.id,
+        stageId: this.runner.stageId,
       };
     }
 
@@ -169,12 +209,18 @@
       const options = resolveOptions ? resolveOptions(homeEntry, awayEntry, descriptor.scheduledDate, descriptor.id) : undefined;
       this.runner.resolveMatch(descriptor.id, { matchEngineConfig: config, matchEngineOptions: options });
       this._syncRounds();
-      const legacySeries = this._wrapSeries(canonicalSeries);
-      const game = {
-        gameNumber: descriptor.gameNumber, homeEntry, awayEntry, result: descriptor.result, date: descriptor.scheduledDate,
+      void canonicalSeries; // `series.games` es ahora una vista derivada del runner
+      return {
+        id: descriptor.id,
+        gameNumber: descriptor.gameNumber,
+        homeEntry,
+        awayEntry,
+        result: descriptor.result,
+        date: descriptor.scheduledDate,
+        scheduledAt: descriptor.scheduledAt || null,
+        timeZoneId: descriptor.timeZoneId || null,
+        status: descriptor.status,
       };
-      legacySeries.games.push(game);
-      return game;
     }
 
     getStatus() {

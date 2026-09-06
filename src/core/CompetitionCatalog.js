@@ -110,7 +110,11 @@
     recurrence: 'annual',
     tier: null,
     implementationStatus: 'active-runtime',
-    bindings: {},
+    // WORLD-CALENDAR-1 (DESIGN.md 10.14): la Copa tiene runtime con fechas
+    // reales, así que ya no puede quedar con `scheduleProfileId` ausente —
+    // su calendario propio (ventana entre dos jornadas de la Liga) es un
+    // `CompetitionScheduleDefinition` registrado por `spain-2026.1`.
+    bindings: { scheduleProfileId: 'spain-2026.1:schedule:copa-acb' },
     provenance: { dataSource: 'spain-2026.1', status: 'verified' },
     organizerCountry: 'ES',
     federationId: 'feb-general',

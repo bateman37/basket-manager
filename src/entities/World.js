@@ -44,10 +44,14 @@
       // organizaciones, clubes, equipos, identidad de competición, paquetes).
       this.registries = new (WR())();
 
-      // Referencia al calendario de la carrera (`Calendar`, ya existente) —
-      // la MISMA instancia que `state.calendar`, actualizada vía
-      // `setCalendar()` cada vez que game.js crea un `Calendar` nuevo
-      // (arranque de carrera, cierre de temporada).
+      // WORLD-CALENDAR-1 (DESIGN.md 10.14): el calendario de la carrera es
+      // el `WorldCalendar` ÚNICO (`src/core/WorldCalendar.js`) — la MISMA
+      // instancia que `state.calendar` (identidad estricta,
+      // `state.calendar === state.world.calendar`, invariante 2) y la MISMA
+      // durante TODA la carrera: el cambio de temporada ya no la sustituye
+      // (invariante 3), solo registra la temporada nueva sobre ella. Antes
+      // de esta entrega era un `Calendar` por temporada, reemplazado en
+      // cada cierre.
       this.calendar = null;
 
       // Registros de dominio de ROSTER-1..CYCLE-1, adjuntados por
