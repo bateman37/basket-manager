@@ -415,31 +415,43 @@ explicado en 3.3.3 (una ronda no puede fecharse sin conocer los patrones
 de partidos de la ronda anterior, para no arrancarla antes de que
 termine).
 
-#### 3.3.5 Reloj de mundo (CAL-1)
+#### 3.3.5 Reloj de mundo (CAL-1, reescrito en WORLD-CALENDAR-1)
 
 `currentGameDateTime`: el "ahora" de la partida (ej. "domingo 4 de octubre,
 19:00"), avanza de evento en evento — nunca segundo a segundo ni con
 animación, es tiempo de simulación, no un reloj en tiempo real.
 
-- **Vive en `Calendar`** (`calendar.currentGameDateTime`), no como una
-  propiedad suelta más de `state` en `game.js`. Justificación: `Calendar`
-  ya es la entidad que conoce el eje temporal completo de la temporada
-  (`seasonStartDate`, resolución de fechas de las 4 competiciones) y es
-  compartida por las dos divisiones (`state.calendar`, una sola instancia)
-  — añadirlo aquí evita una segunda fuente de verdad temporal y aprovecha
-  que ya se reconstruye junto con el resto del calendario en cada cierre
-  de ciclo (`closeSeasonAndPrepareNext()`, 3.4.4).
-- **Arranca** en `seasonStartDate` (antes de jugarse nada) y solo avanza
-  hacia delante (`Calendar.advanceTo(dateTime)`, protegido contra
-  retrocesos) cada vez que se resuelve un partido o un juego de bracket en
-  cualquiera de las dos divisiones, tomando siempre el instante más tardío
-  resuelto hasta ese momento.
-- **Nunca retrocede entre temporadas de forma extraña**: al cerrar
-  temporada (3.4.4) se crea un `Calendar` nuevo para `seasonStartYear + 1`,
-  así que el reloj de mundo se reinicia al inicio de la temporada
-  siguiente — comportamiento esperado, no un bug.
+**Cómo era hasta WORLD-CALENDAR-1** (histórico, ya no vigente): el reloj
+vivía en `Calendar` (`calendar.currentGameDateTime`), arrancaba en
+`seasonStartDate`, avanzaba cada vez que se resolvía un partido de
+cualquiera de las dos divisiones, y **se reiniciaba al cerrar temporada**
+porque `closeSeasonAndPrepareNext()` construía un `Calendar` nuevo para
+`seasonStartYear + 1`.
+
+**Cómo es desde WORLD-CALENDAR-1** (ver 10.14):
+
+- el reloj vive en el **`WorldCalendar` ÚNICO de la carrera**
+  (`state.calendar === state.world.calendar`, la MISMA instancia de
+  principio a fin) y su autoridad interna es `currentInstant`, un instante
+  **ISO 8601 UTC** con el huso IANA como dato explícito del perfil de
+  calendario — no un `Date` construido con el huso del ordenador;
+- **sobrevive al cambio de temporada**: cerrar temporada ya no crea otro
+  calendario, solo registra la temporada nueva en el mismo agregado. El
+  cursor nunca se reinicia ni retrocede;
+- **lo avanza un único punto**, el `WorldCalendarCoordinator`, y solo hasta
+  el instante del grupo de eventos que va a resolver — nunca "por encima"
+  de una parada del usuario o de un partido pendiente;
+- `currentGameDateTime`/`seasonStartDate` se conservan como **getters
+  legacy** (`Date`) para la interfaz y para Recovery/Training/Development;
+  ningún cálculo nuevo de calendario parte de ellos.
 
 #### 3.3.6 Resolución cronológica y parcial de jornada (CAL-1)
+
+> **Ampliado en WORLD-CALENDAR-1 (ver 10.14).** Lo que CAL-1 hizo dentro
+> de una jornada (resolver por fecha, parar en el partido del usuario) es
+> ahora la regla del MUNDO entero: la unidad de avance ya no es "la
+> jornada", es UN evento fechado de cualquier competición. `simulateNextRound()`
+> ha desaparecido como unidad de avance productiva.
 
 Antes de CAL-1, `League.simulateNextRound()` resolvía TODOS los partidos
 pendientes de la jornada actual de una sola vez — una jornada era un
@@ -546,6 +558,15 @@ divisiones y qué prepara la pretemporada antes de generar el nuevo
 calendario.
 
 #### 3.4.1 Las dos divisiones se simulan SIEMPRE, en paralelo
+
+> **Reescrito en WORLD-CALENDAR-1 (ver 10.14).** El PRINCIPIO sigue
+> vigente: las dos divisiones están vivas desde el primer día y el usuario
+> nunca tiene que simular "la otra" aparte. El MECANISMO ha cambiado por
+> completo: ya no existe una "división de fondo" que se simule por bloques
+> tras cada jornada del usuario (`simulateBackgroundRound()`/
+> `drainBackgroundBrackets()`, retiradas). Todos los partidos de todas las
+> competiciones viven en una sola cola cronológica y se resuelven en su
+> instante real; solo los del equipo controlado detienen el juego.
 
 Hueco de arquitectura detectado al diseñar este cierre: hasta ahora el
 juego solo mantenía viva **una** `League` (la división donde juega el
@@ -865,13 +886,21 @@ ya usan la mayoría de agendas de referencia en móvil.
   "Hoy" vuelve al reloj de mundo actual.
 - El día de hoy (reloj de mundo) se resalta visualmente; el próximo
   partido del usuario lleva la insignia "Tu partido" (`requiresAttention`).
-- Contenido: partidos de liga **solo del equipo del usuario** (la liga
-  completa de 9 partidos por jornada ya tiene su propia pantalla,
-  Calendario — decisión de encaje explícita, ver 3.5.4) + todos los
-  partidos de Copa/Playoff/Ascenso de la división visible, jugados o el
-  siguiente pendiente de cada serie sin decidir (peek de fecha vía
-  `series.dateResolver`, sin jugarlo) + todos los eventos de tipo `news`
-  del rango de fechas (misma fuente que Noticias, ver 3.5.1).
+- Contenido (**reescrito en WORLD-CALENDAR-1**, ver 10.14): Agenda es una
+  **PROYECCIÓN de la cronología mundial**, no un recorrido de mapas fijos
+  por división. Muestra los partidos del equipo del usuario de **TODAS sus
+  competiciones** (pendientes y jugados, con nombre de competición/fase
+  reales), los **eventos futuros de mercado/traspaso/cesión** relevantes a
+  su club leídos de la MISMA cola, el `marketAgendaLog` histórico y todos
+  los eventos de tipo `news`/`medical` del rango (misma fuente que
+  Noticias, ver 3.5.1) — sin duplicados.
+  Hasta esta entrega el contenido se derivaba de `league.schedule` de la
+  división visible más `state.brackets[state.division]`, y la proyección
+  del siguiente partido de una serie usaba `series.dateResolver`, un campo
+  que la vista legacy de `Bracket` nunca ha expuesto: esa rama estaba
+  muerta. Además `buildAgendaEvents()` no leía ni los eventos programados
+  de mercado ni `marketAgendaLog`, pese a que el comentario de
+  `pushMarketAgenda()` afirmaba lo contrario (`BUG-WORLDCALENDAR-04`).
 
 #### 3.5.4 `renderCalendarScreen()` y Agenda son pantallas distintas
 
@@ -7590,7 +7619,7 @@ ninguna sea el caso por defecto.
 | 1 | **WORLD-CORE-1** | `GameWorld` canónico, geografía, organizaciones, catálogos/registros, paquetes de contenido, identidad de competición y migración compatible de España. | **hecha**, esta sección |
 | 2 | **CLUB-CORE-1** | Separación completa `Club` institucional / `Team`-`Squad` deportivo; primer equipo, filial, cantera y futuras secciones sin duplicar el club. | **hecha**, ver 10.12 |
 | 3 | **COMP-CORE-1** | Motor genérico `CompetitionEdition → Stage → Entry`; migra Liga/Copa/playoff por el título/ascenso fuera de los mapas fijos por división — retira `SpainLegacyCompetitionRuntime` de producción. | **hecha**, ver 10.13 |
-| 4 | **WORLD-CALENDAR-1** | Calendario mundial y cola cronológica única; varias competiciones simultáneas, paradas de usuario y simulación de fondo sin el concepto especial de "la otra división". | pendiente |
+| 4 | **WORLD-CALENDAR-1** | Calendario mundial y cola cronológica única; varias competiciones simultáneas, paradas de usuario y simulación de fondo sin el concepto especial de "la otra división". | **hecha**, ver 10.14 |
 | 5 | **PATHWAYS-1** | Clasificación entre fases/torneos, ascenso/descenso, acceso a copas y plazas continentales mediante reglas declarativas versionadas. | pendiente |
 | 6 | **WORLD-SIM-1** | Niveles de detalle `playable/full/standard/abstract`, simulación acotada del exterior y población/mercado mundial sin cargarlo todo al máximo — sustituye `external-abstract` por clubes/equipos normales con detalle abstracto. | pendiente |
 | 7 | **NATIONAL-TEAMS-1** | Federaciones, selecciones, elegibilidad, convocatorias, ventanas y competiciones continentales/mundiales de selecciones. | pendiente |
@@ -7759,6 +7788,18 @@ runtimeBinding`. `CompetitionEdition` añade además `formatBindingId`
 (`CompetitionFormatDefinition`, ver más abajo) congelado en el mismo
 momento que `scheduleProfileId`/`rulesetBundleId`.
 
+**Actualización WORLD-CALENDAR-1 (ver 10.14)**: `scheduleProfileId` deja de
+ser un literal de división (`'1ª'`/`'2ª'` en `CONFIG_BASE.calendar`) y pasa
+a ser el id de un `CompetitionScheduleDefinition` del catálogo de
+calendarios (`src/core/CompetitionScheduleCatalog.js`), **congelado por
+Edition** igual que formato y ruleset. Una edición con runtime fechado ya
+NO puede tener `scheduleProfileId: null` — la Copa ACB recibe su propio id
+estable (`spain-2026.1:schedule:copa-acb`) y la regla de activación cruzada
+lo transporta como dato plano para que la Edition nueva lo congele.
+El instante de cada partido (`scheduledAt` UTC + `timeZoneId` IANA) vive en
+el descriptor del runner, no en la Edition; `scheduledDate` (`Date`) queda
+como vista derivada de compatibilidad.
+
 #### `CompetitionFormatDefinition` / `CompetitionStageTemplate` (COMP-CORE-1, `src/entities/Competition.js` + catálogo en `src/core/CompetitionFormatCatalog.js`)
 
 Definición VERSIONADA y SERIALIZABLE de "qué fases tiene una competición y
@@ -7782,8 +7823,11 @@ id+version idéntica, lanza si difieren).
 
 Agregado raíz de una carrera — NO singleton, no lee DOM ni globales. `id`,
 `name`, `careerSeed`, `createdAtGameDate`, `schemaVersion`, `registries`
-(`WorldRegistries`), `calendar` (misma instancia que `state.calendar`,
-actualizada vía `setCalendar()`), `domainRegistries` (aliases por
+(`WorldRegistries`), `calendar` (**WORLD-CALENDAR-1**: el `WorldCalendar`
+ÚNICO de la carrera, `src/core/WorldCalendar.js` — la MISMA instancia que
+`state.calendar`, enlazada una sola vez con `setCalendar()` en
+`startSeason()` y NUNCA sustituida en el cierre de temporada; antes era un
+`Calendar` por temporada), `domainRegistries` (aliases por
 IDENTIDAD a los registros ya existentes de ROSTER-1..CYCLE-1, adjuntados
 con `attachDomainRegistries()`). `validateIntegrity()`/`describe()` — este
 último serializable (sin `Map`/funciones/DOM/ciclos), usado por el detalle
@@ -7873,6 +7917,25 @@ stages) y WORLD-CALENDAR-1 (calendario mundial único) sustituyan a
 
 ### 10.6 Integración con el runtime actual
 
+**Actualizado en WORLD-CALENDAR-1 (ver 10.14 para el detalle completo)** —
+sobre lo que describe el bloque de COMP-CORE-1 más abajo, `startSeason()`
+crea además el `WorldCalendar` ÚNICO de la carrera (con huso por defecto
+explícito aportado por el paquete instalado), el
+`CompetitionScheduleService` y el `WorldCalendarCoordinator` con sus cuatro
+fuentes (`competition-match`, `market-event`, `transfer-event`,
+`loan-event`); el proveedor de fechas que recibe el engine lo construye
+ese servicio a partir del calendario congelado en cada Edition, no una
+función que ramifique por competición. `closeSeasonAndPrepareNext()` ya NO
+construye ningún calendario nuevo: registra la temporada siguiente en el
+mismo agregado, avanza el cursor común en cada fase fechada del ciclo
+anual y resincroniza las fuentes. `state.leagues`/`state.brackets`
+desaparecen como mapas fijos: las vistas `League`/`Bracket` que consumen
+las pantallas antiguas y `SeasonHistoryService` se construyen BAJO DEMANDA
+desde el `stageId`/runner real. `simulateBackgroundRound()`,
+`drainBackgroundBrackets()`, `getBackgroundDivision()`,
+`getBackgroundLeague()`, `finishRoundBookkeeping()` y la prioridad fija de
+`getActiveBracket()` quedan RETIRADAS.
+
 **Actualizado en COMP-CORE-1 (ver 10.13 para el detalle completo)** —
 `startSeason()`: construye los 36 equipos (misma construcción de siempre,
 `getRealTeamsByDivision()`), crea `GameWorld` e instala `world-core-2026.1`
@@ -7937,15 +8000,19 @@ datos reales modificados.
 
 | Puente legacy | Vive en | Se retira en |
 |---|---|---|
-| `Team.division`/`legacyDivision` como alias de participación | `Team.js` | Participación real ya es `CompetitionEntry` desde COMP-CORE-1 — `division`/`legacyDivision` sigue como proyección UI/histórica hasta WORLD-CALENDAR-1 |
+| `Team.division`/`legacyDivision` como alias de participación | `Team.js` | Participación real ya es `CompetitionEntry` desde COMP-CORE-1. **Desde WORLD-CALENDAR-1 `division` NO decide tiempo, participación ni siguiente partido en ningún punto productivo** — sobrevive solo como filtro VISUAL de la selección de equipo y de las pantallas españolas (Clasificación/Competiciones/Estadísticas/Calendario) y como proyección histórica; retirada en **WORLD-UI-1** |
 | ~~`SpainLegacyCompetitionRuntime` como autoridad productiva~~ | *(retirado de producción en COMP-CORE-1)* | **RETIRADO de `index.html`/`game.js`/`spain-2026.1.js`** — el archivo sigue existiendo únicamente como shim de `scripts/test-world-core1.js`/`smoke-world-core1.js`/`smoke-club-core1.js` (fixtures históricos); se elimina el archivo cuando esos scripts dejen de necesitarlo (WORLD-CALENDAR-1) |
 | ~~`League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` como runner fijo~~ | *(retirado como autoridad en COMP-CORE-1)* | **Fachadas finas** sobre `RoundRobinStageRunner`/`BracketStageRunner` (`src/core/CompetitionRunners.js`) — mismo algoritmo, nunca duplicado; siguen siendo la vista legacy que consume `game.js`/`cycle1-harness.js`, construida SIEMPRE desde el runner del `CompetitionEngine` |
 | `competitionIdFromLegacyDivision()` | `CompetitionRules.js` | Sin nuevos call-sites productivos desde COMP-CORE-1 (game.js migró a `CompetitionParticipationService.primaryLeagueCompetitionId`/contexto canónico de partido) — retirada definitiva en WORLD-HARDEN-1, sigue exportada para scripts/tests históricos |
 | ~~`Club.id === primaryTeam.id`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — `spain-2026.1` declara 36 pares `clubId`/`teamId` distintos (`SPAIN_CLUB_CONTENT`) |
 | ~~Finanzas/instalaciones/junta/afición en `Team` en vez de `Club`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — viven en `Club.js`; `Team.js` conserva solo accesores legacy que delegan (ver 10.3) |
 | `external-abstract` como categoría de `WorldLifecycleService` | `src/core/WorldLifecycleService.js` | WORLD-SIM-1 |
-| Calendario por `scheduleProfileId` de contenido español (`1ª`/`2ª`, con alias `spain-2026.1:schedule:1a`/`2a` añadido en COMP-CORE-1 apuntando al MISMO perfil) | `MatchConfig.js`/`Calendar.js` | WORLD-CALENDAR-1 |
-| `state.leagues`/`state.brackets` como mapa fijo de dos divisiones | `src/ui/game.js` | Desde COMP-CORE-1 son SIEMPRE vistas construidas por `game.js` a partir de los runners reales del `CompetitionEngine` (nunca un segundo estado) — el mapa fijo por división en sí se retira en WORLD-CALENDAR-1 |
+| ~~Calendario por `scheduleProfileId` de contenido español en `CONFIG_BASE.calendar` (`1ª`/`2ª`)~~ | *(retirado de la ruta productiva en WORLD-CALENDAR-1)* | **RETIRADO** — los perfiles, la ventana de Copa y los arranques de playoff/ascenso son ahora `CompetitionScheduleDefinition` versionadas de `data/world/spain-2026.1.js` (ids estables `spain-2026.1:schedule:1a`/`2a`/`copa-acb`). `CONFIG_BASE.calendar.scheduleProfiles` y `src/core/Calendar.js` siguen existiendo SOLO como shim del "modo prueba" técnico de `index.html` y de scripts standalone antiguos; ningún módulo nuevo los consulta. Eliminación del archivo: **WORLD-HARDEN-1** |
+| ~~`state.leagues`/`state.brackets` como mapa fijo de dos divisiones~~ | *(retirado en WORLD-CALENDAR-1)* | **RETIRADO** — `getLeague(division)`/`getBrackets(division)` construyen la vista `League`/`Bracket` BAJO DEMANDA desde el `stageId`/runner real; no queda ningún estado paralelo. Los accesores por división siguen siendo el puente de las pantallas españolas hasta **WORLD-UI-1** |
+| ~~`simulateBackgroundRound()`/`drainBackgroundBrackets()`/`getBackgroundDivision()`/`getBackgroundLeague()`~~ | *(retirados en WORLD-CALENDAR-1)* | **RETIRADOS** — no existe "la otra división" en el core ni en la orquestación productiva (BUG-WORLDCALENDAR-01/02) |
+| `UI_COMPETITION_KEY_BY_STAGE_KEY` (`stageKey` genérica → `'league'/'cup'/'playoff'/'promotion'` histórica) | `src/ui/game.js` | Puente de INTERFAZ/normativa legacy (`matchExposures`, `relatedCompetition`, `BRACKET_PHASE_IDS`) — nunca decide tiempo. Retirada en **WORLD-UI-1**/**PATHWAYS-1** |
+| Cierre deportivo español (ascensos/descensos ACB↔Primera FEB) en `SeasonHistoryService`/`cycle1-harness` | `src/core/SeasonHistoryService.js` | **PATHWAYS-1** (accesos/ascensos declarativos). WORLD-CALENDAR-1 no lo ha tocado: el calendario no decide ascensos |
+| `scripts/verify-*-playwright.js` usan `simulateBackgroundRound`/`drainBackgroundBrackets` para avanzar una carrera sin reveals | `scripts/verify-*-playwright.js` | Necesitan migrarse a `advanceWorldUntilNextUserStop()`. No se han tocado ni ejecutado en WORLD-CALENDAR-1 (el presupuesto de pruebas prohíbe Playwright) — propietario: la primera sesión que vuelva a ejecutarlos |
 
 No es obligatorio eliminar en esta entrega todos los usos históricos de
 `state.division`/`competitionIdFromLegacyDivision` — sí lo es no añadir
@@ -8022,6 +8089,38 @@ WORLD-HARDEN-1 lo decida.
     `CompetitionRules.js`, ver 10.3), `SpainLegacyCompetitionRuntime.js` y
     `data/world/spain-2026.1.js` (adaptador y paquete, expresamente
     permitidos).
+
+**Ampliación WORLD-CALENDAR-1** (ver 10.14; se auditan en
+`scripts/test-world-calendar1.js` y en el smoke):
+
+29. Una carrera posee exactamente UN `WorldCalendar` vivo, y
+    `state.calendar === state.world.calendar` durante toda la carrera.
+30. El cambio de temporada NO reemplaza el calendario; el cursor nunca
+    retrocede.
+31. Ningún item pendiente puede quedar silenciosamente detrás del cursor.
+32. Cada item tiene id estable (`sourceType + sourceId`) y una única fuente
+    propietaria; un resultado vive en `CompetitionEngine`, nunca duplicado
+    en el calendario.
+33. Todo partido productivo tiene `scheduledAt` UTC y `timeZoneId`
+    explícito; el mismo seed/contenido produce el mismo calendario bajo
+    cualquier `TZ` del proceso.
+34. Una fecha CIVIL sigue siendo fecha civil: se ordena al inicio de su día
+    en el huso declarado, nunca se le persiste una hora inventada.
+35. Consultar/renderizar no muta, no materializa partidos y no consume
+    aleatoriedad.
+36. El orden total no depende de arrays, `Map`, orden de instalación de
+    paquetes ni de la competición "seleccionada" en la interfaz.
+37. Un CPU-vs-CPU nunca exige intervención del usuario; un partido del
+    usuario nunca se auto-resuelve; los resultados CPU simultáneos no se
+    revelan antes del suyo.
+38. Dos partidos simultáneos del equipo controlado bloquean con conflicto
+    explícito — no se elige por id y no se reprograma nada.
+39. Un fallo de resolución no elimina el item ni adelanta el cursor por
+    encima de él; cada partido se resuelve como máximo una vez.
+40. `state.division` no decide tiempo, participación ni siguiente partido;
+    no existe "otra división" en el core ni en la orquestación productiva.
+41. Un schedule desconocido FALLA; nunca hereda otro perfil. Los schedules
+    activos están versionados y congelados por Edition.
 
 ### 10.11 Verificación reducida (esta entrega)
 
@@ -8345,6 +8444,238 @@ genéricos (PATHWAYS-1), competiciones europeas reales, selecciones,
 persistencia SQL/save-load, limpieza completa de `division` en
 estadísticas/textos históricos, la deuda naming-only de Cycle sobre
 ciertos campos `clubId`.
+
+### 10.14 WORLD-CALENDAR-1 — resultado
+
+Cuarta entrega de la EPIC. La identidad del torneo ya era mundial desde
+COMP-CORE-1; **el tiempo no lo era**. Esta entrega sustituye la
+orquestación "jornada visible + una jornada de la otra división + drenar
+los brackets" por una **cronología mundial única**: cada partido de
+cualquier Edition/Stage activa y cada evento fechado que ya modelan
+Market/Transfer/Loan se resuelven en su instante real, y el juego solo se
+detiene cuando el usuario debe actuar de verdad.
+
+#### 10.14.1 Modelo temporal canónico
+
+- `src/utils/GameDateTime.js` — utilidad PURA, separada de `LocalDate`:
+  - `LocalDate` sigue siendo la FECHA CIVIL `YYYY-MM-DD` sin hora (plazos
+    contractuales, ventanas, inscripciones: CONTRACT-1..CYCLE-1);
+  - `GameDateTime` es el INSTANTE exacto, ISO 8601 UTC terminado en `Z`, y
+    toda conversión a/desde componentes civiles exige un `timeZoneId`
+    **IANA explícito** (vía `Intl.DateTimeFormat`, sin dependencias);
+  - `addLocalDays` suma DÍAS DE CALENDARIO en el huso declarado, no `24h`
+    ciegas: el día del cambio horario tiene 23 o 25 horas reales;
+  - `startOfLocalDay(localDate, tz)` es la frontera que permite ORDENAR un
+    evento de fecha civil frente a un partido del mismo día sin inventarle
+    una hora.
+- Los descriptores de partido tienen como AUTORIDAD `scheduledAt` +
+  `timeZoneId` (+ `scheduledLocalDate`/`scheduledLocalTime` de
+  trazabilidad). `scheduledDate` (`Date`) sobrevive como **vista de
+  compatibilidad derivada**, nunca como segunda fuente; los snapshots
+  serializan strings.
+- `WorldCalendar` conserva getters legacy (`currentGameDateTime`,
+  `seasonStartDate`) para la interfaz y para Recovery/Training/Development,
+  pero su autoridad interna es `currentInstant` y las fechas civiles se
+  obtienen SIEMPRE con el huso declarado.
+
+#### 10.14.2 Calendarios como contenido versionado
+
+- `CompetitionScheduleDefinition` (`src/entities/CompetitionSchedule.js`):
+  inmutable, serializable, con `id`, `version`, `status`, `timeZoneId`,
+  ancla civil de temporada, planes por `stageKey`, estrategia y parámetros
+  planos por plan, y procedencia HONESTA (`simulated/design`, "no es el
+  calendario oficial de la competición").
+- `CompetitionScheduleCatalog` (`src/core/CompetitionScheduleCatalog.js`):
+  mismo contrato que `CompetitionFormatCatalog` — idempotente para la misma
+  id+version, error descriptivo ante otra versión o contenido distinto,
+  `requireSchedule()` FALLA ante un id desconocido (nunca hereda otro
+  perfil), listado ordenado por id.
+- `CompetitionScheduleService` (`src/core/CompetitionScheduleService.js`):
+  ÚNICO sitio que sabe programar fechas. Dos estrategias, deliberadamente
+  no un DSL universal:
+  1. `round-robin-cadence` — ancla, días entre jornadas, slots ponderados
+     deterministas (mismo hash FNV-1a que el `Calendar.js` histórico),
+     jornada intersemanal con rondas excluidas, franja unificada de última
+     jornada;
+  2. `bracket-offsets` — ancla como referencia PLANA a un plan de
+     round-robin (de la misma definición o de otra: así la Copa ancla en la
+     jornada 17 de la Liga sin que el scheduler sepa qué es ACB), con
+     política `series-cadence` (offsets por duración máxima de ronda) o
+     `compressed-window` (ventana fija entre dos jornadas con colchón
+     mínimo, la regla dura de 3.3.2), `roundIndexOffset` para fases que
+     comparten tramo (Final Four de ascenso) y hora de inicio.
+- `buildDateResolverProvider()` es el proveedor GENÉRICO que recibe
+  `CompetitionEngine.setDateResolverProvider()`: resuelve el calendario
+  desde `edition.scheduleProfileId` + `template.key`, sin ramificar por
+  competición, país, división ni nombre visible.
+
+**Migración de `spain-2026.1`**: los perfiles de Liga ACB y Primera FEB
+(slots ponderados, jornada intersemanal, exclusiones de la semana de Copa),
+la ventana de Copa respecto a la jornada 17 y los arranques/separaciones de
+playoff por el título y de cuartos + Final Four de ascenso pasan a ser
+contenido de ese paquete **sin recalibrar ningún número**. Ids estables
+`spain-2026.1:schedule:1a`/`:2a`, más `spain-2026.1:schedule:copa-acb`
+nuevo y explícito: la Copa tiene runtime fechado, así que ya no puede
+quedar con `scheduleProfileId: null`, y la regla de activación cruzada
+transporta ese id (y su ruleset) como dato plano para que la Edition nueva
+lo congele. El resultado observable es EL MISMO que antes: 637 fechas
+comparadas contra `Calendar.js` con `TZ=Europe/Madrid`, 0 diferencias.
+
+#### 10.14.3 `WorldCalendar` y modelo de item
+
+`src/core/WorldCalendar.js` — agregado EXPLÍCITO por carrera (nunca
+singleton): id + versión de esquema, `defaultTimeZoneId` aportado por la
+composición (el core nunca asume un país), `currentInstant` monotónico,
+temporadas registradas, índice de items pendientes por id estable, ledger
+ACOTADO de lo resuelto (para Agenda/diagnóstico, sin duplicar resultados),
+`validateIntegrity()` y `snapshot()` planos.
+
+`WorldCalendarItem` normaliza una REFERENCIA a un hecho ajeno: id estable
+(`sourceType + sourceId`, nunca un contador global), fuente propietaria,
+momento con precisión EXPLÍCITA (`instant` con huso, o `date` civil con
+huso), `status` proyectado, `attentionScope` con `teamIds`/`clubIds` (solo
+ids, nunca copias de `Team`/`Club`), ids de competición/edición/fase/
+participantes y metadatos mínimos serializables. **No guarda resultados,
+rosters, instancias ni funciones**: el calendario es la autoridad del ORDEN
+y del CURSOR, no una segunda base de datos del dominio.
+
+#### 10.14.4 Fuentes y coordinador
+
+`src/core/WorldCalendarCoordinator.js` — protocolo de fuentes (listar
+pendientes como objetos planos; resolver UN item delegando en su servicio
+real) y coordinador con dependencias EXPLÍCITAS (nunca lee `state`, DOM,
+`Date.now()`, `Math.random()` ni globals).
+
+| Fuente | Extrae de | Comportamiento |
+|---|---|---|
+| `competition-match` | `CompetitionEngine.listAllPendingMatches()` | partido exacto por stage/match id |
+| `market-event` | `MarketRegistry.allScheduledEvents()` no procesados | automático, o parada si `requiresAttention` y es del club del usuario |
+| `transfer-event` | `TransferRegistry` (`scheduled` con fecha efectiva) | ejecuta el evento futuro ya modelado |
+| `loan-event` | `LoanRegistry` (cesión activa con `returnEffectiveDate`) | ejecuta el retorno ya modelado |
+
+Ninguna regla de esos dominios se reimplementa: el coordinador ordena
+referencias y delega el commit en `MarketService`/`TransferService`/
+`LoanService`/`CompetitionEngine`.
+
+**Cambios mínimos en COMP-CORE**: el engine lista de forma PURA todos los
+partidos materializados pendientes de todos sus runners con orden total
+estable (instante, id); el bracket expone el siguiente descriptor pendiente
+de **cada serie viva** de la ronda (antes solo el primer cruce del array);
+`resolveMatch()` materializa explícitamente el siguiente partido de su
+serie, así que consultar después no crea objetos ni avanza rondas;
+`allStageIds()` y los agregados se ordenan por id, nunca por inserción de
+`Map`; la doble resolución sigue rechazada. `League`/`Bracket` pasan a ser
+vistas totalmente DERIVADAS del runner (getters), para poder construirse
+bajo demanda desde un `stageId` real.
+
+#### 10.14.5 Semántica exacta de "Continuar"
+
+`advanceUntilNextUserStop()`:
+
+1. sincroniza explícitamente las fuentes;
+2. toma el grupo temporal más antiguo pendiente;
+3. si no contiene ninguna atención del usuario: avanza el reloj a ese
+   instante, resuelve sus items en orden estable por id y vuelve al paso 1;
+4. si contiene una atención del usuario: avanza HASTA ella y **no la
+   resuelve**;
+5. devuelve un objeto de parada que la interfaz presenta tal cual.
+
+Tipos de parada: `user-match`, `market-attention`, `schedule-conflict`,
+`season-complete` y `resolution-failed`.
+
+**Simultaneidad**: antes de un `user-match` solo se resuelven items
+ESTRICTAMENTE anteriores; los CPU del mismo instante quedan pendientes a
+propósito (no se revelan antes) y se resuelven tras el commit del usuario
+con `resolveSimultaneousAfterUserCommit(instant)`, **sin** mover el cursor
+más allá de ese instante. Dos partidos del mismo equipo controlado a la
+misma hora devuelven un conflicto visible con los dos ids/competiciones: no
+se elige por id, no se simula ninguno y no se inventa reprogramación
+(aplazamientos quedan fuera de alcance). Un error de resolución deja el
+item `failed`, en la cola, y el cursor no lo salta.
+
+El hook de avance continuo (`applyClockAdvanceHook`) mantiene desarrollo,
+entrenamiento CPU y progresión médica; los eventos DISCRETOS de
+Market/Transfer/Loan se despachan uno a uno desde sus items, no con un
+barrido `eventsDueThrough()` posterior al salto.
+
+#### 10.14.6 Bugs corregidos
+
+- **`BUG-WORLDCALENDAR-01`** — el fondo adelantaba el reloj por encima del
+  usuario: `simulateBackgroundRound()` jugaba una jornada de la otra
+  división y `drainBackgroundBrackets()` consumía su bracket COMPLETO, así
+  que el reloj podía llegar a la final de ascenso antes de que el usuario
+  disputara su propio playoff, y después se jugaban partidos "en el
+  pasado". Corregido con la cola mundial: cada partido se resuelve cuando
+  toca y el cursor solo avanza al instante del grupo que se va a resolver.
+- **`BUG-WORLDCALENDAR-02`** — una eliminatoria ajena era parada manual:
+  `getActiveBracket()` devolvía el siguiente partido de cualquier bracket
+  de la división visible (con prioridad fija Copa > título > ascenso),
+  aunque el equipo del usuario no participara o ya estuviera eliminado.
+  Corregido: solo un partido que incluya un `teamId` controlado es parada;
+  el resto se resuelve de fondo en su instante, sea Liga, Copa o playoff.
+- **`BUG-WORLDCALENDAR-03`** — el calendario dependía del huso del
+  ordenador: `Calendar.js` construía con `new Date(year, month, day)` y
+  mutaba con `setDate`/`setHours`, así que el mismo partido de 2026 daba
+  instantes distintos con `TZ=UTC`, `Europe/Madrid` o `America/New_York`.
+  Corregido: instante canónico UTC + huso IANA como dato del perfil;
+  además la fecha civil del "ahora" (`currentGameIsoDate()`) se deriva del
+  huso declarado y no de `LocalDate.fromJsDate(state.calendar...)`.
+- **`BUG-WORLDCALENDAR-04`** — Agenda no cumplía su contrato de mercado: el
+  comentario de `pushMarketAgenda()` afirmaba que `buildAgendaEvents()`
+  incorporaba los eventos futuros de `marketRegistry.allScheduledEvents()`,
+  y la función no los leía ni añadía `state.marketAgendaLog`. Corregido:
+  Agenda proyecta los partidos del usuario de TODAS sus competiciones desde
+  la cronología, los eventos futuros de mercado/traspaso/cesión de su club
+  y el log histórico, sin duplicados.
+
+Dos defectos adicionales encontrados por las pruebas de esta entrega y
+corregidos aquí: el cursor de una carrera debe arrancar en el BORDE de la
+ventana de temporada (`seasonWindowStartInstant`, el ancla desplazada al
+`dayOffset` más temprano que declara el contenido) y no en el ancla, porque
+la jornada 1 tiene partidos en viernes; y `Bracket.rounds` debe
+sincronizarse al LEERSE, porque una fachada construida bajo demanda solo
+veía la primera ronda y el histórico de temporada perdía semifinales y
+final.
+
+#### 10.14.7 Pruebas de esta entrega
+
+Batería DIRIGIDA (nada de Playwright, matrices históricas completas ni
+simulaciones de varias temporadas):
+
+- `node scripts/test-world-calendar1.js` — 25 checks: `GameDateTime` y
+  frontera DST, misma instantánea bajo tres `TZ` del proceso y equivalencia
+  exacta con `Calendar.js`, definición/catálogo/versionado/serialización de
+  schedule, item estable y orden total independiente de inserción, cursor
+  monotónico y temporadas encadenadas, dos competiciones ficticias
+  simultáneas sin España, CPU anterior automático + partido del usuario como
+  parada + simultáneos después, conflicto de dos partidos del usuario, fecha
+  civil antes del partido del mismo día, error de resolución sin salto,
+  bracket con un pendiente por serie sin mutar al consultar, una sola
+  instancia de calendario entre dos temporadas, y auditorías estáticas
+  (literales españoles en módulos genéricos; jornada de fondo/drenaje/
+  `new Calendar` en la ruta productiva).
+- `node scripts/smoke-world-calendar1.js` — 36 equipos reales, UNA temporada
+  + UNA transición: 661 partidos resueltos por la cola, 37 paradas (todas
+  del equipo controlado), Copa en el hueco real entre las jornadas 17 y 18
+  en 3 fechas distintas, playoff por el título y de ascenso entrelazados,
+  orden estrictamente cronológico, misma instancia de calendario tras el
+  ciclo anual, MoraBanc andorrano y Supercopa sin runtime.
+- Única regresión anterior autorizada: `node scripts/test-comp-core1.js`.
+
+#### 10.14.8 Fuera de alcance de esta entrega
+
+Pathways/ascenso-descenso declarativos y plazas continentales
+(**PATHWAYS-1**); niveles `full/standard/abstract` y simulación del
+exterior (**WORLD-SIM-1**); selecciones (**NATIONAL-TEAMS-1**);
+navegación mundial y selector de ligas/nivel de detalle (**WORLD-UI-1**);
+retirada final de puentes y frontera de persistencia
+(**WORLD-HARDEN-1**). Tampoco entran: calendarios oficiales reales,
+reprogramaciones/aplazamientos/viajes/pabellones, resolución AUTOMÁTICA de
+conflictos horarios (solo detección y bloqueo), cambios de reglas
+ACB/FEB/contrato/inscripción/tanteo/traspaso/cesión/cantera/economía,
+traspasos o cesiones CPU-a-CPU orgánicos, competiciones nuevas, SQL/
+save-load/backend/dependencias, tocar `data/real/*`, y la limpieza completa
+de los textos/nombres legacy `division` fuera de la orquestación temporal.
 
 ## 11. Modo Manager (futuro, derivado del modo Completo)
 
