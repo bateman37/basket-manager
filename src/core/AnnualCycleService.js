@@ -243,7 +243,7 @@
   // `PlayerCareer` tal cual. Esta fase solo lo ORDENA y lo registra.
   function closeSeasonHistory(params) {
     const {
-      annualCycleRegistry, cycle, teams, date, hooks,
+      annualCycleRegistry, cycle, teams, date, hooks, targetCompetitionIdForTeam,
     } = params;
     requirePhase(cycle, 'snapshot-frozen');
     const iso = toIso(date);
@@ -252,10 +252,19 @@
       : { promoted: [], relegated: [] };
     // Los expedientes de club actualizan su competición de DESTINO con la
     // división ya modificada por ascensos/descensos.
+    //
+    // PATHWAYS-1 (DESIGN.md 10.15, BUG-PATHWAYS-04): `targetCompetitionIdForTeam`
+    // es OPCIONAL — un llamador que ya resolvió la temporada siguiente vía
+    // `CompetitionPathwayService`/`CompetitionEntry` (game.js) aporta el
+    // resolutor real; sin él, se conserva el comportamiento HISTÓRICO
+    // (`team.division`, ya mutado por el hook de cierre deportivo legacy)
+    // para los scripts de humo anteriores a esta entrega que no lo pasan.
     (teams || []).forEach((team) => {
       const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.id);
       if (!clubCase) return;
-      clubCase.targetCompetitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+      clubCase.targetCompetitionId = typeof targetCompetitionIdForTeam === 'function'
+        ? targetCompetitionIdForTeam(team)
+        : CompetitionRules.competitionIdFromLegacyDivision(team.division);
       clubCase.targetDivision = team.division;
     });
     enterPhase(cycle, 'season-history-closed', iso, {

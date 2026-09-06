@@ -919,7 +919,21 @@
     state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
     state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.ACB, worldSeasonKey));
     state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, worldSeasonKey));
-    BM.buildSeasonActivationPlan(worldSeasonKey).forEach((rule) => state.competitionEngine.registerCrossEditionActivation(rule));
+    // PATHWAYS-1 (DESIGN.md 10.15): el pathway doméstico español (playoff
+    // por el título, Copa en jornada 17, playoff de ascenso, transición
+    // ACB<->Primera FEB) decide TODA la progresión — ya NO se registra la
+    // activación cruzada legacy de Copa (`buildSeasonActivationPlan()`/
+    // `registerCrossEditionActivation()`, sin call-sites productivos desde
+    // esta entrega, BUG-PATHWAYS-01/02). `CompetitionPathwayService` es una
+    // instancia EXPLÍCITA por carrera, nunca un singleton.
+    BM.registerSpainPathways();
+    state.pathwayService = new BM.CompetitionPathwayService({
+      world: state.world,
+      competitionEngine: state.competitionEngine,
+      now: () => ({ instant: state.calendar.currentInstant, timeZoneId: state.calendar.defaultTimeZoneId }),
+      resolveEditionBindings: BM.resolveSpainEditionBindings,
+    });
+    state.competitionEngine.setFactHandler((fact) => state.pathwayService.handleEngineFact(fact));
 
     // CONTRACT-1 (DESIGN.md 9.17, sección 11 del prompt): con los 36
     // equipos ya construidos y el Player Registry completo, se crea el
@@ -2247,28 +2261,6 @@
     return isDivisionFullyDone('1ª') && isDivisionFullyDone('2ª');
   }
 
-  // LIFE-4 (DESIGN.md 9.15, sección 25): honores reales de la temporada que
-  // termina — hechos ya calculados por League.js/Bracket.js/Promotion.js
-  // (nunca recalculados aquí), un código estable por equipo. "Honor !=
-  // noticia individual" (invariante 23): esto NO genera ninguna noticia,
-  // solo queda en la ficha de cada jugador de ese roster.
-  function buildSeasonHonoursByTeamId(leagueA, leagueB, bracketsA, bracketsB, promotedTeams) {
-    const map = new Map();
-    function add(teamId, code) {
-      if (!teamId) return;
-      const list = map.get(teamId) || [];
-      list.push(code);
-      map.set(teamId, list);
-    }
-    const standingsB = leagueB.getStandingsTable();
-    if (standingsB.length) add(standingsB[0].team.id, 'regularSeasonChampion2');
-    if (bracketsA.cup && bracketsA.cup.champion) add(bracketsA.cup.champion.team.id, 'cupChampion');
-    if (bracketsA.titlePlayoff && bracketsA.titlePlayoff.champion) add(bracketsA.titlePlayoff.champion.team.id, 'titlePlayoffChampion');
-    if (promotedTeams[0]) add(promotedTeams[0].id, 'promotedDirect');
-    if (promotedTeams[1]) add(promotedTeams[1].id, 'promotedPlayoff');
-    return map;
-  }
-
   // LIFE-4 (DESIGN.md 9.15, sección 10): rol asignado + familiaridad de ESE
   // rol al cierre de temporada — lee directamente `team.tacticalProfile`
   // (Tactics.js real, nunca recalculado aquí). Sin rol asignado, ambos
@@ -2310,10 +2302,14 @@
       SeasonHistoryService, AnnualCycleService, WorldLifecycleService, CycleConfig,
     } = BM;
 
-    const leagueA = getLeague('1ª');
+    // PATHWAYS-1 (DESIGN.md 10.15): `leagueB`/`bracketsA` sobreviven SOLO
+    // para leer honores YA decididos por el motor (campeón regular de
+    // Primera FEB, campeón de Copa/playoff por el título) — la
+    // clasificación a Copa/playoff/ascenso y los ascensos/descensos reales
+    // YA NO se leen de estas vistas legacy (BUG-PATHWAYS-01/03/04): los
+    // decide `state.pathwayService`.
     const leagueB = getLeague('2ª');
     const bracketsA = getBrackets('1ª');
-    const bracketsB = getBrackets('2ª');
     // CAL-2: instante real de cierre, capturado ANTES de sustituir
     // `state.calendar` por el de la temporada siguiente.
     const seasonEndDateTime = state.calendar.currentGameDateTime;
@@ -2341,6 +2337,30 @@
       return;
     }
 
+    // PATHWAYS-1 (BUG-PATHWAYS-04): la membership de la temporada de ORIGEN
+    // se captura ANTES de comprometer la transición — el histórico de
+    // carrera cierra con la división en la que REALMENTE se compitió.
+    const divisionsBefore = SeasonHistoryService.captureDivisionsBefore(teams);
+
+    // Confirma el transition group doméstico ACB<->Primera FEB: receipt
+    // canónico, Editions/Stages/Entries de `targetSeasonKey` creadas de
+    // forma ATÓMICA (18+18, sin duplicados/ausencias) — el pathway
+    // CONSTRUYE y VALIDA la composición de la temporada siguiente; solo
+    // DESPUÉS se proyecta `team.division`/`legacyDivision` (BUG-PATHWAYS-04).
+    state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
+    const { receipt: transitionReceipt } = state.pathwayService.applyTransitionGroup(
+      BM.SPAIN_PATHWAY_IDS.DOMESTIC_CLUB,
+      BM.SPAIN_DOMESTIC_TRANSITION_GROUP_ID,
+      { fromSeasonKey, targetSeasonKey },
+    );
+    const teamsById = new Map(teams.map((team) => [team.id, team]));
+    const { promotedTeams, relegatedTeams } = SeasonHistoryService.deriveSeasonMovesFromTransitionReceipt(
+      transitionReceipt, teamsById,
+    );
+    // Proyección legacy (sección 11.2 del prompt): SIEMPRE después del
+    // commit real, nunca fuente de verdad, nunca `'1ª'` por defecto.
+    BM.CompetitionParticipationService.projectLegacyDivisionForTeams(state.world.registries, teams, targetSeasonKey);
+
     const { cycle } = AnnualCycleService.openCycle({
       annualCycleRegistry: state.annualCycleRegistry,
       teams,
@@ -2355,13 +2375,11 @@
 
     const summary = { promoted: [], relegated: [], userTeamDivision: null };
     const hooks = {
-      // Cierre DEPORTIVO: exactamente los mismos pasos que antes, ahora en
-      // `SeasonHistoryService` (compartido con los smokes).
+      // Cierre DEPORTIVO: honores + histórico de carrera, ahora en
+      // `SeasonHistoryService` (compartido con los smokes) — los
+      // ascensos/descensos ya llegan RESUELTOS por el pathway (arriba),
+      // este hook ya NUNCA los recalcula ni muta `team.division`.
       closeSeasonHistory() {
-        const divisionsBefore = SeasonHistoryService.captureDivisionsBefore(teams);
-        const { promotedTeams, relegatedTeams } = SeasonHistoryService.applyPromotionsAndRelegations({
-          leagueA, leagueB, promotionPlayoff: bracketsB.promotionPlayoff,
-        });
         const honoursByTeamId = SeasonHistoryService.buildSeasonHonoursByTeamId({
           leagueB, cup: bracketsA.cup, titlePlayoff: bracketsA.titlePlayoff, promotedTeams,
         });
@@ -2419,7 +2437,19 @@
         // explícita ("Delegar medidas de emergencia" en Planificación). Si
         // el club queda `not-ready` por esto, el aborto de más abajo lo
         // redirige a esa pantalla en vez de decidir por él.
-        cycle, phaseId, date: phaseDate, targetSeasonKey, hooks, delegateEmergencyForUserClub: false,
+        cycle,
+        phaseId,
+        date: phaseDate,
+        targetSeasonKey,
+        hooks,
+        delegateEmergencyForUserClub: false,
+        // PATHWAYS-1 (BUG-PATHWAYS-04): el ciclo anual recibe la competición
+        // de destino desde la membership YA comprometida (`CompetitionEntry`
+        // real de `targetSeasonKey`) — nunca de una traducción de
+        // `team.division` (ver `AnnualCycleService.closeSeasonHistory()`).
+        targetCompetitionIdForTeam: (team) => BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+          state.world.registries, team.id, { seasonKey: targetSeasonKey },
+        ),
       }));
       phaseResults.push({ phaseId, date: phaseDate, result });
       if (result && result.ready === false) {
@@ -2465,30 +2495,15 @@
     // El índice operativo no debe convertirse en otro histórico infinito de
     // partidos: los resultados/históricos/noticias ya viven en sus fuentes.
     state.calendar.retireLedger();
-    const teamsByDivision = {
-      '1ª': teams.filter((team) => team.division === '1ª'),
-      '2ª': teams.filter((team) => team.division === '2ª'),
-    };
 
-    // WORLD-CORE-1: `legacyDivision` sigue el ascenso/descenso real de
-    // `team.division` (puente de compatibilidad, nunca fuente de verdad —
-    // la fuente real es `CompetitionEntry`, reconstruida justo debajo).
-    teams.forEach((team) => { team.legacyDivision = team.division; });
-
-    // COMP-CORE-1 (DESIGN.md 10.13, sección 13.3 del prompt): cierra las
-    // ediciones/stages ACTIVOS de la temporada que termina (nunca se
-    // borran) y abre las de `targetSeasonKey` sobre el MISMO `GameWorld` Y
-    // el MISMO `state.competitionEngine` de la carrera — nunca se
-    // reconstruye ninguno de los dos al cerrar temporada.
-    BM.bindNewSeasonEditions(state.world, {
-      seasonKey: targetSeasonKey,
-      teamsByDivision,
-      startDate: BM.GameDateTime.localDateAt(nextSeasonStartInstant, state.calendar.defaultTimeZoneId),
-    });
-    state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
-    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.ACB, targetSeasonKey));
-    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, targetSeasonKey));
-    BM.buildSeasonActivationPlan(targetSeasonKey).forEach((rule) => state.competitionEngine.registerCrossEditionActivation(rule));
+    // PATHWAYS-1 (DESIGN.md 10.15, BUG-PATHWAYS-03/04): las Editions/Stages/
+    // Entries de `targetSeasonKey` (ACB + Primera FEB, 18+18) YA quedaron
+    // creadas y con su runtime inicializado al confirmar el transition group
+    // más arriba (`state.pathwayService.applyTransitionGroup()` ->
+    // `CompetitionEngine.activateEditionFromDecision()`) — `game.js` ya NO
+    // reconstruye la composición de la temporada siguiente aquí ni vuelve a
+    // llamar a `bindNewSeasonEditions()`/`buildSeasonActivationPlan()` (sin
+    // call-sites productivos desde esta entrega).
     // El cursor entra en la temporada nueva por su instante de arranque
     // (siempre hacia adelante) y las fuentes se resincronizan sobre la
     // MISMA instancia de calendario.

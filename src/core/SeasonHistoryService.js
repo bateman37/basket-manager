@@ -126,6 +126,34 @@
     return { promotedTeams, relegatedTeams };
   }
 
+  // PATHWAYS-1 (DESIGN.md 10.15, BUG-PATHWAYS-04) — deriva ascensos/
+  // descensos del `CompetitionSeasonTransitionReceipt` YA comprometido por
+  // `CompetitionPathwayService.applyTransitionGroup()`, en vez de recalcular
+  // standings/campeón desde `League`/`PromotionPlayoff` y mutar
+  // `team.division` aquí mismo. Nunca muta ningún Team — solo lee
+  // `receipt.moves` (ids reales, `outcomeCode` estable) y resuelve las
+  // instancias reales desde `teamsById`. `applyPromotionsAndRelegations()`
+  // arriba se conserva SOLO para los scripts de humo anteriores a esta
+  // entrega que todavía construyen su cierre desde `League`/
+  // `PromotionPlayoff` standalone (ver `scripts/cycle1-harness.js`) — la
+  // ruta productiva de `game.js` usa esta función.
+  function deriveSeasonMovesFromTransitionReceipt(transitionReceipt, teamsById) {
+    let directPromotion = null;
+    let playoffPromotion = null;
+    const relegatedTeams = [];
+    transitionReceipt.moves.forEach((move) => {
+      const team = teamsById.get(move.participantId);
+      if (!team) {
+        throw new Error(`SeasonHistoryService.deriveSeasonMovesFromTransitionReceipt: participante desconocido "${move.participantId}".`);
+      }
+      if (move.outcomeCode === 'promoted-direct') directPromotion = team;
+      else if (move.outcomeCode === 'promoted-playoff') playoffPromotion = team;
+      else if (move.outcomeCode === 'relegated') relegatedTeams.push(team);
+    });
+    const promotedTeams = [directPromotion, playoffPromotion].filter(Boolean);
+    return { promotedTeams, relegatedTeams };
+  }
+
   // =====================================================================
   // 3. Honores de la temporada (hechos YA calculados)
   // =====================================================================
@@ -185,6 +213,7 @@
       LastOfficialMatchEvidenceCollector,
       captureDivisionsBefore,
       applyPromotionsAndRelegations,
+      deriveSeasonMovesFromTransitionReceipt,
       buildSeasonHonoursByTeamId,
       closeCareerHistories,
     },
