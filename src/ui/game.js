@@ -813,13 +813,18 @@
     state.scheduleService = new BM.CompetitionScheduleService({ catalog: BM.CompetitionScheduleCatalog });
     const careerTimeZoneId = BM.SPAIN_TIME_ZONE_ID;
     const careerSeasonKeyAtStart = BM.seasonKeyFromStartYear(state.seasonStartYear);
-    const seasonStartInstant = state.scheduleService.seasonStartInstant(
-      BM.CompetitionScheduleCatalog.requireSchedule(BM.SPAIN_SCHEDULE_IDS.ACB), state.seasonStartYear,
-    );
+    const careerSchedule = BM.CompetitionScheduleCatalog.requireSchedule(BM.SPAIN_SCHEDULE_IDS.ACB);
+    const seasonStartInstant = state.scheduleService.seasonStartInstant(careerSchedule, state.seasonStartYear);
     state.calendar = new BM.WorldCalendar({
       id: `calendar:${teamId}:${state.seasonStartYear}`,
       defaultTimeZoneId: careerTimeZoneId,
-      initialInstant: seasonStartInstant,
+      // El CURSOR arranca en el borde de la ventana de temporada (ancla
+      // desplazada al `dayOffset` más temprano que declara el contenido),
+      // no en el ancla: la jornada 1 puede tener partidos en viernes y un
+      // cursor situado en el ancla los dejaría DETRÁS de él desde el minuto
+      // cero (invariante 5). El ancla sigue siendo el "inicio de temporada"
+      // que se registra y que usa el contexto de entrenamiento.
+      initialInstant: state.scheduleService.seasonWindowStartInstant(careerSchedule, state.seasonStartYear),
     });
     state.calendar.registerSeason({
       seasonKey: careerSeasonKeyAtStart,
@@ -2448,9 +2453,9 @@
     // sustituía `state.calendar` por otra instancia de `Calendar`, así que
     // el reloj de carrera "empezaba de cero" cada verano.
     state.seasonStartYear += 1;
-    const nextSeasonStartInstant = state.scheduleService.seasonStartInstant(
-      BM.CompetitionScheduleCatalog.requireSchedule(BM.SPAIN_SCHEDULE_IDS.ACB), state.seasonStartYear,
-    );
+    const nextCareerSchedule = BM.CompetitionScheduleCatalog.requireSchedule(BM.SPAIN_SCHEDULE_IDS.ACB);
+    const nextSeasonStartInstant = state.scheduleService.seasonStartInstant(nextCareerSchedule, state.seasonStartYear);
+    const nextSeasonWindowStartInstant = state.scheduleService.seasonWindowStartInstant(nextCareerSchedule, state.seasonStartYear);
     state.calendar.registerSeason({
       seasonKey: targetSeasonKey,
       startInstant: nextSeasonStartInstant,
@@ -2487,7 +2492,7 @@
     // El cursor entra en la temporada nueva por su instante de arranque
     // (siempre hacia adelante) y las fuentes se resincronizan sobre la
     // MISMA instancia de calendario.
-    advanceWorldClockToInstant(nextSeasonStartInstant);
+    advanceWorldClockToInstant(nextSeasonWindowStartInstant);
     state.calendarCoordinator.sync();
     state.pendingStop = null;
     refreshActiveCompetitionIdsForUser();

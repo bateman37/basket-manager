@@ -80,6 +80,37 @@
       return GDT().startOfLocalDay(this.seasonAnchorLocalDate(definition, seasonStartYear), definition.timeZoneId);
     }
 
+    // Desplazamiento en días MÁS TEMPRANO que cualquier plan de este
+    // calendario puede aplicar sobre su ancla semanal (los slots de viernes
+    // usan `dayOffset: -1`, la jornada intersemanal `-3`...). Derivado del
+    // CONTENIDO, nunca un margen inventado.
+    earliestDayOffset(definition) {
+      let earliest = 0;
+      definition.planKeys.forEach((planKey) => {
+        const plan = definition.getPlan(planKey);
+        if (plan.strategy !== 'round-robin-cadence') return;
+        plan.params.weekendSlots.forEach((slot) => { earliest = Math.min(earliest, slot.dayOffset); });
+        if (plan.params.midweek) earliest = Math.min(earliest, plan.params.midweek.dayOffset);
+        earliest = Math.min(earliest, plan.params.lastRoundSlot.dayOffset);
+      });
+      return earliest;
+    }
+
+    // Instante en el que ABRE la ventana de la temporada: el ancla civil
+    // desplazada al `dayOffset` más temprano posible. Es el arranque
+    // correcto del CURSOR de una carrera — el ancla a secas no sirve,
+    // porque la jornada 1 puede tener partidos en viernes (`dayOffset: -1`)
+    // y un cursor situado en el ancla dejaría esos partidos DETRÁS de él
+    // desde el minuto cero (invariante 5). El ancla sigue siendo la fecha
+    // de "inicio de temporada" que se muestra y que usa el contexto de
+    // entrenamiento; esto es solo el borde del calendario.
+    seasonWindowStartInstant(definition, seasonStartYear) {
+      const localDate = GDT().addLocalDaysToLocalDate(
+        this.seasonAnchorLocalDate(definition, seasonStartYear), this.earliestDayOffset(definition),
+      );
+      return GDT().startOfLocalDay(localDate, definition.timeZoneId);
+    }
+
     // Fecha CIVIL ancla de la jornada N (1-indexed) de un plan de
     // round-robin — la referencia semanal sobre la que se aplican los
     // `dayOffset` de cada slot (misma semántica que

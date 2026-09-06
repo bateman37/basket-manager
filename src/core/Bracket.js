@@ -127,7 +127,21 @@
       });
       this.roundPatterns = this.runner.roundPatterns;
       this._legacySeriesByCanonicalId = new Map();
-      this.rounds = [this._wrapRound(this.runner.rounds[0])];
+      this._wrappedRounds = [this._wrapRound(this.runner.rounds[0])];
+    }
+
+    // WORLD-CALENDAR-1 (DESIGN.md 10.14): `rounds` es una vista DERIVADA
+    // que se sincroniza con el runner al LEERSE. Antes solo se sincronizaba
+    // dentro de `playNextGame()`, así que una fachada construida bajo
+    // demanda (o construida antes de que el partido se resolviera por la
+    // cola mundial, que resuelve por `stageId`/`matchId` sin pasar por
+    // aquí) se quedaba mostrando únicamente la PRIMERA ronda — y con ella,
+    // el histórico de la temporada perdía los partidos de semifinales y
+    // final. Sincronizar es solo envolver rondas que el runner YA creó: no
+    // materializa partidos, no avanza rondas y no consume aleatoriedad.
+    get rounds() {
+      this._syncRounds();
+      return this._wrappedRounds;
     }
 
     _wrapSeries(canonicalSeries) {
@@ -140,12 +154,15 @@
     _wrapRound(canonicalRound) { return canonicalRound.map((s) => this._wrapSeries(s)); }
 
     _syncRounds() {
-      while (this.rounds.length < this.runner.rounds.length) {
-        this.rounds.push(this._wrapRound(this.runner.rounds[this.rounds.length]));
+      while (this._wrappedRounds.length < this.runner.rounds.length) {
+        this._wrappedRounds.push(this._wrapRound(this.runner.rounds[this._wrappedRounds.length]));
       }
     }
 
-    get currentRound() { return this.rounds[this.rounds.length - 1]; }
+    get currentRound() {
+      const rounds = this.rounds;
+      return rounds[rounds.length - 1];
+    }
 
     isCurrentRoundComplete() { return this.currentRound.every((s) => s.isDecided); }
 
