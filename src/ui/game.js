@@ -58,6 +58,10 @@
     // vivan aquí — nunca un segundo estado sincronizado a mano
     // (WORLD-CALENDAR-1 retiró `state.leagues`/`state.brackets`).
     competitionEngine: null,
+    // WORLD-SIM-1 (DESIGN.md 10.16): instancia EXPLÍCITA por carrera del
+    // servicio de simulación — `null` hasta `startSeason()`, mismo criterio
+    // que `competitionEngine`.
+    competitionSimulationService: null,
     // WORLD-CALENDAR-1 (DESIGN.md 10.14): FOCO DE INTERFAZ, no autoridad.
     // Antes se llamaban `activeCompetitionEditionId`/`activeStageId` y se
     // leían como "la competición activa" — un Team puede tener VARIAS
@@ -893,6 +897,28 @@
     // llega a asignarse (invariante 22: no debe quedar un mundo parcial
     // utilizable) — el error se propaga tal cual.
     const worldSeasonKey = buildCareerSeasonKey();
+    // WORLD-SIM-1 (DESIGN.md 10.16, sección 7 del prompt): perfil de
+    // simulación TRANSITORIO de la partida actual — ACB/Primera FEB/Copa
+    // ACB "playable" explícitos, default "abstract" para cualquier
+    // competición futura no configurada. Es una configuración de ARRANQUE
+    // de `game.js`, no lógica del core — WORLD-UI-1 añadirá los controles
+    // reales. Se asigna al mundo ANTES de instalar ningún paquete
+    // (`spain-2026.1.js` ya crea Editions dentro de `install()`).
+    const simulationProfile = new BM.WorldSimulationProfile({
+      id: `simulation-profile:${teamId}:${state.seasonStartYear}`,
+      version: '2026.1.0',
+      selectedAtGameDate: currentGameIsoDate(),
+      defaultDetailLevel: 'abstract',
+      assignments: [
+        { scopeType: 'competition', scopeId: BM.CompetitionCatalog.COMPETITION_IDS.ACB, detailLevel: 'playable' },
+        { scopeType: 'competition', scopeId: BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, detailLevel: 'playable' },
+        { scopeType: 'competition', scopeId: BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB, detailLevel: 'playable' },
+      ],
+      provenance: {
+        status: 'design',
+        notes: 'Perfil transitorio de arranque (WORLD-SIM-1) — sin selector real de nivel de detalle todavía (WORLD-UI-1).',
+      },
+    });
     const world = BM.buildCareerWorld({
       id: `world:${teamId}:${state.seasonStartYear}`,
       name: 'Mundo de la carrera',
@@ -900,12 +926,23 @@
       createdAtGameDate: currentGameIsoDate(),
       packs: [BM.WORLD_CORE_MANIFEST, BM.SPAIN_MANIFEST],
       context: { teamsByDivision, seasonKey: worldSeasonKey, seasonStartDate: currentGameIsoDate() },
+      simulationProfile,
     });
     state.world = world;
     // CLUB-CORE-1: `userClubId` se resuelve AQUÍ, con el mundo ya instalado
     // (el equipo elegido ya tiene `clubId` real enlazado por
     // `spain-2026.1.js`) — nunca antes, nunca igual a `teamId`.
     state.userClubId = state.world.registries.teams.require(teamId).clubId;
+
+    // WORLD-SIM-1: instancia EXPLÍCITA por carrera (nunca singleton) — hoy
+    // inerte en la partida española (ACB/Primera FEB/Copa son "playable",
+    // nunca construyen un runtime "standard"/"abstract"), pero disponible
+    // para que `CompetitionEngine` la use en cuanto un paquete futuro
+    // instale una competición no jugable.
+    state.competitionSimulationService = new BM.CompetitionSimulationService({
+      world: state.world,
+      careerSeed: buildMarketCareerSeed(),
+    });
 
     // COMP-CORE-1 (DESIGN.md 10.13, sección 13.1 del prompt, pasos 4-6):
     // UNA única instancia de `CompetitionEngine` por carrera, adjuntada al
@@ -915,7 +952,7 @@
     // vistas `League`/`Bracket` que necesitan las pantallas antiguas se
     // construyen BAJO DEMANDA desde estos mismos runners
     // (WORLD-CALENDAR-1: `state.leagues`/`state.brackets` ya no existen).
-    state.competitionEngine = new BM.CompetitionEngine({ world: state.world });
+    state.competitionEngine = new BM.CompetitionEngine({ world: state.world, simulationService: state.competitionSimulationService });
     state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
     state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.ACB, worldSeasonKey));
     state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, worldSeasonKey));
@@ -1055,7 +1092,7 @@
     state.contractRegistry = new ContractRegistry();
     state.contractBootstrapWarnings = [];
 
-    const teams = getAllTeams();
+    const teams = interactiveCohortTeams();
     // Los 36 clubes deben tener contexto laboral EXPLÍCITO: un club
     // desconocido no hereda España, ACB ni ningún otro perfil.
     const catalogCheck = ClubEmploymentContextCatalog.validateCatalog(teams);
@@ -1235,7 +1272,7 @@
     const seasonKey = buildCareerSeasonKey();
     const isoDate = currentGameIsoDate();
     const { warnings } = RegistrationSeeder.seedRegistrationsForTeams({
-      teams: getAllTeams(),
+      teams: interactiveCohortTeams(),
       seasonKey,
       date: isoDate,
       registrationRegistry: state.registrationRegistry,
@@ -1761,6 +1798,22 @@
     return teams;
   }
 
+  // WORLD-SIM-1 (DESIGN.md 10.16, BUG-WORLDSIM-06): cohorte INTERACTIVO —
+  // los sistemas españoles que hoy aplican bootstrap/seeding a TODOS los
+  // equipos (contratos, inscripción, ciclo anual) deben usar esto, nunca
+  // `getAllTeams()` a secas. Instalar mañana un Team `standard`/`abstract`
+  // no le aplicaría las reglas españolas por accidente. Para la partida
+  // actual el cohorte contiene exactamente los mismos 36 equipos (ACB +
+  // Primera FEB son "playable"), así que el comportamiento observable no
+  // cambia. `getAllTeams()` SIGUE significando "todos los Teams
+  // registrados" (búsquedas/diagnóstico) — su semántica no cambia.
+  function interactiveCohortTeams() {
+    if (!state.competitionSimulationService) return getAllTeams();
+    const cohortIds = new Set(state.competitionSimulationService.interactiveCohortTeams(buildCareerSeasonKey()));
+    if (!cohortIds.size) return getAllTeams();
+    return getAllTeams().filter((team) => cohortIds.has(team.id));
+  }
+
   // CLUB-CORE-1 (DESIGN.md sección 10): resuelve el Team principal de un
   // Club REAL (contratos/mercado/traspasos/cesiones/tanteo usan siempre
   // `clubId`, nunca `team.id`) — decisión explícita de la vertical actual
@@ -2095,6 +2148,14 @@
         timeZoneId,
         resolveMatch: ({ stageId, matchId }) => resolveCpuMatchByDescriptor(stageId, matchId),
       }),
+      // WORLD-SIM-1 (DESIGN.md 10.16): hitos agregados "abstract" — hoy
+      // siempre vacía (ACB/Primera FEB/Copa son "playable"), pero comparte
+      // la MISMA cola cronológica que el resto de fuentes.
+      BM.createCompetitionSimulationSource({
+        engine: state.competitionEngine,
+        timeZoneId,
+        resolveMilestone: ({ stageId, milestoneId }) => resolveAbstractMilestoneEvent(stageId, milestoneId),
+      }),
     ];
     if (state.marketRegistry) {
       sources.push(BM.createMarketEventSource({
@@ -2149,6 +2210,20 @@
 
   function resolveCpuMatchByDescriptor(stageId, matchId) {
     return resolveMatchDescriptor(stageId, matchId, {});
+  }
+
+  // WORLD-SIM-1 (DESIGN.md 10.16, sección 13 del prompt) — commit de un
+  // hito agregado "abstract": actualiza resumen de fase/Stage/Edition y
+  // receipt (vía el engine) y publica SOLO activaciones de
+  // fase/pathway ya reales — NUNCA una noticia de partido que jamás
+  // existió (invariante: honestidad del resultado). Hoy sin call-sites
+  // reales (ACB/Primera FEB/Copa son "playable").
+  function resolveAbstractMilestoneEvent(stageId, milestoneId) {
+    state.competitionEngine.resolveAbstractMilestone(stageId, milestoneId, {
+      now: { instant: state.calendar.currentInstant },
+    });
+    const activationEvents = drainCompetitionActivationEvents();
+    publishActivationNews(activationEvents);
   }
 
   // Efectos posteriores a un commit REAL: recuperación de Energía,
@@ -2318,8 +2393,9 @@
     const targetSeasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear + 1);
     // WORLD-CORE-1 (sección 8.5 del prompt): mismas instancias que
     // `getAllTeams()` — desde el World Registry, no desde una lista fija de
-    // clubes españoles.
-    const teams = getAllTeams();
+    // clubes españoles. WORLD-SIM-1 (BUG-WORLDSIM-06): el ciclo anual solo
+    // procesa el cohorte INTERACTIVO — hoy son los mismos 36 equipos.
+    const teams = interactiveCohortTeams();
 
     // Sin evidencia de último partido oficial de CADA club no se abre el
     // ciclo — nunca se inventa una fecha común. Si faltara algún club (una
@@ -7414,6 +7490,7 @@
     'contract-expiring-soon': 'Contrato próximo a expirar',
     'under-contract': 'Bajo contrato',
     'agreement-in-principle': 'Acuerdo en principio con otro club',
+    'affiliated-contract-unknown': 'Afiliado — contrato no cargado en este nivel de detalle',
     'not-found': 'No encontrado',
   };
 
@@ -7490,7 +7567,7 @@
       .map((player) => ({
         player,
         availability: BM.MarketService.resolveMarketAvailability({
-          playerId: player.id, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate,
+          playerId: player.id, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate, teamRegistry: state.world.registries.teams,
         }),
       }))
       .filter((row) => !filterState.status || row.availability.status === filterState.status)
@@ -7504,7 +7581,14 @@
       const existingThread = state.marketRegistry.threadsForClub(team.id).find((t) => t.playerId === player.id);
       const clubName = player.teamId ? (getAllTeams().find((t) => t.id === player.teamId) || { fullName: player.teamId }).fullName : 'Sin club';
       const isOwnPlayer = team.roster.some((p) => p.id === player.id);
-      const canInquire = !existingThread && !isOwnPlayer && availability.status !== 'agreement-in-principle' && availability.status !== 'not-found';
+      // WORLD-SIM-1 (DESIGN.md 10.16, BUG-WORLDSIM-05): un afiliado sin
+      // contrato cargado ("affiliated-contract-unknown") nunca abre
+      // negociación — su cobertura contractual no existe en este nivel de
+      // detalle, no es libertad contractual real.
+      const canInquire = !existingThread && !isOwnPlayer
+        && availability.status !== 'agreement-in-principle'
+        && availability.status !== 'not-found'
+        && availability.status !== 'affiliated-contract-unknown';
       return `
         <tr>
           <td data-label="Jugador">${playerLinkHtml(player)} ${isFictional ? marketSimulatedBadgeHtml('Jugador ficticio generado para el mercado de esta partida; no es un dato real.') : ''}</td>
@@ -7553,7 +7637,7 @@
       const player = state.playerRegistry.get(playerId);
       if (!player) return '';
       const availability = BM.MarketService.resolveMarketAvailability({
-        playerId, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate,
+        playerId, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate, teamRegistry: state.world.registries.teams,
       });
       return `
         <tr>
@@ -8506,7 +8590,7 @@
     if (!state.marketRegistry || !state.agentRegistry) return '<div class="gm-card"><p class="gm-muted">Mercado no disponible todavía.</p></div>';
     const isoDate = currentGameIsoDate();
     const availability = BM.MarketService.resolveMarketAvailability({
-      playerId: player.id, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate,
+      playerId: player.id, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, date: isoDate, teamRegistry: state.world.registries.teams,
     });
     const mandate = state.agentRegistry.actingMandateForTransaction({ playerId: player.id, date: isoDate });
     const agent = mandate ? state.agentRegistry.getAgent(mandate.agentId) : null;
@@ -8712,6 +8796,8 @@
       state.scheduleService = null;
       state.pendingStop = null;
       state.competitionEngine = null;
+      // WORLD-SIM-1: mismo criterio — instancia por carrera, nunca sobrevive.
+      state.competitionSimulationService = null;
       state.uiFocusCompetitionEditionId = null;
       state.uiFocusStageId = null;
       state.userTeamId = null;

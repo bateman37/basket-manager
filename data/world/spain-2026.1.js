@@ -36,6 +36,7 @@
   const CompetitionScheduleCatalogModule = dep('../../src/core/CompetitionScheduleCatalog.js');
   const CompetitionEngineModule = dep('../../src/core/CompetitionEngine.js');
   const CompetitionPathwayCatalogModule = dep('../../src/core/CompetitionPathwayCatalog.js');
+  const WorldSimulationModule = dep('../../src/entities/WorldSimulation.js');
   const WorldCoreManifestModule = dep('./world-core-2026.1.js');
 
   function Geo() { return GeographyModule; }
@@ -47,6 +48,7 @@
   function ScheduleCatalog() { return CompetitionScheduleCatalogModule.CompetitionScheduleCatalog; }
   function Engine() { return CompetitionEngineModule; }
   function PathwayCatalog() { return CompetitionPathwayCatalogModule; }
+  function WorldSimulation() { return WorldSimulationModule; }
   function EuropeAreaId() {
     return (WorldCoreManifestModule.WORLD_CORE_AREA_IDS || { EUROPE: 'area-continent-europe' }).EUROPE;
   }
@@ -651,8 +653,26 @@
   const PATHWAY_IDS = { DOMESTIC_CLUB: 'spain-2026.1:pathway:domestic-club-v1' };
   const DOMESTIC_TRANSITION_GROUP_ID = 'acb-feb-domestic-v1';
 
-  function editionBindings(competitionId) {
+  // WORLD-SIM-1 (DESIGN.md 10.16): nivel de detalle resuelto por identidad
+  // mundial (competición exacta -> área más cercana -> default explícito
+  // del perfil DE LA CARRERA, nunca de este paquete). `world` es opcional
+  // solo por compatibilidad con `buildSeasonActivationPlan()` (shim legacy
+  // sin `world`, ver CLAUDE.md/DESIGN.md 10.8) — todo call-site productivo
+  // lo aporta siempre.
+  function resolveDetailLevel(world, competitionId, definition) {
+    if (!world) return undefined;
+    if (!world.simulationProfile) {
+      throw new Error(`spain-2026.1: el mundo no tiene "simulationProfile" asignado — no se puede resolver el nivel de detalle de "${competitionId}".`);
+    }
+    const areaChain = definition.scopeAreaId
+      ? WorldSimulation().resolveAreaChain(world.registries.areas, definition.scopeAreaId)
+      : [];
+    return world.simulationProfile.resolveDetailLevel({ competitionDefinitionId: competitionId, areaChain });
+  }
+
+  function editionBindings(competitionId, world) {
     const definition = Catalog().getCompetitionDefinition(competitionId);
+    const detailLevel = resolveDetailLevel(world, competitionId, definition);
     if (competitionId === Catalog().COMPETITION_IDS.ACB) {
       return {
         formatBindingId: FORMAT_IDS.ACB_LIGA_PLAYOFF,
@@ -661,6 +681,7 @@
         // PATHWAYS-1: toda Edition de ACB congela el pathway doméstico — es
         // quien decide top-8/Copa/descenso, nunca el formato.
         pathwayBindingIds: [PATHWAY_IDS.DOMESTIC_CLUB],
+        detailLevel,
       };
     }
     if (competitionId === Catalog().COMPETITION_IDS.PRIMERA_FEB) {
@@ -669,6 +690,7 @@
         scheduleProfileId: definition.bindings.scheduleProfileId,
         rulesetBundleId: 'primera-feb-domestic-2026-27-v1',
         pathwayBindingIds: [PATHWAY_IDS.DOMESTIC_CLUB],
+        detailLevel,
       };
     }
     if (competitionId === Catalog().COMPETITION_IDS.COPA_ACB) {
@@ -677,7 +699,11 @@
       // alimenta ninguna regla de pathway propia (invariante "la Copa no
       // altera la membership de liga") — sin pathwayBindingIds.
       return {
-        formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'copa-acb-domestic-2025-26-v1', pathwayBindingIds: [],
+        formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT,
+        scheduleProfileId: definition.bindings.scheduleProfileId,
+        rulesetBundleId: 'copa-acb-domestic-2025-26-v1',
+        pathwayBindingIds: [],
+        detailLevel,
       };
     }
     throw new Error(`spain-2026.1: sin bindings declarados para la competición "${competitionId}".`);
@@ -814,8 +840,8 @@
   // engine procesa los hechos reales (`stage-completed`/`round-completed`)
   // — nunca se fabrican aquí de antemano.
   function bindCareerStartEditions(world, { seasonKey, teamsByDivision, startDate }) {
-    const acbBindings = editionBindings(Catalog().COMPETITION_IDS.ACB);
-    const febBindings = editionBindings(Catalog().COMPETITION_IDS.PRIMERA_FEB);
+    const acbBindings = editionBindings(Catalog().COMPETITION_IDS.ACB, world);
+    const febBindings = editionBindings(Catalog().COMPETITION_IDS.PRIMERA_FEB, world);
     const { edition: acbEdition } = Engine().registerEditionWithInitialEntries(world, {
       competitionDefinitionId: Catalog().COMPETITION_IDS.ACB,
       seasonKey,

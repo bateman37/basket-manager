@@ -17,9 +17,17 @@
 // orden, tooltip o getter de lectura escribe en el mundo.
 //
 // Categorías EXCLUSIVAS (sección 14): 'senior-service-roster', 'academy',
-// 'free-agent', 'external-abstract', 'retired', 'left-professional-pathway'.
-// La categoría se DERIVA de registros canónicos — nunca de cinco booleanos
-// que puedan contradecirse.
+// 'free-agent', 'retired', 'left-professional-pathway'. La categoría se
+// DERIVA de registros canónicos — nunca de varios booleanos que puedan
+// contradecirse.
+//
+// WORLD-SIM-1 (DESIGN.md 10.16, BUG-WORLDSIM-04): la categoría
+// 'external-abstract' y el hook `externalClubMembership` quedan RETIRADOS
+// — nunca tuvieron un call-site real y contradecían WORLD-CORE/CLUB-CORE
+// (un club exterior es un `Club`/`Team`/`Squad` NORMAL, nunca una segunda
+// ontología). Un jugador en el Squad activo de cualquier Team (español o
+// de detalle `standard`/`abstract`) ya clasifica como
+// 'senior-service-roster' en cuanto ese Team llega en `deps.teams`.
 //
 // Módulo puro: no lee DOM ni `state`; recibe registros/equipos explícitos.
 
@@ -37,11 +45,19 @@
   function PC() { return PlayerCareerModule; }
   function Train() { return TrainingModule; }
 
+  // WORLD-SIM-1 (DESIGN.md 10.16, BUG-WORLDSIM-04): 'external-abstract'
+  // queda RETIRADA — nunca tuvo un call-site real (`externalClubMembership`
+  // no lo pasaba nadie) y contradecía WORLD-CORE/CLUB-CORE: un club
+  // exterior es un `Club`/`Team`/`Squad` NORMAL, nunca una segunda
+  // ontología. Un jugador en el Squad activo de CUALQUIER Team (español o
+  // abstracto) ya clasifica como 'senior-service-roster' a través del
+  // recorrido de `teams` de abajo — el nivel de detalle EFECTIVO de ese
+  // Team (`CompetitionSimulationService.effectiveDetailLevelForTeam()`) es
+  // quien decide cuánto se simula, nunca la categoría de ciclo de vida.
   const CATEGORIES = [
     'senior-service-roster',
     'academy',
     'free-agent',
-    'external-abstract',
     'retired',
     'left-professional-pathway',
   ];
@@ -100,12 +116,14 @@
   // =====================================================================
   // Prioridad de resolución (documentada y probada): retirado >
   // fuera de la vía profesional > roster senior de servicio > academia >
-  // club externo abstracto > agente libre. Un cedido cuenta UNA sola vez,
-  // en el roster del CESIONARIO (es donde está su instancia real). Un
-  // vinculado tampoco recibe doble tick: conserva su afiliación de origen.
+  // agente libre. Un cedido cuenta UNA sola vez, en el roster del
+  // CESIONARIO (es donde está su instancia real). Un vinculado tampoco
+  // recibe doble tick: conserva su afiliación de origen. Un club exterior
+  // (WORLD-SIM-1) es un Team NORMAL — si sus jugadores llegan en `teams`,
+  // ya cuentan como 'senior-service-roster' sin ninguna categoría aparte.
   function classifyWorld(deps, date) {
     const {
-      playerRegistry, teams, annualCycleRegistry, academyRegistry, externalClubMembership,
+      playerRegistry, teams, annualCycleRegistry, academyRegistry,
     } = deps || {};
     const iso = toIso(date);
     // CLUB-CORE-1: `serviceClubId` es SIEMPRE un Club real (para poder
@@ -133,12 +151,6 @@
         category = 'academy';
         const membership = academyRegistry.activeMembershipForPlayer(player.id, iso);
         serviceClubId = membership ? membership.clubId : null;
-      } else if (externalClubMembership && externalClubMembership.has(player.id)) {
-        // Hook EUROPE-1: club extranjero abstracto. Hoy nunca hay nadie
-        // aquí (no existen plantillas extranjeras) — la categoría se
-        // conserva para no tener que reclasificar el mundo entero después.
-        category = 'external-abstract';
-        serviceClubId = externalClubMembership.get(player.id);
       } else {
         category = 'free-agent';
       }
@@ -162,7 +174,6 @@
   // | Roster senior de servicio | Sí         | Sí     | Club de servicio   |
   // | Academia                  | Sí         | Sí     | Contexto academia  |
   // | Agente libre              | Sí neutral | Sí     | No                 |
-  // | Club externo abstracto    | Hook det.  | Sí     | No club español    |
   // | Retirado                  | No         | Histórico | No              |
   // | Fuera de vía profesional  | No         | Histórico | No              |
   //
@@ -215,16 +226,7 @@
       markProcessed(playerId);
     });
 
-    // 3.4 Club externo abstracto — hook determinista, sin club español.
-    classification.byCategory['external-abstract'].forEach((playerId) => {
-      const player = playerRegistry.get(playerId);
-      if (!player) return;
-      PD().processPlayerToDate(player, targetJsDate, config, { facilityLevel: NEUTRAL_FACILITY_LEVEL });
-      Med().processPlayerMedicalToDate(player, targetJsDate, config, null);
-      markProcessed(playerId);
-    });
-
-    // 3.5 Retirados y salidos de la vía profesional — NINGÚN desarrollo
+    // 3.4 Retirados y salidos de la vía profesional — NINGÚN desarrollo
     // deportivo futuro. Su estado médico queda como HISTÓRICO: ni se
     // procesa ni se borra. Se cuentan como procesados (decisión explícita:
     // "no recibir desarrollo" ES su procesado) para que la auditoría de
@@ -271,7 +273,7 @@
   function describePopulation(deps, date, cycleConfig, seniorMaxByClub) {
     const classification = classifyWorld(deps, date);
     const { teams } = deps || {};
-    const activeCategories = ['senior-service-roster', 'academy', 'free-agent', 'external-abstract'];
+    const activeCategories = ['senior-service-roster', 'academy', 'free-agent'];
     const activeCount = activeCategories.reduce((sum, key) => sum + classification.counts[key], 0);
     const clubCount = (teams || []).length;
     // Cota DERIVADA (nunca un assert mágico contra el total histórico):

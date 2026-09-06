@@ -163,7 +163,10 @@
           receiptId, firstRoundPairing,
         });
       } else if (rule.kind === 'competition-qualification') {
-        const bindings = this._resolveEditionBindings(rule.destination.competitionDefinitionId);
+        // WORLD-SIM-1 (DESIGN.md 10.16, sección 8 del prompt): el destino
+        // resuelve su PROPIO nivel de detalle (competición+perfil) — nunca
+        // copiado de la Edition fuente que disparó la regla.
+        const bindings = this._resolveEditionBindings(rule.destination.competitionDefinitionId, this.world);
         this.engine.activateEditionFromDecision({
           competitionDefinitionId: rule.destination.competitionDefinitionId,
           seasonKey: sourceSeasonKey,
@@ -174,6 +177,7 @@
           pathwayBindingIds: bindings.pathwayBindingIds || [],
           qualifiers: finalQualifiers,
           receiptId,
+          detailLevel: bindings.detailLevel,
         });
       } else {
         throw new Error(`CompetitionPathwayService: kind "${rule.kind}" no se aplica vía hecho del engine (usa applyTransitionGroup).`);
@@ -357,7 +361,10 @@
         .sort((a, b) => (a[0] < b[0] ? -1 : 1))
         .forEach(([competitionDefinitionId, membership]) => {
           this.engine.completePreviousEditions(competitionDefinitionId);
-          const bindings = this._resolveEditionBindings(competitionDefinitionId);
+          // WORLD-SIM-1: la transición anual crea Editions NUEVAS con el
+          // nivel correspondiente al TARGET, sin heredar accidentalmente el
+          // de la temporada anterior (sección 8 del prompt).
+          const bindings = this._resolveEditionBindings(competitionDefinitionId, this.world);
           const { edition } = this.engine.activateEditionFromDecision({
             competitionDefinitionId,
             seasonKey: targetSeasonKey,
@@ -368,6 +375,7 @@
             pathwayBindingIds: bindings.pathwayBindingIds || [],
             qualifiers: membership,
             receiptId: transitionReceiptId,
+            detailLevel: bindings.detailLevel,
           });
           createdEditionIds.push(edition.id);
           this.world.registries.competitionEntries.forEdition(edition.id).forEach((entry) => createdEntryIds.push(entry.id));
