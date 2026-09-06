@@ -35,6 +35,7 @@
   const CompetitionFormatCatalogModule = dep('../../src/core/CompetitionFormatCatalog.js');
   const CompetitionScheduleCatalogModule = dep('../../src/core/CompetitionScheduleCatalog.js');
   const CompetitionEngineModule = dep('../../src/core/CompetitionEngine.js');
+  const CompetitionPathwayCatalogModule = dep('../../src/core/CompetitionPathwayCatalog.js');
   const WorldCoreManifestModule = dep('./world-core-2026.1.js');
 
   function Geo() { return GeographyModule; }
@@ -45,6 +46,7 @@
   function FormatCatalog() { return CompetitionFormatCatalogModule; }
   function ScheduleCatalog() { return CompetitionScheduleCatalogModule.CompetitionScheduleCatalog; }
   function Engine() { return CompetitionEngineModule; }
+  function PathwayCatalog() { return CompetitionPathwayCatalogModule; }
   function EuropeAreaId() {
     return (WorldCoreManifestModule.WORLD_CORE_AREA_IDS || { EUROPE: 'area-continent-europe' }).EUROPE;
   }
@@ -303,10 +305,13 @@
           stageType: 'knockout',
           runnerType: 'bracket',
           sequence: 2,
-          activation: { type: 'stage-completed', sourceStageKey: 'regular-season' },
-          entrySource: {
-            type: 'stage-standings-range', sourceStageKey: 'regular-season', fromRank: 1, toRank: 8, sourceScope: 'same-edition',
-          },
+          // PATHWAYS-1 (DESIGN.md 10.15, BUG-PATHWAYS-01): el FORMATO ya no
+          // decide top-8 ni cuándo se activa — solo declara que la fase
+          // EXISTE y CÓMO se disputa (cuadro fijo/patrones de campo). Quién
+          // la alcanza lo decide `SPAIN_PATHWAY_ID` (regla
+          // "acb-title-playoff-qualification").
+          activation: { type: 'pathway-managed' },
+          entrySource: { type: 'pathway-managed' },
           runnerConfig: {
             firstRoundPairing: [[1, 8], [4, 5], [2, 7], [3, 6]],
             roundPatterns: ['best-of-3-1-1-1', 'best-of-5-2-2-1', 'best-of-5-2-2-1'],
@@ -348,10 +353,11 @@
           stageType: 'knockout',
           runnerType: 'bracket',
           sequence: 2,
-          activation: { type: 'stage-completed', sourceStageKey: 'regular-season' },
-          entrySource: {
-            type: 'stage-standings-range', sourceStageKey: 'regular-season', fromRank: 2, toRank: 9, sourceScope: 'same-edition',
-          },
+          // PATHWAYS-1 (BUG-PATHWAYS-01): igual que el playoff por el
+          // título — el rango 2-9 vive en la regla de pathway
+          // "feb-promotion-quarterfinals-qualification", nunca aquí.
+          activation: { type: 'pathway-managed' },
+          entrySource: { type: 'pathway-managed' },
           runnerConfig: {
             firstRoundPairing: [[2, 9], [3, 8], [4, 7], [5, 6]],
             roundPatterns: ['best-of-5-2-2-1'],
@@ -364,10 +370,12 @@
           stageType: 'final-four',
           runnerType: 'bracket',
           sequence: 3,
-          activation: { type: 'stage-completed', sourceStageKey: 'promotion-quarterfinals' },
-          entrySource: {
-            type: 'stage-bracket-final-round-winners', sourceStageKey: 'promotion-quarterfinals', reseedStrategy: 'best-vs-worst-by-seed',
-          },
+          // PATHWAYS-1 (BUG-PATHWAYS-01): el reseed best-vs-worst de los 4
+          // ganadores lo calcula el `seedPolicy` de la regla de pathway
+          // "feb-promotion-final-four-qualification" — el formato solo
+          // declara el patrón de campo (single-game/single-game).
+          activation: { type: 'pathway-managed' },
+          entrySource: { type: 'pathway-managed' },
           runnerConfig: { roundPatterns: ['single-game', 'single-game'] },
           completesEdition: true,
         },
@@ -637,20 +645,164 @@
   // incrustado. `scheduleProfileId` usa el MISMO id ya declarado en
   // `CompetitionCatalog.js` (`bindings.scheduleProfileId`) — `Calendar`
   // ya sabe resolverlo (alias añadido a `MatchConfig.js`, sección 11.2).
+  // PATHWAYS-1 (DESIGN.md 10.15) — id ESTABLE del pathway doméstico de
+  // clubes de España, y del transition group ACB<->Primera FEB (sección
+  // 10.3 del prompt).
+  const PATHWAY_IDS = { DOMESTIC_CLUB: 'spain-2026.1:pathway:domestic-club-v1' };
+  const DOMESTIC_TRANSITION_GROUP_ID = 'acb-feb-domestic-v1';
+
   function editionBindings(competitionId) {
     const definition = Catalog().getCompetitionDefinition(competitionId);
     if (competitionId === Catalog().COMPETITION_IDS.ACB) {
-      return { formatBindingId: FORMAT_IDS.ACB_LIGA_PLAYOFF, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'acb-domestic-2025-26-v1' };
+      return {
+        formatBindingId: FORMAT_IDS.ACB_LIGA_PLAYOFF,
+        scheduleProfileId: definition.bindings.scheduleProfileId,
+        rulesetBundleId: 'acb-domestic-2025-26-v1',
+        // PATHWAYS-1: toda Edition de ACB congela el pathway doméstico — es
+        // quien decide top-8/Copa/descenso, nunca el formato.
+        pathwayBindingIds: [PATHWAY_IDS.DOMESTIC_CLUB],
+      };
     }
     if (competitionId === Catalog().COMPETITION_IDS.PRIMERA_FEB) {
-      return { formatBindingId: FORMAT_IDS.PRIMERA_FEB_LIGA_ASCENSO, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'primera-feb-domestic-2026-27-v1' };
+      return {
+        formatBindingId: FORMAT_IDS.PRIMERA_FEB_LIGA_ASCENSO,
+        scheduleProfileId: definition.bindings.scheduleProfileId,
+        rulesetBundleId: 'primera-feb-domestic-2026-27-v1',
+        pathwayBindingIds: [PATHWAY_IDS.DOMESTIC_CLUB],
+      };
     }
     if (competitionId === Catalog().COMPETITION_IDS.COPA_ACB) {
       // WORLD-CALENDAR-1: la Copa YA tiene calendario propio congelado por
-      // Edition (antes `null`) — su runtime tiene fechas reales.
-      return { formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'copa-acb-domestic-2025-26-v1' };
+      // Edition (antes `null`) — su runtime tiene fechas reales. La Copa no
+      // alimenta ninguna regla de pathway propia (invariante "la Copa no
+      // altera la membership de liga") — sin pathwayBindingIds.
+      return {
+        formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'copa-acb-domestic-2025-26-v1', pathwayBindingIds: [],
+      };
     }
     throw new Error(`spain-2026.1: sin bindings declarados para la competición "${competitionId}".`);
+  }
+
+  // -----------------------------------------------------------------------
+  // PATHWAYS-1 (DESIGN.md 10.15, sección 10 del prompt) — pathway doméstico
+  // de clubes de España: playoff por el título, Copa (foto jornada 17),
+  // playoff de ascenso y la transición conjunta ACB<->Primera FEB. Ningún
+  // número de aquí vive en el core genérico (`CompetitionPathwayService.js`)
+  // — auditado en `scripts/test-pathways1.js`.
+  // -----------------------------------------------------------------------
+  function registerPathways() {
+    const PC = PathwayCatalog();
+    if (PC.hasPathwayDefinition(PATHWAY_IDS.DOMESTIC_CLUB)) return; // idempotente
+
+    const acbRef = (stageKey) => ({ competitionDefinitionId: Catalog().COMPETITION_IDS.ACB, stageKey });
+    const febRef = (stageKey) => ({ competitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB, stageKey });
+
+    PC.registerPathwayDefinition({
+      id: PATHWAY_IDS.DOMESTIC_CLUB,
+      version: '2026.1.0',
+      status: 'active',
+      participantType: 'club-team',
+      provenance: { dataSource: MANIFEST_ID, status: 'verified', notes: 'DESIGN.md 3.2/3.4 — progresión doméstica ACB/Primera FEB/Copa.' },
+      transitionGroups: {
+        [DOMESTIC_TRANSITION_GROUP_ID]: {
+          expectedCardinalityByCompetitionDefinitionId: {
+            [Catalog().COMPETITION_IDS.ACB]: 18,
+            [Catalog().COMPETITION_IDS.PRIMERA_FEB]: 18,
+          },
+          exclusivePyramid: true,
+        },
+      },
+      rules: [
+        // --- Dentro de temporada (stage-qualification/competition-qualification) ---
+        {
+          id: 'acb-title-playoff-qualification',
+          kind: 'stage-qualification',
+          trigger: { type: 'stage-completed', stageRef: acbRef('regular-season') },
+          selector: { type: 'standings-range', stageRef: acbRef('regular-season'), fromRank: 1, toRank: 8 },
+          destination: { type: 'stage', stageKey: 'title-playoff' },
+          seedPolicy: 'source-rank',
+          outcomeCode: 'title-playoff-qualified',
+        },
+        {
+          id: 'acb-copa-qualification',
+          kind: 'competition-qualification',
+          trigger: { type: 'round-completed', stageRef: acbRef('regular-season'), round: CUP_TRIGGER_ROUND },
+          selector: { type: 'standings-range', stageRef: acbRef('regular-season'), fromRank: 1, toRank: 8 },
+          destination: { type: 'competition-edition', competitionDefinitionId: Catalog().COMPETITION_IDS.COPA_ACB, seasonRelation: 'same-season' },
+          seedPolicy: 'source-rank',
+          outcomeCode: 'copa-qualified',
+        },
+        {
+          id: 'feb-promotion-quarterfinals-qualification',
+          kind: 'stage-qualification',
+          trigger: { type: 'stage-completed', stageRef: febRef('regular-season') },
+          selector: { type: 'standings-range', stageRef: febRef('regular-season'), fromRank: 2, toRank: 9 },
+          destination: { type: 'stage', stageKey: 'promotion-quarterfinals' },
+          seedPolicy: 'source-rank',
+          outcomeCode: 'promotion-quarterfinals-qualified',
+        },
+        {
+          id: 'feb-promotion-final-four-qualification',
+          kind: 'stage-qualification',
+          trigger: { type: 'stage-completed', stageRef: febRef('promotion-quarterfinals') },
+          selector: { type: 'bracket-final-round-winners', stageRef: febRef('promotion-quarterfinals') },
+          destination: { type: 'stage', stageKey: 'promotion-final-four' },
+          seedPolicy: 'best-vs-worst-by-seed',
+          outcomeCode: 'promotion-final-four-qualified',
+        },
+        // --- Membresía de la temporada siguiente (transition group) --------
+        {
+          id: 'acb-relegation',
+          kind: 'next-season-membership',
+          transitionGroupId: DOMESTIC_TRANSITION_GROUP_ID,
+          trigger: { type: 'season-transition' },
+          selector: { type: 'standings-range', stageRef: acbRef('regular-season'), fromRank: 17, toRank: 18 },
+          destination: { type: 'next-season-competition', competitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+          seedPolicy: 'none',
+          outcomeCode: 'relegated',
+        },
+        {
+          id: 'feb-direct-promotion',
+          kind: 'next-season-membership',
+          transitionGroupId: DOMESTIC_TRANSITION_GROUP_ID,
+          trigger: { type: 'season-transition' },
+          selector: { type: 'standings-range', stageRef: febRef('regular-season'), fromRank: 1, toRank: 1 },
+          destination: { type: 'next-season-competition', competitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+          seedPolicy: 'none',
+          outcomeCode: 'promoted-direct',
+        },
+        {
+          id: 'feb-playoff-promotion',
+          kind: 'next-season-membership',
+          transitionGroupId: DOMESTIC_TRANSITION_GROUP_ID,
+          trigger: { type: 'season-transition' },
+          selector: { type: 'bracket-champion', stageRef: febRef('promotion-final-four') },
+          destination: { type: 'next-season-competition', competitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+          seedPolicy: 'none',
+          outcomeCode: 'promoted-playoff',
+        },
+        {
+          id: 'acb-remaining-membership',
+          kind: 'next-season-membership',
+          transitionGroupId: DOMESTIC_TRANSITION_GROUP_ID,
+          trigger: { type: 'season-transition' },
+          selector: { type: 'remaining-participants', sourceCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+          destination: { type: 'next-season-competition', competitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+          seedPolicy: 'none',
+          outcomeCode: 'retained',
+        },
+        {
+          id: 'feb-remaining-membership',
+          kind: 'next-season-membership',
+          transitionGroupId: DOMESTIC_TRANSITION_GROUP_ID,
+          trigger: { type: 'season-transition' },
+          selector: { type: 'remaining-participants', sourceCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+          destination: { type: 'next-season-competition', competitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+          seedPolicy: 'none',
+          outcomeCode: 'retained',
+        },
+      ],
+    });
   }
 
   // Arranque de carrera (`startSeason()`): crea la Edition + stage de
@@ -748,6 +900,7 @@
     registerCompetitionDefinitions(world);
     registerFormats();
     registerSchedules();
+    registerPathways();
 
     // Ediciones/stage de Liga regular + Entries de la temporada de
     // arranque (ACB + Primera FEB) — declarativo, SIN construir ningún
@@ -781,6 +934,7 @@
         Catalog().COMPETITION_IDS.SUPERCOPA_ACB,
       ],
       competitionSchedules: [SCHEDULE_IDS.ACB, SCHEDULE_IDS.PRIMERA_FEB, SCHEDULE_IDS.COPA_ACB],
+      competitionPathways: [PATHWAY_IDS.DOMESTIC_CLUB],
     },
     dataSource: 'data/real/real-data-bundle.js',
     provenance: { status: 'verified', notes: 'No copia data/real/* — referencia las instancias ya construidas.' },
@@ -807,8 +961,20 @@
     registerSpainSchedules: registerSchedules,
     registerSpainFormats: registerFormats,
     bindCareerStartEditions,
+    // PATHWAYS-1 (DESIGN.md 10.15): `bindNewSeasonEditions`/
+    // `buildSeasonActivationPlan` quedan SIN call-sites productivos nuevos
+    // (game.js migra a `CompetitionPathwayService.applyTransitionGroup()`/
+    // la regla "acb-copa-qualification") — se conservan exportadas
+    // exclusivamente para `scripts/test-world-calendar1.js`/
+    // `scripts/smoke-world-calendar1.js` (fixtures históricos ya
+    // existentes), auditado en `scripts/test-pathways1.js`.
     bindNewSeasonEditions,
     buildSeasonActivationPlan,
+    // PATHWAYS-1: pathway doméstico de clubes + wiring que consume game.js.
+    SPAIN_PATHWAY_IDS: PATHWAY_IDS,
+    SPAIN_DOMESTIC_TRANSITION_GROUP_ID: DOMESTIC_TRANSITION_GROUP_ID,
+    registerSpainPathways: registerPathways,
+    resolveSpainEditionBindings: editionBindings,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

@@ -87,12 +87,35 @@
     });
   }
 
+  // PATHWAYS-1 (DESIGN.md 10.15, sección 11.2 del prompt) — proyecta
+  // `team.division`/`team.legacyDivision` (puente legacy para UI/histórico
+  // español, ver CLAUDE.md) leyendo el `legacyDivision` de la
+  // `CompetitionDefinition` de la liga PRINCIPAL real del team en
+  // `seasonKey` — SIEMPRE se ejecuta DESPUÉS de comprometer la membership
+  // real (`CompetitionEntry`), nunca antes ni como fuente de verdad. Un
+  // target sin `legacyDivision` deja la proyección en `null`, NUNCA en el
+  // valor legacy fijo de la primera división (BUG-WORLDCORE-09) — nunca se
+  // usa para crear Entries ni resolver reglas.
+  function projectLegacyDivision(registries, team, seasonKey) {
+    const competitionId = primaryLeagueCompetitionId(registries, team.id, { seasonKey });
+    const definition = registries.competitionDefinitions.require(competitionId);
+    team.division = definition.legacyDivision !== undefined ? definition.legacyDivision : null;
+    team.legacyDivision = team.division;
+    return team.division;
+  }
+
+  function projectLegacyDivisionForTeams(registries, teams, seasonKey) {
+    (teams || []).forEach((team) => projectLegacyDivision(registries, team, seasonKey));
+  }
+
   const exportsObj = {
     activeEntriesForParticipant,
     activeCompetitionsForParticipant,
     primaryLeagueCompetitionId,
     editionAndStageForEntry,
     participantsForStage,
+    projectLegacyDivision,
+    projectLegacyDivisionForTeams,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

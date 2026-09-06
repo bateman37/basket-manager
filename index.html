@@ -559,6 +559,13 @@
   <script src="src/core/CompetitionRuntimeRegistry.js"></script>
   <script src="src/core/CompetitionEngine.js"></script>
   <script src="src/core/CompetitionParticipationService.js"></script>
+  <!-- PATHWAYS-1 (DESIGN.md 10.15): clasificación/ascenso-descenso
+       declarativos — la entidad y el catálogo deben cargar ANTES que
+       `data/world/spain-2026.1.js`, que registra ahí su pathway doméstico;
+       el servicio debe estar disponible antes de `game.js`. -->
+  <script src="src/entities/CompetitionPathway.js"></script>
+  <script src="src/core/CompetitionPathwayCatalog.js"></script>
+  <script src="src/core/CompetitionPathwayService.js"></script>
   <!-- WORLD-CALENDAR-1 (DESIGN.md 10.14): calendarios como CONTENIDO
        versionado (entidad + catálogo + algoritmo genérico) y cronología
        mundial única (WorldCalendar + coordinador de "Continuar"). El
