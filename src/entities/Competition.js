@@ -247,11 +247,191 @@
     }
   }
 
+  // ---------------------------------------------------------------------
+  // CompetitionFormatDefinition / CompetitionStageTemplate — COMP-CORE-1
+  // (DESIGN.md 10.13). El formato es la definición VERSIONADA, SERIALIZABLE
+  // de "qué fases tiene una competición y con qué algoritmo se ejecuta cada
+  // una" — puro dato de contenido, nunca funciones/instancias Team/Map ni
+  // objetos de `CompetitionRules` incrustados (sección 7 del prompt). Los
+  // resolvers vivos (runners, MatchEngine, Calendar) se inyectan en
+  // `CompetitionEngine`; el formato solo guarda ids/config planos.
+  //
+  // Cada `stageTemplate` declara:
+  //  - `activation`: cuándo se activa la fase —
+  //      { type: 'edition-start' }
+  //      { type: 'stage-completed', sourceStageKey }
+  //      { type: 'round-completed', sourceStageKey, round }
+  //    Los tres tipos son GENÉRICOS (nunca "cuando la liga llegue a una
+  //    jornada concreta de una competición fija") — el contenido declara
+  //    sourceStageKey/round, el core solo evalúa el tipo.
+  //  - `entrySource`: de dónde salen los participantes de la fase —
+  //      { type: 'initial-participants' } (aportados por quien inicializa
+  //        la edición, ver `CompetitionEngine.registerEditionWithInitialEntries`)
+  //      { type: 'stage-standings-range', sourceStageKey, fromRank, toRank,
+  //        sourceScope: 'same-edition'|'external',
+  //        externalCompetitionDefinitionId? } (top-N / rango de la
+  //        clasificación de OTRA fase, de la MISMA edición o de una
+  //        edición EXTERNA de otra competición — ej. la foto de Copa)
+  //      { type: 'stage-bracket-final-round-winners', sourceStageKey,
+  //        reseedStrategy: 'best-vs-worst-by-seed' } (ganadores de la
+  //        última ronda de un bracket previo, reseedeados — ej. Final Four)
+  //  - `runnerConfig`: configuración VALIDADA por el runner correspondiente
+  //    (round-robin o bracket) — nunca un literal de país/competición.
+  // ---------------------------------------------------------------------
+  const FORMAT_STATUSES = ['active', 'provisional', 'deprecated', 'fictional-test'];
+  const RUNNER_TYPES = ['round-robin', 'bracket'];
+  const ACTIVATION_TYPES = ['edition-start', 'stage-completed', 'round-completed'];
+  const ENTRY_SOURCE_TYPES = [
+    'initial-participants',
+    'stage-standings-range',
+    'stage-bracket-final-round-winners',
+  ];
+  const ENTRY_SOURCE_SCOPES = ['same-edition', 'external'];
+
+  function validateActivation(ownerLabel, activation) {
+    if (!activation || typeof activation !== 'object') {
+      throw new Error(`${ownerLabel}: falta "activation" explícita.`);
+    }
+    requireOneOf(ownerLabel, 'activation.type', activation.type, ACTIVATION_TYPES);
+    if (activation.type === 'stage-completed' && !activation.sourceStageKey) {
+      throw new Error(`${ownerLabel}: activation "stage-completed" exige "sourceStageKey".`);
+    }
+    if (activation.type === 'round-completed') {
+      if (!activation.sourceStageKey) throw new Error(`${ownerLabel}: activation "round-completed" exige "sourceStageKey".`);
+      if (!Number.isInteger(activation.round) || activation.round <= 0) {
+        throw new Error(`${ownerLabel}: activation "round-completed" exige "round" entero positivo.`);
+      }
+    }
+    return {
+      type: activation.type,
+      sourceStageKey: activation.sourceStageKey || null,
+      round: activation.round !== undefined ? activation.round : null,
+    };
+  }
+
+  function validateEntrySource(ownerLabel, entrySource) {
+    if (!entrySource || typeof entrySource !== 'object') {
+      throw new Error(`${ownerLabel}: falta "entrySource" explícita.`);
+    }
+    requireOneOf(ownerLabel, 'entrySource.type', entrySource.type, ENTRY_SOURCE_TYPES);
+    const result = { type: entrySource.type };
+    if (entrySource.type === 'stage-standings-range') {
+      if (!entrySource.sourceStageKey) throw new Error(`${ownerLabel}: entrySource "stage-standings-range" exige "sourceStageKey".`);
+      if (!Number.isInteger(entrySource.fromRank) || !Number.isInteger(entrySource.toRank)) {
+        throw new Error(`${ownerLabel}: entrySource "stage-standings-range" exige "fromRank"/"toRank" enteros.`);
+      }
+      result.sourceStageKey = entrySource.sourceStageKey;
+      result.fromRank = entrySource.fromRank;
+      result.toRank = entrySource.toRank;
+      result.sourceScope = requireOneOf(ownerLabel, 'entrySource.sourceScope', entrySource.sourceScope || 'same-edition', ENTRY_SOURCE_SCOPES);
+      if (result.sourceScope === 'external') {
+        if (!entrySource.externalCompetitionDefinitionId) {
+          throw new Error(`${ownerLabel}: entrySource externo exige "externalCompetitionDefinitionId".`);
+        }
+        result.externalCompetitionDefinitionId = entrySource.externalCompetitionDefinitionId;
+      }
+    } else if (entrySource.type === 'stage-bracket-final-round-winners') {
+      if (!entrySource.sourceStageKey) throw new Error(`${ownerLabel}: entrySource "stage-bracket-final-round-winners" exige "sourceStageKey".`);
+      result.sourceStageKey = entrySource.sourceStageKey;
+      result.reseedStrategy = entrySource.reseedStrategy || 'best-vs-worst-by-seed';
+    }
+    return result;
+  }
+
+  class CompetitionStageTemplate {
+    constructor(data = {}) {
+      const label = `CompetitionStageTemplate "${data.key || '?'}"`;
+      this.key = requireField(label, data, 'key');
+      this.name = data.name || this.key;
+      this.stageType = requireOneOf(label, 'stageType', data.stageType, STAGE_TYPES);
+      this.runnerType = requireOneOf(label, 'runnerType', data.runnerType, RUNNER_TYPES);
+      this.sequence = data.sequence !== undefined ? data.sequence : 0;
+      this.activation = validateActivation(label, data.activation);
+      this.entrySource = validateEntrySource(label, data.entrySource);
+      // Config VALIDADA por el runner correspondiente (RoundRobinStageRunner/
+      // BracketStageRunner) — dato plano, nunca funciones/instancias vivas.
+      this.runnerConfig = JSON.parse(JSON.stringify(data.runnerConfig || {}));
+      this.completesEdition = Boolean(data.completesEdition);
+      Object.freeze(this.runnerConfig);
+      Object.freeze(this.activation);
+      Object.freeze(this.entrySource);
+      Object.freeze(this);
+    }
+
+    toJSON() {
+      return {
+        key: this.key,
+        name: this.name,
+        stageType: this.stageType,
+        runnerType: this.runnerType,
+        sequence: this.sequence,
+        activation: { ...this.activation },
+        entrySource: { ...this.entrySource },
+        runnerConfig: JSON.parse(JSON.stringify(this.runnerConfig)),
+        completesEdition: this.completesEdition,
+      };
+    }
+  }
+
+  class CompetitionFormatDefinition {
+    constructor(data = {}) {
+      const label = `CompetitionFormatDefinition "${data.id || '?'}"`;
+      this.id = requireField(label, data, 'id');
+      this.version = requireField(label, data, 'version');
+      this.status = requireOneOf(label, 'status', data.status || 'active', FORMAT_STATUSES);
+      this.participantType = requireOneOf(label, 'participantType', data.participantType, PARTICIPANT_TYPES);
+      const templates = Array.isArray(data.stageTemplates) ? data.stageTemplates : [];
+      if (!templates.length) throw new Error(`${label}: "stageTemplates" no puede estar vacío.`);
+      this.stageTemplates = templates
+        .map((t) => (t instanceof CompetitionStageTemplate ? t : new CompetitionStageTemplate(t)))
+        .sort((a, b) => a.sequence - b.sequence);
+      const keys = new Set();
+      this.stageTemplates.forEach((t) => {
+        if (keys.has(t.key)) throw new Error(`${label}: "key" de stageTemplate duplicada "${t.key}".`);
+        keys.add(t.key);
+      });
+      // Política de finalización de la edición — puro dato: por defecto,
+      // la edición se completa cuando TODAS las fases marcadas
+      // `completesEdition` están completadas.
+      this.editionCompletionPolicy = data.editionCompletionPolicy
+        ? { ...data.editionCompletionPolicy }
+        : { type: 'all-completes-edition-stages-completed' };
+      this.provenance = data.provenance || null;
+      Object.freeze(this.stageTemplates);
+      Object.freeze(this.editionCompletionPolicy);
+      Object.freeze(this);
+    }
+
+    getStageTemplate(key) {
+      const found = this.stageTemplates.find((t) => t.key === key);
+      if (!found) throw new Error(`CompetitionFormatDefinition "${this.id}": no existe stageTemplate "${key}".`);
+      return found;
+    }
+
+    stageTemplatesWithActivation(type) {
+      return this.stageTemplates.filter((t) => t.activation.type === type);
+    }
+
+    toJSON() {
+      return {
+        id: this.id,
+        version: this.version,
+        status: this.status,
+        participantType: this.participantType,
+        stageTemplates: this.stageTemplates.map((t) => t.toJSON()),
+        editionCompletionPolicy: { ...this.editionCompletionPolicy },
+        provenance: this.provenance,
+      };
+    }
+  }
+
   const exportsObj = {
     CompetitionDefinition,
     CompetitionEdition,
     CompetitionStage,
     CompetitionEntry,
+    CompetitionFormatDefinition,
+    CompetitionStageTemplate,
     SCOPE_LEVELS,
     PARTICIPANT_TYPES,
     COMPETITION_KINDS,
@@ -260,6 +440,10 @@
     STAGE_TYPES,
     STAGE_STATUSES,
     ENTRY_STATUSES,
+    FORMAT_STATUSES,
+    RUNNER_TYPES,
+    ACTIVATION_TYPES,
+    ENTRY_SOURCE_TYPES,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
