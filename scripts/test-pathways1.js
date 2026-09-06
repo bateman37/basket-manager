@@ -207,6 +207,7 @@ function setupLeagueWithPathway({
     formatBindingId: LEAGUE_FORMAT_ID,
     participants: teams.map((t, i) => ({ id: t.id, seed: i + 1 })),
     pathwayBindingIds: pathwayDefinition ? [pathwayDefinition.id] : [],
+    detailLevel: 'playable', // WORLD-SIM-1: nivel obligatorio, fixture histórica sin cambio de comportamiento
   });
   engine.initializeEdition(edition.id);
   let service = null;
@@ -305,7 +306,7 @@ check('CompetitionStage.stageKey es explícito; CompetitionEdition.pathwayBindin
   const engine = new CompetitionEngine({ world });
   const { edition, stages } = engine.registerEditionWithInitialEntries({
     competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID,
-    participants: teams.map((t) => ({ id: t.id })), pathwayBindingIds: ['pw-catalog-test'],
+    participants: teams.map((t) => ({ id: t.id })), pathwayBindingIds: ['pw-catalog-test'], detailLevel: 'playable',
   });
   assert.strictEqual(stages[0].stageKey, 'regular-season');
   assert.deepStrictEqual(edition.toJSON().pathwayBindingIds, ['pw-catalog-test']);
@@ -389,7 +390,7 @@ check('competition-qualification: top-2 nacional crea/activa una Edition contine
   const engine = new CompetitionEngine({ world });
   const { edition } = engine.registerEditionWithInitialEntries({
     competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID,
-    participants: teams.map((t, i) => ({ id: t.id, seed: i + 1 })), pathwayBindingIds: [pathwayDefinition.id],
+    participants: teams.map((t, i) => ({ id: t.id, seed: i + 1 })), pathwayBindingIds: [pathwayDefinition.id], detailLevel: 'playable',
   });
   engine.initializeEdition(edition.id);
   const service = new CompetitionPathwayService({
@@ -399,7 +400,7 @@ check('competition-qualification: top-2 nacional crea/activa una Edition contine
     resolveEditionBindings: (competitionDefinitionId) => {
       assert.strictEqual(competitionDefinitionId, continentalDefinition.id);
       return {
-        formatBindingId: CONTINENTAL_FORMAT_ID, scheduleProfileId: null, rulesetBundleId: null, pathwayBindingIds: [],
+        formatBindingId: CONTINENTAL_FORMAT_ID, scheduleProfileId: null, rulesetBundleId: null, pathwayBindingIds: [], detailLevel: 'playable',
       };
     },
   });
@@ -455,7 +456,7 @@ check('el orden de inserción de participantes no cambia los qualifiers del path
     const engine = new CompetitionEngine({ world });
     const { edition } = engine.registerEditionWithInitialEntries({
       competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID,
-      participants: ordered.map((t) => ({ id: t.id })), pathwayBindingIds: [pathwayDefinition.id],
+      participants: ordered.map((t) => ({ id: t.id })), pathwayBindingIds: [pathwayDefinition.id], detailLevel: 'playable',
     });
     engine.initializeEdition(edition.id);
     const service = new CompetitionPathwayService({
@@ -497,7 +498,7 @@ check('isTransitionGroupReady no muta el mundo ni cambia entre llamadas repetida
   PathwayCatalog.registerPathwayDefinition(pathwayDefinition);
   const engine = new CompetitionEngine({ world });
   const { edition } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })),
+    competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })), detailLevel: 'playable',
   });
   engine.initializeEdition(edition.id);
   const service = new CompetitionPathwayService({
@@ -522,10 +523,10 @@ function buildTwoLeagueWorld() {
   const { definition: definitionB, teams: teamsB } = registerLeagueInto(world, { leagueId: `${worldId}-b`, teamCount: 4, orgId: `org-${worldId}-b` });
   const engine = new CompetitionEngine({ world });
   const { edition: editionA } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: definitionA.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teamsA.map((t) => ({ id: t.id })),
+    competitionDefinitionId: definitionA.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teamsA.map((t) => ({ id: t.id })), detailLevel: 'playable',
   });
   const { edition: editionB } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: definitionB.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teamsB.map((t) => ({ id: t.id })),
+    competitionDefinitionId: definitionB.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teamsB.map((t) => ({ id: t.id })), detailLevel: 'playable',
   });
   engine.initializeEdition(editionA.id);
   engine.initializeEdition(editionB.id);
@@ -570,7 +571,7 @@ check('transición anual: exclusividad — un participante clasificando para dos
   const editionsBefore = world.registries.competitionEditions.all().length;
   const entriesBefore = world.registries.competitionEntries.all().length;
   const service = new CompetitionPathwayService({
-    world, competitionEngine: engine, now: buildNow(), resolveEditionBindings: () => ({ formatBindingId: LEAGUE_FORMAT_ID, scheduleProfileId: null, rulesetBundleId: null, pathwayBindingIds: [] }),
+    world, competitionEngine: engine, now: buildNow(), resolveEditionBindings: () => ({ formatBindingId: LEAGUE_FORMAT_ID, scheduleProfileId: null, rulesetBundleId: null, pathwayBindingIds: [], detailLevel: 'playable' }),
   });
   assert.throws(
     () => service.applyTransitionGroup(badPathway.id, 'excl-group', { fromSeasonKey: '2099-00', targetSeasonKey: '2100-01' }),
@@ -622,7 +623,7 @@ check('transición anual con 4+4: dos plazas cruzadas, cardinalidad exacta, rece
     competitionEngine: engine,
     now: buildNow(),
     resolveEditionBindings: () => ({
-      formatBindingId: LEAGUE_FORMAT_ID, scheduleProfileId: null, rulesetBundleId: null, pathwayBindingIds: [],
+      formatBindingId: LEAGUE_FORMAT_ID, scheduleProfileId: null, rulesetBundleId: null, pathwayBindingIds: [], detailLevel: 'playable',
     }),
   });
   const { receipt, idempotent } = service.applyTransitionGroup(swapPathway.id, 'swap-group', { fromSeasonKey: '2099-00', targetSeasonKey: '2100-01' });
@@ -661,7 +662,7 @@ check('CompetitionEngine.activateStageFromQualifiers es idempotente por stage id
   const { world, teams, definition } = buildFictionalWorld({ teamCount: 8, leagueId });
   const engine = new CompetitionEngine({ world });
   const { edition } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teams.map((t, i) => ({ id: t.id, seed: i + 1 })),
+    competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teams.map((t, i) => ({ id: t.id, seed: i + 1 })), detailLevel: 'playable',
   });
   engine.initializeEdition(edition.id);
   const qualifiers = teams.slice(0, 4).map((t, i) => ({ participantId: t.id, seed: i + 1 }));
@@ -682,10 +683,10 @@ check('CompetitionEngine.activateEditionFromDecision es idempotente por edition 
   world.registries.registerCompetitionDefinition(otherDefinition);
   const qualifiers = teams.slice(0, 2).map((t, i) => ({ participantId: t.id, seed: i + 1 }));
   const first = engine.activateEditionFromDecision({
-    competitionDefinitionId: otherDefinition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, qualifiers,
+    competitionDefinitionId: otherDefinition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, qualifiers, detailLevel: 'playable',
   });
   const second = engine.activateEditionFromDecision({
-    competitionDefinitionId: otherDefinition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, qualifiers,
+    competitionDefinitionId: otherDefinition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, qualifiers, detailLevel: 'playable',
   });
   assert.strictEqual(first.edition, second.edition, 'la segunda activación debe devolver la MISMA edición, sin registrar nada nuevo');
   assert.strictEqual(
@@ -703,7 +704,7 @@ check('selector "bracket-champion" sin campeón todavía lanza (nunca fuerza a r
   PathwayCatalog.registerPathwayDefinition(pathwayDefinition);
   const engine = new CompetitionEngine({ world });
   const { edition } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teams.map((t, i) => ({ id: t.id, seed: i + 1 })), pathwayBindingIds: [pathwayDefinition.id],
+    competitionDefinitionId: definition.id, seasonKey: '2099-00', formatBindingId: LEAGUE_FORMAT_ID, participants: teams.map((t, i) => ({ id: t.id, seed: i + 1 })), pathwayBindingIds: [pathwayDefinition.id], detailLevel: 'playable',
   });
   engine.initializeEdition(edition.id);
   const service = new CompetitionPathwayService({

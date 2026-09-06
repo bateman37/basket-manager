@@ -495,6 +495,7 @@ function buildTwoCompetitionCareer({ controlledTeamIndex = null } = {}) {
       seasonKey: '2030-31',
       formatBindingId: TWO_COMPETITION_FORMAT,
       participants: teams.map((t) => ({ id: t.id })),
+      detailLevel: 'playable', // WORLD-SIM-1: nivel obligatorio, fixture histórica sin cambio de comportamiento
     });
     engine.initializeEdition(buildEditionId(`testland-${key}`, '2030-31'));
   });
@@ -627,6 +628,7 @@ check('conflicto: dos partidos del MISMO equipo controlado en el MISMO instante 
       seasonKey: '2030-31',
       formatBindingId: TWO_COMPETITION_FORMAT,
       participants: teams.map((t) => ({ id: t.id })),
+      detailLevel: 'playable',
     });
     engine.initializeEdition(buildEditionId(`clashland-${key}`, '2030-31'));
   });
@@ -811,6 +813,7 @@ check('el cambio de temporada NO reemplaza el calendario: misma instancia y curs
       seasonKey: '2031-32',
       formatBindingId: TWO_COMPETITION_FORMAT,
       participants: career.teams.map((t) => ({ id: t.id })),
+      detailLevel: 'playable',
     });
   });
   const svc = new CompetitionScheduleService({ catalog: CompetitionScheduleCatalog });
