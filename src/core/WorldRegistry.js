@@ -170,6 +170,45 @@
     forParticipant(participantId) { return this.all().filter((entry) => entry.participantId === participantId); }
   }
 
+  // PATHWAYS-1 (DESIGN.md 10.15) — evidencia INMUTABLE de una decisión de
+  // clasificación ya aplicada. Orden canónico por id (nunca inserción);
+  // consultas puras, nunca mutadas después de registradas.
+  class CompetitionPathwayReceiptRegistry extends BaseRegistry {
+    constructor() { super('CompetitionPathwayReceiptRegistry'); }
+
+    all() { return [...this._byId.values()].sort((a, b) => (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0))); }
+
+    forRule(pathwayDefinitionId, ruleId) {
+      return this.all().filter((r) => r.pathwayDefinitionId === pathwayDefinitionId && r.ruleId === ruleId);
+    }
+
+    forSourceSeason(seasonKey) { return this.all().filter((r) => r.sourceSeasonKey === seasonKey); }
+
+    forParticipant(participantId) {
+      return this.all().filter((r) => r.qualifiers.some((q) => q.participantId === participantId));
+    }
+  }
+
+  // PATHWAYS-1 — commit atómico de un transition group completo.
+  class CompetitionSeasonTransitionReceiptRegistry extends BaseRegistry {
+    constructor() { super('CompetitionSeasonTransitionReceiptRegistry'); }
+
+    all() { return [...this._byId.values()].sort((a, b) => (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0))); }
+
+    forTransitionGroup(transitionGroupId) { return this.all().filter((r) => r.transitionGroupId === transitionGroupId); }
+
+    forTargetSeason(targetSeasonKey) { return this.all().filter((r) => r.targetSeasonKey === targetSeasonKey); }
+
+    // Idempotencia real (invariante 14 de PATHWAYS-1): recalcular la misma
+    // transición devuelve el receipt YA comprometido, nunca uno nuevo.
+    existingFor(transitionGroupId, fromSeasonKey, targetSeasonKey) {
+      return this.all().find(
+        (r) => r.transitionGroupId === transitionGroupId
+          && r.fromSeasonKey === fromSeasonKey && r.targetSeasonKey === targetSeasonKey,
+      ) || null;
+    }
+  }
+
   // ---------------------------------------------------------------------
   // Agregado — las operaciones que cruzan colecciones (validar referencias,
   // mantener `stageIds`/`entryIds` de una edición sincronizados) viven aquí,
@@ -186,6 +225,9 @@
       this.competitionEditions = new CompetitionEditionRegistry();
       this.competitionStages = new CompetitionStageRegistry();
       this.competitionEntries = new CompetitionEntryRegistry();
+      // PATHWAYS-1 (DESIGN.md 10.15) — receipts de clasificación, por carrera.
+      this.pathwayReceipts = new CompetitionPathwayReceiptRegistry();
+      this.seasonTransitionReceipts = new CompetitionSeasonTransitionReceiptRegistry();
       this.packs = new (CPR())();
     }
 
@@ -342,6 +384,13 @@
       return entry;
     }
 
+    // PATHWAYS-1 (DESIGN.md 10.15) — registra un receipt de clasificación ya
+    // aplicado. Nunca reescribe uno existente (invariante 14): un receipt
+    // registrado con el MISMO id es idempotente por identidad de contenido.
+    registerPathwayReceipt(receipt) { return this.pathwayReceipts.register(receipt); }
+
+    registerSeasonTransitionReceipt(receipt) { return this.seasonTransitionReceipts.register(receipt); }
+
     // Agrega TODOS los errores de todas las colecciones — nunca lanza en el
     // primero, para que un diagnóstico muestre el mundo completo de una vez.
     validateIntegrity() {
@@ -436,6 +485,26 @@
         if (entry.participantType === 'club-team' && !this.teams.has(entry.participantId)) {
           errors.push(`Entry "${entry.id}": equipo inexistente "${entry.participantId}".`);
         }
+        if (entry.qualificationReceiptId && !this.pathwayReceipts.has(entry.qualificationReceiptId)
+          && !this.seasonTransitionReceipts.has(entry.qualificationReceiptId)) {
+          errors.push(`Entry "${entry.id}": qualificationReceiptId inexistente "${entry.qualificationReceiptId}".`);
+        }
+      });
+      // PATHWAYS-1: todo receipt/transition receipt serializa JSON puro
+      // (invariante 18) y referencia únicamente participantes existentes.
+      this.pathwayReceipts.all().forEach((receipt) => {
+        receipt.qualifiers.forEach((q) => {
+          if (q.participantId && !this.teams.has(q.participantId) && !this.clubs.has(q.participantId)) {
+            errors.push(`PathwayReceipt "${receipt.id}": qualifier referencia un participante inexistente "${q.participantId}".`);
+          }
+        });
+      });
+      this.seasonTransitionReceipts.all().forEach((receipt) => {
+        receipt.createdEditionIds.forEach((editionId) => {
+          if (!this.competitionEditions.has(editionId)) {
+            errors.push(`SeasonTransitionReceipt "${receipt.id}": createdEditionIds referencia una edición inexistente "${editionId}".`);
+          }
+        });
       });
       return errors;
     }
@@ -455,6 +524,8 @@
         competitionEditions: this.competitionEditions.all().map((e) => e.toJSON()),
         competitionStages: this.competitionStages.all().map((s) => s.toJSON()),
         competitionEntries: this.competitionEntries.all().map((e) => e.toJSON()),
+        pathwayReceipts: this.pathwayReceipts.all().map((r) => r.toJSON()),
+        seasonTransitionReceipts: this.seasonTransitionReceipts.all().map((r) => r.toJSON()),
       };
     }
   }
@@ -470,6 +541,8 @@
     CompetitionEditionRegistry,
     CompetitionStageRegistry,
     CompetitionEntryRegistry,
+    CompetitionPathwayReceiptRegistry,
+    CompetitionSeasonTransitionReceiptRegistry,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

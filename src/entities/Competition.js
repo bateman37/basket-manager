@@ -132,6 +132,10 @@
       this.formatBindingId = data.formatBindingId !== undefined ? data.formatBindingId : null;
       this.scheduleProfileId = data.scheduleProfileId !== undefined ? data.scheduleProfileId : null;
       this.rulesetBundleId = data.rulesetBundleId !== undefined ? data.rulesetBundleId : null;
+      // PATHWAYS-1 (DESIGN.md 10.15): ids ESTABLES de `CompetitionPathwayDefinition`
+      // congelados por esta edición al crearse — nunca reescritos después
+      // (mismo criterio que formatBindingId/scheduleProfileId/rulesetBundleId).
+      this.pathwayBindingIds = Array.isArray(data.pathwayBindingIds) ? [...data.pathwayBindingIds] : [];
       // WORLD-SIM-1 (futuro): nivel de detalle de simulación de esta
       // edición. WORLD-CORE-1 solo declara el campo — todas las ediciones
       // reales de esta entrega son 'playable'.
@@ -160,6 +164,7 @@
         formatBindingId: this.formatBindingId,
         scheduleProfileId: this.scheduleProfileId,
         rulesetBundleId: this.rulesetBundleId,
+        pathwayBindingIds: [...this.pathwayBindingIds],
         detailLevel: this.detailLevel,
         hasRuntimeBinding: this.runtimeBinding !== null,
       };
@@ -179,6 +184,11 @@
       this.sequence = data.sequence !== undefined ? data.sequence : 0;
       this.stageType = requireOneOf(label, 'stageType', data.stageType, STAGE_TYPES);
       this.status = requireOneOf(label, 'status', data.status || 'planned', STAGE_STATUSES);
+      // PATHWAYS-1 (DESIGN.md 10.15): `stageKey` EXPLÍCITO — el core nuevo
+      // nunca deduce la semántica cortando strings de `stage.id`
+      // (`_stageKeyFromId()` sigue viva en CompetitionEngine.js SOLO como
+      // shim de compatibilidad para stages legacy sin este campo).
+      this.stageKey = data.stageKey !== undefined ? data.stageKey : null;
       this.entryIds = [];
       this.sourceStageIds = Array.isArray(data.sourceStageIds) ? [...data.sourceStageIds] : [];
       this.nextStageIds = Array.isArray(data.nextStageIds) ? [...data.nextStageIds] : [];
@@ -198,6 +208,7 @@
         sequence: this.sequence,
         stageType: this.stageType,
         status: this.status,
+        stageKey: this.stageKey,
         entryIds: [...this.entryIds],
         sourceStageIds: [...this.sourceStageIds],
         nextStageIds: [...this.nextStageIds],
@@ -223,6 +234,11 @@
       this.entryStatus = requireOneOf(label, 'entryStatus', data.entryStatus || 'active', ENTRY_STATUSES);
       this.seed = data.seed !== undefined ? data.seed : null;
       this.qualificationSource = data.qualificationSource !== undefined ? data.qualificationSource : null;
+      // PATHWAYS-1 (DESIGN.md 10.15): referencia EXPLÍCITA al
+      // `CompetitionPathwayReceipt`/`CompetitionSeasonTransitionReceipt` que
+      // justificó esta clasificación — `qualificationSource` se conserva
+      // solo por compatibilidad con consumidores anteriores a esta entrega.
+      this.qualificationReceiptId = data.qualificationReceiptId !== undefined ? data.qualificationReceiptId : null;
       this.validFrom = data.validFrom || null;
       this.validTo = data.validTo !== undefined ? data.validTo : null;
     }
@@ -241,6 +257,7 @@
         entryStatus: this.entryStatus,
         seed: this.seed,
         qualificationSource: this.qualificationSource,
+        qualificationReceiptId: this.qualificationReceiptId,
         validFrom: this.validFrom,
         validTo: this.validTo,
       };
@@ -280,11 +297,21 @@
   // ---------------------------------------------------------------------
   const FORMAT_STATUSES = ['active', 'provisional', 'deprecated', 'fictional-test'];
   const RUNNER_TYPES = ['round-robin', 'bracket'];
-  const ACTIVATION_TYPES = ['edition-start', 'stage-completed', 'round-completed'];
+  // PATHWAYS-1 (DESIGN.md 10.15, BUG-PATHWAYS-01): 'pathway-managed' marca
+  // una fase cuya ACTIVACIÓN/clasificación real decide una
+  // `CompetitionPathwayDefinition` — el formato solo declara que la fase
+  // EXISTE (stageType/runnerConfig), nunca quién la alcanza ni cuándo. El
+  // engine nunca autoactiva una fase con esta marca por su cascada interna
+  // (`activation.type`/`entrySource.type` no coinciden nunca con un hecho
+  // 'round-completed'/'stage-completed' real) — solo
+  // `CompetitionEngine.activateStageFromQualifiers()`, invocado por
+  // `CompetitionPathwayService`, la construye.
+  const ACTIVATION_TYPES = ['edition-start', 'stage-completed', 'round-completed', 'pathway-managed'];
   const ENTRY_SOURCE_TYPES = [
     'initial-participants',
     'stage-standings-range',
     'stage-bracket-final-round-winners',
+    'pathway-managed',
   ];
   const ENTRY_SOURCE_SCOPES = ['same-edition', 'external'];
 

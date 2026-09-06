@@ -79,6 +79,11 @@
   // ---------------------------------------------------------------------
   function registerEditionWithInitialEntries(world, {
     competitionDefinitionId, seasonKey, startDate, formatBindingId, participants, scheduleProfileId, rulesetBundleId,
+    // PATHWAYS-1 (DESIGN.md 10.15): ids congelados por la Edition + receipt
+    // de clasificación opcional (Copa/temporada siguiente activadas por un
+    // pathway) — `null` para el arranque de carrera (participantes
+    // aportados al bootstrap, sin ninguna decisión de clasificación previa).
+    pathwayBindingIds, qualificationReceiptId,
   }) {
     const format = FormatCatalog().requireFormat(formatBindingId);
     const definition = world.registries.competitionDefinitions.require(competitionDefinitionId);
@@ -91,6 +96,7 @@
       formatBindingId,
       scheduleProfileId: scheduleProfileId || definition.bindings.scheduleProfileId || null,
       rulesetBundleId: rulesetBundleId || definition.bindings.rulesetBundleId || null,
+      pathwayBindingIds: pathwayBindingIds || [],
     });
     world.registries.registerCompetitionEdition(edition);
 
@@ -112,6 +118,7 @@
         sequence: template.sequence,
         stageType: template.stageType,
         status: 'active',
+        stageKey: template.key,
       });
       world.registries.registerCompetitionStage(stage);
       (participants || []).forEach((participant, index) => {
@@ -123,6 +130,8 @@
           participantId: participant.id,
           entryStatus: 'active',
           seed: participant.seed !== undefined ? participant.seed : (index + 1),
+          qualificationSource: qualificationReceiptId ? 'pathway' : null,
+          qualificationReceiptId: qualificationReceiptId || null,
           validFrom: startDate || null,
         });
         world.registries.registerCompetitionEntry(entry);
@@ -166,9 +175,19 @@
       this._dateResolverProvider = () => null;
       this._crossEditionRules = [];
       this._activationEvents = [];
+      // PATHWAYS-1 (DESIGN.md 10.15, sección 9.2 del prompt): handler
+      // GENÉRICO invocado con el hecho plano `{ type, editionId, stageId,
+      // stageKey, round }` justo al cerrarse una ronda/fase — ANTES de la
+      // cascada legacy de `activation`/`entrySource` (que sigue viva solo
+      // para fixtures/tests históricos que aún declaran esos tipos). El
+      // engine nunca decide aquí qué significa el hecho — delega siempre en
+      // el handler inyectado (`CompetitionPathwayService`).
+      this._factHandler = null;
     }
 
     setDateResolverProvider(fn) { this._dateResolverProvider = typeof fn === 'function' ? fn : () => null; }
+
+    setFactHandler(fn) { this._factHandler = typeof fn === 'function' ? fn : null; }
 
     // Ver `registerEditionWithInitialEntries` arriba — expuesto también
     // como método de instancia por conveniencia (misma firma, mismo mundo).
@@ -241,7 +260,7 @@
       return map;
     }
 
-    _buildRunnerForStage(edition, format, template, stage) {
+    _buildRunnerForStage(edition, format, template, stage, options = {}) {
       const entries = this.world.registries.competitionEntries.forStage(stage.id);
       const entriesByParticipantId = this._entriesByParticipantIdForStage(stage);
       const commonHooks = {
@@ -278,7 +297,10 @@
       }
       if (template.runnerType === 'bracket') {
         const { entries: bracketEntries, derivedFirstRoundPairing } = this._resolveBracketEntries(edition, template, entries, entriesByParticipantId);
-        const firstRoundPairing = derivedFirstRoundPairing || template.runnerConfig.firstRoundPairing;
+        // PATHWAYS-1: `options.firstRoundPairing` (reseed ya resuelto por un
+        // pathway, ej. Final Four best-vs-worst) tiene prioridad sobre
+        // cualquier pairing legacy derivado/declarado en el formato.
+        const firstRoundPairing = options.firstRoundPairing || derivedFirstRoundPairing || template.runnerConfig.firstRoundPairing;
         const roundPatterns = template.runnerConfig.roundPatterns.map(resolveVenuePattern);
         const dateResolver = this._dateResolverProvider({
           template, edition, stage, triggerType: template.activation.type, triggerRound: template.activation.round,
@@ -340,7 +362,16 @@
     // o edición externa) cuya activación coincida. El core solo compara
     // tipos/ids — nunca decide "porque es esta competición concreta" (invariante 11).
     _handleStageEvent(edition, stage, eventType, round) {
-      const stageKey = this._stageKeyFromId(stage.id, edition);
+      const stageKey = stage.stageKey || this._stageKeyFromId(stage.id, edition);
+      // PATHWAYS-1 (DESIGN.md 10.15, sección 9.2 del prompt): el hecho
+      // GENÉRICO se emite PRIMERO, antes de la cascada legacy — el handler
+      // (PathwayService) decide y aplica sus propias reglas de forma
+      // completamente independiente de `activation`/`entrySource`.
+      if (this._factHandler) {
+        this._factHandler({
+          type: eventType, editionId: edition.id, stageId: stage.id, stageKey, round: round || null,
+        });
+      }
       const format = FormatCatalog().requireFormat(edition.formatBindingId);
 
       // (a) Cascada DENTRO de la misma edición — siguiente stageTemplate
@@ -373,6 +404,7 @@
         sequence: template.sequence,
         stageType: template.stageType,
         status: 'active',
+        stageKey: template.key,
         sourceStageIds: template.activation.sourceStageKey
           ? [buildStageId(edition.competitionDefinitionId, edition.seasonKey, template.activation.sourceStageKey)]
           : [],
@@ -564,6 +596,134 @@
     }
 
     getStandings(stageId) { return this.runtimeRegistry.requireRunner(stageId).getStandings(); }
+
+    // -----------------------------------------------------------------
+    // PATHWAYS-1 (DESIGN.md 10.15, sección 9.2 del prompt) — hechos
+    // deportivos PUROS que necesitan los selectors de un pathway: nunca
+    // mutan, nunca consumen RNG, nunca saben por qué un rango de puestos
+    // importa. `stageKey` es opcional — si se aporta, se resuelve el stage
+    // real de esa edición/competición antes de ir al runner.
+    // -----------------------------------------------------------------
+    _resolveStageId(competitionDefinitionId, seasonKey, stageKey) {
+      return buildStageId(competitionDefinitionId, seasonKey, stageKey);
+    }
+
+    getStandingsFacts(competitionDefinitionId, seasonKey, stageKey) {
+      return this.getStandings(this._resolveStageId(competitionDefinitionId, seasonKey, stageKey));
+    }
+
+    // Ganadores de la ÚLTIMA ronda de un bracket — `null` si el runner
+    // todavía no alcanzó su última ronda (nunca se fuerza a resolver nada).
+    getBracketFinalRoundWinners(competitionDefinitionId, seasonKey, stageKey) {
+      const runner = this.runtimeRegistry.requireRunner(this._resolveStageId(competitionDefinitionId, seasonKey, stageKey));
+      const finalRound = runner.rounds[runner.rounds.length - 1];
+      if (!finalRound.every((series) => series.wins.better >= series.gamesNeededToWin || series.wins.worse >= series.gamesNeededToWin)) {
+        return null;
+      }
+      return finalRound.map((series) => {
+        const winner = series.wins.better > series.wins.worse ? series.better : series.worse;
+        return { participantId: winner.participantId, seed: winner.seed };
+      });
+    }
+
+    // Campeón de un bracket que converge a una única serie final — `null`
+    // sin campeón todavía (nunca confundir con `isComplete`, ver
+    // CompetitionRunners.js).
+    getBracketChampion(competitionDefinitionId, seasonKey, stageKey) {
+      const runner = this.runtimeRegistry.requireRunner(this._resolveStageId(competitionDefinitionId, seasonKey, stageKey));
+      return runner.champion;
+    }
+
+    isStageCompleted(competitionDefinitionId, seasonKey, stageKey) {
+      const stageId = this._resolveStageId(competitionDefinitionId, seasonKey, stageKey);
+      const stage = this.world.registries.competitionStages.get(stageId);
+      return Boolean(stage && stage.status === 'completed');
+    }
+
+    // -----------------------------------------------------------------
+    // PATHWAYS-1 — API pública de ACTIVACIÓN: el engine construye/registra,
+    // pero es SIEMPRE `CompetitionPathwayService` quien decide qué
+    // qualifiers/destino le pasa — el engine nunca interpreta por qué un
+    // conjunto de participantes clasifica (invariante 7 de PATHWAYS-1).
+    // -----------------------------------------------------------------
+
+    // Activa una fase 'pathway-managed' YA declarada por el formato de
+    // `editionId`, con los qualifiers [{ participantId, seed }] que el
+    // pathway ya resolvió y validó. Idempotente por stage id: si la fase ya
+    // existe (activación repetida del mismo hecho), la devuelve tal cual sin
+    // registrar nada de nuevo (invariante 3 de PATHWAYS-1: un trigger se
+    // aplica como máximo una vez).
+    activateStageFromQualifiers(editionId, stageKey, qualifiers, options = {}) {
+      const edition = this.world.registries.competitionEditions.require(editionId);
+      const existingStageId = buildStageId(edition.competitionDefinitionId, edition.seasonKey, stageKey);
+      const existingStage = this.world.registries.competitionStages.get(existingStageId);
+      if (existingStage) return existingStage;
+      const format = FormatCatalog().requireFormat(edition.formatBindingId);
+      const template = format.getStageTemplate(stageKey);
+      const stage = new (Entities().CompetitionStage)({
+        id: existingStageId,
+        editionId: edition.id,
+        name: template.name,
+        sequence: template.sequence,
+        stageType: template.stageType,
+        status: 'active',
+        stageKey,
+        sourceStageIds: options.sourceStageId ? [options.sourceStageId] : [],
+      });
+      this.world.registries.registerCompetitionStage(stage);
+      const definition = this.world.registries.competitionDefinitions.require(edition.competitionDefinitionId);
+      qualifiers.forEach((qualifier, index) => {
+        this.world.registries.registerCompetitionEntry(new (Entities().CompetitionEntry)({
+          id: buildEntryId(edition.competitionDefinitionId, edition.seasonKey, stageKey, qualifier.participantId),
+          editionId: edition.id,
+          stageId: stage.id,
+          participantType: definition.participantType,
+          participantId: qualifier.participantId,
+          entryStatus: 'qualified',
+          seed: qualifier.seed !== undefined && qualifier.seed !== null ? qualifier.seed : index + 1,
+          qualificationSource: 'pathway',
+          qualificationReceiptId: options.receiptId || null,
+        }));
+      });
+      this._buildRunnerForStage(edition, format, template, stage, { firstRoundPairing: options.firstRoundPairing || null });
+      this._activationEvents.push({
+        type: 'stage-activated', editionId: edition.id, stageId: stage.id, stageKey,
+      });
+      return stage;
+    }
+
+    // Crea/activa una Edition de OTRA competición desde una decisión YA
+    // resuelta (qualifiers + seeds) — mismo resultado que
+    // `_fireCrossEditionRule()` legacy, pero sin computar el entrySource por
+    // sí mismo: lo recibe ya calculado del pathway. Idempotente por edition
+    // id.
+    activateEditionFromDecision({
+      competitionDefinitionId, seasonKey, startDate, formatBindingId, scheduleProfileId, rulesetBundleId,
+      pathwayBindingIds, qualifiers, receiptId,
+    }) {
+      const existingEditionId = buildEditionId(competitionDefinitionId, seasonKey);
+      const existingEdition = this.world.registries.competitionEditions.get(existingEditionId);
+      if (existingEdition) return { edition: existingEdition, stages: this.world.registries.competitionStages.forEdition(existingEdition.id) };
+      const { edition, stages } = registerEditionWithInitialEntries(this.world, {
+        competitionDefinitionId,
+        seasonKey,
+        startDate: startDate || null,
+        formatBindingId,
+        participants: qualifiers.map((q) => ({ id: q.participantId, seed: q.seed })),
+        scheduleProfileId: scheduleProfileId || null,
+        rulesetBundleId: rulesetBundleId || null,
+        pathwayBindingIds: pathwayBindingIds || [],
+        qualificationReceiptId: receiptId || null,
+      });
+      this.initializeEdition(edition.id);
+      this._activationEvents.push({ type: 'edition-activated', editionId: edition.id, competitionDefinitionId });
+      stages.forEach((stage) => {
+        this._activationEvents.push({
+          type: 'stage-activated', editionId: edition.id, stageId: stage.id, stageKey: stage.stageKey,
+        });
+      });
+      return { edition, stages };
+    }
 
     validateIntegrity() { return this.world.registries.validateIntegrity(); }
 
