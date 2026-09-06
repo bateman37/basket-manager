@@ -1,5 +1,160 @@
 # CHANGELOG.md
 
+## 2026-09-06 — WORLD-SIM-1: niveles de detalle y simulación mundial acotada (DESIGN.md sección 10.16)
+
+Sexta entrega de la EPIC **World Architecture** (WORLD-CORE-1 →
+CLUB-CORE-1 → COMP-CORE-1 → WORLD-CALENDAR-1 → PATHWAYS-1 →
+**WORLD-SIM-1** → NATIONAL-TEAMS-1 → WORLD-UI-1 → WORLD-HARDEN-1). Base:
+merge de la PR de PATHWAYS-1 en `origin/main`. Rama `claude/modest-gauss-ab8bat`.
+
+El mundo debe poder contener muchas competiciones y clubes sin simular
+cada partido/plantilla/estadística con el coste máximo. Esta entrega
+aporta la CAPACIDAD (cuatro niveles de detalle `playable/full/standard/
+abstract`, un perfil de simulación explícito por carrera, snapshots de
+fuerza agregada, un servicio de simulación y un runtime "abstract") — no
+contenido deportivo real nuevo: la partida española sigue teniendo
+únicamente ACB, Primera FEB y Copa ACB como Editions jugables, las tres
+`playable` explícito. La extensibilidad se demuestra con un fixture
+ficticio pequeño (`scripts/test-world-sim1.js`/`scripts/smoke-world-sim1.js`),
+nunca instalado en producción.
+
+### Bugs/deudas corregidos
+
+- **`BUG-WORLDSIM-01`** — toda Edition caía silenciosamente en
+  `'playable'`. *Causa*: `CompetitionEdition.detailLevel` tenía
+  `data.detailLevel || 'playable'` como fallback silencioso desde
+  WORLD-CORE-1. *Corrección*: el campo es OBLIGATORIO y se valida contra
+  el vocabulario cerrado (`WorldSimulation.DETAIL_LEVELS`) —
+  `registerEditionWithInitialEntries()`/`activateEditionFromDecision()`
+  lo exigen explícito; los tres fixtures productivos de contenido
+  (`data/world/spain-2026.1.js`) lo resuelven desde el perfil de la
+  carrera, nunca por defecto.
+- **`BUG-WORLDSIM-02`** — el nivel declarado no cambiaba la ejecución.
+  *Corrección*: `CompetitionSimulationService`/`AbstractCompetitionStageRuntime`
+  implementan adaptadores REALES por nivel — `standard` calcula un
+  marcador compacto determinista (`standard-score-v1`) sin tocar
+  `CompetitionRunners.js`/`MatchEngine`; `abstract` nunca construye un
+  runner de partidos, resuelve la fase entera en un único hito agregado.
+- **`BUG-WORLDSIM-03`** — la cola mundial solo entendía partidos
+  completos. *Corrección*: nueva fuente `competition-simulation`
+  (`WorldCalendarCoordinator.js`) que lista/resuelve hitos "abstract"
+  compartiendo el MISMO `WorldCalendar`, sin fabricar `competition-match`
+  falsos y sin ser nunca parada del usuario.
+- **`BUG-WORLDSIM-04`** — el exterior usaba una segunda ontología.
+  *Causa*: `WorldLifecycleService` conservaba la categoría
+  `'external-abstract'` + el hook `externalClubMembership` desde
+  WORLD-CORE-1, sin ningún call-site real. *Corrección*: ambos quedan
+  RETIRADOS — un Player en el Squad activo de cualquier Team (español o
+  de detalle `standard`/`abstract`) clasifica `senior-service-roster` sin
+  ninguna rama especial.
+- **`BUG-WORLDSIM-05`** — un afiliado sin contrato cargado parecía agente
+  libre. *Corrección*: `MarketService.resolveMarketAvailability()`
+  comprueba `player.teamId` ANTES de asumir libertad contractual — sin
+  contrato vigente pero con afiliación real devuelve
+  `'affiliated-contract-unknown'` (nuevo estado, bloquea negociación en
+  la pantalla de Mercado), nunca `'free'`.
+- **`BUG-WORLDSIM-06`** — los sistemas interactivos recorrían todos los
+  equipos. *Corrección*: `CompetitionSimulationService.
+  interactiveCohortTeams(seasonKey)` (Teams con Entry en una Edition
+  `playable`); `game.js` lo usa en `bootstrapContractsForNewCareer()`,
+  `bootstrapRegistrationsForNewCareer()` y `closeSeasonAndPrepareNext()`
+  vía el helper `interactiveCohortTeams()`. Sin cambio observable hoy (el
+  cohorte son los mismos 36 equipos), protege contra aplicar bootstrap
+  español a un Team `standard`/`abstract` futuro.
+- Corrección propia de esta sesión (nunca publicada): la primera versión
+  de `_buildRunnerForStage()` pasaba el resolver de fechas de contenido
+  DOS VECES envuelto al runtime "abstract"
+  (`dateResolver: () => this._dateResolverProvider(...)`, cuando
+  `_dateResolverProvider(activationContext)` ya devuelve un resolver POR
+  PARTIDO que hay que invocar una vez más con una `meta` sintética) —
+  detectada por `scripts/smoke-world-sim1.js` al fallar con "necesita
+  fecha final + huso IANA explícitos" en cuanto el resolver de fechas del
+  fixture seguía el contrato real (no el atajo que enmascaraba el bug en
+  la primera versión de `scripts/test-world-sim1.js`). Corregida antes de
+  cualquier ejecución reportada como buena.
+
+### Entidades, registros y servicio añadidos
+
+`src/entities/WorldSimulation.js` (`WorldSimulationProfile`,
+`TeamSimulationSnapshot`, `CompetitionSimulationReceipt`, `DETAIL_LEVELS`,
+`capabilitiesForDetailLevel()`, `hasIndividualMatchDetail()`,
+`resolveAreaChain()`), `src/core/CompetitionSimulationService.js`
+(servicio EXPLÍCITO por carrera: resolución de nivel, snapshots,
+cobertura, cohortes, marcador compacto, construcción del runtime
+abstracto), `src/core/AbstractCompetitionStageRuntime.js` (runtime
+agregado "abstract", registrado en el mismo `CompetitionRuntimeRegistry`
+que los runners detallados). `WorldRegistries` gana
+`teamSimulationSnapshots`/`competitionSimulationReceipts`.
+`GameWorld.simulationProfile`/`setSimulationProfile()`/
+`_simulationLevelCounters()`; `WorldFactory.buildCareerWorld()` acepta
+`simulationProfile`.
+
+### Semántica real de cada nivel
+
+`playable`/`full`: MatchEngine actual sin cambios (`full` nunca para al
+usuario). `standard`: marcador compacto determinista, sin
+`quarterScores`/box score, nunca empate, inyectado vía
+`MatchEngine.options.precomputedResult` (mismo punto de encaje que TAC-5).
+`abstract`: un único hito por fase (fecha/huso explícitos), receipt
+idempotente, cero partidos individuales — limitado en esta entrega a
+formatos de una sola fase resoluble (bracket exige potencia de 2).
+
+### Profile español y cohorte interactivo
+
+`game.js`, `startSeason()`: perfil transitorio explícito (ACB/Primera
+FEB/Copa ACB → `playable`, default → `abstract`), asignado al mundo ANTES
+de instalar `spain-2026.1` (que ya crea Editions dentro de `install()`).
+`data/world/spain-2026.1.js`: `editionBindings(competitionId, world)`
+resuelve `detailLevel` desde el perfil; `CompetitionPathwayService`
+propaga el nivel del DESTINO (nunca copiado de la fuente) en activación
+intra-temporada y en la transición anual. `state.competitionSimulationService`
+inyectado en `CompetitionEngine` — inerte hoy, listo para un paquete
+futuro no jugable.
+
+### Comandos ejecutados y resultados reales
+
+```
+node scripts/test-world-sim1.js       # 19 OK, 0 FAIL
+node scripts/smoke-world-sim1.js      # OK, ~0.3s
+node scripts/test-pathways1.js        # 19 OK, 0 FAIL (fixtures con detailLevel: 'playable' explícito)
+node scripts/test-world-calendar1.js  # 25 OK, 0 FAIL (mismo ajuste)
+node --check <cada .js nuevo/modificado>   # sin errores
+git diff --check                      # sin errores
+```
+
+### Archivos principales
+
+Nuevos: `src/entities/WorldSimulation.js`,
+`src/core/CompetitionSimulationService.js`,
+`src/core/AbstractCompetitionStageRuntime.js`,
+`scripts/test-world-sim1.js`, `scripts/smoke-world-sim1.js`. Modificados:
+`src/entities/Competition.js`, `src/entities/World.js`,
+`src/core/WorldFactory.js`, `src/core/WorldRegistry.js`,
+`src/core/CompetitionEngine.js`, `src/core/CompetitionPathwayService.js`,
+`src/core/WorldCalendarCoordinator.js`, `src/core/WorldLifecycleService.js`,
+`src/core/MarketService.js`, `data/world/spain-2026.1.js`,
+`src/ui/game.js`, `index.html`, `DESIGN.md`, `CLAUDE.md`.
+
+### Fuera de alcance de esta entrega
+
+Euroliga/EuroCup/BCL/ligas extranjeras o clubes/jugadores reales nuevos;
+instalar el fixture ficticio del smoke en producción; selecciones
+(NATIONAL-TEAMS-1); selector de nivel de detalle/navegación mundial
+(WORLD-UI-1); materialización/dematerialización dinámica de plantillas;
+simulación abstracta multi-stage; scouting; contratos/agentes/licencias/
+ciclo anual de clubes abstractos; mercado CPU-a-CPU exterior/transfer
+internacional/Letter of Clearance; cambios al MatchEngine/tácticas/
+lesiones/balance; SQL/save-load/backend/dependencias nuevas; retirada
+general de shims legacy (WORLD-HARDEN-1).
+
+`data/real/*` no cambió, no se añadió SQL/save-load/backend/dependencia
+nueva ni ninguna competición/club real nuevo. PR abierta contra `main`,
+sin fusionar.
+
+**Siguiente entrega: NATIONAL-TEAMS-1** (federaciones, selecciones,
+elegibilidad, convocatorias, ventanas y competiciones continentales/
+mundiales de selecciones).
+
 ## 2026-09-06 — PATHWAYS-1: clasificación y ascenso/descenso declarativos (DESIGN.md sección 10.15)
 
 Quinta entrega de la EPIC **World Architecture** (WORLD-CORE-1 →

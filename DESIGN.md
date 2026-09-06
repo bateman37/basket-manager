@@ -7645,7 +7645,7 @@ ninguna sea el caso por defecto.
 | 3 | **COMP-CORE-1** | Motor genérico `CompetitionEdition → Stage → Entry`; migra Liga/Copa/playoff por el título/ascenso fuera de los mapas fijos por división — retira `SpainLegacyCompetitionRuntime` de producción. | **hecha**, ver 10.13 |
 | 4 | **WORLD-CALENDAR-1** | Calendario mundial y cola cronológica única; varias competiciones simultáneas, paradas de usuario y simulación de fondo sin el concepto especial de "la otra división". | **hecha**, ver 10.14 |
 | 5 | **PATHWAYS-1** | Clasificación entre fases/torneos, ascenso/descenso, acceso a copas y plazas continentales mediante reglas declarativas versionadas. | **hecha**, ver 10.15 |
-| 6 | **WORLD-SIM-1** | Niveles de detalle `playable/full/standard/abstract`, simulación acotada del exterior y población/mercado mundial sin cargarlo todo al máximo — sustituye `external-abstract` por clubes/equipos normales con detalle abstracto. | pendiente |
+| 6 | **WORLD-SIM-1** | Niveles de detalle `playable/full/standard/abstract`, simulación acotada del exterior y población/mercado mundial sin cargarlo todo al máximo — sustituye `external-abstract` por clubes/equipos normales con detalle abstracto. | **hecha**, ver 10.16 |
 | 7 | **NATIONAL-TEAMS-1** | Federaciones, selecciones, elegibilidad, convocatorias, ventanas y competiciones continentales/mundiales de selecciones. | pendiente |
 | 8 | **WORLD-UI-1** | Navegación estilo manager Mundo → Continente → País → Competición, configuración de carrera, selección de ligas/nivel de detalle. | pendiente |
 | 9 | **WORLD-HARDEN-1** | Elimina todos los puentes legacy de España, audita determinismo/población, prepara la frontera de persistencia — todavía sin imponer SQLite/PostgreSQL. | pendiente |
@@ -8039,7 +8039,7 @@ datos reales modificados.
 | `competitionIdFromLegacyDivision()` | `CompetitionRules.js` | Sin nuevos call-sites productivos desde COMP-CORE-1 (game.js migró a `CompetitionParticipationService.primaryLeagueCompetitionId`/contexto canónico de partido) — retirada definitiva en WORLD-HARDEN-1, sigue exportada para scripts/tests históricos |
 | ~~`Club.id === primaryTeam.id`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — `spain-2026.1` declara 36 pares `clubId`/`teamId` distintos (`SPAIN_CLUB_CONTENT`) |
 | ~~Finanzas/instalaciones/junta/afición en `Team` en vez de `Club`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — viven en `Club.js`; `Team.js` conserva solo accesores legacy que delegan (ver 10.3) |
-| `external-abstract` como categoría de `WorldLifecycleService` | `src/core/WorldLifecycleService.js` | WORLD-SIM-1 |
+| ~~`external-abstract` como categoría de `WorldLifecycleService`~~ | *(retirado en WORLD-SIM-1)* | **RETIRADO** — nunca tuvo call-site real (`externalClubMembership` sin usar, BUG-WORLDSIM-04); un Team exterior es un `Club`/`Team`/`Squad` NORMAL, clasificado `senior-service-roster` en cuanto sus jugadores llegan en `deps.teams` |
 | ~~Calendario por `scheduleProfileId` de contenido español en `CONFIG_BASE.calendar` (`1ª`/`2ª`)~~ | *(retirado de la ruta productiva en WORLD-CALENDAR-1)* | **RETIRADO** — los perfiles, la ventana de Copa y los arranques de playoff/ascenso son ahora `CompetitionScheduleDefinition` versionadas de `data/world/spain-2026.1.js` (ids estables `spain-2026.1:schedule:1a`/`2a`/`copa-acb`). `CONFIG_BASE.calendar.scheduleProfiles` y `src/core/Calendar.js` siguen existiendo SOLO como shim del "modo prueba" técnico de `index.html` y de scripts standalone antiguos; ningún módulo nuevo los consulta. Eliminación del archivo: **WORLD-HARDEN-1** |
 | ~~`state.leagues`/`state.brackets` como mapa fijo de dos divisiones~~ | *(retirado en WORLD-CALENDAR-1)* | **RETIRADO** — `getLeague(division)`/`getBrackets(division)` construyen la vista `League`/`Bracket` BAJO DEMANDA desde el `stageId`/runner real; no queda ningún estado paralelo. Los accesores por división siguen siendo el puente de las pantallas españolas hasta **WORLD-UI-1** |
 | ~~`simulateBackgroundRound()`/`drainBackgroundBrackets()`/`getBackgroundDivision()`/`getBackgroundLeague()`~~ | *(retirados en WORLD-CALENDAR-1)* | **RETIRADOS** — no existe "la otra división" en el core ni en la orquestación productiva (BUG-WORLDCALENDAR-01/02) |
@@ -8179,6 +8179,69 @@ WORLD-HARDEN-1 lo decida.
     un participante tiene una sola liga destino por temporada; una
     transición anual se compromete completa o no se compromete
     (`applyTransitionGroup()` nunca deja Editions/Entries parciales).
+
+**Ampliación WORLD-SIM-1** (ver 10.16; se auditan en
+`scripts/test-world-sim1.js` y en el smoke):
+
+50. Toda Edition productiva congela exactamente un `detailLevel` válido
+    (`playable|full|standard|abstract`) — ninguno recibe fallback.
+51. El perfil de simulación de la CARRERA (`WorldSimulationProfile`), nunca
+    el paquete de contenido, decide el nivel de detalle.
+52. Una Edition ya iniciada nunca cambia de nivel (sin setter; solo se fija
+    al construirse).
+53. `playable` es el único nivel que puede convertirse en parada de partido
+    del usuario; un partido del Team controlado en una Edition no
+    `playable` es configuración inválida, detectada antes de avanzar
+    (`WorldCalendarCoordinator.requiresUser()`), nunca autosimulada.
+54. `playable`/`full` reutilizan el `MatchEngine` actual sin cambiar su
+    balance ni su shape de resultado.
+55. `standard` nunca fabrica detalle individual (`quarterScores`/`boxScore`
+    siempre `null`) y nunca deja empate.
+56. `abstract` nunca crea ni almacena partidos individuales — un único hito
+    por fase, dentro del límite consciente de una sola fase resoluble.
+57. Todo resultado/resumen `standard`/`abstract` depende de un fingerprint
+    estable (`careerSeed+algorithmVersion+editionId+stageId(+matchId)`),
+    nunca de orden de arrays/`Map`/registro.
+58. Consultar/renderizar (`getPendingMilestones`, `getStandings` antes de
+    resolver, `listAllPendingAbstractMilestones`) nunca resuelve ni
+    consume aleatoriedad.
+59. Un hito abstracto se aplica como máximo una vez; repetirlo devuelve el
+    mismo `CompetitionSimulationReceipt`, nunca duplicado.
+60. Todo resultado abstracto deja un `CompetitionSimulationReceipt` plano
+    y serializable (nunca instancias Team/Player/`Map`/funciones).
+61. PATHWAYS consume hechos/consultas del engine (`getStandingsFacts`,
+    `getBracketChampion`, `getBracketFinalRoundWinners`, uniformes para
+    runner detallado y runtime abstracto) — nunca conoce niveles de detalle.
+62. Un Club/Team/Squad de detalle `standard`/`abstract` sigue siendo un
+    Club/Team/Squad NORMAL — nunca una segunda ontología (`external-abstract`
+    retirado, BUG-WORLDSIM-04).
+63. Todo Player materializado sigue registrado exactamente una vez en el
+    Player Registry mundial; población estimada (`TeamSimulationSnapshot.
+    estimatedRosterSize`) nunca crea identidades ni infla ese registro.
+64. `Squad` conserva la afiliación real; `Player.teamId` sigue siendo solo
+    espejo — un afiliado sin cobertura contractual materializada nunca se
+    presenta como agente libre (`affiliated-contract-unknown`,
+    BUG-WORLDSIM-05) ni puede negociarse.
+65. Los sistemas interactivos españoles (contratos/inscripción/ciclo anual)
+    procesan SOLO el cohorte `playable`
+    (`CompetitionSimulationService.interactiveCohortTeams()`), nunca
+    `getAllTeams()` a secas (BUG-WORLDSIM-06); `getAllTeams()` conserva su
+    semántica de "todos los Teams registrados" para búsquedas/diagnóstico.
+66. Instalar un Team `standard`/`abstract` no le aplica reglas españolas
+    por accidente.
+67. Un único `WorldCalendar` ordena partidos, marcadores compactos e hitos
+    agregados en la MISMA cola cronológica (fuente `competition-simulation`
+    además de `competition-match`).
+68. Un fallo de resolución (partido o hito) no permite que el cursor lo
+    salte por encima; el item queda `failed` en la cola.
+69. Ningún módulo genérico nuevo de esta entrega (`WorldSimulation.js`,
+    `CompetitionSimulationService.js`, `AbstractCompetitionStageRuntime.js`)
+    contiene ids/reglas de España.
+70. El juego español conserva sus 36 Teams/instancias e idéntico
+    comportamiento observable — ACB/Primera FEB/Copa siguen `playable`
+    explícito.
+71. `data/real/*` no cambia; no se añade SQL/save-load/backend/dependencia
+    nueva ni competición/club real nuevo en esta entrega.
 
 ### 10.11 Verificación reducida (esta entrega)
 
@@ -8977,6 +9040,236 @@ mundial/selector de ligas (**WORLD-UI-1**); persistencia SQL/save-load
 economía; traspasos/cesiones CPU-a-CPU orgánicos; cambios de reglas
 ACB/FEB/contrato/mercado/inscripción/cantera/retirada/economía; migración
 global de la deuda naming-only de Cycle fuera del camino anual tocado.
+
+### 10.16 WORLD-SIM-1 — resultado
+
+Sexta entrega de la EPIC. Base: merge de la PR de PATHWAYS-1 en
+`origin/main`. Aporta CAPACIDAD, no contenido deportivo real nuevo: tras
+esta entrega la partida española sigue teniendo únicamente ACB, Primera
+FEB y Copa ACB como Editions jugables, las tres con `detailLevel:
+'playable'` explícito — el resto de la sección describe la maquinaria
+genérica que permitirá instalar mundo exterior con coste acotado en
+entregas futuras (`EUROPE-CONTENT-1` y siguientes), demostrada aquí solo
+con un fixture ficticio pequeño en `scripts/test-world-sim1.js`/
+`scripts/smoke-world-sim1.js`.
+
+#### 10.16.1 Vocabulario y perfil
+
+`src/entities/WorldSimulation.js` — vocabulario CERRADO `playable > full >
+standard > abstract` (fidelidad decreciente) y `capabilitiesForDetailLevel(
+level)`, función PURA que deriva `{allowsUserMatchStop, temporalUnit,
+resolutionKind, hasIndividualMatchDetail, requiredRosterCoverage}` — nunca
+booleanos sueltos guardados aparte que puedan contradecir al nivel.
+`hasIndividualMatchDetail(result)` es un helper TIPADO aparte: distingue un
+resultado completo (playable/full) de uno compacto (`standard`) mirando
+`result.simulation.kind === 'compact-score'`, para que ningún consumidor
+confunda ambos shapes.
+
+`WorldSimulationProfile` — perfil EXPLÍCITO de la CARRERA (nunca del
+paquete de contenido), congelado al construirse. Resolución determinista:
+1) `CompetitionDefinition.id` exacto; 2) área más cercana en la cadena que
+aporta quien resuelve (`resolveAreaChain(areasRegistry, startAreaId)`); 3)
+`defaultDetailLevel` explícito. Dos assignments incompatibles para el
+mismo scope (mismo `scopeType`+`scopeId`, distinto nivel) lanzan al
+construirse — nunca se desempata por orden de array. `GameWorld` lleva
+`simulationProfile` (`null` hasta `setSimulationProfile()`, asignado
+SIEMPRE antes de instalar ningún paquete de contenido, porque un paquete
+como `spain-2026.1.js` ya crea Editions dentro de su propio `install()`).
+`WorldFactory.buildCareerWorld()` acepta `simulationProfile` y lo asigna
+entre crear el mundo e instalar los paquetes.
+
+**Perfil transitorio de la partida actual** (`src/ui/game.js`,
+`startSeason()`): ACB/Primera FEB/Copa ACB → `playable` explícitos;
+default → `abstract` para cualquier competición futura no configurada. Es
+configuración de ARRANQUE de `game.js`, no lógica del core — WORLD-UI-1
+añadirá el selector real. La Supercopa sigue `catalog-only`, sin Edition.
+
+#### 10.16.2 Edition congelada y snapshots de equipo
+
+`CompetitionEdition.detailLevel` pasa de opcional con fallback `'playable'`
+a OBLIGATORIO y validado contra el vocabulario cerrado (BUG-WORLDSIM-01) —
+`registerEditionWithInitialEntries()`/`activateEditionFromDecision()`
+exigen el campo explícito, nunca lo infieren. `CompetitionPathwayService`
+nunca copia el nivel de la Edition fuente: cada destino resuelve su PROPIO
+nivel llamando a `resolveEditionBindings(competitionDefinitionId, world)`
+(firma ampliada con `world`) — `data/world/spain-2026.1.js` resuelve así
+`detailLevel` para ACB/Primera FEB/Copa mediante
+`WorldSimulationProfile.resolveDetailLevel()` + `resolveAreaChain()`.
+
+`TeamSimulationSnapshot` (mismo archivo) — fuerza/cobertura agregada de un
+Team por temporada (`rosterCoverage: complete|partial|aggregate`,
+`strength: {overall, offense, defense}`, `materializedPlayerIds`,
+`estimatedRosterSize`, `strengthSource`/`provenance` honestos). Nunca
+duplica Club/Team/Squad/Player. Con roster COMPLETO se puede derivar con
+una fórmula versionada determinista (`CompetitionSimulationService.
+deriveSnapshotFromRoster()`, reutiliza `SeasonGoals.top8Rating()`, la MISMA
+que ya usa `sportingGoal`); con cobertura parcial/agregada, el contenido
+debe aportar la fuerza explícita — nunca `50`/reputación española por
+defecto. Registrado en `WorldRegistries.teamSimulationSnapshots`
+(`registerTeamSimulationSnapshot()`, exige Team existente).
+`CompetitionEngine.initializeEdition()` valida la cobertura exigida por
+nivel (`CompetitionSimulationService.validateCoverageForEdition()`, solo si
+hay `simulationService` inyectado): `playable`/`full` exigen roster REAL
+completo; `standard`/`abstract` exigen una snapshot explícita — bloquea la
+Edition en vez de completar en silencio o cambiar de nivel.
+
+#### 10.16.3 Servicio de simulación y adaptadores
+
+`src/core/CompetitionSimulationService.js` — instancia EXPLÍCITA por
+carrera (`world`, `careerSeed`, nunca `state`/DOM/`Math.random()`).
+`playable`/`full` NUNCA pasan por el servicio: siguen resolviéndose
+exactamente como antes, dentro del mismo runner detallado
+(`RoundRobinStageRunner`/`BracketStageRunner`, sin tocar
+`CompetitionRunners.js`). `standard` usa el simulador compacto
+`standard-score-v1` (`computeStandardResult()`): fuerza agregada de ambos
+Teams + ventaja local fija + hash determinista de
+`DeterministicRandom.unitFrom(fingerprint, discriminador)` (fingerprint
+`careerSeed+algoritmo+editionId+stageId+matchId`) — nunca deja empate (un
+tercer hash independiente decide el lado que se lleva el margen de
+prórroga compacta), y el resultado se inyecta como
+`MatchEngine.options.precomputedResult` en el MISMO punto de encaje que ya
+existía para el partido del usuario (TAC-5) — `CompetitionEngine.
+resolveMatch()` detecta el nivel (`_detailLevelForStage()`) y solo para
+`standard` calcula el marcador antes de llamar a `runner.resolveMatch()`,
+sin duplicar `_recordResult` ni el avance de ronda/bracket.
+
+`abstract` construye `AbstractCompetitionStageRuntime`
+(`src/core/AbstractCompetitionStageRuntime.js`), registrado en el MISMO
+`CompetitionRuntimeRegistry` que los runners detallados (nunca un engine
+paralelo): nunca crea `matches[]`, expone un ÚNICO hito pendiente
+(`getPendingMilestones()`) con fecha/huso explícitos (nunca el reloj del
+sistema) y, al resolverse (`resolveMilestone()`, idempotente por id de
+hito), calcula una clasificación (`rankStandings`) o un resumen de cuadro
+(`resolveBracketSummary`, campeón + subcampeón) a partir de fuerza +
+fingerprint estable — nunca posesión a posesión. Deja EXACTAMENTE un
+`CompetitionSimulationReceipt` plano (`WorldRegistries.
+competitionSimulationReceipts`, registro nuevo con `forEdition()`/
+`forStage()`) por fase, con `provenance: 'estimated'`.
+
+**Límite consciente de esta entrega** (`_validateAbstractFormatSupported()`
++ validación de bracket potencia de 2 dentro de
+`AbstractCompetitionStageRuntime`): `abstract` solo soporta formatos de UNA
+sola fase resoluble — un formato multi-fase (como los españoles, con
+playoff/ascenso) o un bracket con un número de participantes que no sea
+potencia de 2 bloquean ANTES de mutar nada, con mensaje descriptivo. Una
+ampliación futura que necesite hitos intermedios de una fase abstracta
+multi-stage queda fuera de esta entrega.
+
+#### 10.16.4 Integración con el engine, el calendario y PATHWAYS
+
+`CompetitionEngine` recibe `simulationService` inyectado (opcional —
+ausente, se comporta EXACTAMENTE igual que antes de esta entrega, lo que
+usan todos los fixtures/tests históricos de COMP-CORE-1/WORLD-CALENDAR-1/
+PATHWAYS-1 sin cambiar una línea de comportamiento). `getBracketChampion`/
+`isStageCompleted`/`getStandings` funcionan de forma UNIFORME para runner
+detallado y runtime abstracto (mismo contrato de retorno);
+`getBracketFinalRoundWinners` detecta el runtime abstracto por duck-typing
+(`typeof runner.getFinalRoundWinners === 'function'`). Nuevo:
+`listAllPendingAbstractMilestones()`/`resolveAbstractMilestone()`.
+`listAllPendingMatches()` sigue devolviendo SOLO partidos materializados
+(un runtime abstracto responde `getPendingMatches(): []`, así que nunca
+aparece ahí, invariante 9).
+
+`WorldCalendarCoordinator.js` añade la fuente `competition-simulation`
+(`createCompetitionSimulationSource()`): lista hitos agregados pendientes,
+nunca es parada del usuario, comparte el MISMO `WorldCalendar` que
+`competition-match`/`market-event`/`transfer-event`/`loan-event`. La
+fuente `competition-match` añade `detailLevel` a la metadata de cada
+partido; `requiresUser()` detecta y LANZA ante la configuración inválida
+"Team controlado en una Edition no playable" en vez de autosimularla a
+escondidas (invariante 6 de la sección 19 del prompt).
+
+`CompetitionPathwayService`/`CompetitionEngine.activateEditionFromDecision()`
+propagan `detailLevel` explícito en cada activación (intra-temporada y
+transición anual) — el destino de un pathway SIEMPRE resuelve su propio
+nivel, nunca hereda el de la Edition que disparó la regla.
+
+#### 10.16.5 Población, ciclo de vida y mercado honestos
+
+`WorldLifecycleService.js` (BUG-WORLDSIM-04): categoría `'external-abstract'`
+y el hook `externalClubMembership` quedan RETIRADOS — nunca tuvieron un
+call-site real. Un Player en el Squad activo de cualquier Team (español o
+de detalle `standard`/`abstract`) clasifica `senior-service-roster` en
+cuanto ese Team llega en `deps.teams`, con `serviceClubId` real — un Club
+exterior sigue siendo un `Club`/`Team`/`Squad` NORMAL, nunca una segunda
+ontología.
+
+`MarketService.resolveMarketAvailability()` (BUG-WORLDSIM-05): si un
+Player no tiene contrato vigente pero SÍ `player.teamId` (afiliado a un
+Squad real), devuelve `'affiliated-contract-unknown'` — nunca `'free'`.
+Ese estado no permite abrir negociación (`canInquire` en la pantalla de
+Mercado lo excluye explícitamente) ni ejecutar un traspaso; la etiqueta
+visible es "Afiliado — contrato no cargado en este nivel de detalle". En
+la partida española esto NUNCA ocurre en la práctica (`ContractExpiryService`
+limpia `teamId` al expirar un contrato), pero protege cualquier Team
+`standard`/`abstract` futuro sin bootstrap contractual propio.
+
+`CompetitionSimulationService.interactiveCohortTeams(seasonKey)`
+(BUG-WORLDSIM-06) — Teams con Entry activa en una Edition `playable` de
+esa temporada. `game.js` lo usa (`interactiveCohortTeams()`) en los TRES
+bootstraps que hoy recorren "todos los equipos": `bootstrapContractsForNewCareer()`,
+`bootstrapRegistrationsForNewCareer()` y `closeSeasonAndPrepareNext()`
+(ciclo anual) — para la partida actual el cohorte contiene los MISMOS 36
+equipos (ACB+Primera FEB son "playable"), así que contratos/licencias/
+ciclo no cambian de comportamiento observable. `getAllTeams()` conserva su
+semántica de "todos los Teams registrados" para búsquedas/diagnóstico.
+
+`GameWorld.describe()` añade una vista PLANA de `simulationProfile` +
+`simulationLevelCounters` (Editions/Teams por nivel, derivados de los
+registries reales) — sin runtimes vivos ni `Map`.
+
+#### 10.16.6 Pruebas de esta entrega
+
+`node scripts/test-world-sim1.js` — 19 comprobaciones agrupadas:
+vocabulario cerrado/capabilities/serialización, precedencia
+competición>área>default, conflicto de assignments, Edition con nivel
+obligatorio/inmutable, snapshots e integridad de referencias, "standard"
+determinista sin empate ni detalle individual falso, "abstract"
+round-robin (hito único, receipt idempotente) y bracket (PATHWAYS lee
+campeón/ganadores de última ronda), configuración abstracta no soportada
+(multi-fase y bracket no potencia de 2) fallando antes de mutar,
+`validateCoverageForEdition`, orden de registro invertido sin cambiar
+marcador/campeón, consultar sin mutar, Player exterior con Club/Team/Squad
+normales (nunca `external-abstract`), afiliado sin contrato nunca libre,
+cohorte interactivo excluyendo Teams no playable, auditoría estática sin
+literales de España, `GameWorld.describe()` serializable. **19 OK, 0
+fallos.**
+
+`node scripts/smoke-world-sim1.js` — fixture sintético (`world-core-2026.1`
++ 4 ligas ficticias de 4 equipos, una por nivel, nunca instalado en
+producción): 4 Editions inicializadas con su nivel congelado; "Continuar"
+resuelve TODA la cola con exactamente 3 paradas de usuario (las 3 jornadas
+de la liga "playable", único Team controlado); "full" se resuelve
+enteramente automático con resultado completo; "standard" deja marcadores
+compactos deterministas sin empates; "abstract" deja un único
+receipt/cero partidos; un pathway de test clasifica el top-2 de la liga
+abstracta a una Edition de "Torneo de honor" (también abstracta, con su
+PROPIO nivel) — demuestra PATHWAYS consumiendo un resultado abstracto;
+integridad World/Competition/Calendar limpia al final; jugador afiliado a
+un Team abstracto con Club/Team/Squad normales, `affiliated-contract-unknown`
+y `senior-service-roster`; determinismo confirmado con orden de registro
+invertido. **OK en ~0.3s.**
+
+Regresiones autorizadas sin cambio de comportamiento: `node
+scripts/test-pathways1.js` (**19 OK, 0 fallos** — fixtures actualizadas con
+`detailLevel: 'playable'` explícito, la única adaptación permitida ante el
+nuevo campo obligatorio) y `node scripts/test-world-calendar1.js` (**25
+OK, 0 fallos**, mismo ajuste). `node --check` sobre todo el JS nuevo/
+modificado y `git diff --check`: sin errores.
+
+#### 10.16.7 Fuera de alcance de esta entrega
+
+Euroliga/EuroCup/BCL/ligas extranjeras o clubes/jugadores reales nuevos;
+instalar el fixture ficticio del smoke en producción; selecciones/
+convocatorias/ventanas FIBA (**NATIONAL-TEAMS-1**); selector de nivel de
+detalle/navegación mundial (**WORLD-UI-1**); materialización/
+dematerialización dinámica de plantillas al cambiar nivel; simulación
+abstracta multi-stage o checkpoints de jornada intermedios; scouting u
+ocultación/revelado de atributos; contratos completos/agentes/licencias/
+ciclo anual de clubes abstractos; mercado CPU-a-CPU exterior, transfer
+internacional o Letter of Clearance; cambios al `MatchEngine`/tácticas/
+lesiones/desarrollo/balance; SQL/save-load/backend/dependencias nuevas;
+retirada general de shims legacy reservados a **WORLD-HARDEN-1**.
 
 ## 11. Modo Manager (futuro, derivado del modo Completo)
 
