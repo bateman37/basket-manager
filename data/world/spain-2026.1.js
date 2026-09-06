@@ -33,6 +33,7 @@
   const SquadModule = dep('../../src/entities/Squad.js');
   const CompetitionCatalogModule = dep('../../src/core/CompetitionCatalog.js');
   const CompetitionFormatCatalogModule = dep('../../src/core/CompetitionFormatCatalog.js');
+  const CompetitionScheduleCatalogModule = dep('../../src/core/CompetitionScheduleCatalog.js');
   const CompetitionEngineModule = dep('../../src/core/CompetitionEngine.js');
   const WorldCoreManifestModule = dep('./world-core-2026.1.js');
 
@@ -42,6 +43,7 @@
   function SquadEntity() { return SquadModule; }
   function Catalog() { return CompetitionCatalogModule; }
   function FormatCatalog() { return CompetitionFormatCatalogModule; }
+  function ScheduleCatalog() { return CompetitionScheduleCatalogModule.CompetitionScheduleCatalog; }
   function Engine() { return CompetitionEngineModule; }
   function EuropeAreaId() {
     return (WorldCoreManifestModule.WORLD_CORE_AREA_IDS || { EUROPE: 'area-continent-europe' }).EUROPE;
@@ -407,6 +409,229 @@
   // (no un literal dentro del engine genérico).
   const CUP_TRIGGER_ROUND = 17;
 
+  // =======================================================================
+  // WORLD-CALENDAR-1 (DESIGN.md 10.14) — CALENDARIOS como contenido
+  // versionado de ESTE paquete. Los números que antes vivían en
+  // `CONFIG_BASE.calendar` (`MatchConfig.js`) y las fórmulas que vivían en
+  // `Calendar.js` se trasladan aquí SIN RECALIBRARLOS: mismas franjas
+  // ponderadas, misma cadencia, misma jornada intersemanal, mismas
+  // exclusiones, misma ventana de Copa y mismos arranques de playoff. El
+  // resultado observable de la temporada española es el MISMO que antes de
+  // esta entrega; lo que cambia es que el instante canónico es UTC y el
+  // huso (`Europe/Madrid`) es un dato EXPLÍCITO del perfil
+  // (BUG-WORLDCALENDAR-03), no el huso del ordenador.
+  //
+  // Ids ESTABLES (`…:schedule:1a`/`…:schedule:2a` ya existían como alias en
+  // `MatchConfig.js` desde COMP-CORE-1). La Copa recibe id propio y
+  // explícito: con runtime fechado no puede quedar con
+  // `scheduleProfileId: null`.
+  // =======================================================================
+  const SCHEDULE_IDS = {
+    ACB: 'spain-2026.1:schedule:1a',
+    PRIMERA_FEB: 'spain-2026.1:schedule:2a',
+    COPA_ACB: 'spain-2026.1:schedule:copa-acb',
+  };
+
+  const SPAIN_TIME_ZONE_ID = 'Europe/Madrid';
+  // Ancla civil de temporada: primer sábado orientativo de octubre (mismo
+  // valor que `CONFIG_BASE.calendar.seasonStartMonth/Day`, ahora 1-indexed).
+  const SEASON_ANCHOR = { month: 10, day: 3 };
+  const DAYS_BETWEEN_ROUNDS = 7;
+  // 18 equipos, ida y vuelta -> 34 jornadas (DESIGN.md 3.1). Declarado como
+  // DATO del calendario: el scheduler comprueba que coincide con las
+  // jornadas que genera el FORMATO y falla si no (nunca ajusta una de las
+  // dos en silencio).
+  const LEAGUE_ROUNDS_COUNT = 34;
+  // Copa/Playoffs/Ascenso: horario único de "prime time" para toda la ronda
+  // (DESIGN.md 3.3.2/3.3.3, misma decisión y misma limitación documentada).
+  const KNOCKOUT_KICKOFF = { hour: 21, minute: 0 };
+  const SERIES_GAME_GAP_DAYS = 2;
+  const SERIES_ROUND_GAP_DAYS = 5;
+  const SEASON_END_TO_PLAYOFF_GAP_DAYS = 10;
+  // Patrón de campo de cada ronda expresado como NÚMERO DE PARTIDOS
+  // posibles — el calendario solo necesita la duración máxima de la ronda
+  // para no arrancar la siguiente antes de que la anterior pudiera acabar.
+  const TITLE_PLAYOFF_ROUND_LENGTHS = [3, 5, 5];
+  const PROMOTION_ROUND_LENGTHS = [5, 1, 1];
+
+  const SCHEDULE_PROVENANCE = {
+    dataSource: MANIFEST_ID,
+    status: 'design',
+    notes: 'Calendario SIMULADO de diseño (DESIGN.md 3.3) — no es el calendario oficial de ACB/Primera FEB/Copa.',
+  };
+
+  function leagueSchedulePlans(profile) {
+    return {
+      'regular-season': {
+        strategy: 'round-robin-cadence',
+        params: {
+          roundsCount: LEAGUE_ROUNDS_COUNT,
+          daysBetweenRounds: DAYS_BETWEEN_ROUNDS,
+          weekendSlots: profile.weekendSlots,
+          midweek: {
+            ...profile.midweek,
+            // La semana de la Copa (jornada 17) y la siguiente nunca son
+            // jornada intersemanal — mismo criterio que `Calendar.js`
+            // histórico, ahora como DATO del perfil en vez de un literal
+            // dentro del algoritmo.
+            excludedRounds: [CUP_TRIGGER_ROUND, CUP_TRIGGER_ROUND + 1],
+          },
+          lastRoundSlot: profile.lastRoundSlot,
+        },
+      },
+    };
+  }
+
+  // Franjas ponderadas reales de cada división (DESIGN.md 3.3.1) —
+  // trasladadas literalmente desde `CONFIG_BASE.calendar.scheduleProfiles`.
+  const ACB_LEAGUE_PROFILE = {
+    weekendSlots: [
+      { dayOffset: -1, hour: 21, minute: 0, weight: 1 }, // viernes noche (ocasional)
+      { dayOffset: 0, hour: 17, minute: 0, weight: 3 }, // sábado tarde
+      { dayOffset: 0, hour: 19, minute: 0, weight: 3 }, // sábado tarde-noche
+      { dayOffset: 0, hour: 21, minute: 0, weight: 2 }, // sábado noche
+      { dayOffset: 1, hour: 12, minute: 30, weight: 2 }, // domingo mediodía
+      { dayOffset: 1, hour: 17, minute: 0, weight: 3 }, // domingo tarde
+      { dayOffset: 1, hour: 19, minute: 0, weight: 2 }, // domingo tarde-noche
+    ],
+    midweek: {
+      dayOffset: -3, // miércoles de la semana de ese sábado ancla
+      slots: [{ hour: 20, minute: 30, weight: 1 }, { hour: 21, minute: 0, weight: 1 }],
+      everyNRounds: 8,
+    },
+    // Última jornada: horario ÚNICO para toda la división (DESIGN.md 3.3.1).
+    lastRoundSlot: { dayOffset: 0, hour: 18, minute: 0 },
+  };
+
+  const PRIMERA_FEB_LEAGUE_PROFILE = {
+    weekendSlots: [
+      { dayOffset: -1, hour: 20, minute: 30, weight: 2 }, // viernes noche
+      { dayOffset: 0, hour: 12, minute: 0, weight: 1 }, // sábado mediodía
+      { dayOffset: 0, hour: 17, minute: 0, weight: 2 }, // sábado tarde
+      { dayOffset: 0, hour: 19, minute: 0, weight: 2 }, // sábado tarde-noche
+      { dayOffset: 1, hour: 12, minute: 0, weight: 2 }, // domingo mediodía
+      { dayOffset: 1, hour: 17, minute: 0, weight: 2 }, // domingo tarde
+    ],
+    midweek: {
+      dayOffset: -3,
+      slots: [{ hour: 20, minute: 0, weight: 1 }, { hour: 20, minute: 30, weight: 1 }],
+      everyNRounds: 8,
+    },
+    lastRoundSlot: { dayOffset: 1, hour: 12, minute: 0 },
+  };
+
+  function registerSchedules() {
+    const SC = ScheduleCatalog();
+    if (SC.hasSchedule(SCHEDULE_IDS.ACB)) return; // idempotente (recarga del mismo módulo)
+
+    SC.registerSchedule({
+      id: SCHEDULE_IDS.ACB,
+      version: '2026.1.0',
+      status: 'active',
+      timeZoneId: SPAIN_TIME_ZONE_ID,
+      seasonAnchor: SEASON_ANCHOR,
+      provenance: SCHEDULE_PROVENANCE,
+      plans: {
+        ...leagueSchedulePlans(ACB_LEAGUE_PROFILE),
+        // Playoff por el título (DESIGN.md 3.3.3): arranca
+        // `seasonEndToPlayoffGapDays` después de la ÚLTIMA jornada de SU
+        // PROPIA liga regular — referencia PLANA al plan de esta misma
+        // definición, nunca "la liga de 1ª división".
+        'title-playoff': {
+          strategy: 'bracket-offsets',
+          params: {
+            anchor: {
+              type: 'round-robin-round', planKey: 'regular-season', round: 'last', offsetDays: SEASON_END_TO_PLAYOFF_GAP_DAYS,
+            },
+            offsetPolicy: 'series-cadence',
+            roundPatternLengths: TITLE_PLAYOFF_ROUND_LENGTHS,
+            seriesGameGapDays: SERIES_GAME_GAP_DAYS,
+            seriesRoundGapDays: SERIES_ROUND_GAP_DAYS,
+            kickoff: KNOCKOUT_KICKOFF,
+          },
+        },
+      },
+    });
+
+    SC.registerSchedule({
+      id: SCHEDULE_IDS.PRIMERA_FEB,
+      version: '2026.1.0',
+      status: 'active',
+      timeZoneId: SPAIN_TIME_ZONE_ID,
+      seasonAnchor: SEASON_ANCHOR,
+      provenance: SCHEDULE_PROVENANCE,
+      plans: {
+        ...leagueSchedulePlans(PRIMERA_FEB_LEAGUE_PROFILE),
+        // Cuartos de ascenso y Final Four comparten el MISMO tramo de
+        // fechas (la Final Four continúa la numeración de rondas de sus
+        // propios cuartos, `roundIndexOffset: 1`) — mismo criterio que ya
+        // documentaba `Promotion.js`, ahora como dato del plan.
+        'promotion-quarterfinals': {
+          strategy: 'bracket-offsets',
+          params: {
+            anchor: {
+              type: 'round-robin-round', planKey: 'regular-season', round: 'last', offsetDays: SEASON_END_TO_PLAYOFF_GAP_DAYS,
+            },
+            offsetPolicy: 'series-cadence',
+            roundPatternLengths: PROMOTION_ROUND_LENGTHS,
+            seriesGameGapDays: SERIES_GAME_GAP_DAYS,
+            seriesRoundGapDays: SERIES_ROUND_GAP_DAYS,
+            roundIndexOffset: 0,
+            kickoff: KNOCKOUT_KICKOFF,
+          },
+        },
+        'promotion-final-four': {
+          strategy: 'bracket-offsets',
+          params: {
+            anchor: {
+              type: 'round-robin-round', planKey: 'regular-season', round: 'last', offsetDays: SEASON_END_TO_PLAYOFF_GAP_DAYS,
+            },
+            offsetPolicy: 'series-cadence',
+            roundPatternLengths: PROMOTION_ROUND_LENGTHS,
+            seriesGameGapDays: SERIES_GAME_GAP_DAYS,
+            seriesRoundGapDays: SERIES_ROUND_GAP_DAYS,
+            roundIndexOffset: 1,
+            kickoff: KNOCKOUT_KICKOFF,
+          },
+        },
+      },
+    });
+
+    // Copa ACB (DESIGN.md 3.3.2): las tres rondas caben en el hueco FIJO
+    // que separa la jornada 17 de la 18 de la Liga ACB, con un colchón
+    // mínimo antes de la 18. Referencia PLANA a la jornada disparadora
+    // (`anchor.scheduleId` + `planKey` + `round`) — el scheduler resuelve
+    // el ancla sin saber que se trata de ACB.
+    SC.registerSchedule({
+      id: SCHEDULE_IDS.COPA_ACB,
+      version: '2026.1.0',
+      status: 'active',
+      timeZoneId: SPAIN_TIME_ZONE_ID,
+      seasonAnchor: SEASON_ANCHOR,
+      provenance: SCHEDULE_PROVENANCE,
+      plans: {
+        knockout: {
+          strategy: 'bracket-offsets',
+          params: {
+            anchor: {
+              type: 'round-robin-round',
+              scheduleId: SCHEDULE_IDS.ACB,
+              planKey: 'regular-season',
+              round: CUP_TRIGGER_ROUND,
+              offsetDays: 0,
+            },
+            offsetPolicy: 'compressed-window',
+            roundCount: 3,
+            roundGapDays: 3, // separación ORIENTATIVA entre rondas; se comprime si no cabe
+            windowDays: DAYS_BETWEEN_ROUNDS, // el hueco total NUNCA se alarga
+            finalCushionDays: 2, // regla dura: descanso mínimo antes de la jornada 18
+            kickoff: KNOCKOUT_KICKOFF,
+          },
+        },
+      },
+    });
+  }
+
   // Bindings congelados por edición (sección 11.2 del prompt): ids de
   // formato/calendario/ruleset EXPLÍCITOS, nunca el objeto de reglas
   // incrustado. `scheduleProfileId` usa el MISMO id ya declarado en
@@ -421,7 +646,9 @@
       return { formatBindingId: FORMAT_IDS.PRIMERA_FEB_LIGA_ASCENSO, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'primera-feb-domestic-2026-27-v1' };
     }
     if (competitionId === Catalog().COMPETITION_IDS.COPA_ACB) {
-      return { formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT, scheduleProfileId: null, rulesetBundleId: 'copa-acb-domestic-2025-26-v1' };
+      // WORLD-CALENDAR-1: la Copa YA tiene calendario propio congelado por
+      // Edition (antes `null`) — su runtime tiene fechas reales.
+      return { formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT, scheduleProfileId: definition.bindings.scheduleProfileId, rulesetBundleId: 'copa-acb-domestic-2025-26-v1' };
     }
     throw new Error(`spain-2026.1: sin bindings declarados para la competición "${competitionId}".`);
   }
@@ -473,6 +700,7 @@
   // `triggerRound`) — nunca contiene `if (competitionId === 'acb')`.
   function buildSeasonActivationPlan(seasonKey) {
     const acbRegularSeasonStageId = Engine().buildStageId(Catalog().COMPETITION_IDS.ACB, seasonKey, 'regular-season');
+    const copaBindings = editionBindings(Catalog().COMPETITION_IDS.COPA_ACB);
     return [
       {
         id: `copa-acb-activation:${seasonKey}`,
@@ -483,6 +711,20 @@
           competitionDefinitionId: Catalog().COMPETITION_IDS.COPA_ACB,
           seasonKey,
           formatBindingId: FORMAT_IDS.COPA_ACB_KNOCKOUT,
+          // WORLD-CALENDAR-1: la regla transporta también el CALENDARIO y
+          // el ruleset que la Edition nueva debe congelar — datos planos,
+          // el engine nunca sabe de qué competición se trata.
+          scheduleProfileId: copaBindings.scheduleProfileId,
+          rulesetBundleId: copaBindings.rulesetBundleId,
+          // Referencia PLANA al stage/ronda disparador, para que el
+          // scheduler pueda resolver el ancla de la ventana de Copa sin
+          // conocer ACB (sección 8 del prompt).
+          triggerReference: {
+            stageId: acbRegularSeasonStageId,
+            stageKey: 'regular-season',
+            round: CUP_TRIGGER_ROUND,
+            competitionDefinitionId: Catalog().COMPETITION_IDS.ACB,
+          },
           entrySource: {
             type: 'stage-standings-range', sourceStageKey: 'regular-season', fromRank: 1, toRank: 8,
           },
@@ -505,6 +747,7 @@
     registerClubsAndTeams(world, ctx.teamsByDivision);
     registerCompetitionDefinitions(world);
     registerFormats();
+    registerSchedules();
 
     // Ediciones/stage de Liga regular + Entries de la temporada de
     // arranque (ACB + Primera FEB) — declarativo, SIN construir ningún
@@ -537,6 +780,7 @@
         Catalog().COMPETITION_IDS.COPA_ACB,
         Catalog().COMPETITION_IDS.SUPERCOPA_ACB,
       ],
+      competitionSchedules: [SCHEDULE_IDS.ACB, SCHEDULE_IDS.PRIMERA_FEB, SCHEDULE_IDS.COPA_ACB],
     },
     dataSource: 'data/real/real-data-bundle.js',
     provenance: { status: 'verified', notes: 'No copia data/real/* — referencia las instancias ya construidas.' },
@@ -555,6 +799,12 @@
     // históricos, ver CLAUDE.md/DESIGN.md 10.8).
     SPAIN_FORMAT_IDS: FORMAT_IDS,
     SPAIN_CUP_TRIGGER_ROUND: CUP_TRIGGER_ROUND,
+    // WORLD-CALENDAR-1 (DESIGN.md 10.14) — calendarios españoles como
+    // contenido versionado de este paquete.
+    SPAIN_SCHEDULE_IDS: SCHEDULE_IDS,
+    SPAIN_TIME_ZONE_ID,
+    SPAIN_SEASON_ANCHOR: SEASON_ANCHOR,
+    registerSpainSchedules: registerSchedules,
     registerSpainFormats: registerFormats,
     bindCareerStartEditions,
     bindNewSeasonEditions,
