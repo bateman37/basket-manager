@@ -60,14 +60,22 @@ esto (ver sección 13).
 
 ## 3. Estructura de competición (primer hito)
 
-**Nota de arquitectura (WORLD-CORE-1, ver sección 10):** esta sección
-describe la **vertical española** tal cual está construida y jugable hoy —
-sigue siendo el motor real de Liga/Copa/Playoffs/Ascenso, sin cambios de
-comportamiento. Desde WORLD-CORE-1, esa vertical vive detrás de identidad
-mundial genérica (`CompetitionDefinition`/`CompetitionEdition`/
-`CompetitionStage`/`CompetitionEntry`, sección 10) y de un paquete de
-contenido (`spain-2026.1`): "1ª división" y "2ª división" son el
-`legacyDivision` de ACB/Primera FEB, no una estructura universal del motor.
+**Nota de arquitectura (WORLD-CORE-1/COMP-CORE-1, ver sección 10):** esta
+sección describe la **vertical española** tal cual está construida y
+jugable hoy — el comportamiento deportivo observable (calendario,
+clasificación, desempate, Copa en jornada 17, playoffs) no ha cambiado.
+Lo que SÍ cambió en COMP-CORE-1 (ver 10.13) es QUIÉN lo ejecuta: ya no
+son runners fijos españoles (`League`/`Bracket`/`Cup`/`Playoffs`/
+`Promotion` como autoridad) sino un motor GENÉRICO
+(`RoundRobinStageRunner`/`BracketStageRunner`, orquestados por
+`CompetitionEngine`) configurado por el `CompetitionFormatDefinition` que
+declara `data/world/spain-2026.1.js` — esos cinco archivos sobreviven
+solo como fachadas finas/shim histórico (10.8). Esa vertical vive detrás
+de identidad mundial genérica (`CompetitionDefinition`/
+`CompetitionEdition`/`CompetitionStage`/`CompetitionEntry`, sección 10) y
+de un paquete de contenido (`spain-2026.1`): "1ª división" y "2ª división"
+son el `legacyDivision` de ACB/Primera FEB, no una estructura universal
+del motor.
 Cualquier liga/país nuevo se añade como paquete de contenido y como
 `CompetitionDefinition` propia — nunca como una tercera "división" aquí.
 
@@ -101,18 +109,29 @@ Cualquier liga/país nuevo se añade como paquete de contenido y como
   (un subgrupo sigue empatado), se repite el proceso completo desde el
   paso 1 para ese subgrupo restante.
 
-**Estado: implementado y en producción** (`src/core/League.js`) para
-1ª y 2ª división. 2ª división usa hoy una plantilla de 18 equipos
-ficticios como infraestructura mínima para alimentar el playoff de
-ascenso (3.2.3) — no es todavía un modo de juego completo por sí mismo
-con datos reales propios, ver 3.2.3.
+**Estado: implementado y en producción** para 1ª y 2ª división. Desde
+COMP-CORE-1 (DESIGN.md 10.13), lo ejecuta el motor GENÉRICO
+(`RoundRobinStageRunner`, orquestado por `CompetitionEngine`) configurado
+por el `CompetitionFormatDefinition` que declara `data/world/
+spain-2026.1.js` — `src/core/League.js` sigue existiendo como fachada
+fina sobre ese mismo runner (mismo algoritmo, nunca duplicado), usada por
+`game.js` y por scripts/tests históricos que la construyen de forma
+standalone. 2ª división usa hoy una plantilla de 18 equipos ficticios
+como infraestructura mínima para alimentar el playoff de ascenso (3.2.3)
+— no es todavía un modo de juego completo por sí mismo con datos reales
+propios, ver 3.2.3.
 
 ### 3.2 Playoffs, Copa y Playoff de ascenso
 
-**Estado: implementado y en producción** (`src/core/Bracket.js`,
-`src/core/Playoffs.js`, `src/core/Cup.js`, `src/core/Promotion.js`),
-reutilizando `League.js` y `MatchEngine.js` sin ninguna modificación.
-Esta sección documenta el sistema tal como quedó construido — sustituye
+**Estado: implementado y en producción**, reutilizando `MatchEngine.js`
+sin ninguna modificación. Desde COMP-CORE-1 (DESIGN.md 10.13), lo ejecuta
+el motor GENÉRICO (`BracketStageRunner`) configurado por el mismo
+`CompetitionFormatDefinition` español — `src/core/Bracket.js`/
+`Playoffs.js`/`Cup.js`/`Promotion.js` sobreviven como fachadas finas sobre
+ese runner (mismo algoritmo, nunca duplicado), usadas por scripts/tests
+históricos que las construyen de forma standalone (game.js ya no las
+construye directamente en la ruta productiva). Esta sección documenta el
+sistema tal como quedó construido — sustituye
 por completo cualquier redacción anterior de este apartado que lo
 describiera como pendiente.
 
@@ -7570,7 +7589,7 @@ ninguna sea el caso por defecto.
 |---:|---|---|---|
 | 1 | **WORLD-CORE-1** | `GameWorld` canónico, geografía, organizaciones, catálogos/registros, paquetes de contenido, identidad de competición y migración compatible de España. | **hecha**, esta sección |
 | 2 | **CLUB-CORE-1** | Separación completa `Club` institucional / `Team`-`Squad` deportivo; primer equipo, filial, cantera y futuras secciones sin duplicar el club. | **hecha**, ver 10.12 |
-| 3 | **COMP-CORE-1** | Motor genérico `CompetitionEdition → Stage → Entry`; migra Liga/Copa/playoff por el título/ascenso fuera de los mapas fijos por división — retira `SpainLegacyCompetitionRuntime`. | pendiente |
+| 3 | **COMP-CORE-1** | Motor genérico `CompetitionEdition → Stage → Entry`; migra Liga/Copa/playoff por el título/ascenso fuera de los mapas fijos por división — retira `SpainLegacyCompetitionRuntime` de producción. | **hecha**, ver 10.13 |
 | 4 | **WORLD-CALENDAR-1** | Calendario mundial y cola cronológica única; varias competiciones simultáneas, paradas de usuario y simulación de fondo sin el concepto especial de "la otra división". | pendiente |
 | 5 | **PATHWAYS-1** | Clasificación entre fases/torneos, ascenso/descenso, acceso a copas y plazas continentales mediante reglas declarativas versionadas. | pendiente |
 | 6 | **WORLD-SIM-1** | Niveles de detalle `playable/full/standard/abstract`, simulación acotada del exterior y población/mercado mundial sin cargarlo todo al máximo — sustituye `external-abstract` por clubes/equipos normales con detalle abstracto. | pendiente |
@@ -7727,6 +7746,38 @@ entrega: `organizerCountry`, `federationId`, `legacyDivision`.
 temporada); el playoff por el título/de ascenso es un `CompetitionStage`
 DENTRO de la edición de Liga de esa temporada, nunca otra competición.
 
+**Actualización COMP-CORE-1 (ver 10.13 para el resultado completo)**:
+`runtimeBinding` DEJA de ser la autoridad operativa de Edition/Stage —
+sigue existiendo como campo transitorio (excluido de `toJSON()`, invariante
+27) para los shims históricos que todavía lo enlazan
+(`SpainLegacyCompetitionRuntime`, solo desde tests), pero el runtime real
+de una carrera vive en el `RoundRobinStageRunner`/`BracketStageRunner` que
+`CompetitionEngine` guarda en su propio `CompetitionRuntimeRegistry`
+(transitorio, fuera de `WorldRegistries`) — consultar/resolver un partido
+pasa SIEMPRE por ahí, nunca por `edition.runtimeBinding`/`stage.
+runtimeBinding`. `CompetitionEdition` añade además `formatBindingId`
+(`CompetitionFormatDefinition`, ver más abajo) congelado en el mismo
+momento que `scheduleProfileId`/`rulesetBundleId`.
+
+#### `CompetitionFormatDefinition` / `CompetitionStageTemplate` (COMP-CORE-1, `src/entities/Competition.js` + catálogo en `src/core/CompetitionFormatCatalog.js`)
+
+Definición VERSIONADA y SERIALIZABLE de "qué fases tiene una competición y
+con qué algoritmo se ejecuta cada una" — puro dato de contenido (`id`,
+`version`, `status`, `participantType`, `stageTemplates` ordenados por
+`sequence`, `editionCompletionPolicy`, `provenance`), nunca funciones/
+instancias Team/`Map`/objetos de `CompetitionRules` incrustados. Cada
+`CompetitionStageTemplate` declara `stageType`/`runnerType`
+(`round-robin|bracket`), `activation` (`edition-start`|`stage-completed`+
+`sourceStageKey`|`round-completed`+`sourceStageKey`+`round` — tipos
+GENÉRICOS, nunca "cuando ACB llegue a la jornada 17"), `entrySource`
+(`initial-participants`|`stage-standings-range`+rango+ámbito misma edición
+o externo|`stage-bracket-final-round-winners`+reseed) y `runnerConfig`
+(config validada por el runner: puntuación/desempate para round-robin,
+cuadro/patrones de campo para bracket). Congelado con `Object.freeze()` al
+construirse — una definición activa no puede modificarse después
+(`CompetitionFormatCatalog.registerFormat()` es idempotente por
+id+version idéntica, lanza si difieren).
+
 #### `GameWorld` (`src/entities/World.js`)
 
 Agregado raíz de una carrera — NO singleton, no lee DOM ni globales. `id`,
@@ -7777,9 +7828,12 @@ installContentPacks()` es idempotente por paquete.
   `CompetitionDefinition` de ACB/Primera FEB/Copa ACB/Supercopa ACB
   (`catalog-only`, identidad declarada sin edición jugable — no hay
   participantes/calendario/reglas reales todavía) desde
-  `CompetitionCatalog.js`; y la edición/stage/entries de temporada regular
-  de ACB y Primera FEB de la temporada de arranque, vía
-  `SpainLegacyCompetitionRuntime.bindCareerStart()`.
+  `CompetitionCatalog.js`; los `CompetitionFormatDefinition` de ACB/Primera
+  FEB/Copa ACB (COMP-CORE-1, ver 10.13); y la edición/stage/entries de
+  temporada regular de ACB y Primera FEB de la temporada de arranque, vía
+  `CompetitionEngine.registerEditionWithInitialEntries()` (mismo esquema de
+  ids que el histórico `SpainLegacyCompetitionRuntime.bindCareerStart()`,
+  ya retirado de esta ruta — ver 10.13).
 - **Fixture de test** (`scripts/test-world-core1.js`, función
   `buildTestOnlyManifest()`): paquete mínimo SOLO de test con otra área y
   una competición mundial de selecciones (`testland-world-cup`) — se
@@ -7787,6 +7841,15 @@ installContentPacks()` es idempotente por paquete.
   español, y nunca se carga en una partida real.
 
 ### 10.5 Adaptador legacy — `SpainLegacyCompetitionRuntime`
+
+**Nota COMP-CORE-1 (ver 10.13): esta sección describe el diseño de
+WORLD-CORE-1, ya SUPERADO en la ruta productiva.** El adaptador se retiró
+de `index.html`/`game.js`/`spain-2026.1.js` — sigue existiendo solo como
+shim para los fixtures de `scripts/test-world-core1.js`/
+`smoke-world-core1.js`/`smoke-club-core1.js`, que lo llaman directamente
+sin pasar por el contenido español real. El texto histórico se conserva
+para entender de dónde viene el esquema de ids que reutiliza el
+`CompetitionEngine` genérico.
 
 `src/core/SpainLegacyCompetitionRuntime.js` enlaza el runtime FIJO español
 (`League`/`Bracket`/`Cup`/`Playoffs`/`Promotion`, sin tocarlos) con su
@@ -7810,25 +7873,37 @@ stages) y WORLD-CALENDAR-1 (calendario mundial único) sustituyan a
 
 ### 10.6 Integración con el runtime actual
 
+**Actualizado en COMP-CORE-1 (ver 10.13 para el detalle completo)** —
 `startSeason()`: construye los 36 equipos (misma construcción de siempre,
 `getRealTeamsByDivision()`), crea `GameWorld` e instala `world-core-2026.1`
 + `spain-2026.1` (con los equipos YA construidos como contexto — nunca se
-reconstruyen), crea las `League` reales y las enlaza con
-`bindLeagueRuntime()`, y AL FINAL adjunta por identidad los siete registros
-de dominio (`attachDomainRegistries()`). Si la instalación de un paquete
+reconstruyen; el paquete registra los `CompetitionFormatDefinition` y las
+Editions/Stage de Liga regular/Entries directamente, sin construir ningún
+runner todavía), crea UNA instancia de `CompetitionEngine` para la carrera,
+la inyecta con el proveedor de fechas real y llama a
+`initializeEdition()` para ACB y Primera FEB (construye los runners desde
+las Entries ya registradas) — `state.leagues['1ª'/'2ª']` pasan a ser
+fachadas `League` que envuelven esos runners reales, nunca una segunda
+construcción. AL FINAL se adjuntan por identidad los siete registros de
+dominio (`attachDomainRegistries()`). Si la instalación de un paquete
 lanza, `state.world` NUNCA llega a asignarse (invariante 22) — el error se
 propaga tal cual, sin dejar un mundo parcial utilizable.
 
 `closeSeasonAndPrepareNext()`: cierra las ediciones/stages de la temporada
 que termina (`status: 'completed'`, nunca se borran) y abre las de la
-siguiente sobre el MISMO `GameWorld` — nunca se reconstruye el mundo
-completo al cerrar temporada.
+siguiente sobre el MISMO `GameWorld` **y el MISMO `CompetitionEngine`**
+(nunca se reconstruye ninguno de los dos al cerrar temporada).
 
-`createBracketsIfDue()`: en el mismo instante en que el runtime crea de
-verdad la Copa/el playoff por el título/el playoff de ascenso, llama a
-`bindCup`/`bindTitlePlayoff`/`bindPromotionPlayoff` — la foto de
-clasificación usada para las `CompetitionEntry` es la MISMA que ya usa
-`createCup()`/`createTitlePlayoff()` por dentro.
+`createBracketsIfDue()`: ya NO decide con ramas por división/`currentRound`
+cuándo crear Copa/playoff — el `CompetitionEngine` los activa como efecto
+de procesar `round-completed`/`stage-completed` al resolver el partido real
+que completa la jornada/fase (Copa: activación cruzada declarada por
+`spain-2026.1.buildSeasonActivationPlan()`; playoff por el título/ascenso:
+cascada intra-edición declarada en el propio `CompetitionFormatDefinition`).
+Esta función solo drena esos hechos (`drainCompetitionActivationEvents()`)
+y construye la vista `Bracket`/`PromotionPlayoff`-shaped que falte —
+la foto de clasificación usada para las `CompetitionEntry` la calcula el
+propio engine desde el runner de la fase fuente, nunca "recalculada" aparte.
 
 `getAllTeams()` lee de `state.world.registries.teams.all()` cuando el mundo
 existe (ARCH-WORLD-08: "equipos desde World Registry, no desde una lista de
@@ -7862,20 +7937,22 @@ datos reales modificados.
 
 | Puente legacy | Vive en | Se retira en |
 |---|---|---|
-| `Team.division`/`legacyDivision` como alias de participación | `Team.js` | COMP-CORE-1 (participación real ya es `CompetitionEntry`) |
-| `SpainLegacyCompetitionRuntime` | `src/core/SpainLegacyCompetitionRuntime.js` | COMP-CORE-1 / WORLD-CALENDAR-1 |
-| `League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` como runner fijo | `src/core/*.js` | COMP-CORE-1 |
-| `competitionIdFromLegacyDivision()` | `CompetitionRules.js` | COMP-CORE-1 (cuando ya no exista ninguna "división" que traducir) |
+| `Team.division`/`legacyDivision` como alias de participación | `Team.js` | Participación real ya es `CompetitionEntry` desde COMP-CORE-1 — `division`/`legacyDivision` sigue como proyección UI/histórica hasta WORLD-CALENDAR-1 |
+| ~~`SpainLegacyCompetitionRuntime` como autoridad productiva~~ | *(retirado de producción en COMP-CORE-1)* | **RETIRADO de `index.html`/`game.js`/`spain-2026.1.js`** — el archivo sigue existiendo únicamente como shim de `scripts/test-world-core1.js`/`smoke-world-core1.js`/`smoke-club-core1.js` (fixtures históricos); se elimina el archivo cuando esos scripts dejen de necesitarlo (WORLD-CALENDAR-1) |
+| ~~`League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` como runner fijo~~ | *(retirado como autoridad en COMP-CORE-1)* | **Fachadas finas** sobre `RoundRobinStageRunner`/`BracketStageRunner` (`src/core/CompetitionRunners.js`) — mismo algoritmo, nunca duplicado; siguen siendo la vista legacy que consume `game.js`/`cycle1-harness.js`, construida SIEMPRE desde el runner del `CompetitionEngine` |
+| `competitionIdFromLegacyDivision()` | `CompetitionRules.js` | Sin nuevos call-sites productivos desde COMP-CORE-1 (game.js migró a `CompetitionParticipationService.primaryLeagueCompetitionId`/contexto canónico de partido) — retirada definitiva en WORLD-HARDEN-1, sigue exportada para scripts/tests históricos |
 | ~~`Club.id === primaryTeam.id`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — `spain-2026.1` declara 36 pares `clubId`/`teamId` distintos (`SPAIN_CLUB_CONTENT`) |
 | ~~Finanzas/instalaciones/junta/afición en `Team` en vez de `Club`~~ | *(retirado)* | **RETIRADO en CLUB-CORE-1** — viven en `Club.js`; `Team.js` conserva solo accesores legacy que delegan (ver 10.3) |
 | `external-abstract` como categoría de `WorldLifecycleService` | `src/core/WorldLifecycleService.js` | WORLD-SIM-1 |
-| Calendario por `scheduleProfileId` de contenido español (`1ª`/`2ª`) | `MatchConfig.js`/`Calendar.js` | WORLD-CALENDAR-1 |
-| `state.leagues`/`state.brackets` como mapa fijo de dos divisiones | `src/ui/game.js` | WORLD-CALENDAR-1 |
+| Calendario por `scheduleProfileId` de contenido español (`1ª`/`2ª`, con alias `spain-2026.1:schedule:1a`/`2a` añadido en COMP-CORE-1 apuntando al MISMO perfil) | `MatchConfig.js`/`Calendar.js` | WORLD-CALENDAR-1 |
+| `state.leagues`/`state.brackets` como mapa fijo de dos divisiones | `src/ui/game.js` | Desde COMP-CORE-1 son SIEMPRE vistas construidas por `game.js` a partir de los runners reales del `CompetitionEngine` (nunca un segundo estado) — el mapa fijo por división en sí se retira en WORLD-CALENDAR-1 |
 
 No es obligatorio eliminar en esta entrega todos los usos históricos de
 `state.division`/`competitionIdFromLegacyDivision` — sí lo es no añadir
 ninguno nuevo fuera del adaptador (auditado en `scripts/test-world-core1.js`
-contra los ocho archivos mundiales genéricos).
+contra los ocho archivos mundiales genéricos, y en
+`scripts/test-comp-core1.js` contra los módulos genéricos nuevos de esta
+entrega).
 
 ### 10.9 Plan superado
 
@@ -8090,6 +8167,184 @@ persistencia SQL/save-load real, motor genérico de competiciones
 internacional (EUROPE-1 replanteado), traspasos/cesiones CPU-a-CPU
 orgánicos, `SpainLegacyCompetitionRuntime`/`League`/`Bracket`/`Cup`/
 `Playoffs`/`Promotion` (siguen intactos), datos reales modificados.
+
+### 10.13 COMP-CORE-1 — resultado
+
+Tercera entrega de la EPIC (ver 10.1). Retira la deuda que WORLD-CORE-1
+dejó señalada explícitamente en 10.5/10.8: `SpainLegacyCompetitionRuntime`
+y `League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` como AUTORIDAD operativa
+de Liga/Copa/Playoffs/Ascenso. `CompetitionEdition`/`CompetitionStage`/
+`CompetitionEntry` pasan de ser identidad canónica ENLAZADA a un runtime
+fijo a ser la autoridad REAL que un motor genérico ejecuta.
+
+**Formato, engine, registry y runners**: `CompetitionFormatDefinition`/
+`CompetitionStageTemplate` (`src/entities/Competition.js`, ver 10.3) son la
+definición VERSIONADA y serializable del formato de una competición —
+puro dato, nunca funciones/instancias Team/`Map` incrustados.
+`CompetitionFormatCatalog.js` los registra (mismo criterio que
+`CompetitionCatalog.js` con las `CompetitionDefinition`, catálogo estático
+compartido, no por carrera). `RoundRobinStageRunner`/`BracketStageRunner`
+(`src/core/CompetitionRunners.js`) son los algoritmos GENÉRICOS reales —
+extraídos de `League.js`/`Bracket.js` sin duplicarlos: round-robin acepta
+cualquier número de participantes (bye EXPLÍCITO si es impar, nunca un
+partido contra un equipo falso), vueltas/puntuación/desempate configurables
+por `runnerConfig` (los 5 pasos de desempate son tipos GENÉRICOS —
+`group-head-to-head-balance`/`-point-diff`, `overall-point-diff`/
+`-points-for`/`-quotient-sum` — nunca llamados "ACB" dentro del runner);
+bracket soporta partido único/BO3/BO5 con avance FIJO (un reseed entre
+fases se expresa como una fase NUEVA vía `entrySource`
+`stage-bracket-final-round-winners`, nunca reordenando dentro del mismo
+runner). `CompetitionEngine.js` es la fachada/orquestador por CARRERA
+(nunca singleton, nunca lee `state`/DOM/reloj de sistema/aleatoriedad
+propia): inicializa una Edition desde su formato y Entries ya registradas,
+activa fases declaradas cuando el hecho genérico correspondiente ocurre
+(`round-completed`/`stage-completed`, evaluados por tipo — nunca por
+"es ACB"), resuelve partidos por id (rechaza una segunda resolución),
+consulta clasificación/bracket/resultados sin mutar ni consumir
+aleatoriedad, y cierra fase/edición actualizando Entries en una única ruta
+de commit. `CompetitionRuntimeRegistry.js` guarda los runners VIVOS de la
+carrera (transitorio, nunca en `WorldRegistries`/serializado directamente
+— `runner.snapshot()` sí es JSON plano).
+
+**Descriptor de partido**: todo partido (liga o eliminatoria) es un objeto
+plano con `id` global estable (derivado de edition/stage/ronda o
+serie+partido — nunca de local/visitante ni de nombre visible, así que el
+mismo emparejamiento nunca colisiona entre temporadas),
+`competitionDefinitionId`/`competitionEditionId`/`stageId`/`stageKey`,
+`homeParticipantId`/`awayParticipantId` (+`homeEntryId`/`awayEntryId`),
+`status`, fecha real y resultado. La fecha y el id se fijan ANTES de
+invocar `MatchEngine` (BUG-COMPCORE-03, ver más abajo) — consultar el
+siguiente partido pendiente (`peekNextPendingMatch()`) nunca lo juega ni
+consume aleatoriedad. El runner guarda SOLO ids; los Teams se resuelven
+vía `resolveParticipant(id)` justo en la frontera con `MatchEngine`. La
+UI (fachadas `League`/`Bracket`) añade `homeTeam`/`awayTeam` como vista
+TRANSITORIA, nunca otra fuente.
+
+**Configuración española**: `data/world/spain-2026.1.js` registra tres
+`CompetitionFormatDefinition` — `acb-liga-playoff` (liga regular 18
+equipos/ida-vuelta/2-1 puntos + playoff por el título top-8, cuadro
+1-8/4-5/2-7/3-6, cuartos BO3 1-1-1, semis/final BO5 2-2-1),
+`primera-feb-liga-ascenso` (liga regular igual + cuartos de ascenso BO5
+2-2-1 sobre 2º-9º, cuadro 2-9/3-8/4-7/5-6, + Final Four reseedeada
+best-vs-worst de los 4 ganadores) y `copa-acb-knockout` (tres rondas a
+partido único, cuadro 1-8/4-5/2-7/3-6). Los 5 pasos de desempate se
+declaran IGUAL en ambos formatos de liga (compatibilidad documentada,
+nunca presentada como normativa nueva). Ninguno de estos números vive en
+los runners genéricos — auditado en `scripts/test-comp-core1.js`. El
+alias `spain-2026.1:schedule:1a`/`2a` (añadido en `MatchConfig.js`, MISMO
+objeto de perfil que `'1ª'`/`'2ª'`) deja a `Calendar.getScheduleProfile()`
+resolver el `scheduleProfileId` que ya declaraba
+`CompetitionCatalog.js` — puente marcado para retirada en
+WORLD-CALENDAR-1, igual que el propio literal `'1ª'`/`'2ª'`. La Copa gana
+su PROPIO `RulesetBundle` (`copa-acb-domestic-2025-26-v1`, en
+`CompetitionRules.js`) que reutiliza POR ID (nunca copia) el módulo de
+inscripción/overlay de convenio de ACB — nunca fingiendo ser la Liga.
+
+**Activaciones y transición temporal**: la fase regular se activa al
+crear la Edition (`initial-participants`, registrado por
+`spain-2026.1.js` directamente contra `WorldRegistries`, ANTES de que
+exista el engine); el playoff por el título/de ascenso se activan por
+cascada INTRA-edición (`stage-completed` sobre `regular-season`,
+declarado en el propio formato); la Copa se activa por una regla CRUZADA
+de edición (`round-completed` en la jornada 17 de ACB,
+`spain-2026.1.buildSeasonActivationPlan()`) — la única pieza que conoce
+que Copa depende de OTRA competición, evaluada genéricamente por el
+engine (`triggerStageId`/`triggerType`/`triggerRound`, nunca
+`if (competitionId === 'acb')`). El cierre de temporada
+(`bindNewSeasonEditions()`) completa las ediciones activas previas y abre
+las de la temporada siguiente sobre el MISMO `GameWorld`/
+`CompetitionEngine` — nunca se reconstruye ninguno de los dos.
+
+**Migración de participación/contexto**: `buildMatchCompetitionContext()`
+recibe el `competitionId` REAL del partido concreto cuando quien llama lo
+conoce (descriptor canónico de liga o de bracket) — nunca lo deriva de
+`team.division`; sin partido concreto (pantalla de Alineación antes de
+jugar), resuelve la Liga doméstica PRINCIPAL del Team vía
+`CompetitionParticipationService.primaryLeagueCompetitionId()` (Entry
+real, nunca "la primera"/ACB por defecto). El resto de call-sites
+productivos que traducían `team.division` (mercado, renovación, promoción
+de cantera, evidencia de último partido oficial, expiración de
+inscripciones al cierre de temporada) migran al mismo servicio.
+`competitionIdFromLegacyDivision()` queda sin nuevos call-sites
+productivos (solo scripts/tests históricos).
+
+**Bugs corregidos**:
+- `BUG-COMPCORE-01` (integridad cruzada): `WorldRegistries.
+  registerCompetitionEntry()`/`registerCompetitionStage()` ahora
+  rechazan un Entry cuyo Stage pertenece a otra Edition y un
+  `sourceStageIds`/`nextStageIds` que conecte stages de otra Edition;
+  `validateIntegrity()` audita además el grafo completo (referencias
+  huérfanas y ciclos) para las conexiones registradas fuera de orden.
+  `registerCompetitionDefinition()` exige `organizerId` existente
+  (invariante 9, antes sin comprobar).
+- `BUG-COMPCORE-02` (Copa mentía sobre su competición): el descriptor de
+  partido/contexto de un partido de Copa recibe SIEMPRE
+  `competitionDefinitionId: 'copa-acb'` — nunca `'acb'` derivado de
+  `team.division`. Corregido en `buildMatchCompetitionContext()`/
+  `resolveNextMatchContextForTeam()`/`resolveBracketOptionsFor()` (game.js)
+  y en la evidencia de último partido oficial
+  (`applyRecoveryForResolvedMatch()`). La Copa gana su propio
+  `RulesetBundle` para que resolver sobre ese id no lance.
+- `BUG-COMPCORE-03` (fecha/id aproximados): `BracketStageRunner` crea el
+  descriptor (id global + fecha real) ANTES de invocar `MatchEngine` —
+  `Series.playNextGame()` calculaba la fecha DESPUÉS de simular; los
+  partidos de Liga tampoco tenían id canónico
+  (`league:{round}:{home}:{away}` se repetía entre temporadas). Ahora
+  `Bracket.js` expone `peekNextPendingGame()` y su `resolveOptions` recibe
+  `(homeEntry, awayEntry, scheduledDate, matchId)` reales — game.js deja
+  de aproximar con `state.calendar.currentGameDateTime` y de reconstruir
+  un `matchId` a mano.
+
+**Shims restantes y propietario de retirada**: ver tabla actualizada en
+10.8. `SpainLegacyCompetitionRuntime.js` sigue existiendo solo para
+`scripts/test-world-core1.js`/`smoke-world-core1.js`/`smoke-club-core1.js`
+(nunca cargado por `index.html`/`game.js`/`spain-2026.1.js`) —
+`competitionIdFromLegacyDivision()` sigue exportado para scripts
+históricos, sin nuevos call-sites productivos; ambos se retiran
+definitivamente en WORLD-HARDEN-1. `state.leagues`/`state.brackets` siguen
+como mapa fijo por división hasta WORLD-CALENDAR-1, pero desde esta
+entrega son SIEMPRE vistas (`League`/`Bracket`/`PromotionPlayoff`-shaped)
+construidas por `game.js` a partir de los runners reales del
+`CompetitionEngine` — nunca un segundo estado sincronizado a mano.
+`League.js`/`Bracket.js`/`Cup.js`/`Playoffs.js`/`Promotion.js` sobreviven
+como fachadas finas que delegan en los mismos runners (constructor con un
+parámetro opcional de runner ya construido) — mismo código, nunca
+duplicado; siguen siendo el punto de construcción para scripts/tests
+históricos que los llaman de forma standalone.
+
+**Pruebas reales** (sección 15 del prompt): `node scripts/test-comp-core1.js`
+(32 comprobaciones dirigidas — formato/versionado/inmutabilidad, bindings
+congelados, los tres bugs, round-robin par/impar con bye, una/dos vueltas,
+puntuación/desempate configurables, bracket BO1/BO3/BO5 con avance fijo,
+descriptor antes de simular en ambos runners, doble resolución rechazada,
+activación idempotente, snapshots JSON limpios, consultas sin mutar/RNG,
+orden de inserción irrelevante, fixture NO español con ambos runners
+encadenados, Copa con bundle propio, participación sin "la primera",
+auditorías estáticas de literales españoles/shims productivos — **32 OK,
+0 fallos**), `node scripts/smoke-comp-core1.js` (36 equipos reales, UNA
+temporada completa de ACB/Primera FEB vía el engine con Copa activada en
+jornada 17, playoff por el título y playoff de ascenso con Final Four
+reseedeada, ids/fechas verificados antes de simular, contexto de acta/
+elegibilidad de Copa con su competitionId real, UNA transición anual
+completa con el arnés de CYCLE-1 y revalidación de integridad —
+MoraBanc Andorra comprobado antes y después del ciclo — **OK en ~5-6s**),
+`node scripts/test-world-core1.js` (27 OK, sin cambios de fixture — el
+esquema de ids de `registerEditionWithInitialEntries()` reproduce
+exactamente el de `bindCareerStart()` histórico), `node
+scripts/test-club-core1.js` (36 OK, sin cambios), `node
+scripts/test-reg1.js` (88 OK, sin cambios de fixture — el contexto de
+partido sigue resolviendo el mismo `registrationScopeId`), `node
+scripts/test-cycle1.js` (42 OK, sin cambios — la transición anual sigue
+recibiendo `League`/`Bracket` con la misma forma). `node --check` sobre
+todos los `.js` nuevos/modificados y `git diff --check`: sin errores.
+**0 fallos en toda la batería autorizada.**
+
+**Fuera de alcance de esta entrega** (igual que 10.7/10.12, sin cambios):
+cola de calendario mundial (WORLD-CALENDAR-1), pathways/ascenso-descenso
+genéricos (PATHWAYS-1), competiciones europeas reales, selecciones,
+persistencia SQL/save-load, limpieza completa de `division` en
+estadísticas/textos históricos, la deuda naming-only de Cycle sobre
+ciertos campos `clubId`.
 
 ## 11. Modo Manager (futuro, derivado del modo Completo)
 
