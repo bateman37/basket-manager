@@ -66,21 +66,6 @@
 .gm-screen.is-active { display: block; }
 
 /* --- Selección de equipo --- */
-.division-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
-.division-toggle__btn {
-  font-family: var(--font-score);
-  font-size: 18px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 10px 20px;
-  border: 2px solid var(--ink);
-  background: transparent;
-  color: var(--ink);
-  border-radius: 4px;
-  cursor: pointer;
-}
-.division-toggle__btn.is-active { background: var(--ink); color: var(--court-bg); }
-
 .team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

@@ -49,9 +49,10 @@
     },
     // WORLD-HARDEN-1 (DESIGN.md 10.19): `state.division` queda RETIRADO —
     // no tenía ninguna lectura productiva (solo se escribía, nunca se
-    // consultaba como autoridad, ver CLAUDE.md/DESIGN.md 10.8). `Team.
-    // division`/`legacyDivision` SIGUE existiendo como proyección
-    // histórica/legacy en la entidad (ver CLAUDE.md, "Migración legacy").
+    // consultaba como autoridad, ver CLAUDE.md/DESIGN.md 10.8).
+    // WORLD-CLEANUP-1 (DESIGN.md 10.21): la propia entidad `Team` deja de
+    // tener ninguna división/proyección legacy — participación se consulta
+    // SIEMPRE por `CompetitionEntry`.
     userTeamId: null,
     // CLUB-CORE-1 (DESIGN.md sección 10): identidad INSTITUCIONAL del club
     // controlado — DISTINTA de `userTeamId` (identidad DEPORTIVA). Se
@@ -368,12 +369,6 @@
     return BM.seasonKeyFromStartYear(state.seasonStartYear);
   }
 
-  // REG-1 (DESIGN.md 9.18): traduce la `competitionKey` de `getActiveBracket()`
-  // ('cup'/'playoff'/'promotion') al `phaseId` usado por los RuleModule de
-  // inscripción (ver CompetitionRules.js, `acb-playoff-window`) — único
-  // punto de traducción, nunca repetido.
-  const BRACKET_PHASE_IDS = { cup: 'cup', playoff: 'title-playoff', promotion: 'promotion' };
-
   // Identificador ESTABLE de partido (sección 6.2 del prompt de REG-1:
   // "matchId o identificador estable equivalente"; BUG-COMPCORE-03,
   // COMP-CORE-1): el descriptor canónico del runner YA trae un `id` global
@@ -481,7 +476,7 @@
 
     const pool = team.roster.map((player) => evaluateFor(player, 'senior'));
 
-    registry.registrationsForClub(team.id)
+    registry.registrationsForTeam(team.id)
       .filter((r) => r.accessCategory === 'own-lower-category' && r.seasonKey === context.seasonKey && r.isEffectiveOn(context.date))
       .forEach((r) => {
         const player = state.playerRegistry.get(r.playerId);
@@ -648,20 +643,6 @@
     return new Team({ ...teamData, roster });
   }
 
-  // `REAL_DATA_INDEX.division` sigue siendo dato crudo VÁLIDO solo para
-  // decidir QUÉ jugadores construir (WORLD-UI-1, DESIGN.md 10.18) — la
-  // afiliación COMPETITIVA real de cada equipo (qué Edition/Entry recibe,
-  // y el `competitionDefinitionId` que necesita `buildRealTeamFromData`
-  // para resolver cobertura) se lee SIEMPRE de `SPAIN_CLUB_CONTENT`
-  // (`CareerParticipantFactory.competitionIdByTeamIdFrom()`), nunca de la
-  // división.
-  function getRealTeamsByDivision(division) {
-    const { REAL_DATA_INDEX, REAL_DATA_TEAMS, CareerParticipantFactory } = BM;
-    const competitionIdByTeamId = CareerParticipantFactory.competitionIdByTeamIdFrom(BM.SPAIN_CLUB_CONTENT);
-    return REAL_DATA_INDEX
-      .filter((entry) => entry.division === division)
-      .map((entry) => buildRealTeamFromData(REAL_DATA_TEAMS[entry.id], competitionIdByTeamId.get(entry.id)));
-  }
 
   // =======================================================================
   // WORLD-UI-1 (DESIGN.md 10.18) — configuración de carrera basada en
@@ -897,9 +878,9 @@
   // RETIRADA — sus dos call-sites productivos (arranque y cierre de
   // temporada) ya resuelven la competición real directamente con
   // `BM.CompetitionCatalog.COMPETITION_IDS.*`, nunca traduciendo una
-  // división. `BM.competitionIdFromLegacyDivision()` (el adaptador de
-  // `CompetitionRules.js`) sigue sin ningún call-site productivo desde
-  // COMP-CORE-1 — exportado solo para scripts/tests históricos.
+  // división. WORLD-CLEANUP-1 (DESIGN.md 10.21): el adaptador legacy de
+  // división de `CompetitionRules.js` queda RETIRADO por completo (ya sin
+  // ningún call-site productivo desde COMP-CORE-1).
 
   // WORLD-CALENDAR-1 (DESIGN.md 10.14) — proveedor de fechas del engine:
   // GENÉRICO, construido por `CompetitionScheduleService` a partir del
@@ -1051,7 +1032,7 @@
   // ---------------------------------------------------------------------
   function startCareerFromSetup(snapshot) {
     const {
-      CONFIG_BASE, recalculateSportingGoalsForDivision, PlayerRegistry,
+      CONFIG_BASE, recalculateSportingGoalsForCohort, PlayerRegistry,
     } = BM;
     const teamId = snapshot.controlledTeamId;
     state.userTeamId = teamId;
@@ -1119,25 +1100,41 @@
     // registro mundial — nunca un singleton compartido entre partidas.
     state.playerRegistry = new PlayerRegistry();
 
-    // WORLD-CORE-1: capturado dentro del bucle de abajo para instalar el
-    // paquete `spain-2026.1` sobre las MISMAS instancias de Team ya
-    // construidas — nunca se reconstruyen (ver más abajo, tras el bucle).
-    const teamsByDivision = {};
+    // WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 5.3 del prompt): los 36
+    // equipos reales se construyen TODOS a la vez, SIN agruparlos por
+    // `['1ª','2ª']`/`getRealTeamsByDivision()` (retirados de la ruta
+    // productiva) — `REAL_DATA_INDEX` se recorre entero y la afiliación
+    // COMPETITIVA de cada equipo se resuelve por id estable
+    // (`SPAIN_CLUB_CONTENT.initialCompetitionDefinitionId`, vía
+    // `CareerParticipantFactory`), nunca por el campo crudo `division` del
+    // bundle. `buildRealTeamFromData()` sigue exigiendo ese
+    // `competitionDefinitionId` explícito para resolver el mínimo real de
+    // cobertura.
+    const { REAL_DATA_INDEX, REAL_DATA_TEAMS, CareerParticipantFactory } = BM;
+    const competitionIdByTeamId = CareerParticipantFactory.competitionIdByTeamIdFrom(BM.SPAIN_CLUB_CONTENT);
+    const allTeams = REAL_DATA_INDEX.map(
+      (entry) => buildRealTeamFromData(REAL_DATA_TEAMS[entry.id], competitionIdByTeamId.get(entry.id)),
+    );
+    // ROSTER-1 (DESIGN.md 9.16): registra el universo completo de
+    // jugadores de CADA equipo (reales + relleno ficticio por cobertura
+    // incompleta) en cuanto se construye — antes de cualquier otro
+    // procesado de pretemporada.
+    allTeams.forEach((team) => state.playerRegistry.registerMany(team.roster));
 
-    // DESIGN.md 3.4.1: las DOS divisiones reales se construyen SIEMPRE,
-    // no solo la del usuario — comparten el mismo Calendar de temporada.
-    // `getRealTeamsByDivision()` sigue leyendo `REAL_DATA_INDEX.division`
-    // (dato crudo del bundle real, sin tocar `data/real/*`) solo para
-    // decidir QUÉ jugadores construir — la afiliación COMPETITIVA de cada
-    // equipo (qué Entry/Edition recibe) ya no sale de aquí, ver más abajo.
-    ['1ª', '2ª'].forEach((div) => {
-      const teams = getRealTeamsByDivision(div);
-      teamsByDivision[div] = teams;
-      // ROSTER-1 (DESIGN.md 9.16): registra el universo completo de
-      // jugadores de ESTE equipo (reales + relleno ficticio por cobertura
-      // incompleta) en cuanto se construye — antes de cualquier otro
-      // procesado de pretemporada.
-      teams.forEach((team) => state.playerRegistry.registerMany(team.roster));
+    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-09) / WORLD-HARDEN-1
+    // (DESIGN.md 10.19, sección 4 del prompt: "agruparlos por
+    // initialCompetitionDefinitionId"): agrupación por
+    // `competitionDefinitionId` REAL — ya NO de `REAL_DATA_INDEX.division`.
+    // `spain-2026.1.install()` recibe este contexto canónico, nunca
+    // `teamsByDivision` (retirado de la ruta productiva; sigue existiendo
+    // solo como shim de fixtures históricos). La agrupación en sí vive en
+    // `CareerParticipantFactory` (módulo genérico y puro, sin literales de
+    // país) — los Team YA existen (misma construcción de siempre), esta
+    // llamada solo los clasifica. El MISMO cohorte por competición real se
+    // reutiliza a continuación para sportingGoal/identidad CPU — nunca un
+    // cohorte por división.
+    const teamsByCompetitionId = CareerParticipantFactory.groupTeamsByCompetitionId(allTeams, BM.SPAIN_CLUB_CONTENT);
+    Object.values(teamsByCompetitionId).forEach((cohort) => {
       // Decisión no pedida explícitamente por el prompt de esta sesión,
       // señalada aquí: se recalcula sportingGoal (Bloque 2, DESIGN.md
       // 3.4.3) también al ARRANCAR una partida nueva, no solo en el
@@ -1147,7 +1144,7 @@
       // cerrar), dejando inerte CpuLineup.computeMatchImportance() hasta
       // el primer cierre de ciclo. Arrancar una partida es, conceptualmente,
       // también una "pretemporada" (antes de jugar ninguna jornada).
-      recalculateSportingGoalsForDivision(teams, CONFIG_BASE);
+      recalculateSportingGoalsForCohort(cohort, CONFIG_BASE);
       // DESIGN.md 7.12.25 (TAC-7, alcance acotado — Construcción de
       // identidad CPU): se calcula UNA VEZ por equipo, aquí mismo, "arrancar
       // una partida nueva" es la pretemporada conceptual de esta primera
@@ -1160,7 +1157,7 @@
       // bundle), así que `team.tacticalProfile` sobrevive a cada cierre de
       // ciclo sin ningún enganche adicional. Nunca se toca el equipo del
       // usuario (`teamId`, el que está a punto de elegir esta llamada).
-      teams.forEach((team) => {
+      cohort.forEach((team) => {
         if (team.id === teamId) return;
         // CYCLE-1 (BUG-CYCLE1-01): la identidad CPU se construye con la
         // fecha de CARRERA explícita (edad de rotación real), nunca con el
@@ -1168,20 +1165,6 @@
         team.tacticalProfile = BM.buildCpuTacticalIdentity(team, CONFIG_BASE, state.calendar.currentGameDateTime);
       });
     });
-
-    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-09) / WORLD-HARDEN-1
-    // (DESIGN.md 10.19, sección 4 del prompt: "agruparlos por
-    // initialCompetitionDefinitionId"): agrupación por
-    // `competitionDefinitionId` REAL, leída de
-    // `SPAIN_CLUB_CONTENT.initialCompetitionDefinitionId` — ya NO de
-    // `REAL_DATA_INDEX.division`. `spain-2026.1.install()` recibe este
-    // contexto canónico, nunca `teamsByDivision` (retirado de la ruta
-    // productiva; sigue existiendo solo como shim de fixtures históricos).
-    // La agrupación en sí vive en `CareerParticipantFactory` (módulo
-    // genérico y puro, sin literales de país) — los Team YA existen (misma
-    // construcción de siempre), esta llamada solo los clasifica.
-    const allTeams = [...teamsByDivision['1ª'], ...teamsByDivision['2ª']];
-    const teamsByCompetitionId = BM.CareerParticipantFactory.groupTeamsByCompetitionId(allTeams, BM.SPAIN_CLUB_CONTENT);
 
     // WORLD-CORE-1 (DESIGN.md, "World Architecture") — `GameWorld` canónico
     // de la carrera: se construye AQUÍ (los 36 equipos ya existen, como
@@ -1751,7 +1734,6 @@
   // llamarlo y se guarda el resultado en `state.newsLog` (fuente única,
   // ver comentario en `state`).
   // ---------------------------------------------------------------------
-  const COMPETITION_LABELS = { league: null, cup: 'la Copa', playoff: 'el Playoff por el título', promotion: 'el Playoff de ascenso' };
   const NEWS_LOG_MAX = 300; // límite razonable de memoria en una sesión larga — no es una regla de diseño
 
   function pushNews(events) {
@@ -1829,11 +1811,13 @@
       const injury = player.medicalState.currentInjury;
       if (injury && injury.id !== prev.currentInjuryId) {
         pushMedicalAgenda(BM.buildInjuryAgendaEvent(player, team, injury));
-        pushNews(BM.buildInjuryNewsEvent(player, team, injury, { userTeamId: state.userTeamId, relatedCompetition: 'league' }));
+        pushNews(BM.buildInjuryNewsEvent(player, team, injury, {
+          userTeamId: state.userTeamId, relatedCompetition: userLeagueCompetitionId(),
+        }));
       }
       player.medicalState.injuryHistory.slice(prev.historyLength).forEach((entry) => {
         pushNews(BM.buildFullRecoveryNewsEvent(player, team, entry.daysUnavailable, {
-          userTeamId: state.userTeamId, relatedCompetition: 'league', dateTime: state.calendar.currentGameDateTime,
+          userTeamId: state.userTeamId, relatedCompetition: userLeagueCompetitionId(), dateTime: state.calendar.currentGameDateTime,
         }));
       });
     });
@@ -1842,7 +1826,7 @@
   // Lesiones EN DIRECTO durante un partido (MatchEngine.buildMatchResult
   // `.injuries`, sección 31) — dato ya construido por el motor, este
   // helper solo decide cuándo redactar Agenda/Noticias a partir de él.
-  function pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey) {
+  function pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionId) {
     if (!BM.CONFIG_BASE.medical.enabled || !result.injuries || !result.injuries.length) return;
     // WORLD-UI-1 (BUG-WORLDUI-07): identidad de participación real, nunca
     // igualdad de `division` — competición de fondo: nunca noticia médica.
@@ -1854,7 +1838,7 @@
       const injury = player.medicalState.currentInjury;
       pushMedicalAgenda(BM.buildInjuryAgendaEvent(player, team, injury));
       pushNews(BM.buildInjuryNewsEvent(player, team, injury, {
-        userTeamId: state.userTeamId, relatedCompetition: competitionKey || 'league',
+        userTeamId: state.userTeamId, relatedCompetition: competitionId || null,
       }));
     });
   }
@@ -2245,12 +2229,22 @@
     });
   }
 
-  // `competitionKey` (LIFE-1, DESIGN.md 9, sección 10 del prompt de esta
-  // sesión): identifica la competición para `matchExposures` — valores
-  // reales usados en el resto del código: 'league' (por defecto, liga
-  // regular no lleva key explícita en ningún otro punto), 'cup', 'playoff',
-  // 'promotion'. Opcional con default 'league' para no tener que tocar
-  // ningún llamador que solo resuelva partidos de liga.
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 6 del prompt): el nivel
+  // competitivo se lee de `CompetitionDefinition.tier` — nunca de un id de
+  // ACB/FEB ni de una división. Sin tier declarado, se aplica la política
+  // genérica neutra documentada (`defaultCompetitionTierWeight`).
+  function competitionTierForId(competitionId) {
+    if (!competitionId) return null;
+    const definition = state.world.registries.competitionDefinitions.get(competitionId);
+    return definition ? definition.tier : null;
+  }
+
+  // `matchContext` (WORLD-CLEANUP-1, DESIGN.md 10.21): descriptor canónico
+  // de la competición REAL de este partido — `{ phaseId, competitionId,
+  // stageId, competitionName, competitionShortName }` — nunca una clave de
+  // UI (`'league'/'cup'/'playoff'/'promotion'`, retirada). Por defecto liga
+  // doméstica sin más contexto, para no obligar a tocar un llamador que
+  // solo resuelva partidos de liga.
   // LIFE-2 (DESIGN.md 9, subsección normativa LIFE-2, sección 9 del prompt
   // de esa sesión): la recuperación de Energía por descanso entre partidos
   // y el avance de `lastMatchDate` YA se resolvieron ANTES de simular este
@@ -2261,13 +2255,22 @@
   // recuperar del hueco anterior). Esta función queda solo con lo que
   // depende del RESULTADO ya simulado (minutos reales jugados): exposición
   // competitiva y Experience.
-  function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date, competitionKey = 'league') {
+  function applyRecoveryForResolvedMatch(homeTeam, awayTeam, result, date, matchContext = { phaseId: 'league' }) {
     if (!date || !result.rotation) return;
     const { ensureDevelopmentState, recordMatchExposure, CONFIG_BASE } = BM;
+    const { phaseId } = matchContext;
+    // BUG-COMPCORE-02 (COMP-CORE-1): un partido de Copa NUNCA debe
+    // registrarse con el competitionId de la Liga — Copa es competición
+    // SEPARADA (invariante 12). El descriptor YA trae el `competitionId`
+    // REAL de este partido concreto — nunca se vuelve a adivinar por fase.
+    const competitionId = matchContext.competitionId
+      || BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+        state.world.registries, homeTeam.id, { seasonKey: buildCareerSeasonKey() },
+      );
     // LIFE-3 (DESIGN.md 9.14, sección 31): lesiones EN DIRECTO de este
     // partido ya resuelto — Agenda/Noticias, punto único (todo partido
     // resuelto de cualquier competición pasa por aquí).
-    pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey);
+    pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionId);
     // CYCLE-1 (DESIGN.md 9.22, sección 7 del prompt): PUNTO ÚNICO de
     // evidencia del último partido oficial de cada club — todo partido
     // resuelto de CUALQUIER competición (liga, Copa, playoff por el título,
@@ -2275,14 +2278,6 @@
     // plazos de verano desde la fecha REAL de cierre de cada club y nunca
     // desde la final para los 36. No se recorre el calendario a posteriori.
     if (state.lastOfficialMatchEvidence) {
-      // BUG-COMPCORE-02 (COMP-CORE-1): un partido de Copa NUNCA debe
-      // registrarse con el competitionId de la Liga — Copa es competición
-      // SEPARADA (invariante 12).
-      const evidenceCompetitionId = competitionKey === 'cup'
-        ? BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB
-        : BM.CompetitionParticipationService.primaryLeagueCompetitionId(
-          state.world.registries, homeTeam.id, { seasonKey: buildCareerSeasonKey() },
-        );
       // WORLD-CONTEXT-1: un partido lo disputan EQUIPOS — se registran los
       // dos ids de cada lado (equipo y club institucional real).
       state.lastOfficialMatchEvidence.recordMatch({
@@ -2291,8 +2286,8 @@
         awayTeamId: awayTeam.id,
         awayClubId: awayTeam.clubId,
         date,
-        competitionId: evidenceCompetitionId,
-        phaseId: competitionKey,
+        competitionId,
+        phaseId,
         matchId: result.gameId || null,
       });
     }
@@ -2301,6 +2296,7 @@
     // lados, con fallback defensivo por fecha para caminos de modo prueba
     // que pudieran no traerlo.
     const matchKey = result.gameId || `match-${homeTeam.id}-${awayTeam.id}-${date.toISOString()}`;
+    const competitionTier = competitionTierForId(competitionId);
     [
       { team: homeTeam, opponent: awayTeam, rotation: result.rotation.home, boxScore: result.boxScore.home },
       { team: awayTeam, opponent: homeTeam, rotation: result.rotation.away, boxScore: result.boxScore.away },
@@ -2324,8 +2320,13 @@
             ? Object.fromEntries(Object.entries(positionSeconds).map(([pos, secs]) => [pos, Math.round(secs / 60)]))
             : undefined;
           recordMatchExposure(player, {
-            date, minutes: Math.round(playedSeconds / 60), competition: competitionKey, division: team.division, positionMinutes,
-          });
+            date,
+            minutes: Math.round(playedSeconds / 60),
+            competitionDefinitionId: competitionId,
+            competitionTier,
+            stageId: matchContext.stageId || null,
+            positionMinutes,
+          }, CONFIG_BASE);
 
           // Sección 28 (Experience): conexión menor, no una fórmula nueva —
           // `addExperience()` existía sin ningún llamador real hasta ahora.
@@ -2341,14 +2342,19 @@
               const isStarter = (rotation.starterIds || []).indexOf(player.id) !== -1;
               const careerResult = BM.recordResolvedMatch(player, {
                 date,
-                competition: competitionKey,
-                team: { id: team.id, name: team.fullName, division: team.division },
+                competitionDefinitionId: competitionId,
+                competitionName: matchContext.competitionName || null,
+                competitionShortName: matchContext.competitionShortName || null,
+                stageId: matchContext.stageId || null,
+                team: {
+                  id: team.id, name: team.fullName, clubId: team.clubId || null, clubName: (team.club && team.club.name) || null,
+                },
                 opponent: { id: opponent.id, name: opponent.fullName },
                 boxScoreLine: line,
                 isStarter,
                 matchKey,
               }, CONFIG_BASE);
-              pushCareerNewsForPlayer(player, team, careerResult, competitionKey);
+              pushCareerNewsForPlayer(player, team, careerResult, competitionId);
             }
           }
         });
@@ -2360,9 +2366,9 @@
   // hitos/récords en sí ya se registraron para CUALQUIER jugador (visible
   // o de fondo) dentro de `recordResolvedMatch`, esto solo decide si
   // ADEMÁS se redacta una noticia.
-  function pushCareerNewsForPlayer(player, team, careerResult, competitionKey) {
+  function pushCareerNewsForPlayer(player, team, careerResult, competitionId) {
     if (team.id !== state.userTeamId) return;
-    const opts = { userTeamId: state.userTeamId, relatedCompetition: competitionKey };
+    const opts = { userTeamId: state.userTeamId, relatedCompetition: competitionId };
     careerResult.newMilestones.forEach((milestone) => {
       pushNews(BM.buildCareerMilestoneNewsEvent(player, team, milestone, opts));
     });
@@ -2393,26 +2399,6 @@
   // el usuario debe actuar de verdad.
   // =====================================================================
 
-  // Puente de nombres de FASE para la interfaz/normativa legacy: traduce la
-  // `stageKey` GENÉRICA del descriptor a la `competitionKey` histórica
-  // ('league'/'cup'/'playoff'/'promotion') que ya usan `matchExposures`
-  // (LIFE-1), las noticias (CAL-2) y `BRACKET_PHASE_IDS` (REG-1). Es una
-  // tabla de CONTENIDO/UI, nunca una decisión temporal — el orden de la
-  // cola no la consulta jamás. Propietario de retirada: WORLD-UI-1.
-  const UI_COMPETITION_KEY_BY_STAGE_KEY = {
-    'regular-season': 'league',
-    knockout: 'cup',
-    'title-playoff': 'playoff',
-    'promotion-quarterfinals': 'promotion',
-    'promotion-final-four': 'promotion',
-  };
-
-  function competitionKeyForStageKey(stageKey) {
-    const key = UI_COMPETITION_KEY_BY_STAGE_KEY[stageKey];
-    if (!key) throw new Error(`competitionKeyForStageKey: fase desconocida "${stageKey}" sin clave de interfaz declarada.`);
-    return key;
-  }
-
   // REG-1 (BUG-REG1-03/04): `roundId` REAL de un partido de eliminatoria,
   // derivado del DESCRIPTOR (no de `bracket.rounds.length`) — mismo formato
   // de clave que antes de esta entrega, así que la detección de doble acta
@@ -2428,21 +2414,30 @@
 
   // Contexto normativo/de interfaz de UN descriptor de partido — punto
   // único, compartido por la resolución CPU, la del usuario, la Alineación
-  // y las noticias.
+  // y las noticias. WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 9 del
+  // prompt): el descriptor canónico (`BM.describeCompetitionContext()`)
+  // sustituye a los antiguos mapas fijos de traducción de fase de la UI
+  // (retirados) — nombres y `rulesPhaseId` vienen SIEMPRE del catálogo/
+  // Stage reales, nunca de un mapa fijo aquí. La detección de bracket usa
+  // `stageType`, no una clave de UI.
   function describeMatchDescriptor(descriptor) {
-    const competitionKey = competitionKeyForStageKey(descriptor.stageKey);
-    const isBracket = competitionKey !== 'league';
-    const phaseId = isBracket ? BRACKET_PHASE_IDS[competitionKey] : 'league';
+    const ctx = BM.describeCompetitionContext(state.world.registries, descriptor.stageId);
+    if (!ctx.rulesPhaseId) {
+      throw new Error(`describeMatchDescriptor: el stage "${descriptor.stageId}" no declara "rulesPhaseId".`);
+    }
+    const isBracket = ctx.stageType !== 'round-robin';
     return {
       descriptor,
-      competitionKey,
       isBracket,
-      phaseId,
-      roundId: isBracket ? bracketRoundIdForDescriptor(descriptor, phaseId) : descriptor.round,
+      phaseId: ctx.rulesPhaseId,
+      roundId: isBracket ? bracketRoundIdForDescriptor(descriptor, ctx.rulesPhaseId) : descriptor.round,
       matchId: descriptor.id,
       stageId: descriptor.stageId,
       stageKey: descriptor.stageKey,
+      stageName: ctx.stageName,
       competitionId: descriptor.competitionDefinitionId,
+      competitionName: ctx.competitionName,
+      competitionShortName: ctx.competitionShortName,
       date: descriptor.scheduledDate,
       scheduledAt: descriptor.scheduledAt,
       homeTeam: state.world.registries.teams.get(descriptor.homeParticipantId) || null,
@@ -2492,7 +2487,7 @@
     return {
       title: labels.title,
       roundLabel: labels.roundLabel,
-      competitionKey: info.competitionKey,
+      phaseId: info.phaseId,
       descriptor,
       info,
     };
@@ -2591,8 +2586,8 @@
   // evidencia de último partido oficial, noticias y activaciones de
   // fase/edición que el engine acaba de producir. Nunca antes del commit.
   function applyPostMatchEffects(info) {
-    const { descriptor, competitionKey } = info;
-    applyRecoveryForResolvedMatch(info.homeTeam, info.awayTeam, descriptor.result, descriptor.scheduledDate, competitionKey);
+    const { descriptor } = info;
+    applyRecoveryForResolvedMatch(info.homeTeam, info.awayTeam, descriptor.result, descriptor.scheduledDate, info);
     pushMatchNewsAfterCommit(info);
     const activationEvents = drainCompetitionActivationEvents();
     publishActivationNews(activationEvents);
@@ -2603,25 +2598,28 @@
   // competición), conservando la política de relevancia de CAL-2: nunca un
   // feed de todos los resultados mundiales.
   function pushMatchNewsAfterCommit(info) {
-    const { descriptor, competitionKey } = info;
+    const { descriptor, isBracket } = info;
     const involvesUser = descriptor.homeParticipantId === state.userTeamId || descriptor.awayParticipantId === state.userTeamId;
     const userCompetitionId = state.userTeamId ? userLeagueCompetitionId() : null;
     const relevant = involvesUser
       || descriptor.competitionDefinitionId === userCompetitionId
       // WORLD-UI-1 (BUG-WORLDUI-04): "¿el usuario compite en ACB?" se
       // decide por su competición REAL, nunca por `state.division`.
-      || (competitionKey !== 'league' && descriptor.competitionDefinitionId === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB
+      || (isBracket && descriptor.competitionDefinitionId === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB
         && userCompetitionId === BM.CompetitionCatalog.COMPETITION_IDS.ACB);
     if (!relevant) return;
     const normalized = {
       homeTeam: info.homeTeam, awayTeam: info.awayTeam, date: descriptor.scheduledDate, result: descriptor.result, status: 'played',
     };
-    const competitionLabel = COMPETITION_LABELS[competitionKey];
-    const opts = { userTeamId: state.userTeamId, relatedCompetition: competitionKey, competitionLabel };
+    // WORLD-CLEANUP-1 (DESIGN.md 10.21): el texto visible usa el nombre REAL
+    // de la fase/Stage — nunca una tabla fija de UI por tipo de bracket. Un
+    // partido de liga no lleva prefijo (mismo criterio que antes).
+    const competitionLabel = isBracket ? (info.stageName || info.competitionShortName) : null;
+    const opts = { userTeamId: state.userTeamId, relatedCompetition: info.competitionId, competitionLabel };
     pushNews(BM.buildResultNewsEvent(normalized, opts));
     pushNews(BM.buildBigPerformanceNewsEvents(normalized, BM.CONFIG_BASE, opts));
-    pushMedicalMatchEvents(info.homeTeam, info.awayTeam, descriptor.result, competitionKey);
-    if (competitionKey === 'league') {
+    pushMedicalMatchEvents(info.homeTeam, info.awayTeam, descriptor.result, info.competitionId);
+    if (!isBracket) {
       const league = getLeagueForTeam(info.homeTeam);
       const userTeam = getUserTeam();
       if (league && userTeam && involvesUser) {
@@ -2631,7 +2629,11 @@
   }
 
   // Noticia de creación de bracket (Copa) / ronda alcanzada — publicada
-  // DESPUÉS del commit que la activó, nunca antes.
+  // DESPUÉS del commit que la activó, nunca antes. WORLD-CLEANUP-1
+  // (DESIGN.md 10.21): nombres/relación de competición SIEMPRE del catálogo
+  // real (`CompetitionDefinition`) — nunca los antiguos mapas fijos de la
+  // UI (retirados). La detección de "es liga" usa `stageType`, no una clave
+  // de UI.
   function publishActivationNews(events) {
     events.forEach((event) => {
       if (event.type === 'edition-activated' && event.competitionDefinitionId === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB) {
@@ -2641,7 +2643,10 @@
         if (!cup) return;
         const qualified = cup.rounds[0].flatMap((s) => [s.betterEntry.team, s.worseEntry.team]);
         pushNews(BM.buildBracketCreatedNewsEvent(qualified, {
-          competitionLabel: 'la Copa', relatedCompetition: 'cup', userTeamId: state.userTeamId, dateTime: state.calendar.currentGameDateTime,
+          competitionLabel: competitionDisplayName(event.competitionDefinitionId),
+          relatedCompetition: event.competitionDefinitionId,
+          userTeamId: state.userTeamId,
+          dateTime: state.calendar.currentGameDateTime,
         }));
         return;
       }
@@ -2650,11 +2655,12 @@
       const involvesUser = state.world.registries.competitionEntries.forStage(event.stageId)
         .some((entry) => entry.participantId === state.userTeamId);
       if (!stage || !involvesUser) return;
-      const competitionKey = competitionKeyForStageKey(event.stageKey);
-      if (competitionKey === 'league') return;
+      if (stage.stageType === 'round-robin') return;
+      const edition = state.world.registries.competitionEditions.get(event.editionId);
+      const competitionId = edition ? edition.competitionDefinitionId : null;
       pushNews(BM.buildBracketRoundReachedNewsEvent(stage.name, {
-        competitionLabel: COMPETITION_LABELS[competitionKey],
-        relatedCompetition: competitionKey,
+        competitionLabel: competitionId ? competitionDisplayName(competitionId) : null,
+        relatedCompetition: competitionId,
         dateTime: state.calendar.currentGameDateTime,
         involvesUser: true,
       }));
@@ -2793,7 +2799,7 @@
 
   function closeSeasonAndPrepareNext() {
     const {
-      CONFIG_BASE, recalculateSportingGoalsForDivision,
+      CONFIG_BASE, recalculateSportingGoalsForCohort,
       SeasonHistoryService, AnnualCycleService, WorldLifecycleService, CycleConfig,
     } = BM;
 
@@ -2840,19 +2846,15 @@
       return;
     }
 
-    // PATHWAYS-1 (BUG-PATHWAYS-04): la membership de la temporada de ORIGEN
-    // se captura ANTES de comprometer la transición — el histórico de
-    // carrera cierra con la división en la que REALMENTE se compitió.
-    const divisionsBefore = SeasonHistoryService.captureDivisionsBefore(teams);
-
     // Confirma el transition group listo (hoy: el doméstico ACB<->Primera
     // FEB, descubierto arriba desde los `pathwayBindingIds` congelados —
     // WORLD-HARDEN-1, nunca `SPAIN_PATHWAY_IDS.DOMESTIC_CLUB`/
     // `SPAIN_DOMESTIC_TRANSITION_GROUP_ID` sueltos): receipt canónico,
     // Editions/Stages/Entries de `targetSeasonKey` creadas de forma
     // ATÓMICA (18+18, sin duplicados/ausencias) — el pathway CONSTRUYE y
-    // VALIDA la composición de la temporada siguiente; solo DESPUÉS se
-    // proyecta `team.division`/`legacyDivision` (BUG-PATHWAYS-04).
+    // VALIDA la composición de la temporada siguiente (WORLD-CLEANUP-1,
+    // DESIGN.md 10.21: ya no hay ninguna proyección de división que hacer
+    // "después" — la composición real vive SOLO en las Entries).
     state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
     const readyGroup = discoverReadyTransitionGroup(fromSeasonKey);
     const { receipt: transitionReceipt } = state.pathwayService.applyTransitionGroup(
@@ -2864,9 +2866,6 @@
     const { promotedTeams, relegatedTeams } = SeasonHistoryService.deriveSeasonMovesFromTransitionReceipt(
       transitionReceipt, teamsById,
     );
-    // Proyección legacy (sección 11.2 del prompt): SIEMPRE después del
-    // commit real, nunca fuente de verdad, nunca `'1ª'` por defecto.
-    BM.CompetitionParticipationService.projectLegacyDivisionForTeams(state.world.registries, teams, targetSeasonKey);
 
     const { cycle } = AnnualCycleService.openCycle({
       annualCycleRegistry: state.annualCycleRegistry,
@@ -2883,12 +2882,12 @@
     });
     state.annualCycle = cycle;
 
-    const summary = { promoted: [], relegated: [], userTeamDivision: null };
+    const summary = { promoted: [], relegated: [], userPrimaryCompetitionId: null };
     const hooks = {
       // Cierre DEPORTIVO: honores + histórico de carrera, ahora en
       // `SeasonHistoryService` (compartido con los smokes) — los
       // ascensos/descensos ya llegan RESUELTOS por el pathway (arriba),
-      // este hook ya NUNCA los recalcula ni muta `team.division`.
+      // este hook ya NUNCA los recalcula ni muta ninguna división.
       closeSeasonHistory() {
         const honoursByTeamId = SeasonHistoryService.buildSeasonHonoursByTeamId({
           leagueB, cup: bracketsA.cup, titlePlayoff: bracketsA.titlePlayoff, promotedTeams,
@@ -2905,14 +2904,23 @@
         SeasonHistoryService.closeCareerHistories({
           teams,
           honoursByTeamId,
-          divisionsBefore,
           seasonEndDateTime,
           nextSeasonKey: targetSeasonKey,
           config: CONFIG_BASE,
           rolesSnapshotFor: (player, team) => buildRolesSnapshotForPlayer(player, team),
         });
-        ['1ª', '2ª'].forEach((division) => {
-          recalculateSportingGoalsForDivision(teams.filter((team) => team.division === division), CONFIG_BASE);
+        // WORLD-CLEANUP-1 (DESIGN.md 10.21): cohortes agrupados por Entries
+        // REALES de la temporada de DESTINO (competitionDefinitionId) — el
+        // pathway ya comprometió la composición real de `targetSeasonKey`
+        // arriba, nunca `team.division` (retirado de la entidad).
+        const teamsByCompetitionId = new Map();
+        teams.forEach((team) => {
+          const competitionId = domesticCompetitionIdForTeam(team, targetSeasonKey, 'season-goals');
+          if (!teamsByCompetitionId.has(competitionId)) teamsByCompetitionId.set(competitionId, []);
+          teamsByCompetitionId.get(competitionId).push(team);
+        });
+        [...teamsByCompetitionId.values()].forEach((cohort) => {
+          recalculateSportingGoalsForCohort(cohort, CONFIG_BASE);
         });
         summary.promoted = promotedTeams.map((team) => team.fullName);
         summary.relegated = relegatedTeams.map((team) => team.fullName);
@@ -3040,12 +3048,13 @@
     state.lastOfficialMatchEvidence = new SeasonHistoryService.LastOfficialMatchEvidenceCollector();
     state.annualCycle = null;
 
-    // state.userTeamId NO cambia; el resumen de cierre sigue leyendo
-    // `team.legacyDivision`/`division` (proyección histórica en la
-    // entidad, DESIGN.md 3.4.2) — `state.division` (nivel de interfaz)
-    // queda RETIRADO, WORLD-HARDEN-1.
+    // state.userTeamId NO cambia; el resumen de cierre resuelve la
+    // competición REAL de destino del equipo del usuario por Entries
+    // (WORLD-CLEANUP-1, DESIGN.md 10.21) — `state.division`/`team.division`
+    // quedan RETIRADOS.
     const userTeam = teams.find((team) => team.id === state.userTeamId);
-    summary.userTeamDivision = userTeam ? userTeam.division : null;
+    summary.userPrimaryCompetitionId = userTeam
+      ? domesticCompetitionIdForTeam(userTeam, targetSeasonKey, 'season-close-summary') : null;
 
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
@@ -3150,6 +3159,14 @@
       </div>`;
   }
 
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21): nombre visible de una competición
+  // real, leído SIEMPRE del catálogo de identidad — nunca de un mapa de UI
+  // ni de una división legacy.
+  function competitionDisplayName(competitionId) {
+    const definition = state.world.registries.competitionDefinitions.get(competitionId);
+    return definition ? definition.name : competitionId;
+  }
+
   function renderHomeScreen() {
     const container = byId('gm-home');
     const league = getUserLeague();
@@ -3157,7 +3174,7 @@
     // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-04): nombre de la liga
     // principal real del club, vía `CompetitionParticipationService` — no
     // `${state.division} División`.
-    const userLeagueName = state.world.registries.competitionDefinitions.require(userLeagueCompetitionId()).name;
+    const userLeagueName = competitionDisplayName(userLeagueCompetitionId());
     const standings = league.getStandingsTable();
     const userRank = standings.findIndex((s) => s.team.id === team.id) + 1;
     const userStanding = standings[userRank - 1];
@@ -3262,7 +3279,7 @@
           <h3>Resumen del cierre de temporada</h3>
           <p><strong>Ascienden a 1ª:</strong> ${state.seasonCloseSummary.promoted.join(', ')}</p>
           <p><strong>Descienden a 2ª:</strong> ${state.seasonCloseSummary.relegated.join(', ')}</p>
-          ${state.seasonCloseSummary.userTeamDivision ? `<p>Tu equipo, ${team.fullName}, juega ahora en <strong>${state.seasonCloseSummary.userTeamDivision} división</strong>.</p>` : ''}
+          ${state.seasonCloseSummary.userPrimaryCompetitionId ? `<p>Tu equipo, ${team.fullName}, juega ahora en <strong>${escapeHtml(competitionDisplayName(state.seasonCloseSummary.userPrimaryCompetitionId))}</strong>.</p>` : ''}
         </div>`
       : '';
 
@@ -3654,7 +3671,6 @@
       const homeTeam = state.world.registries.teams.get(entry.metadata.homeParticipantId);
       const awayTeam = state.world.registries.teams.get(entry.metadata.awayParticipantId);
       if (!homeTeam || !awayTeam) return;
-      const competitionKey = competitionKeyForStageKey(entry.metadata.stageKey);
       const played = entry.status === 'completed';
       const runner = state.competitionEngine.getRunner(entry.metadata.stageId);
       const descriptor = runner && runner.getMatchById ? runner.getMatchById(entry.metadata.matchId) : null;
@@ -3666,7 +3682,7 @@
         result: descriptor ? descriptor.result : null,
       }, {
         id: `agenda-item:${entry.id}`,
-        relatedCompetition: competitionKey,
+        relatedCompetition: entry.metadata.competitionDefinitionId,
         requiresAttention: !!nextUserDescriptor && nextUserDescriptor.id === entry.metadata.matchId,
       }));
     });
@@ -5597,15 +5613,19 @@
       </div>`;
   }
 
-  // TAC-4 (7.12.17): TODOS los jugadores reales de ambas divisiones,
-  // agrupados por equipo — solo para el selector de "jugador rival a
-  // marcar" de un matchup declarado (esta pantalla no tiene un rival fijo
-  // de partido, ver Tactics.TacticalProfile.matchupOverrides). Reutiliza
-  // getRealTeamsByDivision (instancias reales de Team/Player ya
-  // reconstruidas, nunca datos planos en la UI — CLAUDE.md, "Interfaz de
-  // juego").
+  // TAC-4 (7.12.17): TODOS los equipos reales (36 clubes), agrupados por
+  // equipo — solo para el selector de "jugador rival a marcar" de un
+  // matchup declarado (esta pantalla no tiene un rival fijo de partido, ver
+  // Tactics.TacticalProfile.matchupOverrides). Instancias reales de
+  // Team/Player reconstruidas por id estable (WORLD-CLEANUP-1, DESIGN.md
+  // 10.21) — nunca por división ni datos planos en la UI (CLAUDE.md,
+  // "Interfaz de juego").
   function getAllRealTeamsForMatchupTarget() {
-    return ['1ª', '2ª'].flatMap((div) => getRealTeamsByDivision(div));
+    const { REAL_DATA_INDEX, REAL_DATA_TEAMS, CareerParticipantFactory } = BM;
+    const competitionIdByTeamId = CareerParticipantFactory.competitionIdByTeamIdFrom(BM.SPAIN_CLUB_CONTENT);
+    return REAL_DATA_INDEX.map(
+      (entry) => buildRealTeamFromData(REAL_DATA_TEAMS[entry.id], competitionIdByTeamId.get(entry.id)),
+    );
   }
 
   // TAC-4 (7.12.32, sub-pestaña Defensa): capa de presentación pura sobre
@@ -6360,7 +6380,7 @@
   }
 
   function buildMatchEngineOptionsForDescriptor(info, { precomputedResult } = {}) {
-    const { descriptor, competitionKey, homeTeam, awayTeam } = info;
+    const { descriptor, isBracket, homeTeam, awayTeam } = info;
     const matchDate = descriptor.scheduledDate;
     prepareBothTeamsForMatch(homeTeam, awayTeam, matchDate);
     const matchContext = {
@@ -6376,8 +6396,11 @@
           ? { homeSquad: userSide.squad, homeLineup: userSide.lineup }
           : { awaySquad: userSide.squad, awayLineup: userSide.lineup };
       }
+      // CpuLineup.computeMatchImportance solo distingue 'league' de
+      // cualquier otro valor (siempre partido clave fuera de liga) — ver
+      // CpuLineup.js, sin dependencia de la clave de UI retirada.
       const cpu = buildCpuSideOptions(
-        sideTeam, opponentTeam, competitionKey, domesticStandingsTableForTeam(sideTeam), matchDate, matchContext,
+        sideTeam, opponentTeam, isBracket ? 'bracket' : 'league', domesticStandingsTableForTeam(sideTeam), matchDate, matchContext,
       );
       recordMatchActSnapshot(sideTeam, cpu.squad, matchDate, matchContext);
       return isHome ? { homeSquad: cpu.squad, homeLineup: cpu.lineup } : { awaySquad: cpu.squad, awayLineup: cpu.lineup };
@@ -6421,7 +6444,7 @@
       ? runner.getMatchById(matchId)
       : runner.getPendingMatches().find((d) => d.id === matchId);
     const info = describeMatchDescriptor(descriptor);
-    if (info.competitionKey === 'league') {
+    if (!info.isBracket) {
       pushTacticalTrendNewsIfAny({ homeTeam: info.homeTeam, awayTeam: info.awayTeam }, team);
       const standingsBefore = captureStandingsSnapshot(getLeagueForTeam(info.homeTeam));
       const engineOptions = buildMatchEngineOptionsForDescriptor(info, {});
@@ -6469,18 +6492,22 @@
       homeTeam: info.homeTeam, awayTeam: info.awayTeam, date: info.descriptor.scheduledDate, result: info.descriptor.result, status: 'played',
     };
     pushNews(BM.buildUpsetNewsEvent(normalized, standingsBefore, BM.CONFIG_BASE, {
-      userTeamId: state.userTeamId, relatedCompetition: 'league',
+      userTeamId: state.userTeamId, relatedCompetition: info.competitionId,
     }));
     pushNews(BM.buildStandingsNewsEvents(standingsBefore, league.getStandingsTable(), BM.CONFIG_BASE, {
-      userTeamId: state.userTeamId, relatedCompetition: 'league', dateTime: state.calendar.currentGameDateTime,
+      userTeamId: state.userTeamId, relatedCompetition: info.competitionId, dateTime: state.calendar.currentGameDateTime,
     }));
   }
 
   // Eliminación/campeón tras un partido de eliminatoria del usuario — se
   // leen del runner REAL ya comiteado, nunca se recalculan.
   function publishBracketOutcomeNews(info) {
-    const { competitionKey } = info;
-    if (competitionKey !== 'cup' && competitionKey !== 'playoff') return;
+    // Solo Copa/Playoff por el título publican elimininación/campeón aquí —
+    // el Playoff de ascenso resuelve sus propias noticias de ascenso al
+    // cierre de temporada (`buildPromotionRelegationNewsEvents`), mismo
+    // criterio que antes de esta entrega.
+    const { phaseId } = info;
+    if (phaseId !== 'cup' && phaseId !== 'title-playoff') return;
     const runner = state.competitionEngine.getRunner(info.stageId);
     const series = runner.rounds.flat().find((s) => s.games.some((g) => g && g.id === info.matchId));
     if (!series) return;
@@ -6489,16 +6516,16 @@
     const teamsById = new Map(getAllTeams().map((t) => [t.id, t]));
     const winnerEntry = series.wins.better > series.wins.worse ? series.better : series.worse;
     const loserEntry = series.wins.better > series.wins.worse ? series.worse : series.better;
-    const competitionLabel = COMPETITION_LABELS[competitionKey];
+    const competitionLabel = info.stageName || info.competitionShortName;
     if (loserEntry.participantId === state.userTeamId) {
       pushNews(BM.buildEliminationNewsEvent(teamsById.get(loserEntry.participantId), {
-        competitionLabel, relatedCompetition: competitionKey, userTeamId: state.userTeamId, dateTime: info.descriptor.scheduledDate,
+        competitionLabel, relatedCompetition: info.competitionId, userTeamId: state.userTeamId, dateTime: info.descriptor.scheduledDate,
       }));
     }
     const champion = runner.champion;
     if (champion && champion.participantId === winnerEntry.participantId) {
       pushNews(BM.buildChampionNewsEvent(teamsById.get(champion.participantId), {
-        competitionLabel, relatedCompetition: competitionKey, userTeamId: state.userTeamId, dateTime: info.descriptor.scheduledDate,
+        competitionLabel, relatedCompetition: info.competitionId, userTeamId: state.userTeamId, dateTime: info.descriptor.scheduledDate,
       }));
     }
   }
@@ -6506,7 +6533,7 @@
   // "Última jornada" de Home: los partidos de la jornada del usuario en su
   // propia liga (vista derivada, nunca un estado guardado aparte).
   function lastRoundMatchesForUser(info) {
-    if (info.competitionKey !== 'league') return state.lastRoundMatches;
+    if (info.isBracket) return state.lastRoundMatches;
     const league = getLeagueForTeam(info.homeTeam);
     if (!league) return state.lastRoundMatches;
     return league.schedule.filter((m) => m.round === info.descriptor.round);
@@ -6541,7 +6568,7 @@
     const [coverageKey, stats] = coverages[0];
     const label = PNR_COVERAGE_LABELS[coverageKey] || coverageKey;
     pushNews(BM.buildTacticalTrendNewsEvent(opponent, label, stats.pppAllowed, stats.n, BM.CONFIG_BASE, {
-      relatedCompetition: 'league', dateTime: state.calendar.currentGameDateTime,
+      relatedCompetition: userLeagueCompetitionId(), dateTime: state.calendar.currentGameDateTime,
     }));
   }
 
@@ -6783,8 +6810,11 @@
       ? '<p class="gm-muted">Jugador ficticio generado para completar esta plantilla (cobertura de datos reales incompleta).</p>'
       : '';
 
+    // WORLD-CLEANUP-1 (DESIGN.md 10.21): nombre de la competición REAL del
+    // equipo (por Entries), nunca `team.division` (retirado de la entidad).
+    const teamCompetitionId = team ? teamLeagueCompetitionId(team) : null;
     const headerSubtitle = team
-      ? `${careerAgeOf(player) ?? '—'} años · ${escapeHtml(team.fullName)} (${team.division}) · ${player.nominalPosition}`
+      ? `${careerAgeOf(player) ?? '—'} años · ${escapeHtml(team.fullName)}${teamCompetitionId ? ` (${escapeHtml(competitionDisplayName(teamCompetitionId))})` : ''} · ${player.nominalPosition}`
       : `${careerAgeOf(player) ?? '—'} años · Sin club · ${player.nominalPosition}`;
 
     let rolesCardHtml;
@@ -7948,7 +7978,7 @@
     const reg = resolved.registration || {};
 
     const cumulativeCount = reg.cumulativeRegistrationCap
-      ? registry.cumulativeCountForClub(team.id, resolved.registrationScopeId, seasonKey) : null;
+      ? registry.cumulativeCountForTeam(team.id, resolved.registrationScopeId, seasonKey) : null;
 
     const quotaBandsHtml = (reg.quotaBands || []).map((band) => `
       <li>${band.rosterMin}-${band.rosterMax} jugadores → mínimo ${band.formationMinimum} de formación</li>`).join('') || '<li class="gm-muted">Sin bandas declaradas.</li>';
