@@ -47,11 +47,11 @@
     worldView: {
       kind: 'area', areaId: null, competitionDefinitionId: null, editionId: null,
     },
-    // `Team.division`/`legacyDivision` sobrevive EXCLUSIVAMENTE como
-    // proyección histórica/legacy (ver CLAUDE.md, "Migración legacy") —
-    // WORLD-UI-1 lo retira como AUTORIDAD de selección/pantallas
-    // productivas (BUG-WORLDUI-04). `null` hasta que exista una carrera.
-    division: null,
+    // WORLD-HARDEN-1 (DESIGN.md 10.19): `state.division` queda RETIRADO —
+    // no tenía ninguna lectura productiva (solo se escribía, nunca se
+    // consultaba como autoridad, ver CLAUDE.md/DESIGN.md 10.8). `Team.
+    // division`/`legacyDivision` SIGUE existiendo como proyección
+    // histórica/legacy en la entidad (ver CLAUDE.md, "Migración legacy").
     userTeamId: null,
     // CLUB-CORE-1 (DESIGN.md sección 10): identidad INSTITUCIONAL del club
     // controlado — DISTINTA de `userTeamId` (identidad DEPORTIVA). Se
@@ -278,26 +278,19 @@
   function byId(id) { return document.getElementById(id); }
 
   // ---------------------------------------------------------------------
-  // PUENTE DE VISTA LEGACY ESPAÑOL (WORLD-CALENDAR-1, DESIGN.md 10.14)
-  //
-  // Las pantallas antiguas (Clasificación, Competiciones, Estadísticas,
-  // Calendario) y `SeasonHistoryService` siguen esperando una vista
-  // `League`/`Bracket`-shaped por división. Se construye BAJO DEMANDA desde
-  // el `stageId`/runner REAL del `CompetitionEngine` — nunca se guarda como
-  // estado paralelo (`state.leagues`/`state.brackets` ya no existen) y
-  // nunca decide tiempo, participación ni "qué partido toca" (eso es
-  // SIEMPRE la cola mundial, por fecha).
-  //
-  // `state.division` sobrevive EXCLUSIVAMENTE como filtro visual de estas
-  // pantallas y de la selección de equipo, tal y como autoriza el prompt de
-  // esta entrega. Propietario de retirada: WORLD-UI-1 (navegación Mundo →
-  // País → Competición). Ningún call-site nuevo de orquestación temporal
-  // puede usar estas funciones.
+  // WORLD-HARDEN-1 (DESIGN.md 10.19): el antiguo puente de vista legacy
+  // español por división (`getLeague(division)`/`getBrackets(division)`/
+  // `competitionIdForDivision()`, introducido en WORLD-CALENDAR-1) queda
+  // RETIRADO de la ruta productiva — sus dos únicos usos reales
+  // (`closeSeasonAndPrepareNext()`/`publishActivationNews()`) ya resuelven
+  // la competición real DIRECTAMENTE con los ids permitidos en esta capa
+  // (`BM.CompetitionCatalog.COMPETITION_IDS.*`, CLAUDE.md), sin pasar por
+  // ninguna división. Toda pantalla productiva usa
+  // `getLeagueForTeam(team)`/`getUserLeague()`/`isUserInTopFlight()`/
+  // `getUserBracketsReal()` (abajo), que resuelven SIEMPRE por
+  // participación real (`CompetitionParticipationService`), nunca por
+  // `team.division`/`state.division`.
   // ---------------------------------------------------------------------
-  function getLeague(division) {
-    if (!state.competitionEngine || !state.world) return null;
-    return buildLeagueFacadeForCompetition(competitionIdForDivision(division), buildCareerSeasonKey());
-  }
 
   // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-04): competición de LIGA real
   // de UN equipo cualquiera — resuelta por su `CompetitionEntry` real de
@@ -340,24 +333,6 @@
   }
 
   function getUserLeague() { return getLeagueForTeam(getUserTeam()); }
-
-  function getBrackets(division) {
-    const empty = division === '1ª' ? { cup: null, titlePlayoff: null } : { promotionPlayoff: null };
-    if (!state.competitionEngine || !state.world) return empty;
-    const seasonKey = buildCareerSeasonKey();
-    if (division === '1ª') {
-      return {
-        // La Copa es una competición SEPARADA (COMP-CORE-1, invariante 12):
-        // su vista vive bajo `1ª` por decisión de interfaz, no porque
-        // pertenezca a esa división.
-        cup: buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB, seasonKey, 'knockout'),
-        titlePlayoff: buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.ACB, seasonKey, 'title-playoff'),
-      };
-    }
-    return {
-      promotionPlayoff: buildPromotionPlayoffCompatView(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, seasonKey),
-    };
-  }
 
   // Shape por defecto de `lineup.entries` (Rotation.js): 5 posiciones, cada
   // una con 3 slots (titular + 2 suplentes) vacíos.
@@ -600,10 +575,25 @@
     return { context, resolved, pool: buildEligiblePoolForMatch(team, context) || [] };
   }
 
-  function buildRealTeamFromData(teamData) {
+  // WORLD-HARDEN-1 (DESIGN.md 10.19, sección 4 del prompt): recibe el
+  // `competitionDefinitionId` EXPLÍCITO de este equipo (resuelto por el
+  // llamador desde `SPAIN_CLUB_CONTENT`/el catálogo de contenido, nunca
+  // adivinado aquí) para resolver el mínimo REAL de cobertura — antes se
+  // construía un Team provisional `{division: teamData.division}` sin
+  // `.id` y sin competitionId explícito, que dependía de
+  // `state.world.registries` para resolverlo — inalcanzable en este punto
+  // del arranque (el mundo todavía no existe, los 36 equipos se construyen
+  // ANTES de `buildCareerWorld()`, ver `startCareerFromSetup`). Nunca
+  // construye un Team provisional por división ni filtra
+  // `REAL_DATA_INDEX.division` para nada que no sea "qué jugadores
+  // construir" (ver `getRealTeamsByDivision`, más abajo).
+  function buildRealTeamFromData(teamData, competitionDefinitionId) {
     const {
       Player, Team, ensureDevelopmentState, CONFIG_BASE, padRosterToMinimum,
     } = BM;
+    if (!competitionDefinitionId) {
+      throw new Error(`buildRealTeamFromData: falta "competitionDefinitionId" explícito para "${teamData.id}".`);
+    }
     const referenceDate = state.calendar ? state.calendar.currentGameDateTime : new Date();
     const roster = teamData.roster.map((playerData) => {
       const { dataSource, ...playerFields } = playerData;
@@ -633,7 +623,7 @@
     // aquí — esta necesidad desaparece sola en cuanto el dataset real
     // mejore, sin tocar ninguna regla de competición.
     const squadRules = resolveSquadRulesForMatch(
-      { division: teamData.division }, { date: referenceDate, phaseId: 'league' },
+      { id: teamData.id }, { date: referenceDate, phaseId: 'league', competitionId: competitionDefinitionId },
     );
     const fallbackPlayers = padRosterToMinimum(
       roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate },
@@ -658,11 +648,19 @@
     return new Team({ ...teamData, roster });
   }
 
+  // `REAL_DATA_INDEX.division` sigue siendo dato crudo VÁLIDO solo para
+  // decidir QUÉ jugadores construir (WORLD-UI-1, DESIGN.md 10.18) — la
+  // afiliación COMPETITIVA real de cada equipo (qué Edition/Entry recibe,
+  // y el `competitionDefinitionId` que necesita `buildRealTeamFromData`
+  // para resolver cobertura) se lee SIEMPRE de `SPAIN_CLUB_CONTENT`
+  // (`CareerParticipantFactory.competitionIdByTeamIdFrom()`), nunca de la
+  // división.
   function getRealTeamsByDivision(division) {
-    const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = BM;
+    const { REAL_DATA_INDEX, REAL_DATA_TEAMS, CareerParticipantFactory } = BM;
+    const competitionIdByTeamId = CareerParticipantFactory.competitionIdByTeamIdFrom(BM.SPAIN_CLUB_CONTENT);
     return REAL_DATA_INDEX
       .filter((entry) => entry.division === division)
-      .map((entry) => buildRealTeamFromData(REAL_DATA_TEAMS[entry.id]));
+      .map((entry) => buildRealTeamFromData(REAL_DATA_TEAMS[entry.id], competitionIdByTeamId.get(entry.id)));
   }
 
   // =======================================================================
@@ -674,10 +672,12 @@
   // solo pinta el borrador y traduce clics, nunca decide una regla propia.
   // =======================================================================
 
-  // Los DOS manifiestos disponibles hoy — game.js es la ÚNICA capa que
-  // sabe qué paquetes existen (CareerSetupService solo conoce el SHAPE de
-  // un manifiesto, nunca una lista fija de ids).
-  function careerSetupManifests() { return [BM.WORLD_CORE_MANIFEST, BM.SPAIN_MANIFEST]; }
+  // WORLD-HARDEN-1 (DESIGN.md 10.19): los paquetes DISPONIBLES ya no se
+  // listan a mano aquí — `data/world/content-pack-catalog.js` es el único
+  // índice (sigue habiendo solo estos dos paquetes reales, sección 4 del
+  // prompt). Añadir un paquete futuro es una entrada en ese catálogo, nunca
+  // tocar esta función.
+  function careerSetupManifests() { return BM.listAvailableContentPacks(); }
   function careerSetupManifestsById() { return new Map(careerSetupManifests().map((m) => [m.id, m])); }
 
   // `createdAtGameDate`/`careerSeed` del snapshot son EXPLÍCITOS (invariante
@@ -893,16 +893,13 @@
   // `CompetitionRunners`) nunca los ve.
   // ---------------------------------------------------------------------
 
-  // Único punto de esta capa que traduce la división visible ('1ª'/'2ª')
-  // al `competitionDefinitionId` real — reemplaza el uso productivo de
-  // `BM.competitionIdFromLegacyDivision` para arranque/cierre de
-  // temporada (ese adaptador queda deprecado, sección 12.1 del prompt:
-  // sin nuevos call-sites productivos, solo scripts históricos).
-  function competitionIdForDivision(division) {
-    if (division === '1ª') return BM.CompetitionCatalog.COMPETITION_IDS.ACB;
-    if (division === '2ª') return BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB;
-    throw new Error(`competitionIdForDivision: división desconocida "${division}".`);
-  }
+  // WORLD-HARDEN-1 (DESIGN.md 10.19): `competitionIdForDivision()` queda
+  // RETIRADA — sus dos call-sites productivos (arranque y cierre de
+  // temporada) ya resuelven la competición real directamente con
+  // `BM.CompetitionCatalog.COMPETITION_IDS.*`, nunca traduciendo una
+  // división. `BM.competitionIdFromLegacyDivision()` (el adaptador de
+  // `CompetitionRules.js`) sigue sin ningún call-site productivo desde
+  // COMP-CORE-1 — exportado solo para scripts/tests históricos.
 
   // WORLD-CALENDAR-1 (DESIGN.md 10.14) — proveedor de fechas del engine:
   // GENÉRICO, construido por `CompetitionScheduleService` a partir del
@@ -1069,13 +1066,20 @@
     // validar contra los paquetes elegidos). Los perfiles de calendario se
     // registran al instalar el paquete; el servicio de schedules es la
     // única pieza que sabe programar fechas.
-    // Registro de contenido de calendarios — todavía un literal de España
-    // (game.js sigue siendo la única capa que conoce qué paquetes existen,
-    // sección 12.1 del prompt), necesario ANTES de instalar el mundo porque
-    // el `WorldCalendar` se construye antes que `GameWorld`. Un paquete
-    // futuro añadiría aquí su propia función de registro, resuelta desde
-    // `snapshot.selectedContentPackIds` — no una rama nueva por país.
-    BM.registerSpainSchedules();
+    // WORLD-HARDEN-1 (DESIGN.md 10.19, sección 4 del prompt): preparación
+    // GENÉRICA de catálogos estáticos (formatos/schedules/pathways) de los
+    // paquetes YA resueltos — necesaria ANTES de instalar el mundo porque
+    // el `WorldCalendar` se construye antes que `GameWorld`. `game.js` ya
+    // NO llama a `BM.registerSpainSchedules()` por nombre: cada paquete
+    // declara sus propios hooks (`manifest.hooks`), invocados aquí en el
+    // orden canónico de dependencias que ya trae `startPlan.packs` — un
+    // paquete futuro solo necesita declarar sus propios hooks, nunca tocar
+    // esta función. `state.contentPackLifecycle` y los paquetes resueltos
+    // se conservan para el cierre de temporada (mismo criterio genérico,
+    // nunca `SPAIN_SCHEDULE_IDS`/`SPAIN_PATHWAY_IDS` sueltos más abajo).
+    state.contentPackLifecycle = new BM.ContentPackLifecycleService({ manifests: startPlan.packs });
+    state.installedContentPacks = startPlan.packs;
+    state.contentPackLifecycle.prepareCatalogs(startPlan.packs);
     state.scheduleService = new BM.CompetitionScheduleService({ catalog: BM.CompetitionScheduleCatalog });
     const careerTimeZoneId = snapshot.timeZoneId;
     const careerSeasonKeyAtStart = snapshot.seasonKey;
@@ -1165,22 +1169,19 @@
       });
     });
 
-    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-09): agrupación por
+    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-09) / WORLD-HARDEN-1
+    // (DESIGN.md 10.19, sección 4 del prompt: "agruparlos por
+    // initialCompetitionDefinitionId"): agrupación por
     // `competitionDefinitionId` REAL, leída de
     // `SPAIN_CLUB_CONTENT.initialCompetitionDefinitionId` — ya NO de
     // `REAL_DATA_INDEX.division`. `spain-2026.1.install()` recibe este
     // contexto canónico, nunca `teamsByDivision` (retirado de la ruta
     // productiva; sigue existiendo solo como shim de fixtures históricos).
+    // La agrupación en sí vive en `CareerParticipantFactory` (módulo
+    // genérico y puro, sin literales de país) — los Team YA existen (misma
+    // construcción de siempre), esta llamada solo los clasifica.
     const allTeams = [...teamsByDivision['1ª'], ...teamsByDivision['2ª']];
-    const teamsById = new Map(allTeams.map((team) => [team.id, team]));
-    const teamsByCompetitionId = {};
-    BM.SPAIN_CLUB_CONTENT.forEach((entry) => {
-      const team = teamsById.get(entry.teamId);
-      if (!team) return;
-      const key = entry.initialCompetitionDefinitionId;
-      if (!teamsByCompetitionId[key]) teamsByCompetitionId[key] = [];
-      teamsByCompetitionId[key].push(team);
-    });
+    const teamsByCompetitionId = BM.CareerParticipantFactory.groupTeamsByCompetitionId(allTeams, BM.SPAIN_CLUB_CONTENT);
 
     // WORLD-CORE-1 (DESIGN.md, "World Architecture") — `GameWorld` canónico
     // de la carrera: se construye AQUÍ (los 36 equipos ya existen, como
@@ -1215,10 +1216,6 @@
     // `spain-2026.1.js`) — nunca antes, nunca igual a `teamId`.
     const userTeamEntity = state.world.registries.teams.require(teamId);
     state.userClubId = userTeamEntity.clubId;
-    // `Team.division`/`legacyDivision` sobrevive EXCLUSIVAMENTE como
-    // proyección legacy (CLAUDE.md) — nunca autoridad de pantalla/
-    // selección desde aquí en adelante (BUG-WORLDUI-04).
-    state.division = userTeamEntity.legacyDivision || null;
     state.careerSetupSnapshot = snapshot;
     // El borrador deja de ser autoridad en cuanto existe una carrera —
     // se reconstruye limpio la próxima vez que se visite la pantalla de
@@ -1253,19 +1250,26 @@
     state.world.registries.competitionEditions.forSeason(worldSeasonKey)
       .filter((edition) => edition.status !== 'completed' && edition.status !== 'cancelled')
       .forEach((edition) => state.competitionEngine.initializeEdition(edition.id));
-    // PATHWAYS-1 (DESIGN.md 10.15): el pathway doméstico español (playoff
-    // por el título, Copa en jornada 17, playoff de ascenso, transición
-    // ACB<->Primera FEB) decide TODA la progresión — ya NO se registra la
-    // activación cruzada legacy de Copa (`buildSeasonActivationPlan()`/
-    // `registerCrossEditionActivation()`, sin call-sites productivos desde
-    // esta entrega, BUG-PATHWAYS-01/02). `CompetitionPathwayService` es una
-    // instancia EXPLÍCITA por carrera, nunca un singleton.
-    BM.registerSpainPathways();
+    // PATHWAYS-1 (DESIGN.md 10.15): el pathway del paquete instalado
+    // (playoff por el título, Copa en jornada 17, playoff de ascenso,
+    // transición ACB<->Primera FEB para `spain-2026.1`) decide TODA la
+    // progresión — ya NO se registra la activación cruzada legacy de Copa
+    // (`buildSeasonActivationPlan()`/`registerCrossEditionActivation()`,
+    // sin call-sites productivos desde esta entrega, BUG-PATHWAYS-01/02).
+    // `CompetitionPathwayService` es una instancia EXPLÍCITA por carrera,
+    // nunca un singleton. WORLD-HARDEN-1 (DESIGN.md 10.19): los pathways ya
+    // quedaron registrados por `state.contentPackLifecycle.prepareCatalogs()`
+    // más arriba (idempotente — no hace falta repetirlo aquí) y
+    // `resolveEditionBindings` se resuelve por OWNERSHIP
+    // (`manifest.provides.competitionDefinitions`), nunca llamando
+    // `BM.resolveSpainEditionBindings` por nombre.
     state.pathwayService = new BM.CompetitionPathwayService({
       world: state.world,
       competitionEngine: state.competitionEngine,
       now: () => ({ instant: state.calendar.currentInstant, timeZoneId: state.calendar.defaultTimeZoneId }),
-      resolveEditionBindings: BM.resolveSpainEditionBindings,
+      resolveEditionBindings: (competitionId, world) => state.contentPackLifecycle.resolveEditionBindings(
+        state.installedContentPacks, competitionId, world,
+      ),
     });
     state.competitionEngine.setFactHandler((fact) => state.pathwayService.handleEngineFact(fact));
 
@@ -2100,19 +2104,15 @@
     }
   }
 
-  // WORLD-CORE-1 (sección 8.5 del prompt): fuente MUNDIAL cuando existe
-  // (`state.world.registries.teams`, las MISMAS instancias que ya
-  // devolvía el recorrido por liga) — nunca "la lista de clubes españoles"
-  // como única fuente posible. El camino por liga se conserva como
-  // compatibilidad para cualquier llamada anterior a que exista mundo.
+  // WORLD-CORE-1 (sección 8.5 del prompt): fuente MUNDIAL — nunca "la lista
+  // de clubes españoles" como única fuente posible. WORLD-HARDEN-1
+  // (DESIGN.md 10.19): sin mundo todavía (ninguna carrera arrancada), no
+  // hay ningún equipo que devolver — el antiguo fallback por
+  // `getLeague('1ª'/'2ª')` está retirado de la ruta productiva junto con
+  // esa función.
   function getAllTeams() {
-    if (state.world) return state.world.registries.teams.all();
-    const teams = [];
-    ['1ª', '2ª'].forEach((div) => {
-      const league = getLeague(div);
-      if (league) teams.push(...league.teams);
-    });
-    return teams;
+    if (!state.world) return [];
+    return state.world.registries.teams.all();
   }
 
   // WORLD-SIM-1 (DESIGN.md 10.16, BUG-WORLDSIM-06): cohorte INTERACTIVO —
@@ -2591,7 +2591,9 @@
   function publishActivationNews(events) {
     events.forEach((event) => {
       if (event.type === 'edition-activated' && event.competitionDefinitionId === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB) {
-        const cup = getBrackets('1ª').cup;
+        // WORLD-HARDEN-1 (DESIGN.md 10.19): facade directa por competición
+        // real — nunca `getBrackets('1ª')` (retirado de la ruta productiva).
+        const cup = buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB, buildCareerSeasonKey(), 'knockout');
         if (!cup) return;
         const qualified = cup.rounds[0].flatMap((s) => [s.betterEntry.team, s.worseEntry.team]);
         pushNews(BM.buildBracketCreatedNewsEvent(qualified, {
@@ -2712,6 +2714,39 @@
   // Ninguna regla de juego nueva se decide aquí: la interfaz solo aporta el
   // rol táctico real de cada jugador para el histórico (`rolesSnapshotFor`) y
   // publica noticias DESPUÉS de cada commit real.
+  // WORLD-HARDEN-1 (DESIGN.md 10.19, sección 5 del prompt): descubre el
+  // ÚNICO transition group LISTO de la temporada que termina, leyendo los
+  // `pathwayBindingIds` YA CONGELADOS en sus Editions (nunca
+  // `SPAIN_PATHWAY_IDS.DOMESTIC_CLUB`/`SPAIN_DOMESTIC_TRANSITION_GROUP_ID`
+  // sueltos) — el mismo resultado de siempre (hoy solo existe un pathway
+  // doméstico con un único transition group), pero derivado de datos
+  // congelados en vez de un literal de España. Ante cero o más de un grupo
+  // listo, bloquea con diagnóstico — nunca asume "el de España".
+  function discoverReadyTransitionGroup(seasonKey) {
+    const editions = state.world.registries.competitionEditions.forSeason(seasonKey);
+    const pathwayIds = new Set();
+    editions.forEach((edition) => (edition.pathwayBindingIds || []).forEach((id) => pathwayIds.add(id)));
+    const candidates = [];
+    [...pathwayIds].sort().forEach((pathwayId) => {
+      const definition = BM.requirePathwayDefinition(pathwayId);
+      Object.keys(definition.transitionGroups).sort().forEach((groupId) => {
+        const readiness = state.pathwayService.isTransitionGroupReady(pathwayId, groupId, { sourceSeasonKey: seasonKey });
+        if (readiness.ready) candidates.push({ pathwayId, groupId });
+      });
+    });
+    if (candidates.length === 0) {
+      throw new Error(`discoverReadyTransitionGroup: ningún transition group listo para cerrar la temporada "${seasonKey}".`);
+    }
+    if (candidates.length > 1) {
+      throw new Error(
+        `discoverReadyTransitionGroup: ${candidates.length} transition groups listos a la vez para la temporada `
+        + `"${seasonKey}" (${candidates.map((c) => `${c.pathwayId}:${c.groupId}`).join(', ')}) — el llamador debe `
+        + 'desambiguar, nunca se elige el primero.',
+      );
+    }
+    return candidates[0];
+  }
+
   function closeSeasonAndPrepareNext() {
     const {
       CONFIG_BASE, recalculateSportingGoalsForDivision,
@@ -2723,9 +2758,16 @@
     // Primera FEB, campeón de Copa/playoff por el título) — la
     // clasificación a Copa/playoff/ascenso y los ascensos/descensos reales
     // YA NO se leen de estas vistas legacy (BUG-PATHWAYS-01/03/04): los
-    // decide `state.pathwayService`.
-    const leagueB = getLeague('2ª');
-    const bracketsA = getBrackets('1ª');
+    // decide `state.pathwayService`. WORLD-HARDEN-1 (DESIGN.md 10.19):
+    // resueltas con los ids de competición REALES directamente (permitido
+    // en esta capa, CLAUDE.md), nunca con `getLeague('2ª')`/`getBrackets('1ª')`
+    // (retirados de la ruta productiva).
+    const preCloseSeasonKey = buildCareerSeasonKey();
+    const leagueB = buildLeagueFacadeForCompetition(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, preCloseSeasonKey);
+    const bracketsA = {
+      cup: buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB, preCloseSeasonKey, 'knockout'),
+      titlePlayoff: buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.ACB, preCloseSeasonKey, 'title-playoff'),
+    };
     // CAL-2: instante real de cierre, capturado ANTES de sustituir
     // `state.calendar` por el de la temporada siguiente.
     const seasonEndDateTime = state.calendar.currentGameDateTime;
@@ -2759,15 +2801,19 @@
     // carrera cierra con la división en la que REALMENTE se compitió.
     const divisionsBefore = SeasonHistoryService.captureDivisionsBefore(teams);
 
-    // Confirma el transition group doméstico ACB<->Primera FEB: receipt
-    // canónico, Editions/Stages/Entries de `targetSeasonKey` creadas de
-    // forma ATÓMICA (18+18, sin duplicados/ausencias) — el pathway
-    // CONSTRUYE y VALIDA la composición de la temporada siguiente; solo
-    // DESPUÉS se proyecta `team.division`/`legacyDivision` (BUG-PATHWAYS-04).
+    // Confirma el transition group listo (hoy: el doméstico ACB<->Primera
+    // FEB, descubierto arriba desde los `pathwayBindingIds` congelados —
+    // WORLD-HARDEN-1, nunca `SPAIN_PATHWAY_IDS.DOMESTIC_CLUB`/
+    // `SPAIN_DOMESTIC_TRANSITION_GROUP_ID` sueltos): receipt canónico,
+    // Editions/Stages/Entries de `targetSeasonKey` creadas de forma
+    // ATÓMICA (18+18, sin duplicados/ausencias) — el pathway CONSTRUYE y
+    // VALIDA la composición de la temporada siguiente; solo DESPUÉS se
+    // proyecta `team.division`/`legacyDivision` (BUG-PATHWAYS-04).
     state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
+    const readyGroup = discoverReadyTransitionGroup(fromSeasonKey);
     const { receipt: transitionReceipt } = state.pathwayService.applyTransitionGroup(
-      BM.SPAIN_PATHWAY_IDS.DOMESTIC_CLUB,
-      BM.SPAIN_DOMESTIC_TRANSITION_GROUP_ID,
+      readyGroup.pathwayId,
+      readyGroup.groupId,
       { fromSeasonKey, targetSeasonKey },
     );
     const teamsById = new Map(teams.map((team) => [team.id, team]));
@@ -2900,14 +2946,27 @@
     // sustituía `state.calendar` por otra instancia de `Calendar`, así que
     // el reloj de carrera "empezaba de cero" cada verano.
     state.seasonStartYear += 1;
-    const nextCareerSchedule = BM.CompetitionScheduleCatalog.requireSchedule(BM.SPAIN_SCHEDULE_IDS.ACB);
+    // WORLD-HARDEN-1 (DESIGN.md 10.19, sección 5 del prompt): el schedule
+    // que fija el arranque de la temporada siguiente se lee del
+    // `scheduleProfileId` YA CONGELADO en la Edition de Liga principal real
+    // (recién creada, arriba, por `applyTransitionGroup()`) — nunca de
+    // `SPAIN_SCHEDULE_IDS.ACB` suelto. Mismo criterio y mismo resultado que
+    // antes (la Liga principal es quien fija el arranque de temporada).
+    const nextMainLeagueEdition = state.world.registries.competitionEditions.require(
+      BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.ACB, targetSeasonKey),
+    );
+    const nextCareerSchedule = BM.CompetitionScheduleCatalog.requireSchedule(nextMainLeagueEdition.scheduleProfileId);
     const nextSeasonStartInstant = state.scheduleService.seasonStartInstant(nextCareerSchedule, state.seasonStartYear);
     const nextSeasonWindowStartInstant = state.scheduleService.seasonWindowStartInstant(nextCareerSchedule, state.seasonStartYear);
+    // Unión de los `competitionSchedules` de los paquetes YA instalados —
+    // mismo criterio genérico que ya usa `startCareerFromSetup()`, nunca
+    // `SPAIN_SCHEDULE_IDS` sueltos.
+    const nextSeasonScheduleIds = BM.ContentPackLifecycleService.unionScheduleIds(state.installedContentPacks);
     state.calendar.registerSeason({
       seasonKey: targetSeasonKey,
       startInstant: nextSeasonStartInstant,
       timeZoneId: state.calendar.defaultTimeZoneId,
-      scheduleIds: [BM.SPAIN_SCHEDULE_IDS.ACB, BM.SPAIN_SCHEDULE_IDS.PRIMERA_FEB, BM.SPAIN_SCHEDULE_IDS.COPA_ACB],
+      scheduleIds: nextSeasonScheduleIds,
     });
     // El índice operativo no debe convertirse en otro histórico infinito de
     // partidos: los resultados/históricos/noticias ya viven en sus fuentes.
@@ -2934,11 +2993,12 @@
     state.lastOfficialMatchEvidence = new SeasonHistoryService.LastOfficialMatchEvidenceCollector();
     state.annualCycle = null;
 
-    // state.userTeamId NO cambia; si ascendió/descendió, state.division le
-    // sigue para que "su" liga siga siendo la visible (DESIGN.md 3.4.2).
+    // state.userTeamId NO cambia; el resumen de cierre sigue leyendo
+    // `team.legacyDivision`/`division` (proyección histórica en la
+    // entidad, DESIGN.md 3.4.2) — `state.division` (nivel de interfaz)
+    // queda RETIRADO, WORLD-HARDEN-1.
     const userTeam = teams.find((team) => team.id === state.userTeamId);
     summary.userTeamDivision = userTeam ? userTeam.division : null;
-    if (userTeam) state.division = userTeam.division;
 
     state.lastRoundMatches = null;
     state.pendingUserMatch = null;
@@ -9359,7 +9419,8 @@
       // reutilizarse tal cual.
       state.careerSetupSnapshot = null;
       state.careerSetupDraft = null;
-      state.division = null;
+      state.installedContentPacks = null;
+      state.contentPackLifecycle = null;
       state.worldView = {
         kind: 'area', areaId: null, competitionDefinitionId: null, editionId: null,
       };
@@ -9810,7 +9871,10 @@
     // ejecutarlos.
     advanceWorldUntilNextUserStop,
     peekNextUserMatchDescriptor,
-    getLeague,
-    getBrackets,
+    // WORLD-HARDEN-1 (DESIGN.md 10.19): `getLeague(division)`/
+    // `getBrackets(division)` quedan RETIRADAS (ver el bloque de
+    // comentario donde vivían, cerca de `getLeagueForTeam`) — nada externo
+    // las consumía (auditado: ni `index.html` ni `scripts/*.js` referencian
+    // `BasketManagerGame.getLeague`/`.getBrackets`).
   };
 })(typeof window !== 'undefined' ? window : globalThis);
