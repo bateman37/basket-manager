@@ -42,58 +42,79 @@
   // fecha más tardía de cada club. Un club eliminado en cuartos tendrá una
   // fecha muy anterior a la del campeón: eso es exactamente lo que el ciclo
   // necesita (sección 7 del prompt).
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20, BUG-WORLD-CONTEXT-02): un partido lo
+  // disputan EQUIPOS, no instituciones — la evidencia se indexa por
+  // `teamId`, conserva también el `clubId` institucional real y registra al
+  // rival con SUS DOS ids. Antes todo el colector se llamaba "club" pero
+  // guardaba `team.id` en ese campo.
   class LastOfficialMatchEvidenceCollector {
     constructor() {
-      this._byClub = new Map();
+      this._byTeam = new Map();
     }
 
     record(params) {
       const {
-        clubId, date, competitionId, phaseId, matchId, opponentClubId,
+        teamId, clubId, date, competitionId, phaseId, matchId, opponentTeamId, opponentClubId,
       } = params;
-      if (!clubId || !date) return null;
+      if (!teamId || !date) return null;
       const iso = typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
-      const existing = this._byClub.get(clubId);
+      const existing = this._byTeam.get(teamId);
       if (existing && !LD().isAfter(iso, existing.date)) return existing;
       const row = {
-        clubId,
+        teamId,
+        clubId: clubId || null,
         date: iso,
         competitionId: competitionId || null,
         phaseId: phaseId || null,
         matchId: matchId || null,
+        opponentTeamId: opponentTeamId || null,
         opponentClubId: opponentClubId || null,
       };
-      this._byClub.set(clubId, row);
+      this._byTeam.set(teamId, row);
       return row;
     }
 
     recordMatch(params) {
       const {
-        homeClubId, awayClubId, date, competitionId, phaseId, matchId,
+        homeTeamId, homeClubId, awayTeamId, awayClubId, date, competitionId, phaseId, matchId,
       } = params;
       this.record({
-        clubId: homeClubId, date, competitionId, phaseId, matchId, opponentClubId: awayClubId,
+        teamId: homeTeamId,
+        clubId: homeClubId,
+        date,
+        competitionId,
+        phaseId,
+        matchId,
+        opponentTeamId: awayTeamId,
+        opponentClubId: awayClubId,
       });
       this.record({
-        clubId: awayClubId, date, competitionId, phaseId, matchId, opponentClubId: homeClubId,
+        teamId: awayTeamId,
+        clubId: awayClubId,
+        date,
+        competitionId,
+        phaseId,
+        matchId,
+        opponentTeamId: homeTeamId,
+        opponentClubId: homeClubId,
       });
     }
 
-    forClub(clubId) { return this._byClub.get(clubId) || null; }
+    forTeam(teamId) { return this._byTeam.get(teamId) || null; }
 
-    // Orden canónico por clubId — nunca el orden de inserción.
+    // Orden canónico por teamId — nunca el orden de inserción.
     toArray() {
-      return [...this._byClub.values()].sort((a, b) => (a.clubId < b.clubId ? -1 : 1));
+      return [...this._byTeam.values()].sort((a, b) => (a.teamId < b.teamId ? -1 : 1));
     }
 
-    // Clubes que TODAVÍA no tienen evidencia (por ejemplo si una
+    // Equipos que TODAVÍA no tienen evidencia (por ejemplo si una
     // competición no se ha jugado): se declara explícitamente, nunca se
     // rellena con una fecha inventada.
-    missingClubIds(teams) {
-      return (teams || []).map((team) => team.id).filter((clubId) => !this._byClub.has(clubId)).sort();
+    missingTeamIds(teams) {
+      return (teams || []).map((team) => team.id).filter((teamId) => !this._byTeam.has(teamId)).sort();
     }
 
-    clear() { this._byClub.clear(); }
+    clear() { this._byTeam.clear(); }
   }
 
   // =====================================================================

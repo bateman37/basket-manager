@@ -1394,6 +1394,28 @@
     return BM.CareerAge.ageOnDate(player, referenceDate || state.calendar.currentGameDateTime);
   }
 
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20) — punto ÚNICO de la interfaz para el
+  // contexto competitivo de un equipo: se resuelve SIEMPRE desde sus
+  // `CompetitionEntry` reales de esa temporada (`CompetitionContextService`),
+  // nunca de `team.division`. Los dominios profesionales (contratos,
+  // inscripciones, mercado, traspasos, cesiones, ciclo anual) reciben el id
+  // explícito o este resolver, según sean operaciones de un equipo, entre
+  // equipos o batch.
+  function domesticCompetitionIdForTeam(team, seasonKey, operation) {
+    return BM.CompetitionContextService.resolveDomesticCompetitionId(state.world.registries, team.id, {
+      seasonKey: seasonKey || buildCareerSeasonKey(),
+      operation: operation || 'ui',
+    });
+  }
+
+  // Resolver PURO `(team, seasonKey) => competitionId` para operaciones
+  // batch (seeders, ciclo anual, planificación CPU).
+  function buildDomesticCompetitionResolver(operation) {
+    return BM.CompetitionContextService.makeDomesticCompetitionResolver(state.world.registries, {
+      operation: operation || 'ui-batch',
+    });
+  }
+
   // Nómina proyectada de los 36 clubes desde el registro contractual —
   // `team.finances.expenses.playerSalaries` deja de ser un valor editable y
   // pasa a ser esta proyección (nunca una segunda verdad).
@@ -1426,6 +1448,8 @@
       registry: state.contractRegistry,
       playerRegistry: state.playerRegistry,
       config: CONFIG_BASE,
+      // WORLD-CONTEXT-1: resolver obligatorio por Entries reales.
+      competitionIdForTeam: buildDomesticCompetitionResolver('bootstrapContracts'),
     });
     state.contractBootstrapWarnings = warnings;
     refreshAllSalaryProjections(seasonKey);
@@ -1539,6 +1563,12 @@
       config: BM.CONFIG_BASE,
       careerSeed: buildCycleCareerSeed(),
       userClubId: state.userClubId,
+      // WORLD-CONTEXT-1: el equipo del usuario es un id DISTINTO de su club
+      // — la evidencia de último partido oficial es del EQUIPO.
+      userTeamId: state.userTeamId,
+      // WORLD-CONTEXT-1: resolver obligatorio del ciclo — cada fase lo
+      // consulta con la temporada de ORIGEN o de DESTINO según su papel.
+      competitionIdForTeam: buildDomesticCompetitionResolver('annualCycle'),
       lineup: state.lineup,
       operationalContext: currentTransferOperationalContext(),
       classificationCache: state.registrationClassificationCache,
@@ -1562,6 +1592,7 @@
         playerRegistry: state.playerRegistry,
         config: BM.CONFIG_BASE,
         calibration,
+        domesticCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'signContractsForNewPlayers'),
       });
     });
   }
@@ -1595,6 +1626,7 @@
       registrationRegistry: state.registrationRegistry,
       contractRegistry: state.contractRegistry,
       config: CONFIG_BASE,
+      competitionIdForTeam: buildDomesticCompetitionResolver('bootstrapRegistrations'),
     });
     state.registrationBootstrapWarnings = warnings;
   }
@@ -1640,6 +1672,7 @@
         registrationRegistry: state.registrationRegistry,
         contractRegistry: state.contractRegistry,
         config: BM.CONFIG_BASE,
+        domesticCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'signRegistrationsForNewPlayers'),
         existingClassification,
       });
     });
@@ -1704,6 +1737,9 @@
       registrationRegistry: state.registrationRegistry,
       contractRegistry: state.contractRegistry,
       config: BM.CONFIG_BASE,
+      // Competición de DESTINO: el ámbito del curso NUEVO, ya comprometido
+      // por el pathway (nunca la división del curso que termina).
+      competitionIdForTeam: buildDomesticCompetitionResolver('registrationsForSeasonTransition'),
     });
     state.registrationBootstrapWarnings = warnings;
   }
@@ -2073,6 +2109,10 @@
       agreement,
       ownerTeam,
       borrowerTeam,
+      // WORLD-CONTEXT-1: papel de propietario y de cesionario resueltos por
+      // separado (pueden competir en competiciones distintas).
+      ownerCompetitionId: domesticCompetitionIdForTeam(ownerTeam, buildCareerSeasonKey(), 'loan:return:owner'),
+      borrowerCompetitionId: domesticCompetitionIdForTeam(borrowerTeam, buildCareerSeasonKey(), 'loan:return:borrower'),
       effectiveDate: agreement.returnEffectiveDate,
       seasonKey: buildCareerSeasonKey(),
       commit: true,
@@ -2243,9 +2283,13 @@
         : BM.CompetitionParticipationService.primaryLeagueCompetitionId(
           state.world.registries, homeTeam.id, { seasonKey: buildCareerSeasonKey() },
         );
+      // WORLD-CONTEXT-1: un partido lo disputan EQUIPOS — se registran los
+      // dos ids de cada lado (equipo y club institucional real).
       state.lastOfficialMatchEvidence.recordMatch({
-        homeClubId: homeTeam.id,
-        awayClubId: awayTeam.id,
+        homeTeamId: homeTeam.id,
+        homeClubId: homeTeam.clubId,
+        awayTeamId: awayTeam.id,
+        awayClubId: awayTeam.clubId,
         date,
         competitionId: evidenceCompetitionId,
         phaseId: competitionKey,
@@ -2785,10 +2829,10 @@
     // competición no jugada), se declara y se aborta con un aviso visible en
     // vez de continuar con un dato falso.
     const missing = state.lastOfficialMatchEvidence
-      ? state.lastOfficialMatchEvidence.missingClubIds(teams) : teams.map((team) => team.id);
+      ? state.lastOfficialMatchEvidence.missingTeamIds(teams) : teams.map((team) => team.id);
     if (missing.length) {
       state.cycleWarnings = [
-        `No se puede abrir el ciclo anual: ${missing.length} club(es) sin evidencia de último partido oficial `
+        `No se puede abrir el ciclo anual: ${missing.length} equipo(s) sin evidencia de último partido oficial `
         + `(${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}). El verano abre los plazos desde la `
         + 'fecha REAL de cierre de cada club, nunca desde una fecha inventada.',
       ];
@@ -2833,6 +2877,9 @@
       date: seasonEndIso,
       playerRegistry: state.playerRegistry,
       contractRegistry: state.contractRegistry,
+      // WORLD-CONTEXT-1: la instantánea competitiva de APERTURA se resuelve
+      // con las Entries de la temporada que TERMINA.
+      competitionIdForTeam: buildDomesticCompetitionResolver('openCycle'),
     });
     state.annualCycle = cycle;
 
@@ -7438,10 +7485,14 @@
       contract, annualCycleRegistry: state.annualCycleRegistry, contractRegistry: state.contractRegistry, date: isoDate,
     });
     if (!eligibility.renewable) return { outcome: 'failed', reason: eligibility.reason };
-    const resolved = BM.ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateContract' });
+    const resolved = BM.ContractService.resolveRulesForClub(team, {
+      seasonKey, date: isoDate, operation: 'validateContract',
+      domesticCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'cycleRenewal'),
+    });
     const cycleId = state.annualCycle ? state.annualCycle.id : `season:${seasonKey}`;
     const renewalCase = RenewalService.openRenewalCase({
       annualCycleRegistry: state.annualCycleRegistry, cycle: { id: cycleId }, player, team, expiringContract: contract, date: isoDate, seasonKey,
+      domesticCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'openRenewalCase'),
     });
     const marketContext = BM.MarketService.resolveMarketContext({
       domesticCompetitionId: BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, team.id, { seasonKey }),
@@ -7484,7 +7535,10 @@
 
   function cycleContractsExpiringHtml(team, isoDate) {
     const { RenewalService } = BM;
-    const contracts = state.contractRegistry.forClub(team.id).filter((c) => c.isCurrentOn(isoDate));
+    // WORLD-CONTEXT-1: los contratos se agregan por el CLUB institucional
+    // (`team.clubId`) — con `team.id` esta lista salía SIEMPRE vacía desde
+    // CLUB-CORE-1.
+    const contracts = state.contractRegistry.forClub(team.clubId).filter((c) => c.isCurrentOn(isoDate));
     if (!contracts.length) return '<p class="gm-muted">No hay contratos vigentes.</p>';
     const rows = contracts.map((contract) => {
       const player = state.playerRegistry.get(contract.playerId);
@@ -7512,7 +7566,8 @@
   function cycleAcademyHtml(team, isoDate) {
     if (!state.academyRegistry) return '';
     const { CareerAge, CycleConfig: CC } = BM;
-    const pool = state.academyRegistry.activePoolForClub(team.id, isoDate);
+    // WORLD-CONTEXT-1: la cantera pertenece al CLUB (`team.clubId`).
+    const pool = state.academyRegistry.activePoolForClub(team.clubId, isoDate);
     if (!pool.length) return '<p class="gm-muted">Sin jugadores de academia activos.</p>';
     const rows = pool.map((membership) => {
       const player = state.playerRegistry.get(membership.playerId);
@@ -7545,7 +7600,15 @@
   function cycleLegalityHtml(team, isoDate) {
     const { RosterLegalityService } = BM;
     const report = RosterLegalityService.buildReport({
-      team, seasonKey: buildCareerSeasonKey(), date: isoDate, phaseId: 'league', cycleId: null, config: BM.CONFIG_BASE,
+      team,
+      seasonKey: buildCareerSeasonKey(),
+      // WORLD-CONTEXT-1: competición EXPLÍCITA del equipo auditado.
+      competitionId: domesticCompetitionIdForTeam(team, buildCareerSeasonKey(), 'cycleLegalityHtml'),
+      competitionIdForTeam: buildDomesticCompetitionResolver('cycleLegalityHtml'),
+      date: isoDate,
+      phaseId: 'league',
+      cycleId: null,
+      config: BM.CONFIG_BASE,
       playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry,
       loanRegistry: state.loanRegistry, teams: getAllTeams(), classificationCache: state.classificationCache || new Map(),
     });
@@ -7604,7 +7667,7 @@
     });
     container.querySelectorAll('.cycle-promote-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const membership = state.academyRegistry.membershipsForClub(team.id)
+        const membership = state.academyRegistry.membershipsForClub(team.clubId)
           .find((m) => m.playerId === btn.dataset.playerId && m.currentStatus() === 'active');
         if (!membership) return;
         const isoDate = currentGameIsoDate();
@@ -7615,12 +7678,15 @@
           date: isoDate,
           phaseId: 'league',
         });
-        const calibration = BM.ContractSeeder.buildCompetitionCalibration(getAllTeams(), BM.CONFIG_BASE);
+        const calibration = BM.ContractSeeder.buildCompetitionCalibration(getAllTeams(), BM.CONFIG_BASE, {
+          seasonKey, competitionIdForTeam: buildDomesticCompetitionResolver('cyclePromote:calibration'),
+        });
         const player = state.playerRegistry.get(membership.playerId);
         try {
           BM.AcademyService.promoteToFirstTeam({
             academyRegistry: state.academyRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
             registrationRegistry: state.registrationRegistry, teams: getAllTeams(), membership, team, date: isoDate, seasonKey,
+            domesticCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'cyclePromote'),
             config: BM.CONFIG_BASE, calibration, lineup: state.lineup, existingClassification: resolved.classification || null,
           });
           if (player) {
@@ -7645,17 +7711,28 @@
         const isoDate = currentGameIsoDate();
         const seasonKey = buildCareerSeasonKey();
         const report = BM.RosterLegalityService.buildReport({
-          team, seasonKey, date: isoDate, phaseId: 'league', cycleId: state.annualCycle ? state.annualCycle.id : null, config: BM.CONFIG_BASE,
+          team,
+          seasonKey,
+          competitionId: domesticCompetitionIdForTeam(team, seasonKey, 'cycleEmergencyButton'),
+          competitionIdForTeam: buildDomesticCompetitionResolver('cycleEmergencyButton'),
+          date: isoDate,
+          phaseId: 'league',
+          cycleId: state.annualCycle ? state.annualCycle.id : null,
+          config: BM.CONFIG_BASE,
           playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry,
           loanRegistry: state.loanRegistry, teams: getAllTeams(), classificationCache: state.classificationCache || new Map(),
         });
         BM.RosterLegalityService.applyEmergencyLadder({
           report, team, date: isoDate, seasonKey, config: BM.CONFIG_BASE, cycle: state.annualCycle, careerSeed: buildCycleCareerSeed(),
+          competitionIdForTeam: buildDomesticCompetitionResolver('cycleEmergency'),
           delegatedByUser: true,
           deps: {
             academyRegistry: state.academyRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
             registrationRegistry: state.registrationRegistry, annualCycleRegistry: state.annualCycleRegistry, teams: getAllTeams(),
-            lineup: state.lineup, calibration: BM.ContractSeeder.buildCompetitionCalibration(getAllTeams(), BM.CONFIG_BASE),
+            lineup: state.lineup,
+            calibration: BM.ContractSeeder.buildCompetitionCalibration(getAllTeams(), BM.CONFIG_BASE, {
+              seasonKey, competitionIdForTeam: buildDomesticCompetitionResolver('cycleEmergency:calibration'),
+            }),
           },
         });
         renderCycleScreen();
@@ -7677,12 +7754,16 @@
 
     const resolved = ContractService.resolveRulesForClub(team, {
       seasonKey, date: isoDate, operation: 'validateContract',
+      domesticCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'renderContractsScreen'),
     });
-    const payroll = ContractService.guaranteedPayrollForClub(registry, team.id, seasonKey);
-    const variable = ContractService.potentialVariableCompensationForClub(registry, team.id, seasonKey);
-    const benefits = ContractService.benefitsValueForClub(registry, team.id, seasonKey);
-    const agentCosts = ContractService.agentCostsForClub(registry, team.id, seasonKey);
-    const commitments = ContractService.futureCommitmentsForClub(registry, team.id, seasonKey);
+    // WORLD-CONTEXT-1: nómina/compromisos/comisiones son del CLUB
+    // institucional (`team.clubId`) — con `team.id` la pantalla Contratos
+    // mostraba 0 desde CLUB-CORE-1.
+    const payroll = ContractService.guaranteedPayrollForClub(registry, team.clubId, seasonKey);
+    const variable = ContractService.potentialVariableCompensationForClub(registry, team.clubId, seasonKey);
+    const benefits = ContractService.benefitsValueForClub(registry, team.clubId, seasonKey);
+    const agentCosts = ContractService.agentCostsForClub(registry, team.clubId, seasonKey);
+    const commitments = ContractService.futureCommitmentsForClub(registry, team.clubId, seasonKey);
     const integrity = registry.validateIntegrity({
       playerRegistry: state.playerRegistry, teams: getAllTeams(), date: isoDate, loanRegistry: state.loanRegistry,
     });
@@ -8135,9 +8216,12 @@
     const shown = rowsData.slice(0, 200);
     const rows = shown.map(({ player, availability }) => {
       const isFictional = BM.MarketSeeder && player.dataSource === BM.MarketSeeder.SIMULATED_FREE_AGENT_DATA_SOURCE;
-      const watched = state.marketRegistry.isWatched(team.id, player.id);
+      // WORLD-CONTEXT-1: la lista de seguimiento y los hilos de negociación
+      // se guardan por CLUB (`actingClubId`) — leerlos por `team.id` los
+      // dejaba siempre vacíos.
+      const watched = state.marketRegistry.isWatched(team.clubId, player.id);
       const mandate = state.agentRegistry.actingMandateForTransaction({ playerId: player.id, date: isoDate });
-      const existingThread = state.marketRegistry.threadsForClub(team.id).find((t) => t.playerId === player.id);
+      const existingThread = state.marketRegistry.threadsForClub(team.clubId).find((t) => t.playerId === player.id);
       const clubName = player.teamId ? (getAllTeams().find((t) => t.id === player.teamId) || { fullName: player.teamId }).fullName : 'Sin club';
       const isOwnPlayer = team.roster.some((p) => p.id === player.id);
       // WORLD-SIM-1 (DESIGN.md 10.16, BUG-WORLDSIM-05): un afiliado sin
@@ -8191,7 +8275,7 @@
 
   function renderMarketWatchlistTab(team) {
     const isoDate = currentGameIsoDate();
-    const watchedIds = state.marketRegistry.watchlistForClub(team.id);
+    const watchedIds = state.marketRegistry.watchlistForClub(team.clubId);
     const rows = watchedIds.map((playerId) => {
       const player = state.playerRegistry.get(playerId);
       if (!player) return '';
@@ -8222,7 +8306,10 @@
   // nunca inventa un mínimo/duración fuera de lo resuelto.
   function buildMarketOfferDraft(team, player, formData, isoDate) {
     const seasonKey = buildCareerSeasonKey();
-    const resolved = BM.ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' });
+    const resolved = BM.ContractService.resolveRulesForClub(team, {
+      seasonKey, date: isoDate, operation: 'validateMarketOffer',
+      domesticCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'buildMarketOfferDraft'),
+    });
     const employment = resolved.employment;
     const currency = employment.allowedCurrencies[0] || 'EUR';
     const seasonsCount = Math.max(1, Math.min(employment.maxTermYears || 5, formData.seasons));
@@ -8370,7 +8457,7 @@
 
   function renderMarketNegotiationsTab(team, marketContext) {
     const isoDate = currentGameIsoDate();
-    const threads = state.marketRegistry.threadsForClub(team.id);
+    const threads = state.marketRegistry.threadsForClub(team.clubId);
     if (!threads.length) {
       return '<div class="gm-card"><p class="gm-muted">Sin negociaciones abiertas — inicia una consulta desde "Buscar jugadores".</p></div>';
     }
@@ -8796,12 +8883,16 @@
           if (btn.dataset.mechanism === 'free-agent-signing') {
             outcome = BM.TransferService.formalizeFreeAgentSigning({
               ...deps, agreement, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+              // WORLD-CONTEXT-1: contexto competitivo por PAPEL.
+              destinationCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'formalizeFreeAgentSigning'),
             });
           } else if (btn.dataset.mechanism === 'release-clause-exercise') {
             const originContract = state.contractRegistry.currentForPlayer(agreement.playerId, isoDate);
             const originTeam = teamForClubId(originContract.clubId);
             outcome = BM.TransferService.formalizeReleaseClauseExercise({
               ...deps, agreement, originTeam, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
+              originCompetitionId: domesticCompetitionIdForTeam(originTeam, seasonKey, 'formalizeReleaseClause:origin'),
+              destinationCompetitionId: domesticCompetitionIdForTeam(team, seasonKey, 'formalizeReleaseClause:destination'),
               clauseId: btn.dataset.clauseId, exercisedBy: 'player',
             });
           }
@@ -8865,6 +8956,8 @@
             transferRegistry: state.transferRegistry, marketRegistry: state.marketRegistry, registrationRegistry: state.registrationRegistry,
             contractRegistry: state.contractRegistry, playerRegistry: state.playerRegistry, teams: getAllTeams(),
             agreement, originTeam, destinationTeam: team, seasonKey: buildCareerSeasonKey(), effectiveDate: isoDate, now: isoDate, commit: true,
+            originCompetitionId: domesticCompetitionIdForTeam(originTeam, buildCareerSeasonKey(), 'formalizeNegotiatedTransfer:origin'),
+            destinationCompetitionId: domesticCompetitionIdForTeam(team, buildCareerSeasonKey(), 'formalizeNegotiatedTransfer:destination'),
             clubOffer: proposedOffer, playerConsentGrantedAt: isoDate,
             operationalContext: currentTransferOperationalContext(), lineup: state.lineup,
           });
@@ -8926,8 +9019,13 @@
     const attemptKey = `${playerId}:${ownerTeam.id}:${borrowerTeam.id}:${serviceStartDate}`;
     state.loanNegotiationAttemptSequence[attemptKey] = (state.loanNegotiationAttemptSequence[attemptKey] || 0) + 1;
     const attempt = state.loanNegotiationAttemptSequence[attemptKey];
+    // WORLD-CONTEXT-1: competiciones de PROPIETARIO y CESIONARIO resueltas
+    // por separado desde sus Entries reales de esta temporada.
+    const ownerCompetitionId = domesticCompetitionIdForTeam(ownerTeam, seasonKey, 'loan:owner');
+    const borrowerCompetitionId = domesticCompetitionIdForTeam(borrowerTeam, seasonKey, 'loan:borrower');
     const { loanCase, proposal, resolvedRules } = BM.LoanService.openCaseAndPropose({
       loanRegistry, contractRegistry, ownerTeam, borrowerTeam, playerId, initiatingClubId, now, seasonKey,
+      ownerCompetitionId, borrowerCompetitionId,
       serviceStartDate, returnEffectiveDate, loanFee, salaryAllocation, clauses,
       medicalResponsibility: { responsibleParty: 'borrower' }, insuranceResponsibility: { responsibleParty: 'shared' },
       documentsRequired: [], expiresAt: now,
@@ -8960,7 +9058,7 @@
       loanRegistry, loanCase, partyType: initiatingIsOwner ? 'borrowerClub' : 'ownerClub', partyId: initiatingIsOwner ? borrowerTeam.clubId : ownerTeam.clubId, now, grantedBy: 'gm',
     });
     const playerEvaluation = BM.LoanService.evaluatePlayerReaction({
-      player, proposal, borrowerTeam, careerSeed, date: now,
+      player, proposal, borrowerTeam, careerSeed, date: now, borrowerCompetitionId,
     });
     if (playerEvaluation.decision !== 'accept') {
       loanCase.addEvent({ id: `${loanCase.id}:rejected`, type: 'rejected', date: now });
@@ -8983,6 +9081,8 @@
       agreement,
       ownerTeam,
       borrowerTeam,
+      ownerCompetitionId,
+      borrowerCompetitionId,
       now,
       effectiveDate: serviceStartDate,
       seasonKey,
@@ -9067,12 +9167,16 @@
               loanRegistry: state.loanRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
               registrationRegistry: state.registrationRegistry, transferRegistry: state.transferRegistry, teams: getAllTeams(),
               agreement, ownerTeam, borrowerTeam, now: isoDate, effectiveDate: isoDate, seasonKey: buildCareerSeasonKey(),
+              ownerCompetitionId: domesticCompetitionIdForTeam(ownerTeam, buildCareerSeasonKey(), 'loan:recall:owner'),
+              borrowerCompetitionId: domesticCompetitionIdForTeam(borrowerTeam, buildCareerSeasonKey(), 'loan:recall:borrower'),
               operationalContext: currentTransferOperationalContext(), lineup: state.lineup, commit: true, recallClauseId: btn.dataset.recallClauseId,
             })
             : BM.LoanService.earlyTerminateLoan({
               loanRegistry: state.loanRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
               registrationRegistry: state.registrationRegistry, transferRegistry: state.transferRegistry, teams: getAllTeams(),
               agreement, ownerTeam, borrowerTeam, now: isoDate, effectiveDate: isoDate, seasonKey: buildCareerSeasonKey(),
+              ownerCompetitionId: domesticCompetitionIdForTeam(ownerTeam, buildCareerSeasonKey(), 'loan:early-term:owner'),
+              borrowerCompetitionId: domesticCompetitionIdForTeam(borrowerTeam, buildCareerSeasonKey(), 'loan:early-term:borrower'),
               operationalContext: currentTransferOperationalContext(), lineup: state.lineup, commit: true,
               earlyTerminationClauseId: btn.dataset.clauseId, earlyTerminationConsents: ['ownerClub', 'borrowerClub', 'player'],
             });
