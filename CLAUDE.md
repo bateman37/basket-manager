@@ -1112,10 +1112,11 @@ Agenda/Home:
   proponerlas antes.
 - Los puentes legacy que quedan (`Calendar.js`/`CONFIG_BASE.calendar` como
   shim del "modo prueba", `getLeague(division)`/`getBrackets(division)`
-  como vista derivada de las pantallas españolas,
-  `UI_COMPETITION_KEY_BY_STAGE_KEY`) NO autorizan ningún call-site nuevo:
-  se consultan solo desde donde ya estaban y tienen su propietario de
-  retirada declarado en DESIGN.md 10.8.
+  como vista derivada de las pantallas españolas) NO autorizan ningún
+  call-site nuevo: se consultan solo desde donde ya estaban y tienen su
+  propietario de retirada declarado en DESIGN.md 10.8. (`UI_COMPETITION_KEY_BY_STAGE_KEY`,
+  vivo cuando se escribió este párrafo, queda retirado desde
+  WORLD-CLEANUP-1 — ver DESIGN.md 10.21.)
 
 ### PATHWAYS-1 (DESIGN.md 10.15) — clasificación y ascenso/descenso declarativos
 
@@ -1557,14 +1558,75 @@ cesiones, ciclo anual, planificación CPU o legalidad de plantilla:
   declarado no recibe trato preferente por defecto.
 - **Todo fixture/test NUEVO usa ids de Club y de Team DELIBERADAMENTE
   DISTINTOS** (`club:test` !== `team:test`) para que una confusión
-  `clubId`/`teamId` no pueda volver a quedar oculta. En `scripts/`, el
-  único uso tolerado de `competitionIdFromLegacyDivision()` es el helper
-  marcado `fixtureCompetitionIdFor(team)` de un fixture histórico, y debe
-  derivar de la división VIGENTE (nunca congelarla al construir el equipo:
-  un ascenso dentro del propio smoke cambia su competición).
+  `clubId`/`teamId` no pueda volver a quedar oculta. `CompetitionRules.
+  competitionIdFromLegacyDivision()` ya NO existe (retirado en
+  WORLD-CLEANUP-1, ver más abajo) — ningún fixture nuevo debe reintroducir
+  un adaptador de división, ni siquiera local.
 - `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
   cuando cambie el contrato de contexto competitivo o la semántica de
   identidades.
+
+### WORLD-CLEANUP-1 (DESIGN.md 10.21) — retirada final de proyecciones legacy
+
+Segunda y última corrección posterior a WORLD-HARDEN-1 (la primera fue
+WORLD-CONTEXT-1, arriba). Con esta entrega, World Architecture se declara
+estructuralmente cerrada — convenciones permanentes, breves y no
+duplicadas con el resto de este archivo:
+
+- **Participación se consulta SOLO por `CompetitionEntry`.** `Team.js` no
+  tiene `division`/`legacyDivision`/`DIVISIONS`/`validateDivision` —
+  ningún código nuevo los reintroduce, ni como campo ni como export.
+  Agrupar/materializar equipos por `['1ª','2ª']` está PROHIBIDO en
+  `game.js`; agrupa por `competitionDefinitionId` real
+  (`CareerParticipantFactory.groupTeamsByCompetitionId()`).
+- **Un Team no tiene una competición singular.** Puede tener Entry
+  simultánea en liga y Copa; un histórico de carrera (`PlayerCareer.
+  teamStints`) refleja eso con UN stint de servicio (`teamId`/`clubId`) y
+  un `competitionStats[]` por competición real disputada — nunca
+  `division`, nunca doble contabilización del total del stint.
+- **Metadatos de fase declarados por CONTENIDO, nunca por un mapa de UI.**
+  `CompetitionStageTemplate`/`CompetitionStage` llevan `rulesPhaseId`
+  (string opaco, congelado al crear la Stage) + `presentationRole`
+  opcional. `CompetitionEngine.describeCompetitionContext(registries,
+  stageId)` es el ÚNICO punto que resuelve nombres/fase reales de un
+  stage — `game.js` no vuelve a mantener
+  `UI_COMPETITION_KEY_BY_STAGE_KEY`/`competitionKeyForStageKey()`/
+  `BRACKET_PHASE_IDS`/`COMPETITION_LABELS` (retirados, no se reintroducen).
+  Ningún evento nuevo lleva `relatedCompetition: 'league'/'cup'/'playoff'/
+  'promotion'` — siempre un `competitionDefinitionId` real o `null`.
+- **Exposición competitiva por `CompetitionDefinition.tier`, nunca por
+  división.** `MatchConfig.playerDevelopment.exposure.competitionTierWeight`
+  (antes `divisionWeight`) + `defaultCompetitionTierWeight` para una
+  competición sin tier declarado. `recordMatchExposure()` congela el peso
+  aplicable EN EL MOMENTO del partido (`exp.weight`) — cambiar el catálogo
+  después nunca reescribe exposiciones pasadas.
+- **Career Setup valida el grafo COMPLETO de pathways alcanzable**, no
+  solo la competición inicial del club controlado
+  (`CareerSetupService.validateReachableCompetitionsAllowUserStop()`,
+  BFS puro con soporte de ciclos sobre `CompetitionPathwayRule` — nunca
+  una segunda tabla manual de alcanzabilidad). Un destino `catalog-only`
+  se ignora, nunca bloquea "Comenzar carrera".
+- **Ningún adaptador de España en el core genérico.** El core
+  (`Team.js`, `CompetitionParticipationService.js`, `CompetitionEngine.js`,
+  `CareerSetupService.js`) no contiene ningún literal `'1ª'/'2ª'`/ACB/
+  Primera FEB — el contenido español real (`data/world/spain-2026.1.js`)
+  y `src/ui/game.js` (única capa de interfaz autorizada a conocerlos)
+  siguen siendo los DOS únicos sitios permitidos, sin cambios de esa regla.
+- **`src/core/SpainLegacyCompetitionRuntime.js` retirado de `src/core`**
+  — vive en `scripts/fixtures/legacy/`, sin ningún call-site en `src/`.
+  `src/core/Calendar.js` SIGUE en su sitio, deliberadamente NO retirado
+  (~20 scripts todavía lo `require()` directamente; su migración es
+  trabajo propio de una futura sesión, no un efecto colateral de esta) —
+  no reinterpretar su presencia como deuda de esta entrega sin releer
+  DESIGN.md 10.21.7 primero.
+- `RegistrationRegistry.registrationsForClub()`/`cumulativeCountForClub()`
+  → `...ForTeam()`; `RetirementAnnouncement.clubIdAtAnnouncement` →
+  `teamIdAtAnnouncement`; `ContractSeeder`/`RegistrationSeeder.
+  seedFingerprint()` llaman `teamId` a su segundo componente — mismo
+  valor/orden de hash, nunca regenerado.
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambie la forma de exposición/histórico/Stage o la validación de
+  Career Setup.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 

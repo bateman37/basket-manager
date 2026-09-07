@@ -1,5 +1,145 @@
 # CHANGELOG.md
 
+## 2026-09-07 — WORLD-CLEANUP-1: retirada final de proyecciones legacy (DESIGN.md 10.21)
+
+Segunda y última PR de cierre posterior a WORLD-HARDEN-1 (la primera fue
+WORLD-CONTEXT-1, entrada de abajo). Base real: `origin/main` en `e9f7ab9`
+(merge de la PR #55 de WORLD-CONTEXT-1). Rama `refactor/world-cleanup-1`.
+No añade contenido jugable — la partida española sigue siendo el único
+contenido real instalado.
+
+### Bugs/deuda cerrados
+
+- **BUG-WORLD-CLEANUP-01** — `scripts/test-comp-core1.js` llevaba **21
+  OK, 11 FAIL** desde WORLD-SIM-1: sus fixtures construían
+  `CompetitionEdition`/`registerEditionWithInitialEntries()` sin el
+  `detailLevel` explícito obligatorio. Corregidos los FIXTURES (nunca la
+  validación productiva) → **32 OK, 0 FAIL**.
+- **BUG-WORLD-CLEANUP-02** — `scripts/smoke-world-calendar1.js` construía
+  un mundo sin `simulationProfile` (mismo fallo documentado desde
+  10.19.2 punto 7). Corregido con un `WorldSimulationProfile` explícito
+  (mismo perfil transitorio que `game.js`); el smoke no se ejecutó esta
+  sesión (fuera de la lista de verificación autorizada).
+- **BUG-WORLD-CLEANUP-03** — `PlayerDevelopment.computeExposureFactor()`
+  leía `config.playerDevelopment.exposure.divisionWeight[exp.division]` —
+  imposible de valorar una competición no española sin fingir una
+  división. Sustituido por `competitionTierWeight`/
+  `defaultCompetitionTierWeight`, resuelto por `CompetitionDefinition.tier`
+  y CONGELADO en el registro de exposición en el momento del partido.
+- **BUG-WORLD-CLEANUP-04** — `PlayerCareer.teamStints`/
+  `SeasonHistoryService`/`game.js` guardaban `division`; un Team puede
+  disputar varias competiciones en el mismo stint. Un stint ahora lleva
+  `{teamId, teamName, clubId, clubName, stats, competitionStats: []}` —
+  un acumulado por competición real, sin doble contabilización del total.
+- **BUG-WORLD-CLEANUP-05** — `src/ui/game.js` traducía `stageKey` a
+  semántica normativa/de historial con mapas fijos de UI
+  (`UI_COMPETITION_KEY_BY_STAGE_KEY`/`competitionKeyForStageKey()`/
+  `BRACKET_PHASE_IDS`/`COMPETITION_LABELS`). Retirados — el descriptor
+  canónico (`CompetitionEngine.describeCompetitionContext()`) resuelve
+  nombres/`rulesPhaseId` desde `CompetitionDefinition`/`CompetitionStage`
+  reales; `rulesPhaseId` se declara por CONTENIDO
+  (`CompetitionStageTemplate`, copiado a la Stage al crearse).
+- **BUG-WORLD-CLEANUP-06** — `CareerSetupService.validateDraft()` solo
+  comprobaba la competición INICIAL del club controlado. Ahora recorre el
+  grafo COMPLETO de `CompetitionPathwayRule` alcanzables (BFS puro, con
+  soporte de ciclos, ignora `catalog-only`), bloqueando "Comenzar carrera"
+  con un único mensaje que lista todos los destinos incompatibles y su
+  camino mínimo.
+- **BUG-WORLD-CLEANUP-07** — `src/core/SpainLegacyCompetitionRuntime.js`
+  ya no estaba en la ruta productiva pero seguía en `src/core`. Movido a
+  `scripts/fixtures/legacy/SpainLegacyCompetitionRuntime.js` (sin ningún
+  call-site en `src/`); sus tres consumidores históricos
+  (`test-world-core1.js`/`smoke-world-core1.js`/`smoke-club-core1.js`)
+  solo tuvieron su `require()` redirigido. `src/core/Calendar.js` NO se
+  tocó (deliberado, ver "Límites" abajo).
+
+### Símbolos/shims retirados
+
+`Team.division`/`Team.legacyDivision`/`Team.DIVISIONS`/
+`Team.validateDivision()`; `CompetitionDefinition.legacyDivision`;
+`CompetitionParticipationService.projectLegacyDivision()`/
+`projectLegacyDivisionForTeams()`; `CompetitionRules.
+competitionIdFromLegacyDivision()` y su tabla `'1ª'/'2ª'`;
+`SeasonHistoryService.captureDivisionsBefore()`/
+`applyPromotionsAndRelegations()` (sin call-site canónico; sobreviven
+solo para `scripts/cycle1-harness.js`, no ejecutado); `game.js`:
+`getRealTeamsByDivision()`, `UI_COMPETITION_KEY_BY_STAGE_KEY`,
+`competitionKeyForStageKey()`, `BRACKET_PHASE_IDS`, `COMPETITION_LABELS`;
+`src/core/SpainLegacyCompetitionRuntime.js` fuera de `src/core`.
+`SeasonGoals.recalculateSportingGoalsForDivision()` →
+`recalculateSportingGoalsForCohort()` (misma fórmula, cohorte por
+`competitionDefinitionId` real). `RegistrationRegistry.
+registrationsForClub()`/`cumulativeCountForClub()` →
+`registrationsForTeam()`/`cumulativeCountForTeam()`.
+`RetirementAnnouncement.clubIdAtAnnouncement` → `teamIdAtAnnouncement`.
+`ContractSeeder`/`RegistrationSeeder.seedFingerprint()`: segundo parámetro
+renombrado a `teamId` (mismo valor/orden de hash, sin regenerar ids).
+
+### Migraciones de forma
+
+- `MatchConfig.playerDevelopment.exposure`: `divisionWeight: {'1ª':1.0,
+  '2ª':0.7}` → `competitionTierWeight: {1:1.0, 2:0.7}` +
+  `defaultCompetitionTierWeight: 1`.
+- `PlayerDevelopment.recordMatchExposure()`: `{competition, division}` →
+  `{competitionDefinitionId, competitionTier, stageId}` + `weight`
+  congelado en el registro (nuevo parámetro `config` obligatorio).
+- `PlayerCareer` `teamStint`: `{teamId, teamName, division, stats}` →
+  `{teamId, teamName, clubId, clubName, stats, competitionStats:
+  [{competitionDefinitionId, competitionName, competitionShortName,
+  stats}]}`. `matchInfo`/milestones/personalBests: `competition`/
+  `team.division` → `competitionDefinitionId`/`stageId`.
+- `CompetitionStageTemplate`/`CompetitionStage`: + `rulesPhaseId` +
+  `presentationRole`. `data/world/spain-2026.1.js` declara `rulesPhaseId`
+  (`'league'`/`'title-playoff'`/`'promotion'` x2/`'cup'`) en sus cinco
+  stage templates reales — mismos valores que el mapa de UI retirado.
+- `Team.toJSON()`: sin `division`/`legacyDivision`.
+- `summary.userTeamDivision` (cierre de temporada, `game.js`) →
+  `summary.userPrimaryCompetitionId`.
+
+### Resultados exactos de pruebas
+
+- `node scripts/test-world-cleanup1.js` (nuevo, 7 comprobaciones
+  agrupadas): **7 OK, 0 FAIL**.
+- `node scripts/test-comp-core1.js`: **32 OK, 0 FAIL** (antes 21 OK, 11
+  FAIL).
+- `node scripts/test-world-context1.js`: **25 OK, 0 FAIL** (sin
+  regresión de la PR #55).
+- `node --check` sobre todo el JS nuevo/modificado y `git diff --check`:
+  sin errores.
+
+### Límites deliberados y checklist funcional manual pendiente
+
+- `src/core/Calendar.js` **NO se retira** — sigue cargado en
+  `index.html` (modo prueba técnico) y requerido directamente por ~20
+  scripts de `scripts/`, incluido un test de regresión que afirma que
+  `index.html` sigue cargándolo. Confirmado (auditoría estática) que no
+  tiene ningún caller real dentro de `index.html`/`game.js` — su
+  retirada exige migrar esos ~20 scripts primero, fuera del presupuesto
+  de esta sesión (ver DESIGN.md 10.21.7).
+- No se ejecutó ningún `smoke-*.js`, `test-world-calendar1.js`,
+  `test-pathways1.js`, `test-world-ui1.js`, `test-cycle1.js`,
+  `test-world-harden1.js`, batería de contratos/mercado/traspasos/
+  cesiones, Playwright, ni el audit de diez temporadas — validación
+  funcional manual pendiente de Dennis (checklist en DESIGN.md 10.21.9).
+- Varios scripts NO tocados quedan con imports/llamadas rotas por los
+  renombrados de esta sesión (`recalculateSportingGoalsForDivision` →
+  `...ForCohort`, `registrationsForClub`/`cumulativeCountForClub` →
+  `...ForTeam`, `competitionIdFromLegacyDivision` retirado de
+  `CompetitionRules.js`, `PlayerDevelopment.recordMatchExposure()` con
+  nueva firma) — aceptado deliberadamente (regla prioritaria de consumo:
+  sin campaña de migración de `scripts/`), nunca declarado verificado.
+- Deuda de naming NUEVA, detectada pero NO corregida esta sesión (fuera
+  de la lista explícita del prompt de origen): `RetirementRecord.
+  lastClubId`/`cleanup.rosterRemovedFromClubId` (`RetirementService.js`)
+  guardan en realidad `team.id`, mismo patrón que los tres puntos ya
+  corregidos — queda señalado para una futura sesión de naming.
+- **Confirmación honesta del estado final de la EPIC**: World Architecture
+  queda declarada **estructuralmente cerrada** con esta entrega — ningún
+  dominio productivo decide ya por `Team.division`/división legacy/mapas
+  fijos de UI. La única deuda estructural que sobrevive es la retirada de
+  `Calendar.js` (documentada, no oculta) y la validación funcional manual
+  completa (jugar la UI real varias temporadas), pendiente de Dennis.
+
 ## 2026-09-07 — WORLD-CONTEXT-1: contexto competitivo explícito e identidades canónicas Club/Team (DESIGN.md 10.20)
 
 Corrección arquitectónica POSTERIOR a WORLD-HARDEN-1 — no añade contenido
