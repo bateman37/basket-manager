@@ -19,7 +19,7 @@
     ? require('./playerGenerator.js')
     : global.BasketManager;
 
-  const { Team, DIVISIONS } = TeamCore;
+  const { Team } = TeamCore;
   const { CLUB_DNA_EXAMPLES, FACILITY_KEYS } = ClubCore;
   const { generateFictionalPlayers } = PlayerGenerator;
 
@@ -82,7 +82,6 @@
       name,
       city,
       foundationYear: randomInt(1930, 2005),
-      division: randomFrom(DIVISIONS),
       budget: randomInt(500000, 8000000),
       roster: generateFictionalPlayers(randomInt(14, 16), options.playerOptions),
       reputation: {

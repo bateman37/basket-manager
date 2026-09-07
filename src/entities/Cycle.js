@@ -589,7 +589,10 @@
       this.id = requireId(d.id, 'RetirementAnnouncement.id');
       this.cycleId = requireId(d.cycleId, 'RetirementAnnouncement.cycleId');
       this.playerId = requireId(d.playerId, 'RetirementAnnouncement.playerId');
-      this.clubIdAtAnnouncement = d.clubIdAtAnnouncement || null;
+      // WORLD-CLEANUP-1 (DESIGN.md 10.21, 10.20.5): renombrado desde
+      // `clubIdAtAnnouncement` — el valor guardado siempre fue `player.teamId`
+      // (afiliación de plantilla, nunca el `Club` institucional).
+      this.teamIdAtAnnouncement = d.teamIdAtAnnouncement || null;
       this.announcedAt = requireIso(d.announcedAt, 'RetirementAnnouncement.announcedAt');
       // Fecha EFECTIVA: normalmente el final del contrato garantizado en
       // vigor (CYCLE-1 nunca inventa una extinción unilateral a mitad de
@@ -619,7 +622,7 @@
         id: this.id,
         cycleId: this.cycleId,
         playerId: this.playerId,
-        clubIdAtAnnouncement: this.clubIdAtAnnouncement,
+        teamIdAtAnnouncement: this.teamIdAtAnnouncement,
         announcedAt: this.announcedAt,
         effectiveDate: this.effectiveDate,
         reasons: [...this.reasons],

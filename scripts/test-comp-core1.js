@@ -186,7 +186,7 @@ check('CompetitionEdition congela formatBindingId/scheduleProfileId/rulesetBundl
   const { world } = buildFictionalWorld({ id: 'world:test-edition-bindings' });
   const engine = new CompetitionEngine({ world });
   const { edition } = registerEditionWithInitialEntries(world, {
-    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-00', formatBindingId: FIXTURE_FORMAT_ID, scheduleProfileId: 'test-profile', rulesetBundleId: 'test-bundle-v1', participants: [],
+    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-00', formatBindingId: FIXTURE_FORMAT_ID, scheduleProfileId: 'test-profile', rulesetBundleId: 'test-bundle-v1', participants: [], detailLevel: 'playable',
   });
   assert.strictEqual(edition.formatBindingId, FIXTURE_FORMAT_ID);
   assert.strictEqual(edition.scheduleProfileId, 'test-profile');
@@ -196,7 +196,7 @@ check('CompetitionEdition congela formatBindingId/scheduleProfileId/rulesetBundl
 
 check('CompetitionEdition/Stage: transiciones de estado válidas y terminal nunca vuelve a activo', () => {
   const edition = new CompetitionEdition({
-    id: 'edition:t', competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-00', status: 'active',
+    id: 'edition:t', competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-00', status: 'active', detailLevel: 'playable',
   });
   edition.setStatus('completed');
   assert.strictEqual(edition.status, 'completed');
@@ -224,8 +224,8 @@ check('BUG-COMPCORE-01: registerCompetitionDefinition rechaza organizerId inexis
 
 check('BUG-COMPCORE-01: un Entry no puede registrarse en un Stage de OTRA edición', () => {
   const { world } = buildFictionalWorld({ id: 'world:test-bug01-entry' });
-  const editionA = new CompetitionEdition({ id: 'edition:a', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's1', status: 'active' });
-  const editionB = new CompetitionEdition({ id: 'edition:b', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's2', status: 'active' });
+  const editionA = new CompetitionEdition({ id: 'edition:a', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's1', status: 'active', detailLevel: 'playable' });
+  const editionB = new CompetitionEdition({ id: 'edition:b', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's2', status: 'active', detailLevel: 'playable' });
   world.registries.registerCompetitionEdition(editionA);
   world.registries.registerCompetitionEdition(editionB);
   const stageOfA = new CompetitionStage({
@@ -240,8 +240,8 @@ check('BUG-COMPCORE-01: un Entry no puede registrarse en un Stage de OTRA edici�
 
 check('BUG-COMPCORE-01: sourceStageIds/nextStageIds no pueden conectar stages de OTRA edición', () => {
   const { world } = buildFictionalWorld({ id: 'world:test-bug01-stage' });
-  const editionA = new CompetitionEdition({ id: 'edition:a2', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's1', status: 'active' });
-  const editionB = new CompetitionEdition({ id: 'edition:b2', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's2', status: 'active' });
+  const editionA = new CompetitionEdition({ id: 'edition:a2', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's1', status: 'active', detailLevel: 'playable' });
+  const editionB = new CompetitionEdition({ id: 'edition:b2', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's2', status: 'active', detailLevel: 'playable' });
   world.registries.registerCompetitionEdition(editionA);
   world.registries.registerCompetitionEdition(editionB);
   const stageA1 = new CompetitionStage({
@@ -256,7 +256,7 @@ check('BUG-COMPCORE-01: sourceStageIds/nextStageIds no pueden conectar stages de
 
 check('BUG-COMPCORE-01: validateIntegrity() detecta un ciclo de nextStageIds dentro de la misma edición', () => {
   const { world } = buildFictionalWorld({ id: 'world:test-bug01-cycle' });
-  const edition = new CompetitionEdition({ id: 'edition:cyc', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's1', status: 'active' });
+  const edition = new CompetitionEdition({ id: 'edition:cyc', competitionDefinitionId: 'testland-fixture-league', seasonKey: 's1', status: 'active', detailLevel: 'playable' });
   world.registries.registerCompetitionEdition(edition);
   const s1 = new CompetitionStage({
     id: 'stage:cyc:1', editionId: edition.id, stageType: 'round-robin', status: 'active', nextStageIds: ['stage:cyc:2'],
@@ -274,7 +274,7 @@ check('un participante aparece como máximo una vez por Stage (invariante 6, ví
   const { world, teams } = buildFictionalWorld({ id: 'world:test-one-entry-per-stage', teamCount: 4 });
   registerFixtureFormat();
   const { edition } = registerEditionWithInitialEntries(world, {
-    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-01', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })),
+    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-01', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })), detailLevel: 'playable',
   });
   const stageId = buildStageId('testland-fixture-league', '2099-01', 'regular-season');
   const entryIds = world.registries.competitionEntries.forStage(stageId).map((e) => e.participantId);
@@ -452,7 +452,7 @@ check('fixture NO española: engine ejecuta round-robin + bracket encadenados, a
   registerFixtureFormat();
   const engine = new CompetitionEngine({ world });
   const { edition } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-02', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })),
+    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-02', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })), detailLevel: 'playable',
   });
   engine.initializeEdition(edition.id);
   const regularStageId = buildStageId('testland-fixture-league', '2099-02', 'regular-season');
@@ -493,7 +493,7 @@ check('CompetitionEngine.snapshot(): JSON serializable sin Team/Map/funciones/ci
   registerFixtureFormat();
   const engine = new CompetitionEngine({ world });
   const { edition } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-03', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })),
+    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-03', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })), detailLevel: 'playable',
   });
   engine.initializeEdition(edition.id);
   const json = JSON.stringify(engine.snapshot());
@@ -506,7 +506,7 @@ check('consultas (peekNextPendingMatch/getStandings/getRunner) nunca mutan ni co
   registerFixtureFormat();
   const engine = new CompetitionEngine({ world });
   const { edition } = engine.registerEditionWithInitialEntries({
-    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-04', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })),
+    competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-04', formatBindingId: FIXTURE_FORMAT_ID, participants: teams.map((t) => ({ id: t.id })), detailLevel: 'playable',
   });
   engine.initializeEdition(edition.id);
   const stageId = buildStageId('testland-fixture-league', '2099-04', 'regular-season');
@@ -545,7 +545,7 @@ check('CompetitionParticipationService.primaryLeagueCompetitionId falla si hay m
     () => CompetitionParticipationService.primaryLeagueCompetitionId(world.registries, team.id, { seasonKey: '2099-05' }),
     /no tiene ninguna Entry de liga/,
   );
-  const edition = new CompetitionEdition({ id: 'edition:p1', competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-05', status: 'active' });
+  const edition = new CompetitionEdition({ id: 'edition:p1', competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-05', status: 'active', detailLevel: 'playable' });
   world.registries.registerCompetitionEdition(edition);
   world.registries.registerCompetitionEntry(new CompetitionEntry({
     id: 'entry:p1', editionId: edition.id, participantType: 'club-team', participantId: team.id,
@@ -557,7 +557,7 @@ check('CompetitionParticipationService.primaryLeagueCompetitionId falla si hay m
 check('un Team puede tener Entries simultáneas en dos competiciones (invariante 7/8)', () => {
   const { world, teams } = buildFictionalWorld({ id: 'world:test-multi-competition', teamCount: 2 });
   const team = teams[0];
-  const editionLeague = new CompetitionEdition({ id: 'edition:ml1', competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-06', status: 'active' });
+  const editionLeague = new CompetitionEdition({ id: 'edition:ml1', competitionDefinitionId: 'testland-fixture-league', seasonKey: '2099-06', status: 'active', detailLevel: 'playable' });
   world.registries.registerCompetitionEdition(editionLeague);
   world.registries.registerCompetitionEntry(new CompetitionEntry({
     id: 'entry:ml1', editionId: editionLeague.id, participantType: 'club-team', participantId: team.id,
@@ -566,7 +566,7 @@ check('un Team puede tener Entries simultáneas en dos competiciones (invariante
     id: 'testland-fixture-cup', scopeLevel: 'national', scopeAreaId: 'area-country-testland', organizerId: 'org-testland', participantType: 'club-team', kind: 'cup',
   });
   world.registries.registerCompetitionDefinition(cupDefinition);
-  const editionCup = new CompetitionEdition({ id: 'edition:mc1', competitionDefinitionId: cupDefinition.id, seasonKey: '2099-06', status: 'active' });
+  const editionCup = new CompetitionEdition({ id: 'edition:mc1', competitionDefinitionId: cupDefinition.id, seasonKey: '2099-06', status: 'active', detailLevel: 'playable' });
   world.registries.registerCompetitionEdition(editionCup);
   world.registries.registerCompetitionEntry(new CompetitionEntry({
     id: 'entry:mc1', editionId: editionCup.id, participantType: 'club-team', participantId: team.id,

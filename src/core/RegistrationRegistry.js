@@ -146,8 +146,8 @@
       return (this._registrationsByPlayer.get(playerId) || []).map((id) => this._registrations.get(id));
     }
 
-    registrationsForClub(clubId) {
-      return (this._registrationsByClub.get(clubId) || []).map((id) => this._registrations.get(id));
+    registrationsForTeam(teamId) {
+      return (this._registrationsByClub.get(teamId) || []).map((id) => this._registrations.get(id));
     }
 
     registrationsForScope(registrationScopeId) {
@@ -188,8 +188,8 @@
     // Cuenta cuántas altas de un club COMPUTAN para el máximo acumulado de
     // la temporada (sección 6.4: el resultado se CONGELA por registro en
     // `cumulativeCap.counted`, nunca se recalcula desde cero aquí).
-    cumulativeCountForClub(clubId, registrationScopeId, seasonKey) {
-      return this.registrationsForClub(clubId).filter((registration) => (
+    cumulativeCountForTeam(teamId, registrationScopeId, seasonKey) {
+      return this.registrationsForTeam(teamId).filter((registration) => (
         registration.registrationScopeId === registrationScopeId
         && registration.seasonKey === seasonKey
         && registration.cumulativeCap.counted

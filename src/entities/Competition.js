@@ -88,7 +88,6 @@
       // segunda fuente) para no romper ningún consumidor existente.
       this.organizerCountry = data.organizerCountry !== undefined ? data.organizerCountry : null;
       this.federationId = data.federationId !== undefined ? data.federationId : null;
-      this.legacyDivision = data.legacyDivision !== undefined ? data.legacyDivision : null;
     }
 
     toJSON() {
@@ -110,7 +109,6 @@
         provenance: this.provenance,
         organizerCountry: this.organizerCountry,
         federationId: this.federationId,
-        legacyDivision: this.legacyDivision,
       };
     }
   }
@@ -203,6 +201,11 @@
       // (`_stageKeyFromId()` sigue viva en CompetitionEngine.js SOLO como
       // shim de compatibilidad para stages legacy sin este campo).
       this.stageKey = data.stageKey !== undefined ? data.stageKey : null;
+      // WORLD-CLEANUP-1 (DESIGN.md 10.21) — copiados desde el
+      // `CompetitionStageTemplate` de contenido al crear la Stage; nunca
+      // decididos por la UI a partir de `stageKey` (ver `CLAUDE.md`).
+      this.rulesPhaseId = data.rulesPhaseId !== undefined ? data.rulesPhaseId : null;
+      this.presentationRole = data.presentationRole !== undefined ? data.presentationRole : null;
       this.entryIds = [];
       this.sourceStageIds = Array.isArray(data.sourceStageIds) ? [...data.sourceStageIds] : [];
       this.nextStageIds = Array.isArray(data.nextStageIds) ? [...data.nextStageIds] : [];
@@ -223,6 +226,8 @@
         stageType: this.stageType,
         status: this.status,
         stageKey: this.stageKey,
+        rulesPhaseId: this.rulesPhaseId,
+        presentationRole: this.presentationRole,
         entryIds: [...this.entryIds],
         sourceStageIds: [...this.sourceStageIds],
         nextStageIds: [...this.nextStageIds],
@@ -233,7 +238,7 @@
 
   // ---------------------------------------------------------------------
   // CompetitionEntry — fuente de verdad de participación (invariante 8:
-  // nunca se deriva de nacionalidad ni de `Team.division`).
+  // nunca se deriva de nacionalidad ni de una división legacy).
   // ---------------------------------------------------------------------
   class CompetitionEntry {
     constructor(data = {}) {
@@ -393,6 +398,16 @@
       // BracketStageRunner) — dato plano, nunca funciones/instancias vivas.
       this.runnerConfig = JSON.parse(JSON.stringify(data.runnerConfig || {}));
       this.completesEdition = Boolean(data.completesEdition);
+      // WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 9.1 del prompt) —
+      // metadatos DECLARADOS por el contenido, copiados a la `CompetitionStage`
+      // real al crearse. `rulesPhaseId`: string opaco que un ruleset puede
+      // usar para distinguir fase (p.ej. una regla de convocatoria); NUNCA un
+      // enum mundial cerrado de "liga/copa/playoff/promoción" — el contenido
+      // puede acuñar la fase que quiera. `presentationRole` es opcional, solo
+      // para agrupar/presentar cuando existe un consumidor real (p.ej. la
+      // pantalla española).
+      this.rulesPhaseId = data.rulesPhaseId !== undefined ? data.rulesPhaseId : null;
+      this.presentationRole = data.presentationRole !== undefined ? data.presentationRole : null;
       Object.freeze(this.runnerConfig);
       Object.freeze(this.activation);
       Object.freeze(this.entrySource);
@@ -410,6 +425,8 @@
         entrySource: { ...this.entrySource },
         runnerConfig: JSON.parse(JSON.stringify(this.runnerConfig)),
         completesEdition: this.completesEdition,
+        rulesPhaseId: this.rulesPhaseId,
+        presentationRole: this.presentationRole,
       };
     }
   }

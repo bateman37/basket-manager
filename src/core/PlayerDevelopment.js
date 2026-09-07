@@ -266,20 +266,36 @@
   }
 
   // --- Sección 19: exposición competitiva (minutos, rendimientos
-  // decrecientes) ---
+  // decrecientes) --- WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 6 del
+  // prompt): el peso aplicado es el que quedó CONGELADO en el registro
+  // (`exp.weight`, resuelto en `recordMatchExposure()` en el momento del
+  // partido) — cambiar el catálogo de competiciones/tiers más adelante
+  // nunca reescribe exposiciones pasadas.
   function computeExposureFactor(player, tickDate, config) {
-    const { windowDays, referenceWeeklyMinutes, zeroMinutesFactor, divisionWeight } = config.playerDevelopment.exposure;
+    const { windowDays, referenceWeeklyMinutes, zeroMinutesFactor } = config.playerDevelopment.exposure;
     const exposures = player.developmentState.matchExposures || [];
     const windowStart = tickDate.getTime() - windowDays * 24 * 60 * 60 * 1000;
     let weightedMinutes = 0;
     exposures.forEach((exp) => {
       const expDate = exp.date instanceof Date ? exp.date : new Date(exp.date);
       if (expDate.getTime() < windowStart || expDate.getTime() > tickDate.getTime()) return;
-      const weight = divisionWeight[exp.division] !== undefined ? divisionWeight[exp.division] : 1;
+      const weight = exp.weight !== undefined && exp.weight !== null ? exp.weight : 1;
       weightedMinutes += exp.minutes * weight;
     });
     const weeklyMinutes = weightedMinutes / (windowDays / 7);
     return zeroMinutesFactor + (1 - zeroMinutesFactor) * Math.sqrt(Math.max(0, weeklyMinutes) / referenceWeeklyMinutes);
+  }
+
+  // Resuelve el peso de exposición aplicable a una competición — SIEMPRE
+  // por `CompetitionDefinition.tier` (nunca por id/nombre de competición
+  // concreta); sin tier declarado, la política genérica documentada
+  // (`defaultCompetitionTierWeight`, nunca decidida por nombre español).
+  function resolveCompetitionTierWeight(competitionTier, config) {
+    const { competitionTierWeight, defaultCompetitionTierWeight } = config.playerDevelopment.exposure;
+    if (competitionTier !== null && competitionTier !== undefined && competitionTierWeight[competitionTier] !== undefined) {
+      return competitionTierWeight[competitionTier];
+    }
+    return defaultCompetitionTierWeight;
   }
 
   // Elimina del estado las exposiciones que ya han salido de la ventana (no
@@ -414,15 +430,26 @@
   // `positionMinutes` (LIFE-2, DESIGN.md 9, sección 17 del prompt de esa
   // sesión): opcional, `{ [position]: minutes }` — minutos REALES por
   // posición ocupada en pista (Rotation.js/MatchEngine.rotationSummary),
-  // nunca inferidos de `nominalPosition`. Campo canónico nuevo del mismo
-  // registro de exposición, no una estructura paralela.
+  // nunca inferidos de `nominalPosition`. WORLD-CLEANUP-1 (DESIGN.md 10.21,
+  // sección 6 del prompt): el descriptor de competición es SIEMPRE canónico
+  // (`competitionDefinitionId`/`competitionTier`/`stageId`) — nunca un id de
+  // ACB/FEB ni una división; `weight` congela el peso aplicable EN ESTE
+  // INSTANTE (`resolveCompetitionTierWeight()`), para que un cambio futuro
+  // del catálogo nunca reescriba el pasado.
   function recordMatchExposure(player, {
-    date, minutes, competition, division, positionMinutes,
-  }) {
+    date, minutes, competitionDefinitionId, competitionTier, stageId, positionMinutes,
+  }, config) {
     if (!minutes || minutes <= 0) return;
     if (!player.developmentState) return; // defensivo: se inicializa en ensureDevelopmentState antes de esto
+    const weight = resolveCompetitionTierWeight(competitionTier, config);
     player.developmentState.matchExposures.push({
-      date, minutes, competition, division, positionMinutes: positionMinutes || undefined,
+      date,
+      minutes,
+      competitionDefinitionId: competitionDefinitionId || null,
+      competitionTier: competitionTier !== undefined ? competitionTier : null,
+      stageId: stageId || null,
+      weight,
+      positionMinutes: positionMinutes || undefined,
     });
   }
 
@@ -587,6 +614,7 @@
     computeMindsetFactor,
     computeLearningFactor,
     computeExposureFactor,
+    resolveCompetitionTierWeight,
     computeFacilityFactor,
     staffRatingToFactor,
     ensureDevelopmentState,

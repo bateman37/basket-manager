@@ -187,7 +187,7 @@
 
     // -- Documentos/registro de destino (validación de disponibilidad) ------
     if (registrationRegistry && cmd.toRegistration && cmd.toRegistration.registrationScopeId) {
-      const currentCumulative = registrationRegistry.cumulativeCountForClub(toTeam.id, cmd.toRegistration.registrationScopeId, cmd.seasonKey);
+      const currentCumulative = registrationRegistry.cumulativeCountForTeam(toTeam.id, cmd.toRegistration.registrationScopeId, cmd.seasonKey);
       const cap = cmd.toRegistration.cumulativeRegistrationCapMax;
       if (cap !== undefined && cap !== null && cmd.movementType === 'activation') {
         check(`El club de destino no ha agotado el cupo acumulado de inscripción declarado (${currentCumulative}/${cap}).`, currentCumulative < cap, 'REGISTRATION_CAP_EXCEEDED');
@@ -203,7 +203,7 @@
       fromRosterPlayerIds: fromTeam.roster.map((p) => p.id).sort(),
       toRosterPlayerIds: toTeam.roster.map((p) => p.id).sort(),
       destinationCumulativeRegistrationCount: (registrationRegistry && cmd.toRegistration && cmd.toRegistration.registrationScopeId)
-        ? registrationRegistry.cumulativeCountForClub(toTeam.id, cmd.toRegistration.registrationScopeId, cmd.seasonKey)
+        ? registrationRegistry.cumulativeCountForTeam(toTeam.id, cmd.toRegistration.registrationScopeId, cmd.seasonKey)
         : null,
       resolvedLoanRulesHash: resolvedLoanRules ? stableHash(resolvedLoanRules.trace) : null,
       pendingUserMatchBlocks: hasOperationalContext ? deps.operationalContext.pendingUserMatchBlocks : null,

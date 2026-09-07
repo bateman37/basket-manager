@@ -39,7 +39,7 @@ const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bun
 const WorldFactory = require('../src/core/WorldFactory.js');
 const { WORLD_CORE_MANIFEST } = require('../data/world/world-core-2026.1.js');
 const { SPAIN_MANIFEST } = require('../data/world/spain-2026.1.js');
-const { SpainLegacyCompetitionRuntime } = require('../src/core/SpainLegacyCompetitionRuntime.js');
+const { SpainLegacyCompetitionRuntime } = require('./fixtures/legacy/SpainLegacyCompetitionRuntime.js');
 const { AcademyService } = require('../src/core/AcademyService.js');
 const harness = require('./cycle1-harness.js');
 

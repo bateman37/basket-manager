@@ -275,7 +275,7 @@
 
   function announceRetirement(params) {
     const {
-      annualCycleRegistry, cycle, player, clubId, date, currentContract, reasons, forced,
+      annualCycleRegistry, cycle, player, teamId, date, currentContract, reasons, forced,
     } = params;
     const iso = toIso(date);
     const existing = annualCycleRegistry.retirementAnnouncementsForPlayer(player.id)
@@ -286,7 +286,7 @@
       id: `retirement:${cycle.id}:${player.id}`,
       cycleId: cycle.id,
       playerId: player.id,
-      clubIdAtAnnouncement: clubId || null,
+      teamIdAtAnnouncement: teamId || null,
       announcedAt: iso,
       effectiveDate,
       reasons: reasons || [],
@@ -450,7 +450,7 @@
         playerId: player.id,
         effectiveDate: announcement.effectiveDate,
         transactionId,
-        lastClubId: cleanup.rosterRemovedFromClubId || announcement.clubIdAtAnnouncement || null,
+        lastClubId: cleanup.rosterRemovedFromClubId || announcement.teamIdAtAnnouncement || null,
         finalSeasonKey: seasonKey || null,
         cleanup,
         careerSummary: player.careerHistory ? {

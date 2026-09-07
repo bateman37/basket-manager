@@ -62,14 +62,14 @@
     return { counted: true, reasonCode: 'ORDINARY_REGISTRATION' };
   }
 
-  function assertCumulativeCapNotExceeded(registry, clubId, registrationScopeId, seasonKey, resolved, impact) {
+  function assertCumulativeCapNotExceeded(registry, teamId, registrationScopeId, seasonKey, resolved, impact) {
     if (!impact.counted) return;
     const cap = resolved.registration && resolved.registration.cumulativeRegistrationCap;
     if (!cap) return;
-    const current = registry.cumulativeCountForClub(clubId, registrationScopeId, seasonKey);
+    const current = registry.cumulativeCountForTeam(teamId, registrationScopeId, seasonKey);
     if (current >= cap.max) {
       throw new Error(
-        `RegistrationService: el club "${clubId}" ya alcanzó el máximo acumulado de ${cap.max} inscripciones `
+        `RegistrationService: el equipo "${teamId}" ya alcanzó el máximo acumulado de ${cap.max} inscripciones `
         + `en "${registrationScopeId}"/${seasonKey} — no se puede registrar una nueva alta que compute.`,
       );
     }

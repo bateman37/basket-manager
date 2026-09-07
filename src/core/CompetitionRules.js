@@ -64,24 +64,12 @@
   // ---------------------------------------------------------------------
   const { COMPETITION_IDS, COMPETITION_DEFINITIONS, getCompetitionDefinition, listCompetitions } = CompetitionCatalogModule;
 
-  // Adaptador de frontera ÚNICO legacy ('1ª'/'2ª') -> competitionId real
-  // (DESIGN.md 9.16). Ninguna lógica NUEVA debe volver a ramificar sobre
-  // '1ª'/'2ª' fuera de este único punto.
-  const LEGACY_DIVISION_TO_COMPETITION_ID = {
-    '1ª': COMPETITION_IDS.ACB,
-    '2ª': COMPETITION_IDS.PRIMERA_FEB,
-  };
-
-  function competitionIdFromLegacyDivision(division) {
-    const competitionId = LEGACY_DIVISION_TO_COMPETITION_ID[division];
-    if (!competitionId) {
-      throw new Error(
-        `competitionIdFromLegacyDivision: división legacy desconocida "${division}" — no hay adaptador `
-        + 'registrado (nunca se asume ACB por defecto).',
-      );
-    }
-    return competitionId;
-  }
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21): el adaptador legacy de división
+  // ('1ª'/'2ª' -> competitionId real) queda RETIRADO — sin ningún
+  // call-site productivo desde WORLD-CONTEXT-1 (ver CLAUDE.md), y sin el
+  // vocabulario cerrado de división en la entidad `Team` para alimentarlo.
+  // Los fixtures históricos que aún lo necesiten (`scripts/`) resuelven su
+  // propio adaptador local — no se conserva aquí ninguna tabla `'1ª'/'2ª'`.
 
   // ---------------------------------------------------------------------
   // 3. Vigencia (`validity`) y selección temporal — CONTRACT-1,
@@ -3607,7 +3595,6 @@
   const exportsObj = {
     COMPETITION_IDS,
     RESOLUTION_MODES,
-    competitionIdFromLegacyDivision,
     getCompetitionDefinition,
     listCompetitions,
     getRegistrationModule,

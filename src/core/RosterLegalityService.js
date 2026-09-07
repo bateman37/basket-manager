@@ -100,7 +100,7 @@
 
     const pool = team.roster.map((player) => evaluateFor(player, 'senior'));
 
-    registrationRegistry.registrationsForClub(team.id)
+    registrationRegistry.registrationsForTeam(team.id)
       .filter((r) => r.accessCategory === 'own-lower-category' && r.seasonKey === context.seasonKey && r.isEffectiveOn(context.date))
       .forEach((r) => {
         const player = playerRegistry.get(r.playerId);
@@ -410,7 +410,7 @@
 
     // --- Cupo acumulado de inscripciones consumido ----------------------
     const cumulativeConsumed = registrationRegistry
-      ? registrationRegistry.cumulativeCountForClub(team.id, resolved.registrationScopeId, seasonKey) : 0;
+      ? registrationRegistry.cumulativeCountForTeam(team.id, resolved.registrationScopeId, seasonKey) : 0;
     const cumulativeCap = (resolved.registration && resolved.registration.cumulativeRegistrationCap)
       ? resolved.registration.cumulativeRegistrationCap.max : null;
     if (cumulativeCap !== null && cumulativeConsumed >= cumulativeCap) {

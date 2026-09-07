@@ -262,10 +262,10 @@
     // -- Documentos/registro de destino (validación de disponibilidad, sin
     //    mutar: la creación real ocurre en commit) -----------------------
     if (registrationRegistry && cmd.registrationScopeId) {
-      // `cumulativeCountForClub` cuenta por Team real (así indexa
+      // `cumulativeCountForTeam` cuenta por Team real (así indexa
       // internamente el registro, ver RegistrationRegistry.js) — nunca por
       // Club id directamente.
-      const currentCumulative = registrationRegistry.cumulativeCountForClub(destinationTeam.id, cmd.registrationScopeId, cmd.seasonKey);
+      const currentCumulative = registrationRegistry.cumulativeCountForTeam(destinationTeam.id, cmd.registrationScopeId, cmd.seasonKey);
       const cap = resolvedTransferRules && resolvedTransferRules.destinationRegistrationRules
         ? resolvedTransferRules.destinationRegistrationRules.cumulativeRegistrationCapReference : null;
       if (cmd.cumulativeRegistrationCapMax !== undefined && cmd.cumulativeRegistrationCapMax !== null) {
@@ -366,7 +366,7 @@
       originContractLifecycleHash: originContract ? stableHash(originContract.lifecycleEvents) : null,
       destinationRosterPlayerIds: destinationTeam.roster.map((p) => p.id).sort(),
       destinationCumulativeRegistrationCount: (registrationRegistry && cmd.registrationScopeId)
-        ? registrationRegistry.cumulativeCountForClub(destinationTeam.id, cmd.registrationScopeId, cmd.seasonKey)
+        ? registrationRegistry.cumulativeCountForTeam(destinationTeam.id, cmd.registrationScopeId, cmd.seasonKey)
         : null,
       resolvedTransferRulesHash: resolvedTransferRules ? stableHash(resolvedTransferRules.trace) : null,
       pendingUserMatchBlocks: hasOperationalContext ? deps.operationalContext.pendingUserMatchBlocks : null,

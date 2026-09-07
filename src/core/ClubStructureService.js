@@ -7,7 +7,7 @@
 //  - nunca lee `state` de game.js ni el DOM — recibe siempre `registries`
 //    (una instancia de `WorldRegistries`, normalmente `state.world.
 //    registries`) explícita;
-//  - nunca decide nada por nombre visible ni por división/legacyDivision;
+//  - nunca decide nada por nombre visible ni por una división legacy;
 //  - nunca asume `clubId === teamId` — toda relación se resuelve por las
 //    referencias YA registradas (`team.clubId`, `club.primaryTeamId`,
 //    `squad.teamId`), nunca comparando ids entre sí ni sustituyendo

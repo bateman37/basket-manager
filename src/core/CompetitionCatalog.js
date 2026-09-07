@@ -74,7 +74,6 @@
     // Compatibilidad legacy — ver Competition.js.
     organizerCountry: 'ES',
     federationId: 'feb-general',
-    legacyDivision: '1ª',
   });
 
   buildAndRegister({
@@ -94,7 +93,6 @@
     provenance: { dataSource: 'spain-2026.1', status: 'verified' },
     organizerCountry: 'ES',
     federationId: 'feb-general',
-    legacyDivision: '2ª',
   });
 
   buildAndRegister({
@@ -118,7 +116,6 @@
     provenance: { dataSource: 'spain-2026.1', status: 'verified' },
     organizerCountry: 'ES',
     federationId: 'feb-general',
-    legacyDivision: null,
   });
 
   buildAndRegister({
@@ -142,7 +139,6 @@
     provenance: { dataSource: 'spain-2026.1', status: 'provisional' },
     organizerCountry: 'ES',
     federationId: 'feb-general',
-    legacyDivision: null,
   });
 
   buildAndRegister({
@@ -162,7 +158,6 @@
     provenance: { dataSource: 'test-fixture', status: 'provisional' },
     organizerCountry: 'XX',
     federationId: null,
-    legacyDivision: null,
   });
 
   function getCompetitionDefinition(competitionId) {

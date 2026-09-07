@@ -36,7 +36,6 @@
 
   function ClubCore() { return ClubEntityModule; }
 
-  const DIVISIONS = ['1ª', '2ª'];
 
   // NATIONAL-TEAMS-1 (DESIGN.md 10.17) — vocabulario CERRADO de qué clase de
   // entidad deportiva es este `Team`. `club-team` es el fallback SOLO del
@@ -211,21 +210,10 @@
       // unas líneas más abajo; asignarlo aquí (antes de que exista
       // `this._institutionalBootstrap`) invocaría el setter sobre un
       // bootstrap todavía inexistente.
-      this.division = Team.validateDivision(data.division);
-
-      // --- World Architecture (WORLD-CORE-1, ARCH-WORLD-06/07) ---
-      // Puente de compatibilidad hacia la nueva jerarquía mundial (`Club`/
-      // `CompetitionEntry`, ver `src/entities/Club.js`/`Competition.js`):
-      // opcional aquí (Team sigue instanciándose sin mundo en tests/modo
-      // prueba), se asigna aparte tras construir el equipo cuando un
-      // paquete de contenido (`data/world/spain-2026.1.js`) lo afilia a un
-      // `Club` — mismo patrón ya establecido para `player.dataSource`
-      // (fuera del constructor de Player). `division` NUNCA es la fuente
-      // de verdad de participación desde WORLD-CORE-1 (invariante 8):
-      // sigue existiendo como alias legacy para el runtime todavía no
-      // migrado (Liga/Copa/Playoffs/Ascenso), pero `legacyDivision` es el
-      // nombre explícito para código NUEVO que necesite leer ese puente
-      // sabiendo que es compatibilidad, no verdad.
+      // --- World Architecture ---
+      // Participación se consulta SIEMPRE en `CompetitionEntry` (WORLD-CLEANUP-1,
+      // DESIGN.md 10.21) — un Team no "pertenece" a una única competición ni
+      // a una división; puede tener Entries simultáneas en varias.
       // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 3.1 del prompt) —
       // relaciones VÁLIDAS por `teamKind`: un "club-team" exige `clubId`
       // (al entrar en `GameWorld`, comprobado por
@@ -270,7 +258,6 @@
       this.category = buildTeamCategory(data.category);
       this.teamType = data.teamType || composeLegacyTeamType(this.role, this.category);
       this.homeAreaId = data.homeAreaId || null;
-      this.legacyDivision = data.legacyDivision || this.division;
 
       // Estadio: entidad propia todavía no implementada (DESIGN.md 6.2:
       // "el equipo solo referencia su instancia de estadio"). Aforo y
@@ -341,23 +328,6 @@
         physiotherapy: medicalStaffContext.physiotherapy !== undefined ? medicalStaffContext.physiotherapy : 10,
         physicalPreparation: medicalStaffContext.physicalPreparation !== undefined ? medicalStaffContext.physicalPreparation : 10,
       };
-    }
-
-    // BUG-WORLDCORE-09 (CLUB-CORE-1, corregido): antes devolvía '1ª' en
-    // silencio ante `undefined`, aunque WORLD-CORE-1 ya afirmaba (comentarios,
-    // CHANGELOG, invariante 14) que no existía fallback universal a la
-    // primera división. Un `Team` genérico sin división legacy conserva
-    // `division: null` (y por tanto `legacyDivision: null`, ver
-    // constructor); un valor explícito no reconocido sigue fallando de
-    // forma descriptiva. El contenido español sigue pasando siempre '1ª' o
-    // '2ª' de forma explícita mientras exista el runtime legacy (ver
-    // `data/world/spain-2026.1.js`/`src/utils/teamGenerator.js`).
-    static validateDivision(division) {
-      if (division === undefined || division === null) return null;
-      if (!DIVISIONS.includes(division)) {
-        throw new Error('División no válida: debe ser una de ' + DIVISIONS.join(', '));
-      }
-      return division;
     }
 
     get fullName() {
@@ -606,7 +576,6 @@
         id: this.id,
         name: this.name,
         city: this.city,
-        division: this.division,
         teamKind: this.teamKind,
         clubId: this.clubId,
         federationOrganizationId: this.federationOrganizationId,
@@ -615,7 +584,6 @@
         role: this.role,
         category: { ...this.category },
         homeAreaId: this.homeAreaId,
-        legacyDivision: this.legacyDivision,
         primarySquadId: this.primarySquadId,
         stadium: this.stadium,
         roster: this.roster.map((player) => (typeof player.toJSON === 'function' ? player.toJSON() : player)),
@@ -645,7 +613,6 @@
 
   const exportsObj = {
     Team,
-    DIVISIONS,
     TEAM_KINDS,
     MATCH_SQUAD_MIN,
     MATCH_SQUAD_MAX,
