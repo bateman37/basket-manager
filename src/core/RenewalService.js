@@ -34,6 +34,11 @@
   const ContractServiceModule = isNode ? require('./ContractService.js') : global.BasketManager;
   const MarketServiceModule = isNode ? require('./MarketService.js') : global.BasketManager;
   const NegotiationServiceModule = isNode ? require('./NegotiationService.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
+
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   function LD() { return LocalDateModule.LocalDate; }
   function M() { return MoneyModule.Money; }
@@ -201,13 +206,18 @@
   // =====================================================================
   // 3. Expediente de renovación
   // =====================================================================
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): `domesticCompetitionId` OBLIGATORIO —
+  // la instantánea de contexto laboral del expediente se congela con la
+  // competición EXPLÍCITA del llamador, nunca derivada de `team.division`.
   function openRenewalCase(params) {
     const {
-      annualCycleRegistry, cycle, player, team, expiringContract, date, seasonKey,
+      annualCycleRegistry, cycle, player, team, expiringContract, date, seasonKey, domesticCompetitionId,
     } = params;
     const iso = toIso(date);
     const window = renewalWindowFor(expiringContract, iso);
-    const employmentContext = ContractSvc().resolveEmploymentContext(team, {});
+    const employmentContext = ContractSvc().resolveEmploymentContext(team, {
+      domesticCompetitionId, seasonKey, operation: 'openRenewalCase',
+    });
     const renewalCase = new CycleEntities.RenewalCase({
       id: `renewal:${cycle.id}:${team.id}:${player.id}`,
       cycleId: cycle.id,
@@ -276,7 +286,13 @@
         agentRegistry,
         playerId: player.id,
         actingClubId: team.clubId,
-        prospectiveCompetitionIds: [resolved.competitionId || null].filter(Boolean),
+        // WORLD-CONTEXT-1: la competición doméstica vive en el contexto
+        // CONGELADO de la normativa resuelta (`requestedContext`), nunca en
+        // un inexistente `resolved.competitionId` (que dejaba el campo
+        // vacío en todas las renovaciones).
+        prospectiveCompetitionIds: [CompetitionContext().domesticCompetitionIdFromResolvedEmployment(resolved, {
+          operation: 'RenewalService.sendRenewalOfferAndResolve', teamId: team.id, clubId: team.clubId, seasonKey,
+        })],
         date: iso,
         marketContext,
         careerSeed,

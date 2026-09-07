@@ -188,6 +188,13 @@ async function main(mode) {
           loanRegistry: state.loanRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
           registrationRegistry: state.registrationRegistry, transferRegistry: state.transferRegistry, teams,
           agreement, ownerTeam, borrowerTeam, now: isoDate, effectiveDate: isoDate, seasonKey: BM.seasonKeyFromStartYear(state.seasonStartYear),
+          // WORLD-CONTEXT-1: competición de cada PAPEL, explícita.
+          ownerCompetitionId: BM.CompetitionContextService.resolveDomesticCompetitionId(
+            state.world.registries, ownerTeam.id, { seasonKey: BM.seasonKeyFromStartYear(state.seasonStartYear), operation: 'verify-loan1:owner' },
+          ),
+          borrowerCompetitionId: BM.CompetitionContextService.resolveDomesticCompetitionId(
+            state.world.registries, borrowerTeam.id, { seasonKey: BM.seasonKeyFromStartYear(state.seasonStartYear), operation: 'verify-loan1:borrower' },
+          ),
           operationalContext: { pendingUserMatchBlocks: false }, commit: true,
         });
         goToScreen('contracts');

@@ -342,8 +342,14 @@
       // computeSquadCostPlan) — opcional, nunca obligatorio para MARKET-1.
       budgetLimitMinor,
     } = params;
+    // WORLD-CONTEXT-1 (DESIGN.md 10.20): la competición doméstica del club
+    // ofertante llega EXPLÍCITA — del parámetro del llamador o del contexto
+    // de mercado YA CONGELADO al abrir el hilo (`marketContext`), nunca de
+    // `team.division`.
     const employment = ContractSvc().validateDraft({
       draft, team, player, playerRegistry, contractRegistry, seasonKey, date,
+      domesticCompetitionId: params.domesticCompetitionId
+        || (marketContext ? marketContext.domesticCompetitionId : null),
     });
     const errors = [...employment.errors];
     const warnings = [...employment.warnings];
@@ -442,6 +448,7 @@
     const resolvedSeasonKey = seasonKey || (frozenDraft.coveredSeasonKeys && frozenDraft.coveredSeasonKeys[0]);
     const validation = validateOfferBeforeSend({
       draft: frozenDraft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey: resolvedSeasonKey, date: iso, marketContext, budgetLimitMinor,
+      domesticCompetitionId: params.domesticCompetitionId,
     });
     if (!validation.valid) {
       throw new Error(`MarketService.createAndSendOffer: borrador inválido — ${validation.errors.join(' | ')}`);

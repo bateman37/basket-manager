@@ -88,6 +88,19 @@ function linkLegacyClub(team) {
   return team;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): este smoke es un FIXTURE HISTÓRICO
+// pre-World — declara la competición de cada equipo con el adaptador legacy
+// (permitido SOLO en `scripts/`) y la pasa EXPLÍCITA a los servicios
+// profesionales, que ya no aceptan derivarla de `team.division`.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
+
 function buildRealTeam(teamData, referenceDate, seasonKey) {
   const roster = teamData.roster.map((playerData) => {
     const { dataSource, ...playerFields } = playerData;
@@ -297,10 +310,10 @@ assert.ok(ClubEmploymentContextCatalog.validateCatalog(allTeams).valid, 'context
 
 const contractRegistry = new ContractRegistry();
 let bootstrapIsoDate = LocalDate.fromJsDate(referenceDate);
-ContractSeeder.seedContractsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE });
+ContractSeeder.seedContractsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE, competitionIdForTeam: fixtureCompetitionResolver });
 
 const registrationRegistry = new RegistrationRegistry();
-RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE });
+RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE, competitionIdForTeam: fixtureCompetitionResolver });
 
 let agentRegistry = new AgentRegistry();
 let marketRegistry = new MarketRegistry();
@@ -352,7 +365,7 @@ console.log('OK: Player/Contract/Registration/Agent/Market/Transfer/Loan Registr
 // un AIP simulado a mano) — necesarios para el fixture de "opción de
 // compra ejercida + consentimiento del jugador -> handoff atómico".
 function buildValidOfferDraft(team, player, isoDate, salaryMinor, seasons) {
-  const resolved = ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' });
+  const resolved = ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' , domesticCompetitionId: fixtureCompetitionIdFor(team) });
   const employment = resolved.employment;
   const currency = employment.allowedCurrencies[0];
   const seasonKeys = [];
@@ -402,6 +415,7 @@ function buildLiveAgreementForPlayer(team, player, isoDate, seed) {
   const offer = MarketService.createAndSendOffer({
     marketRegistry, thread, draft, offeredBy: 'club', date: isoDate, careerSeed: seed, marketContext,
     team, player, playerRegistry, contractRegistry, seasonKey,
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   offer.addEvent({ id: `${offer.id}:accept`, type: 'player-accepted', date: isoDate });
   return MarketService.createAgreementInPrinciple({ marketRegistry, thread, offer, date: isoDate, employmentSnapshot: { profileId: marketContext.bundleId } });
@@ -422,6 +436,8 @@ function negotiateAndAgreeLoan(params) {
     seasonKey, serviceStartDate, returnEffectiveDate, loanFee, salaryAllocation: salaryAllocation || { ownerShareBasisPoints: 6000, borrowerShareBasisPoints: 4000 },
     clauses: clauses || [], medicalResponsibility: { responsibleParty: 'borrower' }, insuranceResponsibility: { responsibleParty: 'shared' },
     documentsRequired: [], expiresAt: now, id: `loan-case:${seedSuffix}`,
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
   });
   assert.strictEqual(resolvedRules.blockers.length, 0, `[${seedSuffix}] reglas de cesión bloqueadas: ${JSON.stringify(resolvedRules.blockers)}`);
   ['ownerClub', 'borrowerClub', 'player'].forEach((partyType) => {
@@ -447,6 +463,8 @@ function activateLoanFixture(params) {
   const { plan, result } = LoanService.activateLoan({
     loanRegistry, playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams: allTeams,
     agreement, ownerTeam, borrowerTeam, now: effectiveDate, effectiveDate, seasonKey, operationalContext: OPERATIONAL_CONTEXT, commit: true,
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
   });
   assert.strictEqual(plan.blockers.length, 0, `[${seedSuffix}] activación bloqueada: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, `[${seedSuffix}] la activación debe producir un TransactionRecord`);
@@ -529,6 +547,8 @@ function runRecallValidFixture() {
     loanRegistry, playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams: allTeams,
     agreement, ownerTeam, borrowerTeam, now: recallDate, effectiveDate: recallDate, seasonKey, operationalContext: OPERATIONAL_CONTEXT, commit: true,
     recallClauseId: agreement.clauses[0].id,
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
   });
   assert.strictEqual(plan.blockers.length, 0, `recall bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record);
@@ -558,6 +578,8 @@ function runRecallNotPactadoBlockedFixture() {
     loanRegistry, playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams: allTeams,
     agreement, ownerTeam, borrowerTeam, now: recallDate, effectiveDate: recallDate, seasonKey, operationalContext: OPERATIONAL_CONTEXT, commit: true,
     recallClauseId: 'nonexistent-clause',
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
   });
   assert.ok(plan.blockers.some((b) => b.code === 'RECALL_CLAUSE_NOT_FOUND'), 'sin cláusula pactada, el recall debe bloquear');
   assert.strictEqual(agreement.currentStatus(), 'active', 'sigue activa: el intento bloqueado nunca mueve nada');
@@ -680,6 +702,8 @@ function runPurchaseOptionFixtures() {
   const { plan: returnPlan, result: returnResult } = LoanService.returnLoan({
     loanRegistry, playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams: allTeams,
     agreement, ownerTeam, borrowerTeam, now: exerciseDate, effectiveDate: exerciseDate, seasonKey, operationalContext: OPERATIONAL_CONTEXT, commit: true,
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
   });
   assert.strictEqual(returnPlan.blockers.length, 0, `retorno previo al handoff bloqueado: ${JSON.stringify(returnPlan.blockers)}`);
   assert.ok(returnResult.record);
@@ -691,6 +715,8 @@ function runPurchaseOptionFixtures() {
     agreement: aipAgreement, originTeam: ownerTeam, destinationTeam: borrowerTeam, seasonKey, effectiveDate: exerciseDate, now: exerciseDate, commit: true,
     clubOffer: { id: `smoke-purchase-option-offer:${player.id}`, fee: exercise.price }, playerConsentGrantedAt: exerciseDate,
     operationalContext: OPERATIONAL_CONTEXT,
+    originCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    destinationCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
   });
   assert.strictEqual(plan.blockers.length, 0, `handoff definitivo bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record);
@@ -714,6 +740,8 @@ function runMoraBancInternationalBlockedFixture() {
   const now = bootstrapIsoDate;
   const rules = LoanService.resolveLoanRules({
     playerId: player.id, ownerTeam, borrowerTeam, seasonKey, effectiveDate: LocalDate.addDays(now, 5), returnEffectiveDate: LocalDate.addDays(now, 200), operation: 'activation',
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
   });
   assert.ok(rules.blockers.some((b) => b.code === 'AD_NO_LOAN_REGIME_SOURCED'), 'MoraBanc/Andorra debe bloquear el régimen de cesión, nunca heredar ACB/España por defecto');
   assert.strictEqual(ownerTeam.roster.some((p) => p.id === player.id), true, 'nada se mueve: el bloqueo ocurre en la resolución de reglas, antes de cualquier ejecución');
@@ -740,7 +768,9 @@ function runRollbackOnFailureFixture() {
     LoanService.activateLoan({
       loanRegistry, playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams: allTeams,
       agreement, ownerTeam, borrowerTeam, now: serviceStartDate, effectiveDate: serviceStartDate, seasonKey, operationalContext: OPERATIONAL_CONTEXT, commit: true,
-    });
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
+  });
   } catch (err) { threw = true; } finally { RegistrationService.issueLicense = original; }
   assert.ok(threw);
   assert.strictEqual(ownerTeam.roster.some((p) => p.id === player.id), true, 'rollback: sigue en el propietario');
@@ -885,7 +915,9 @@ function processDueLoanReturns(date) {
       if (!ownerTeam || !borrowerTeam) return;
       const { result } = LoanService.returnLoan({
         ...deps, agreement, ownerTeam, borrowerTeam, effectiveDate: agreement.returnEffectiveDate, seasonKey, commit: true,
-      });
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
+  });
       if (result && result.record) loanReturnsProcessed += 1;
     });
 }

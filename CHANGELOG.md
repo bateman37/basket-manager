@@ -1,5 +1,172 @@
 # CHANGELOG.md
 
+## 2026-09-07 — WORLD-CONTEXT-1: contexto competitivo explícito e identidades canónicas Club/Team (DESIGN.md 10.20)
+
+Corrección arquitectónica POSTERIOR a WORLD-HARDEN-1 — no añade contenido
+jugable. Base real: `origin/main` en `6345f32` (merge de la PR de
+WORLD-HARDEN-1). Rama `claude/modest-gauss-ab8bat`.
+
+### Bugs corregidos
+
+- **BUG-WORLD-CONTEXT-01** — la normativa (contratos, inscripciones,
+  mercado, traspasos, cesiones, ciclo anual, planificación CPU, legalidad)
+  se resolvía traduciendo `team.division` con
+  `CompetitionRules.competitionIdFromLegacyDivision()`: ~22 call-sites
+  productivos en nueve servicios. Un equipo puede competir a la vez en
+  liga, Copa y (futuro) Europa, así que su "división" era una suposición,
+  no un dato. Ya NO queda ningún call-site productivo.
+- **BUG-WORLD-CONTEXT-02** — `clubId` contenía en realidad `team.id` en el
+  ciclo de plantilla. Desde CLUB-CORE-1 los 36 clubes españoles tienen
+  `Club.id !== Team.id`, así que no era solo naming: rompía comportamiento
+  (ver "Bugs de comportamiento destapados").
+- **BUG-WORLD-CONTEXT-03** — `scripts/test-contract1.js` construía un
+  mundo sin `simulationProfile` (obligatorio desde WORLD-SIM-1) y llevaba
+  `101 OK, 1 FAIL` desde entonces. Corregido el FIXTURE, nunca la
+  validación productiva.
+- **BUG-WORLD-CONTEXT-04** — `LoanService.evaluatePlayerReaction()` daba
+  un bonus comparando con `COMPETITION_IDS.ACB`. Ahora usa el NIVEL
+  competitivo declarado (`CompetitionDefinition.tier`) de la competición
+  EXPLÍCITA del cesionario, con configuración neutral
+  (`LOAN_ATTRACTIVENESS`: tier <= 1 → +0,15; resto → 0), mismo balance
+  observable en ACB/Primera FEB. `CPU_LOAN_POLICY_VERSION` →
+  `simulated-cpu-loan-policy-v2`.
+
+### Qué se implementó
+
+- **`src/core/CompetitionContextService.js`** (nuevo, PURO, sin literales
+  de país/liga): `requireCompetitionId`, `resolveDomesticCompetitionId`,
+  `makeDomesticCompetitionResolver`, `competitionIdForTeamWith`,
+  `projectCompetitionIdByTeamId`, `resolverFromProjection`,
+  `domesticCompetitionIdFromResolvedEmployment`. Resuelve SIEMPRE desde
+  las `CompetitionEntry` reales (vía
+  `CompetitionParticipationService.primaryLeagueCompetitionId`); no crea
+  registro ni caché durable.
+- **Nueve servicios migrados** a contexto explícito: `AnnualCycleService`,
+  `ClubEmploymentContextCatalog`, `ContractSeeder`, `RegistrationSeeder`,
+  `CpuRosterPlanner`, `MarketClearinghouse`, `RosterLegalityService`,
+  `TransferService`, `LoanService`. Consumidores actualizados en cadena:
+  `ContractService` (`resolveEmploymentContext`/`resolveRulesForClub`/
+  `createContract`/`validateDraft`), `MarketService`
+  (`validateOfferBeforeSend`/`createAndSendOffer`), `RenewalService`
+  (`openRenewalCase`), `AcademyService` (`promoteToFirstTeam`),
+  `TransferExecutionService` (revalidación del borrador de destino) y
+  `src/ui/game.js`.
+- **Contrato de las firmas**: un equipo → `domesticCompetitionId`; entre
+  equipos → ids por PAPEL (`origin`/`destination`/`owner`/`borrower`);
+  batch → resolver obligatorio `competitionIdForTeam(team, seasonKey)`.
+  La transición anual distingue ORIGEN (`cycle.fromSeasonKey`) y DESTINO
+  (`targetSeasonKey`). Sin contexto suficiente, cero o varias ligas
+  primarias, o resolver ausente → error con diagnóstico (`teamId`,
+  `seasonKey`, operación) y sin aplicar nada a medias.
+- **`src/ui/game.js`**: punto ÚNICO `domesticCompetitionIdForTeam(team,
+  seasonKey)` + `buildDomesticCompetitionResolver()` (resuelven por
+  Entries reales). Ya no hay ninguna lectura productiva del adaptador
+  legacy en la interfaz.
+
+### Cambios de forma DURABLE (mismo PR: entidades, registro y proyector)
+
+- `AnnualRosterCycle.competitionMembershipSnapshot`:
+  `[{teamId, clubId, competitionId}]` (sin `division`), orden estable.
+- `AnnualRosterCycle.clubLastOfficialMatchEvidence` →
+  **`teamLastOfficialMatchEvidence`** `{teamId, clubId, date,
+  competitionId, phaseId, matchId, opponentTeamId, opponentClubId}`;
+  `lastOfficialMatchDateForClub()` → `lastOfficialMatchDateForTeam()`.
+- `ClubCycleCase`: `clubId` + `teamId` + `targetCompetitionId` +
+  `employerJurisdictionId`; id `club-cycle:{cycleId}:{clubId}`;
+  `targetDivision` retirado.
+- `ClubSquadPlan.teamId` nuevo; `RosterLegalityReport` y
+  `EmergencyRosterAction` con `teamId` + `clubId` obligatorios.
+- `AnnualCycleRegistry`: `legalityReportsForTeam`/
+  `latestLegalityReportForTeam`/`emergencyActionsForTeam` (indexados por
+  `teamId`); `snapshot()` publica ambos ids.
+- `SeasonHistoryService.LastOfficialMatchEvidenceCollector` indexado por
+  `teamId` (`record`/`recordMatch`/`forTeam`/`missingTeamIds`).
+- `CpuRosterPlanner.buildSnapshot()`: filas de club
+  `{teamId, clubId, competitionId}`, sin `division`.
+
+### Bugs de comportamiento destapados (y corregidos) por la limpieza de identidades
+
+1. `AnnualCycleService.freezeSnapshot()` agregaba la nómina con `team.id`
+   → `openingPayrollReference` = 0 en los 36 clubes, así que el
+   presupuesto CPU caía siempre al suelo.
+2. El expediente de club se creaba con `clubId: team.id` y se buscaba por
+   `plan.clubId` (Club real) → ningún plan CPU quedaba registrado en su
+   expediente.
+3. `auditAllClubs`/`reviewLoansAndOptions`/`runAcademyDecisions`
+   comparaban `team.id === userClubId` (id de Club) → nunca coincidía, y
+   el club del usuario recibía emergencias/decisiones automáticas sin
+   delegarlas (BUG-CYCLE1-04 de facto reintroducido).
+4. `game.js` consultaba contratos/nómina/cantera/mercado con `team.id` →
+   Contratos, cantera de Planificación, seguimiento y negociaciones de
+   Mercado salían vacías o a 0.
+5. `MarketClearinghouse`/`RenewalService` leían `resolved.competitionId`
+   (inexistente en dominio `employment`) → `prospectiveCompetitionIds`
+   siempre vacío.
+6. Detectados al verificar el ciclo completo: el clearinghouse abría el
+   expediente de renovación y formalizaba fichajes de libre/promociones de
+   cantera SIN contexto explícito (renovaciones y fichajes CPU se
+   quedaban en `failed`) — corregido propagando la competición de la
+   ronda.
+
+### Pruebas y resultados EXACTOS
+
+- `node scripts/test-world-context1.js` (nuevo): **25 OK, 0 FAIL**.
+- `node scripts/test-contract1.js`: **102 OK, 0 FAIL** (antes 101 OK/1 FAIL).
+- `node scripts/test-reg1.js`: **88 OK, 0 FAIL**.
+- `node scripts/test-market1.js`: **82 OK, 0 FAIL**.
+- `node scripts/test-transfer1.js`: **67 OK, 0 FAIL**.
+- `node scripts/test-loan1.js`: **52 OK, 0 FAIL**.
+- `node scripts/test-cycle1.js`: **42 OK, 0 FAIL**.
+- `node scripts/test-world-harden1.js`: **OK (20 comprobaciones)**.
+- `node scripts/smoke-world-harden1.js`: **OK**.
+- Extras no exigidos, ejecutados por tocar sus dominios:
+  `test-club-core1.js` **36 OK, 0 FAIL**, `test-roster1.js` 31 OK,
+  `test-world-ui1.js` 20 OK, `test-pathways1.js` 19 OK,
+  `test-world-sim1.js` 19 OK, `test-world-calendar1.js` 25 OK,
+  `test-national-teams1.js` 19 OK.
+- Smokes por EPIC migrados a los contratos nuevos y pasando:
+  `smoke-contract1.js` OK, `smoke-reg1.js` OK, `smoke-market1.js` OK,
+  `smoke-transfer1.js` OK, `smoke-loan1.js` OK (flaky PREEXISTENTE: una
+  ejecución falló con `FORMATION_QUOTA_INFEASIBLE` y la siguiente pasó sin
+  tocar código — mismo no determinismo que `smoke-reg1.js` ya producía en
+  `main`), `smoke-cycle1.js` **OK (10 temporadas, 330 s)**,
+  `smoke-roster1.js`/`smoke-world-ui1.js`/`smoke-world-sim1.js`/
+  `smoke-national-teams1.js` OK.
+- `node --check` sobre cada archivo modificado y `git diff --check`
+  limpios.
+
+### Fuera de alcance (sigue pendiente)
+
+- `WORLD-CLEANUP-1`: retirada de `competitionIdFromLegacyDivision()`,
+  `Team.division`/`DIVISIONS`, `Calendar.js`,
+  `SpainLegacyCompetitionRuntime.js`, mapas `stageKey` de la UI, grafo
+  completo de pathways en Career Setup y auditoría final de determinismo
+  (puntos 2, 4, 5, 6, 7 y 8 de DESIGN.md 10.19.2).
+- Deuda de naming que sigue viva (documentada en DESIGN.md 10.20.5):
+  `RegistrationRegistry.registrationsForClub`/`cumulativeCountForClub`
+  (indexados por `teamId`), `RetirementAnnouncement.clubIdAtAnnouncement`,
+  y los `seedFingerprint` de `ContractSeeder`/`RegistrationSeeder` (usan
+  `team.id` como componente de hash: cambiarlo reescribiría todos los
+  contratos/licencias simulados, se conserva a propósito).
+- `state.lastOfficialMatchEvidence` sigue sin propietario declarado en
+  `CareerPersistenceBoundary.inventory()` (deuda anterior a esta entrega).
+- Siguen rotos por deuda AJENA a esta entrega (no se tocaron):
+  `smoke-world-core1`/`smoke-club-core1`/`smoke-comp-core1`/
+  `smoke-world-calendar1`/`smoke-pathways1` construyen un mundo sin
+  `simulationProfile` (mismo fallo que DESIGN.md 10.19.2 punto 7 ya
+  documentaba; aquí solo se corrigió el de `test-contract1.js`).
+- Los verificadores Playwright reciben los parámetros nuevos pero NO se
+  ejecutaron (fuera de alcance); `verify-loan1-playwright.js` además sigue
+  usando `state.leagues[state.division]`, retirado en WORLD-HARDEN-1.
+- El no determinismo de la vía de legalidad de convocatoria en smokes
+  largos (`FORMATION_QUOTA_INFEASIBLE` intermitente) es anterior a esta
+  entrega y sigue sin diagnosticar.
+
+### Estado
+
+Queda pendiente **WORLD-CLEANUP-1**. **World Architecture NO se declara
+cerrada** con esta entrega.
+
 ## 2026-09-07 — WORLD-HARDEN-1 (parcial): orquestación genérica de arranque/cierre + frontera de persistencia (DESIGN.md sección 10.19)
 
 Novena entrega de la EPIC **World Architecture** — **entregada

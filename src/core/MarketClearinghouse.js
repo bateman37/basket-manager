@@ -28,7 +28,7 @@
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
   const CanonicalHashModule = isNode ? require('../utils/CanonicalHash.js') : global.BasketManager;
   const DeterministicRandomModule = isNode ? require('../utils/DeterministicRandom.js') : global.BasketManager;
-  const CompetitionRules = isNode ? require('./CompetitionRules.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
   const CycleConfigModule = isNode ? require('./CycleConfig.js') : global.BasketManager;
   const CycleEntities = isNode ? require('../entities/Cycle.js') : global.BasketManager;
   const ContractEntities = isNode ? require('../entities/Contract.js') : global.BasketManager;
@@ -53,6 +53,9 @@
   function RenewalSvc() { return RenewalServiceModule.RenewalService; }
   function AcademySvc() { return AcademyServiceModule.AcademyService; }
   function PD() { return PlayerDevelopmentModule; }
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   function toIso(date) {
     return typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
@@ -76,7 +79,12 @@
     const employment = resolved.employment;
     const currency = (employment.allowedCurrencies && employment.allowedCurrencies[0]) || 'EUR';
     const declaredBasis = (employment.allowedBases && employment.allowedBases[0]) || 'gross';
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    // WORLD-CONTEXT-1 (DESIGN.md 10.20): la competición del club sale del
+    // contexto YA CONGELADO en su normativa resuelta (o del id explícito
+    // que pase el llamador) — nunca de `team.division`.
+    const competitionId = params.domesticCompetitionId
+      ? CompetitionContext().requireCompetitionId(params.domesticCompetitionId, { operation: 'buildFreeAgentOfferDraft', teamId: team.id, seasonKey })
+      : CompetitionContext().domesticCompetitionIdFromResolvedEmployment(resolved, { operation: 'buildFreeAgentOfferDraft', teamId: team.id, seasonKey });
     const economicProfile = ContractSeeder().getEconomicProfile(competitionId);
     const legalFloorMinor = employment.effectiveMinimumAnnual ? employment.effectiveMinimumAnnual.amountMinor : 0;
     const tmb = PD().computeTmbRating(player, config);
@@ -214,6 +222,10 @@
     // CLUB-CORE-1: `proposal.clubId` es un Club real — se resuelve el Team
     // por `team.clubId`, nunca por `team.id`.
     const teamsByClubId = new Map((teams || []).map((team) => [team.clubId, team]));
+    // WORLD-CONTEXT-1 (DESIGN.md 10.20): el contexto competitivo de la ronda
+    // queda CONGELADO en el snapshot (`{ teamId, clubId, competitionId }`) —
+    // el clearinghouse ya no vuelve a inferir la competición de cada club.
+    const competitionIdByClubId = new Map((snapshot.clubs || []).map((row) => [row.clubId, row.competitionId]));
 
     resolutionOrder.forEach((playerId) => {
       const competing = byPlayer.get(playerId).sort((a, b) => (a.id < b.id ? -1 : 1));
@@ -232,8 +244,9 @@
       // + importe garantizado ofrecido) y se desempata de forma estable.
       const scored = competing.map((proposal) => {
         const team = teamsByClubId.get(proposal.clubId);
-        const resolvedRules = resolvedByCompetitionId
-          ? resolvedByCompetitionId[CompetitionRules.competitionIdFromLegacyDivision(team.division)] : null;
+        const clubCompetitionId = competitionIdByClubId.get(proposal.clubId) || null;
+        const resolvedRules = (resolvedByCompetitionId && clubCompetitionId)
+          ? resolvedByCompetitionId[clubCompetitionId] : null;
         return {
           proposal,
           team,
@@ -268,6 +281,7 @@
         } else if (winner.proposal.type === 'academy-promotion') {
           executed = executeAcademyPromotion({
             deps, proposal: winner.proposal, team: winner.team, player, seasonKey, date: iso, config,
+            domesticCompetitionId: competitionIdByClubId.get(winner.proposal.clubId) || null,
           });
         }
       } catch (err) {
@@ -369,10 +383,17 @@
       }
       renewalCase = RenewalSvc().openRenewalCase({
         annualCycleRegistry, cycle, player, team, expiringContract, date: iso, seasonKey,
+        // WORLD-CONTEXT-1: contexto competitivo explícito del club, tomado
+        // de su normativa laboral YA resuelta para esta ronda.
+        domesticCompetitionId: CompetitionContext().domesticCompetitionIdFromResolvedEmployment(resolved, {
+          operation: 'MarketClearinghouse.executeRenewal:openRenewalCase', teamId: team.id, clubId: team.clubId, seasonKey,
+        }),
       });
     }
     const marketContext = MarketSvc().resolveMarketContext({
-      domesticCompetitionId: CompetitionRules.competitionIdFromLegacyDivision(team.division),
+      domesticCompetitionId: CompetitionContext().domesticCompetitionIdFromResolvedEmployment(resolved, {
+        operation: 'MarketClearinghouse.executeRenewal', teamId: team.id, clubId: team.clubId, seasonKey,
+      }),
       seasonKey,
       date: iso,
     });
@@ -438,8 +459,11 @@
     });
     if (!draft) return { outcome: 'expired', failureReason: 'NO_BUDGET_FOR_LEGAL_MINIMUM' };
 
+    const domesticCompetitionId = CompetitionContext().domesticCompetitionIdFromResolvedEmployment(resolved, {
+      operation: 'MarketClearinghouse.executeFreeAgentSigning', teamId: team.id, clubId: team.clubId, seasonKey,
+    });
     const marketContext = MarketSvc().resolveMarketContext({
-      domesticCompetitionId: CompetitionRules.competitionIdFromLegacyDivision(team.division),
+      domesticCompetitionId,
       seasonKey,
       date: iso,
     });
@@ -449,7 +473,11 @@
       agentRegistry,
       playerId: player.id,
       actingClubId: team.clubId,
-      prospectiveCompetitionIds: [resolved.competitionId || null].filter(Boolean),
+      // WORLD-CONTEXT-1: `resolved.competitionId` NUNCA existe en una
+      // resolución de dominio `employment` (su contexto vive en
+      // `requestedContext`), así que este campo quedaba SIEMPRE vacío —
+      // ahora lleva la competición doméstica real y explícita del club.
+      prospectiveCompetitionIds: [domesticCompetitionId],
       date: iso,
       marketContext,
       careerSeed,
@@ -514,6 +542,8 @@
       teams,
       agreement,
       destinationTeam: team,
+      // WORLD-CONTEXT-1: contexto competitivo explícito por PAPEL (destino).
+      destinationCompetitionId: domesticCompetitionId,
       seasonKey,
       effectiveDate: iso,
       now: iso,
@@ -535,9 +565,11 @@
   }
 
   // --- Ejecución: PROMOCIÓN DE CANTERA ---------------------------------
+  // WORLD-CONTEXT-1: la promoción de cantera afilia al EQUIPO en su
+  // competición EXPLÍCITA (la de la ronda), nunca derivada de la división.
   function executeAcademyPromotion(params) {
     const {
-      deps, proposal, team, player, seasonKey, date, config,
+      deps, proposal, team, player, seasonKey, date, config, domesticCompetitionId,
     } = params;
     const {
       academyRegistry, playerRegistry, contractRegistry, registrationRegistry, teams, lineup, calibration,
@@ -555,6 +587,9 @@
       team,
       date: iso,
       seasonKey,
+      domesticCompetitionId: CompetitionContext().requireCompetitionId(domesticCompetitionId, {
+        operation: 'MarketClearinghouse.executeAcademyPromotion', teamId: team.id, clubId: team.clubId, seasonKey,
+      }),
       config,
       calibration,
       lineup,

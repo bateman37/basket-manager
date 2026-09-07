@@ -39,6 +39,7 @@ const { RegistrationRegistry } = require('../src/core/RegistrationRegistry.js');
 const { RegistrationSeeder } = require('../src/core/RegistrationSeeder.js');
 const { AcademyRegistry } = require('../src/core/AcademyRegistry.js');
 const { AcademyService } = require('../src/core/AcademyService.js');
+const { CompetitionContextService } = require('../src/core/CompetitionContextService.js');
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
 const WorldFactory = require('../src/core/WorldFactory.js');
 const { WORLD_CORE_MANIFEST } = require('../data/world/world-core-2026.1.js');
@@ -187,6 +188,16 @@ function buildTeamsByDivision() {
 // de la verificación de NATIONAL-TEAMS-1). Mismo perfil TRANSITORIO que usa
 // `game.js`/`scripts/test-world-sim1.js`: ACB/Primera FEB/Copa ACB
 // "playable" explícito.
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): el contexto competitivo llega SIEMPRE
+// explícito — aquí se resuelve desde las `CompetitionEntry` reales del mundo
+// instalado (nunca de `team.division`).
+function competitionResolverFor(world, seasonKey) {
+  return CompetitionContextService.makeDomesticCompetitionResolver(world.registries, {
+    operation: 'test-club-core1',
+    seasonKey,
+  });
+}
+
 function buildSpainWorld() {
   const teamsByDivision = buildTeamsByDivision();
   const calendar = new Calendar(2026, CONFIG_BASE);
@@ -524,12 +535,14 @@ check('cada Team real tiene exactamente un Squad activo con el MISMO roster (mis
 });
 
 check('Contract.clubId resuelve al clubId REAL (nunca team.id) tras ContractSeeder', () => {
-  const { allTeams } = buildSpainWorld();
+  const { allTeams, world } = buildSpainWorld();
+  const competitionIdForTeam = competitionResolverFor(world, '2026-27');
   const playerRegistry = new PlayerRegistry();
   allTeams.forEach((team) => playerRegistry.registerMany(team.roster));
   const contractRegistry = new ContractRegistry();
   ContractSeeder.seedContractsForTeams({
     teams: allTeams, seasonKey: '2026-27', date: GAME_DATE, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+    competitionIdForTeam,
   });
   const sample = allTeams.find((t) => t.id === 'team-real-madrid');
   const contract = contractRegistry.currentForPlayer(sample.roster[0].id, GAME_DATE);
@@ -539,16 +552,19 @@ check('Contract.clubId resuelve al clubId REAL (nunca team.id) tras ContractSeed
 });
 
 check('License.clubId (RegistrationRegistry) resuelve al clubId real, Registration.teamId al teamId real', () => {
-  const { allTeams } = buildSpainWorld();
+  const { allTeams, world } = buildSpainWorld();
+  const competitionIdForTeam = competitionResolverFor(world, '2026-27');
   const playerRegistry = new PlayerRegistry();
   allTeams.forEach((team) => playerRegistry.registerMany(team.roster));
   const contractRegistry = new ContractRegistry();
   ContractSeeder.seedContractsForTeams({
     teams: allTeams, seasonKey: '2026-27', date: GAME_DATE, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+    competitionIdForTeam,
   });
   const registrationRegistry = new RegistrationRegistry();
   RegistrationSeeder.seedRegistrationsForTeams({
     teams: allTeams, seasonKey: '2026-27', date: GAME_DATE, registrationRegistry, contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam,
   });
   const sample = allTeams.find((t) => t.id === 'team-real-madrid');
   const player = sample.roster[0];
@@ -563,16 +579,19 @@ check('License.clubId (RegistrationRegistry) resuelve al clubId real, Registrati
 });
 
 check('AcademyMembership.clubId es el clubId real y promoteToFirstTeam afilia al Team correcto', () => {
-  const { allTeams } = buildSpainWorld();
+  const { allTeams, world } = buildSpainWorld();
+  const competitionIdForTeam = competitionResolverFor(world, '2026-27');
   const playerRegistry = new PlayerRegistry();
   allTeams.forEach((team) => playerRegistry.registerMany(team.roster));
   const contractRegistry = new ContractRegistry();
   ContractSeeder.seedContractsForTeams({
     teams: allTeams, seasonKey: '2026-27', date: GAME_DATE, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+    competitionIdForTeam,
   });
   const registrationRegistry = new RegistrationRegistry();
   RegistrationSeeder.seedRegistrationsForTeams({
     teams: allTeams, seasonKey: '2026-27', date: GAME_DATE, registrationRegistry, contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam,
   });
   const academyRegistry = new AcademyRegistry();
   const sample = allTeams.find((t) => t.id === 'team-real-madrid');
@@ -588,6 +607,8 @@ check('AcademyMembership.clubId es el clubId real y promoteToFirstTeam afilia al
   AcademyService.promoteToFirstTeam({
     academyRegistry, playerRegistry, contractRegistry, registrationRegistry, teams: allTeams,
     membership, team: sample, date: GAME_DATE, seasonKey: '2026-27', config: CONFIG_BASE,
+    domesticCompetitionId: competitionIdForTeam(sample, '2026-27'),
+    competitionIdForTeam,
   });
   assert.strictEqual(sample.roster.length, rosterSizeBefore + 1, 'la promoción debe afiliar al Team (roster), nunca dejarlo en el limbo');
   assert.ok(sample.roster.some((p) => p.id === membership.playerId));

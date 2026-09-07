@@ -62,7 +62,13 @@ async function buildLiveAgreementForPlayer(page, playerId) {
     });
     thread.addEvent({ id: `${thread.id}:forced-confirmed`, type: 'interest-confirmed', date: isoDate });
     state.marketRegistry.markEventProcessed(`${thread.id}:interest-response`);
-    const resolved = BM.ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' });
+    // WORLD-CONTEXT-1 (DESIGN.md 10.20): contexto competitivo EXPLÍCITO,
+    // resuelto desde las CompetitionEntry reales del equipo.
+    const domesticCompetitionId = BM.CompetitionContextService
+      .resolveDomesticCompetitionId(state.world.registries, team.id, { seasonKey, operation: 'verify-transfer1' });
+    const resolved = BM.ContractService.resolveRulesForClub(team, {
+      seasonKey, date: isoDate, operation: 'validateMarketOffer', domesticCompetitionId,
+    });
     const employment = resolved.employment;
     const currency = employment.allowedCurrencies[0];
     const seasonKeys = [0, 1, 2, 3].map((i) => BM.LocalDate.seasonKeyFromStartYear(BM.LocalDate.seasonStartYear(seasonKey) + i));

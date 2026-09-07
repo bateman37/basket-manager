@@ -75,9 +75,12 @@
       this._clearingDecisions = new Map();
       this._clearingDecisionsByRound = new Map();
       this._legalityReports = new Map();
-      this._legalityReportsByClub = new Map();
+      // WORLD-CONTEXT-1 (DESIGN.md 10.20): la legalidad de plantilla y las
+      // altas de emergencia son DEPORTIVAS — se indexan por `teamId`, no
+      // por el Club institucional.
+      this._legalityReportsByTeam = new Map();
       this._emergencyActions = new Map();
-      this._emergencyActionsByClub = new Map();
+      this._emergencyActionsByTeam = new Map();
       this._expiryRecords = new Map();
       this._expiryRecordsByPlayer = new Map();
       this._expiryRecordsByTransaction = new Map(); // transactionId -> recordId (idempotencia)
@@ -345,18 +348,18 @@
     registerLegalityReport(report) {
       if (!report || !report.id) throw new Error('AnnualCycleRegistry.registerLegalityReport: id inválido.');
       this._legalityReports.set(report.id, report);
-      pushIndex(this._legalityReportsByClub, report.clubId, report.id);
+      pushIndex(this._legalityReportsByTeam, report.teamId, report.id);
       return report;
     }
 
     getLegalityReport(id) { return this._legalityReports.get(id) || null; }
 
-    legalityReportsForClub(clubId) {
-      return byId((this._legalityReportsByClub.get(clubId) || []).map((id) => this._legalityReports.get(id)));
+    legalityReportsForTeam(teamId) {
+      return byId((this._legalityReportsByTeam.get(teamId) || []).map((id) => this._legalityReports.get(id)));
     }
 
-    latestLegalityReportForClub(clubId) {
-      const reports = this.legalityReportsForClub(clubId);
+    latestLegalityReportForTeam(teamId) {
+      const reports = this.legalityReportsForTeam(teamId);
       if (!reports.length) return null;
       return reports.reduce((best, report) => (LD().isAfter(report.date, best.date) ? report : best), reports[0]);
     }
@@ -366,12 +369,12 @@
     registerEmergencyAction(action) {
       if (!action || !action.id) throw new Error('AnnualCycleRegistry.registerEmergencyAction: id inválido.');
       this._emergencyActions.set(action.id, action);
-      pushIndex(this._emergencyActionsByClub, action.clubId, action.id);
+      pushIndex(this._emergencyActionsByTeam, action.teamId, action.id);
       return action;
     }
 
-    emergencyActionsForClub(clubId) {
-      return byId((this._emergencyActionsByClub.get(clubId) || []).map((id) => this._emergencyActions.get(id)));
+    emergencyActionsForTeam(teamId) {
+      return byId((this._emergencyActionsByTeam.get(teamId) || []).map((id) => this._emergencyActions.get(id)));
     }
 
     allEmergencyActions() { return byId([...this._emergencyActions.values()]); }
@@ -529,8 +532,15 @@
     snapshot() {
       return {
         cycles: this.allCycles().map((c) => ({ id: c.id, fromSeasonKey: c.fromSeasonKey, targetSeasonKey: c.targetSeasonKey, phase: c.currentPhase() })),
-        clubCases: this.allClubCases().map((c) => ({ id: c.id, clubId: c.clubId, status: c.currentStatus() })),
-        plans: this.allPlans().map((p) => ({ id: p.id, clubId: p.clubId, roundIndex: p.roundIndex, fingerprint: p.snapshotFingerprint })),
+        // WORLD-CONTEXT-1 (DESIGN.md 10.20): los expedientes/planes/informes
+        // llevan los DOS ids canónicos — `clubId` es el Club institucional y
+        // `teamId` el equipo senior operativo.
+        clubCases: this.allClubCases().map((c) => ({
+          id: c.id, clubId: c.clubId, teamId: c.teamId, status: c.currentStatus(),
+        })),
+        plans: this.allPlans().map((p) => ({
+          id: p.id, clubId: p.clubId, teamId: p.teamId, roundIndex: p.roundIndex, fingerprint: p.snapshotFingerprint,
+        })),
         renewals: this.allRenewalCases().map((r) => ({
           id: r.id, playerId: r.playerId, clubId: r.clubId, status: r.currentStatus(), committedContractId: r.committedContractId,
         })),
@@ -550,10 +560,10 @@
         })),
         pathwayExits: this.allPathwayExits().map((r) => ({ id: r.id, playerId: r.playerId, effectiveDate: r.effectiveDate })),
         emergencyActions: this.allEmergencyActions().map((a) => ({
-          id: a.id, clubId: a.clubId, actionType: a.actionType, playerId: a.playerId, succeeded: a.succeeded,
+          id: a.id, teamId: a.teamId, clubId: a.clubId, actionType: a.actionType, playerId: a.playerId, succeeded: a.succeeded,
         })),
         legalityReports: this.allLegalityReports().map((r) => ({
-          id: r.id, clubId: r.clubId, isLegal: r.isLegal, gaps: r.gaps.length,
+          id: r.id, teamId: r.teamId, clubId: r.clubId, isLegal: r.isLegal, gaps: r.gaps.length,
         })),
       };
     }

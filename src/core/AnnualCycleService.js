@@ -34,7 +34,7 @@
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
   const CareerAgeModule = isNode ? require('../utils/CareerAge.js') : global.BasketManager;
   const CanonicalHashModule = isNode ? require('../utils/CanonicalHash.js') : global.BasketManager;
-  const CompetitionRules = isNode ? require('./CompetitionRules.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
   const CycleConfigModule = isNode ? require('./CycleConfig.js') : global.BasketManager;
   const CycleEntities = isNode ? require('../entities/Cycle.js') : global.BasketManager;
   const ContractServiceModule = isNode ? require('./ContractService.js') : global.BasketManager;
@@ -72,6 +72,19 @@
   function RofrSvc() { return RightOfFirstRefusalModule.RightOfFirstRefusalService; }
   function MarketSvc() { return MarketServiceModule.MarketService; }
   function PD() { return PlayerDevelopmentModule; }
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
+
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): TODA fase del ciclo recibe el mismo
+  // resolver OBLIGATORIO `competitionIdForTeam(team, seasonKey)` y lo
+  // consulta con la temporada del PAPEL que necesita — la de ORIGEN
+  // (`cycle.fromSeasonKey`: nómina/tanteo/instantánea de apertura) o la de
+  // DESTINO (`targetSeasonKey`: planificación, legalidad, inscripciones).
+  // Nunca se reutiliza un único id cuando hubo ascenso/descenso.
+  function competitionIdFor(params, team, seasonKey, operation) {
+    return CompetitionContext().competitionIdForTeamWith(params.competitionIdForTeam, team, { seasonKey, operation });
+  }
 
   const CYCLE_SOURCE_VERSION = 'annual-cycle-service-v1';
 
@@ -110,9 +123,10 @@
   // =====================================================================
   // 2. Apertura del ciclo
   // =====================================================================
-  // `evidence`: `[{ clubId, date, competitionId, phaseId, matchId, opponentClubId }]`
-  // — la fecha REAL del último partido oficial de CADA club, recogida
-  // durante la temporada (nunca la de la final para todos).
+  // `evidence`: `[{ teamId, clubId, date, competitionId, phaseId, matchId,
+  // opponentTeamId, opponentClubId }]` — la fecha REAL del último partido
+  // oficial de CADA EQUIPO, recogida durante la temporada (nunca la de la
+  // final para todos). WORLD-CONTEXT-1: un partido lo disputan EQUIPOS.
   function openCycle(params) {
     const {
       annualCycleRegistry, teams, fromSeasonKey, targetSeasonKey, evidence, date, playerRegistry, contractRegistry,
@@ -121,7 +135,7 @@
     const existing = annualCycleRegistry.cycleForSeason(fromSeasonKey);
     if (existing) return { cycle: existing, idempotent: true };
 
-    const evidenceRows = [...(evidence || [])].sort((a, b) => (a.clubId < b.clubId ? -1 : 1));
+    const evidenceRows = [...(evidence || [])].sort((a, b) => (a.teamId < b.teamId ? -1 : 1));
     if (!evidenceRows.length) {
       throw new Error(
         'AnnualCycleService.openCycle: hace falta la evidencia del último partido oficial de cada club — '
@@ -138,16 +152,24 @@
       openingWorldFingerprint: Hash().stableHash({
         players: playerRegistry ? playerRegistry.snapshot().sort((a, b) => (a.id < b.id ? -1 : 1)) : [],
         contracts: contractRegistry ? contractRegistry.snapshot().sort((a, b) => (a.id < b.id ? -1 : 1)) : [],
-        clubs: [...(teams || [])].map((team) => ({ clubId: team.id, division: team.division })).sort((a, b) => (a.clubId < b.clubId ? -1 : 1)),
+        // WORLD-CONTEXT-1: el fingerprint usa ids CANÓNICOS (equipo, club y
+        // competición real resuelta), nunca la división legacy.
+        clubs: [...(teams || [])]
+          .map((team) => ({
+            teamId: team.id,
+            clubId: team.clubId,
+            competitionId: competitionIdFor(params, team, fromSeasonKey, 'openCycle:fingerprint'),
+          }))
+          .sort((a, b) => (a.teamId < b.teamId ? -1 : 1)),
       }),
       competitionMembershipSnapshot: [...(teams || [])]
         .map((team) => ({
-          clubId: team.id,
-          competitionId: CompetitionRules.competitionIdFromLegacyDivision(team.division),
-          division: team.division,
+          teamId: team.id,
+          clubId: team.clubId,
+          competitionId: competitionIdFor(params, team, fromSeasonKey, 'openCycle:membership'),
         }))
-        .sort((a, b) => (a.clubId < b.clubId ? -1 : 1)),
-      clubLastOfficialMatchEvidence: evidenceRows,
+        .sort((a, b) => (a.teamId < b.teamId ? -1 : 1)),
+      teamLastOfficialMatchEvidence: evidenceRows,
       summerSchedule: CC().buildSummerSchedule(worldLastMatchDate, fromSeasonKey),
       sourceVersion: CYCLE_SOURCE_VERSION,
       provenance: { dataSource: 'simulated-cycle-v1', isReal: false, generatorVersion: CYCLE_SOURCE_VERSION },
@@ -191,19 +213,25 @@
     const iso = toIso(date);
     const created = [];
     [...(teams || [])].sort((a, b) => (a.id < b.id ? -1 : 1)).forEach((team) => {
-      const employmentContext = ContractSvc().resolveEmploymentContext(team, {});
+      const fromCompetitionId = competitionIdFor(params, team, cycle.fromSeasonKey, 'freezeSnapshot');
+      const employmentContext = ContractSvc().resolveEmploymentContext(team, {
+        domesticCompetitionId: fromCompetitionId, seasonKey: cycle.fromSeasonKey, operation: 'freezeSnapshot',
+      });
       const clubCase = new CycleEntities.ClubCycleCase({
-        id: `club-cycle:${cycle.id}:${team.id}`,
+        // WORLD-CONTEXT-1: el expediente es del CLUB institucional (su id
+        // estable deriva del ciclo y del Club), y declara EXPLÍCITAMENTE el
+        // equipo senior sobre el que se ejecutan plantilla/inscripción.
+        id: `club-cycle:${cycle.id}:${team.clubId}`,
         cycleId: cycle.id,
-        clubId: team.id,
+        clubId: team.clubId,
+        teamId: team.id,
         // La competición de destino se fija DESPUÉS de ascensos/descensos
         // (fase `season-history-closed`); aquí se registra la actual y se
         // actualiza al cerrar la historia deportiva.
-        targetCompetitionId: CompetitionRules.competitionIdFromLegacyDivision(team.division),
-        targetDivision: team.division,
+        targetCompetitionId: fromCompetitionId,
         // MoraBanc Andorra conserva AD aunque compita en ACB.
         employerJurisdictionId: employmentContext.employerJurisdictionId,
-        lastOfficialMatchDate: cycle.lastOfficialMatchDateForClub(team.id),
+        lastOfficialMatchDate: cycle.lastOfficialMatchDateForTeam(team.id),
         provenance: { dataSource: 'simulated-cycle-v1', isReal: false },
       });
       annualCycleRegistry.registerClubCase(clubCase);
@@ -216,7 +244,10 @@
       });
       // Referencia de nómina de apertura CONGELADA aquí: ANTES de que
       // expire ningún contrato (sección 16 del prompt).
-      const payroll = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.id, cycle.fromSeasonKey);
+      // WORLD-CONTEXT-1: la nómina se agrega por el `clubId` INSTITUCIONAL
+      // real — con `team.id` (desde CLUB-CORE-1 un id distinto) esta
+      // referencia congelada valía SIEMPRE 0.
+      const payroll = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, cycle.fromSeasonKey);
       clubCase.openingPayrollReference = {
         amountMinor: payroll.amountMinor,
         currency: payroll.currency,
@@ -260,12 +291,17 @@
     // (`team.division`, ya mutado por el hook de cierre deportivo legacy)
     // para los scripts de humo anteriores a esta entrega que no lo pasan.
     (teams || []).forEach((team) => {
-      const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.id);
+      const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.clubId);
       if (!clubCase) return;
+      // WORLD-CONTEXT-1: la competición de DESTINO se resuelve SIEMPRE
+      // desde las Entries de la temporada objetivo, ya comprometidas por el
+      // pathway — `targetCompetitionIdForTeam` es OBLIGATORIO (antes había
+      // un respaldo silencioso a `team.division`).
       clubCase.targetCompetitionId = typeof targetCompetitionIdForTeam === 'function'
-        ? targetCompetitionIdForTeam(team)
-        : CompetitionRules.competitionIdFromLegacyDivision(team.division);
-      clubCase.targetDivision = team.division;
+        ? CompetitionContext().requireCompetitionId(targetCompetitionIdForTeam(team), {
+          operation: 'closeSeasonHistory', teamId: team.id, clubId: team.clubId, seasonKey: cycle.targetSeasonKey,
+        })
+        : competitionIdFor(params, team, cycle.targetSeasonKey, 'closeSeasonHistory');
     });
     enterPhase(cycle, 'season-history-closed', iso, {
       promoted: summary.promoted || [], relegated: summary.relegated || [],
@@ -288,7 +324,12 @@
     const exercised = [];
     [...(teams || [])].sort((a, b) => (a.id < b.id ? -1 : 1)).forEach((team) => {
       const resolved = ContractSvc().resolveRulesForClub(team, {
-        seasonKey: targetSeasonKey, date: iso, operation: 'signContract',
+        seasonKey: targetSeasonKey,
+        date: iso,
+        operation: 'signContract',
+        // Competición de DESTINO: las opciones se ejercen para la temporada
+        // que entra (puede ser otra competición tras ascenso/descenso).
+        domesticCompetitionId: competitionIdFor(params, team, targetSeasonKey, 'reviewLoansAndOptions'),
       });
       contractRegistry.forClub(team.clubId)
         .filter((contract) => contract.isCurrentOn(iso))
@@ -301,8 +342,11 @@
               });
               decisions.push(decision);
               // El club del USUARIO nunca ejerce nada sin su decisión
-              // explícita (sección 15 del prompt).
-              if (team.id === userClubId) return;
+              // explícita (sección 15 del prompt). WORLD-CONTEXT-1:
+              // `userClubId` es un CLUB — comparar con `team.id` (otro id
+              // desde CLUB-CORE-1) nunca coincidía, así que el club del
+              // usuario recibía decisiones automáticas.
+              if (team.clubId === userClubId) return;
               const executability = decision.describeExecutability();
               if (!executability.executable) return;
               if (!decision.isWithinWindow(iso)) return;
@@ -310,10 +354,10 @@
               if (!player) return;
               const addedCostMinor = decision.compensationSeasons
                 .reduce((sum, season) => sum + (season.guaranteedBaseSalaryMinor || 0), 0);
-              const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.id);
+              const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.clubId);
               const budgetLimit = clubCase && clubCase.openingPayrollReference
                 ? clubCase.openingPayrollReference.amountMinor : 0;
-              const committed = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.id, targetSeasonKey).amountMinor;
+              const committed = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, targetSeasonKey).amountMinor;
               const cpuChoice = RenewalSvc().decideOptionForCpu({
                 decision,
                 qualityIndex: Math.min(1, PD().computeTmbRating(player, config) / 200),
@@ -370,26 +414,32 @@
     const skipped = [];
 
     [...(teams || [])].sort((a, b) => (a.id < b.id ? -1 : 1)).forEach((team) => {
-      const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+      // Competición de ORIGEN: el tanteo se abre sobre la temporada que
+      // TERMINA, no sobre la siguiente.
+      const competitionId = competitionIdFor(params, team, cycle.fromSeasonKey, 'openRightsAndRetention');
       let marketContext = null;
       try {
         marketContext = MarketSvc().resolveMarketContext({
           domesticCompetitionId: competitionId, seasonKey: cycle.fromSeasonKey, date: iso,
         });
       } catch (err) {
-        skipped.push({ clubId: team.id, reason: 'MARKET_RULES_UNRESOLVED', message: err.message });
+        skipped.push({
+          teamId: team.id, clubId: team.clubId, reason: 'MARKET_RULES_UNRESOLVED', message: err.message,
+        });
         return;
       }
       // Sin procedimiento doméstico resuelto NO se abre nada: Primera FEB
       // NUNCA hereda el tanteo ACB (invariante 32/33 de la EPIC).
       const hasProcedure = Boolean(marketContext.market && marketContext.market.domesticProcedure);
       if (!hasProcedure) {
-        skipped.push({ clubId: team.id, reason: 'NO_DOMESTIC_PROCEDURE_FOR_COMPETITION', competitionId });
+        skipped.push({
+          teamId: team.id, clubId: team.clubId, reason: 'NO_DOMESTIC_PROCEDURE_FOR_COMPETITION', competitionId,
+        });
         return;
       }
-      const clubLastMatchDate = cycle.lastOfficialMatchDateForClub(team.id);
+      const clubLastMatchDate = cycle.lastOfficialMatchDateForTeam(team.id);
       if (!clubLastMatchDate) {
-        skipped.push({ clubId: team.id, reason: 'NO_LAST_MATCH_EVIDENCE' });
+        skipped.push({ teamId: team.id, clubId: team.clubId, reason: 'NO_LAST_MATCH_EVIDENCE' });
         return;
       }
       contractRegistry.forClub(team.clubId)
@@ -427,7 +477,7 @@
             });
           } catch (err) {
             skipped.push({
-              clubId: team.id, playerId: contract.playerId, reason: 'RIGHTS_CASE_NOT_OPENED', message: err.message,
+              teamId: team.id, clubId: team.clubId, playerId: contract.playerId, reason: 'RIGHTS_CASE_NOT_OPENED', message: err.message,
             });
           }
         });
@@ -533,8 +583,8 @@
         decisions.push(decision);
         // El club del USUARIO recibe la decisión como TAREA, nunca se
         // aplica sin su consentimiento explícito.
-        if (team.id === userClubId) {
-          const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.id);
+        if (team.clubId === userClubId) {
+          const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.clubId);
           if (clubCase) {
             clubCase.requiredDecisions.push({
               id: `academy-decision:${membership.id}`,
@@ -567,11 +617,15 @@
               team,
               date: iso,
               seasonKey: targetSeasonKey,
+              // Competición de DESTINO del equipo senior que lo incorpora.
+              domesticCompetitionId: competitionIdFor(params, team, targetSeasonKey, 'runAcademyDecisions:promote'),
               config,
               calibration,
               lineup,
             });
-            promotions.push({ playerId: membership.playerId, clubId: team.id, contractId: promoted.contract ? promoted.contract.id : null });
+            promotions.push({
+              playerId: membership.playerId, teamId: team.id, clubId: team.clubId, contractId: promoted.contract ? promoted.contract.id : null,
+            });
           } catch (err) {
             // Una promoción que no cabe (cupo/contrato) no rompe el ciclo:
             // el joven CONTINÚA en academia con diagnóstico explícito.
@@ -675,6 +729,10 @@
       let report = LegalitySvc().buildReport({
         team,
         seasonKey,
+        // WORLD-CONTEXT-1: competición EXPLÍCITA del equipo auditado en la
+        // temporada auditada.
+        competitionId: competitionIdFor(params, team, seasonKey, 'auditAllClubs'),
+        competitionIdForTeam: params.competitionIdForTeam,
         date: iso,
         phaseId: 'league',
         cycleId: cycle ? cycle.id : null,
@@ -692,11 +750,15 @@
       if (!report.isLegal) {
         // El club del USUARIO solo recibe medidas de emergencia si el
         // usuario las DELEGA explícitamente (sección 15/17 del prompt).
-        const mayApply = team.id !== userClubId || delegateEmergencyForUserClub === true;
+        // WORLD-CONTEXT-1 (consentimiento, BUG-CYCLE1-04): `userClubId` es
+        // un CLUB — con `team.id` la comparación NUNCA coincidía y el club
+        // del usuario recibía medidas de emergencia sin haberlas delegado.
+        const mayApply = team.clubId !== userClubId || delegateEmergencyForUserClub === true;
         if (mayApply) {
           const ladder = LegalitySvc().applyEmergencyLadder({
             report,
             team,
+            competitionIdForTeam: params.competitionIdForTeam,
             deps: {
               academyRegistry,
               playerRegistry,
@@ -713,7 +775,7 @@
             config,
             cycle,
             careerSeed,
-            delegatedByUser: team.id === userClubId,
+            delegatedByUser: team.clubId === userClubId,
           });
           ladder.actions.forEach((action) => {
             annualCycleRegistry.registerEmergencyAction(action);
@@ -726,6 +788,8 @@
             report = LegalitySvc().buildReport({
               team,
               seasonKey,
+              competitionId: competitionIdFor(params, team, seasonKey, 'auditAllClubs:recheck'),
+              competitionIdForTeam: params.competitionIdForTeam,
               date: iso,
               phaseId: 'league',
               cycleId: cycle ? cycle.id : null,
@@ -744,7 +808,7 @@
       }
       reports.push(report);
 
-      const clubCase = cycle ? annualCycleRegistry.clubCaseFor(cycle.id, team.id) : null;
+      const clubCase = cycle ? annualCycleRegistry.clubCaseFor(cycle.id, team.clubId) : null;
       if (clubCase) {
         clubCase.legalityReportIds.push(report.id);
         clubCase.addEvent({
@@ -753,7 +817,7 @@
           date: iso,
           data: { reportId: report.id, isLegal: report.isLegal },
         });
-        if (emergencyActions.some((action) => action.clubId === team.id)) {
+        if (emergencyActions.some((action) => action.teamId === team.id)) {
           clubCase.addEvent({
             id: `${clubCase.id}:emergency:${clubCase.events.length}`, type: 'emergency-applied', date: iso,
           });
@@ -769,7 +833,12 @@
             data: { gaps: report.gaps.filter((gap) => gap.severity === 'blocking').map((gap) => gap.code) },
           });
           notReady.push({
-            clubId: team.id, reportId: report.id, gaps: report.gaps, counts: report.counts, warnings: report.warnings,
+            teamId: team.id,
+            clubId: team.clubId,
+            reportId: report.id,
+            gaps: report.gaps,
+            counts: report.counts,
+            warnings: report.warnings,
           });
         }
       }
@@ -823,6 +892,8 @@
       registrationRegistry,
       contractRegistry,
       config,
+      // Competición de DESTINO: el ámbito de inscripción del curso NUEVO.
+      competitionIdForTeam: params.competitionIdForTeam,
     });
 
     enterPhase(cycle, 'licenses-and-registrations', iso, {
@@ -945,6 +1016,7 @@
     const iso = toIso(date);
     const snapshot = Planner().buildSnapshot({
       teams,
+      competitionIdForTeam: params.competitionIdForTeam,
       playerRegistry,
       contractRegistry,
       registrationRegistry,
@@ -967,6 +1039,10 @@
     });
     plans.forEach((plan) => {
       annualCycleRegistry.registerPlan(plan);
+      // `plan.clubId` YA es el Club institucional real (CpuRosterPlanner) —
+      // antes se buscaba el expediente por `team.id` al crearlo y por
+      // `plan.clubId` aquí, así que nunca coincidían y los planes no
+      // quedaban registrados en ningún expediente (WORLD-CONTEXT-1).
       const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, plan.clubId);
       if (clubCase) {
         clubCase.planIds.push(plan.id);
@@ -985,10 +1061,10 @@
     }
     const employmentResolvedByCompetitionId = {};
     [...(teams || [])].forEach((team) => {
-      const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+      const competitionId = competitionIdFor(params, team, targetSeasonKey, 'runClearingRound:employment');
       if (employmentResolvedByCompetitionId[competitionId]) return;
       employmentResolvedByCompetitionId[competitionId] = ContractSvc().resolveRulesForClub(team, {
-        seasonKey: targetSeasonKey, date: iso, operation: 'signContract',
+        seasonKey: targetSeasonKey, date: iso, operation: 'signContract', domesticCompetitionId: competitionId,
       });
     });
     return Clearinghouse().runRound({
@@ -1185,7 +1261,8 @@
         ...row, done: phases.indexOf(row.phaseId) <= phases.indexOf(currentPhase),
       })),
       clubStatus: clubCase ? clubCase.currentStatus() : null,
-      clubLastOfficialMatchDate: userClubId ? cycle.lastOfficialMatchDateForClub(userClubId) : null,
+      // WORLD-CONTEXT-1: la evidencia de último partido es del EQUIPO.
+      clubLastOfficialMatchDate: params.userTeamId ? cycle.lastOfficialMatchDateForTeam(params.userTeamId) : null,
       pendingDecisions: clubCase ? clubCase.pendingRequiredDecisions() : [],
       blockingDiagnostics: clubCase ? clubCase.blockingDiagnostics : [],
       openingPayrollReference: clubCase ? clubCase.openingPayrollReference : null,

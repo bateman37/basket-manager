@@ -104,18 +104,28 @@
       // (`CanonicalHash.stableHash` de la instantánea ordenada por ids).
       this.openingWorldFingerprint = d.openingWorldFingerprint || null;
       // Composición REAL de competiciones al abrir el ciclo (antes de
-      // aplicar ascensos/descensos): `[{ clubId, competitionId, division }]`.
+      // aplicar ascensos/descensos). WORLD-CONTEXT-1 (DESIGN.md 10.20):
+      // forma CANÓNICA `[{ teamId, clubId, competitionId }]` — el equipo
+      // participa, el club es la institución; `division` queda RETIRADA
+      // (nunca fue un dato de participación).
       this.competitionMembershipSnapshot = (d.competitionMembershipSnapshot || []).map((row) => ({
-        clubId: row.clubId, competitionId: row.competitionId, division: row.division,
+        teamId: requireId(row.teamId, 'competitionMembershipSnapshot.teamId'),
+        clubId: requireId(row.clubId, 'competitionMembershipSnapshot.clubId'),
+        competitionId: requireId(row.competitionId, 'competitionMembershipSnapshot.competitionId'),
       }));
-      // Evidencia INMUTABLE del último partido oficial de CADA club — nunca
-      // la fecha de la final para los 36 (sección 7 del prompt).
-      this.clubLastOfficialMatchEvidence = (d.clubLastOfficialMatchEvidence || []).map((row) => ({
-        clubId: row.clubId,
-        date: requireIso(row.date, 'clubLastOfficialMatchEvidence.date'),
+      // Evidencia INMUTABLE del último partido oficial de CADA EQUIPO —
+      // nunca la fecha de la final para los 36 (sección 7 del prompt de
+      // CYCLE-1). WORLD-CONTEXT-1: un partido lo disputan EQUIPOS, así que
+      // se indexa por `teamId` y conserva también el `clubId` real y los
+      // DOS ids del rival.
+      this.teamLastOfficialMatchEvidence = (d.teamLastOfficialMatchEvidence || []).map((row) => ({
+        teamId: requireId(row.teamId, 'teamLastOfficialMatchEvidence.teamId'),
+        clubId: row.clubId || null,
+        date: requireIso(row.date, 'teamLastOfficialMatchEvidence.date'),
         competitionId: row.competitionId || null,
         phaseId: row.phaseId || null,
         matchId: row.matchId || null,
+        opponentTeamId: row.opponentTeamId || null,
         opponentClubId: row.opponentClubId || null,
       }));
       // Calendario del verano: `[{ phaseId, date }]` (CycleConfig).
@@ -141,14 +151,15 @@
       return row ? row.date : null;
     }
 
-    lastOfficialMatchDateForClub(clubId) {
-      const row = this.clubLastOfficialMatchEvidence.find((entry) => entry.clubId === clubId);
+    // WORLD-CONTEXT-1: consulta por EQUIPO (quien disputa el partido).
+    lastOfficialMatchDateForTeam(teamId) {
+      const row = this.teamLastOfficialMatchEvidence.find((entry) => entry.teamId === teamId);
       return row ? row.date : null;
     }
 
-    // Fecha más TARDÍA de los 36 clubes (apertura real del verano global).
+    // Fecha más TARDÍA de todos los equipos (apertura real del verano global).
     worldLastOfficialMatchDate() {
-      return this.clubLastOfficialMatchEvidence
+      return this.teamLastOfficialMatchEvidence
         .map((row) => row.date)
         .sort((a, b) => LD().compare(a, b))
         .pop() || null;
@@ -162,7 +173,7 @@
         openedAt: this.openedAt,
         openingWorldFingerprint: this.openingWorldFingerprint,
         competitionMembershipSnapshot: this.competitionMembershipSnapshot.map((r) => ({ ...r })),
-        clubLastOfficialMatchEvidence: this.clubLastOfficialMatchEvidence.map((r) => ({ ...r })),
+        teamLastOfficialMatchEvidence: this.teamLastOfficialMatchEvidence.map((r) => ({ ...r })),
         summerSchedule: this.summerSchedule.map((r) => ({ ...r })),
         events: this.events.map((e) => ({ ...e })),
         sourceVersion: this.sourceVersion,
@@ -182,10 +193,15 @@
       const d = data || {};
       this.id = requireId(d.id, 'ClubCycleCase.id');
       this.cycleId = requireId(d.cycleId, 'ClubCycleCase.cycleId');
+      // WORLD-CONTEXT-1 (DESIGN.md 10.20): `clubId` es SIEMPRE el Club
+      // institucional (empleador, cantera, derechos) y `teamId` el equipo
+      // senior sobre el que se ejecutan plantilla/inscripción/legalidad —
+      // dos ids DISTINTOS desde CLUB-CORE-1, nunca intercambiables.
       this.clubId = requireId(d.clubId, 'ClubCycleCase.clubId');
-      // Competición doméstica de DESTINO (ya con ascenso/descenso aplicado).
+      this.teamId = requireId(d.teamId, 'ClubCycleCase.teamId');
+      // Competición doméstica de DESTINO (ya con ascenso/descenso aplicado),
+      // resuelta desde las Entries de la temporada objetivo.
       this.targetCompetitionId = requireId(d.targetCompetitionId, 'ClubCycleCase.targetCompetitionId');
-      this.targetDivision = d.targetDivision || null;
       // Jurisdicción LABORAL del empleador — MoraBanc Andorra conserva AD
       // aunque compita en ACB (test transfronterizo obligatorio de la EPIC).
       this.employerJurisdictionId = requireId(d.employerJurisdictionId, 'ClubCycleCase.employerJurisdictionId');
@@ -244,8 +260,8 @@
         id: this.id,
         cycleId: this.cycleId,
         clubId: this.clubId,
+        teamId: this.teamId,
         targetCompetitionId: this.targetCompetitionId,
-        targetDivision: this.targetDivision,
         employerJurisdictionId: this.employerJurisdictionId,
         lastOfficialMatchDate: this.lastOfficialMatchDate,
         deadlines: JSON.parse(JSON.stringify(this.deadlines)),
@@ -272,6 +288,8 @@
       this.id = requireId(d.id, 'ClubSquadPlan.id');
       this.cycleId = requireId(d.cycleId, 'ClubSquadPlan.cycleId');
       this.clubId = requireId(d.clubId, 'ClubSquadPlan.clubId');
+      // WORLD-CONTEXT-1: equipo senior real del plan (plantilla/inscripción).
+      this.teamId = requireId(d.teamId, 'ClubSquadPlan.teamId');
       this.roundIndex = Number.isInteger(d.roundIndex) ? d.roundIndex : 0;
       this.builtAt = requireIso(d.builtAt, 'ClubSquadPlan.builtAt');
       this.seasonKey = d.seasonKey;
@@ -319,6 +337,7 @@
         id: this.id,
         cycleId: this.cycleId,
         clubId: this.clubId,
+        teamId: this.teamId,
         roundIndex: this.roundIndex,
         builtAt: this.builtAt,
         seasonKey: this.seasonKey,
@@ -878,6 +897,11 @@
       const d = data || {};
       this.id = requireId(d.id, 'RosterLegalityReport.id');
       this.cycleId = d.cycleId || null;
+      // WORLD-CONTEXT-1: la legalidad de plantilla es DEPORTIVA (equipo
+      // inscrito) y el contrato/empleador es INSTITUCIONAL (club) — se
+      // guardan los dos ids por separado, nunca uno haciéndose pasar por el
+      // otro.
+      this.teamId = requireId(d.teamId, 'RosterLegalityReport.teamId');
       this.clubId = requireId(d.clubId, 'RosterLegalityReport.clubId');
       this.competitionId = requireId(d.competitionId, 'RosterLegalityReport.competitionId');
       this.seasonKey = requireId(d.seasonKey, 'RosterLegalityReport.seasonKey');
@@ -903,6 +927,7 @@
       return {
         id: this.id,
         cycleId: this.cycleId,
+        teamId: this.teamId,
         clubId: this.clubId,
         competitionId: this.competitionId,
         seasonKey: this.seasonKey,
@@ -931,6 +956,9 @@
       this.id = requireId(d.id, 'EmergencyRosterAction.id');
       this.cycleId = d.cycleId || null;
       this.reportId = requireId(d.reportId, 'EmergencyRosterAction.reportId');
+      // WORLD-CONTEXT-1: se contrata con el CLUB y se afilia/inscribe en el
+      // EQUIPO — la acción guarda los dos ids, sin confundirlos.
+      this.teamId = requireId(d.teamId, 'EmergencyRosterAction.teamId');
       this.clubId = requireId(d.clubId, 'EmergencyRosterAction.clubId');
       if (!EMERGENCY_ACTION_TYPES.includes(d.actionType)) {
         throw new Error(
@@ -959,6 +987,7 @@
         id: this.id,
         cycleId: this.cycleId,
         reportId: this.reportId,
+        teamId: this.teamId,
         clubId: this.clubId,
         actionType: this.actionType,
         ladderStep: this.ladderStep,

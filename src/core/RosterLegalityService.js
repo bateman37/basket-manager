@@ -29,6 +29,7 @@
   const isNode = (typeof module !== 'undefined' && module.exports);
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
   const CompetitionRules = isNode ? require('./CompetitionRules.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
   const CycleConfigModule = isNode ? require('./CycleConfig.js') : global.BasketManager;
   const CycleEntities = isNode ? require('../entities/Cycle.js') : global.BasketManager;
   const CycleTransactionModule = isNode ? require('./CycleTransaction.js') : global.BasketManager;
@@ -57,6 +58,10 @@
   function WorldLifecycle() { return WorldLifecycleModule.WorldLifecycleService; }
   function AcademySvc() { return AcademyServiceModule.AcademyService; }
 
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
+
   function toIso(date) {
     return typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
   }
@@ -68,10 +73,14 @@
   // vinculados autorizados, todos YA evaluados por `EligibilityService`.
   // La interfaz (`game.js`), la CPU (`CpuLineup`) y esta auditoría consumen
   // EXACTAMENTE esta función — nunca tres recorridos paralelos.
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): las competiciones del club INFERIOR
+  // y del SUPERIOR de un acuerdo de vinculación son resoluciones
+  // INDEPENDIENTES — llegan del resolver explícito
+  // `params.competitionIdForTeam(team, seasonKey)`, nunca de `team.division`.
   function buildRegulatedPool(params) {
     const {
       team, context, playerRegistry, contractRegistry, registrationRegistry, loanRegistry,
-      teams, classificationCache, medicalAvailability,
+      teams, classificationCache, medicalAvailability, competitionIdForTeam,
     } = params;
     if (!registrationRegistry) return null;
 
@@ -111,8 +120,12 @@
         pool.push(evaluateFor(player, 'linked', {
           linkAgreement: agreement,
           linkDirection: direction,
-          lowerClubCompetitionId: CompetitionRules.competitionIdFromLegacyDivision(lowerClubTeam.division),
-          upperClubCompetitionId: CompetitionRules.competitionIdFromLegacyDivision(upperClubTeam.division),
+          lowerClubCompetitionId: CompetitionContext().competitionIdForTeamWith(competitionIdForTeam, lowerClubTeam, {
+            seasonKey: context.seasonKey, operation: 'buildRegulatedPool:linked-lower',
+          }),
+          upperClubCompetitionId: CompetitionContext().competitionIdForTeamWith(competitionIdForTeam, upperClubTeam, {
+            seasonKey: context.seasonKey, operation: 'buildRegulatedPool:linked-upper',
+          }),
         }));
       });
     });
@@ -183,14 +196,19 @@
     };
   }
 
+  // WORLD-CONTEXT-1: `competitionId` OBLIGATORIO y explícito (operación
+  // sobre UN equipo). El informe guarda `teamId` (equipo auditado) y
+  // `clubId` (institución empleadora) por separado.
   function buildReport(params) {
     const {
       team, seasonKey, date, phaseId, cycleId, config,
       playerRegistry, contractRegistry, registrationRegistry, loanRegistry, teams, classificationCache,
-      projectRegistrations,
+      projectRegistrations, competitionIdForTeam,
     } = params;
     const iso = toIso(date);
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    const competitionId = CompetitionContext().requireCompetitionId(params.competitionId, {
+      operation: 'RosterLegalityService.buildReport', teamId: team.id, clubId: team.clubId, seasonKey,
+    });
     const context = {
       competitionId,
       competitionInstanceId: competitionId,
@@ -216,7 +234,8 @@
       return new CycleEntities.RosterLegalityReport({
         id: `legality:${cycleId || 'no-cycle'}:${team.id}:${seasonKey}`,
         cycleId: cycleId || null,
-        clubId: team.id,
+        teamId: team.id,
+        clubId: team.clubId,
         competitionId,
         seasonKey,
         date: iso,
@@ -229,6 +248,7 @@
 
     const pool = buildRegulatedPool({
       team, context, playerRegistry, contractRegistry, registrationRegistry, loanRegistry, teams, classificationCache,
+      competitionIdForTeam,
     }) || [];
 
     // --- Contratos/afiliación/licencia/inscripción por jugador ----------
@@ -403,7 +423,8 @@
     return new CycleEntities.RosterLegalityReport({
       id: `legality:${cycleId || 'no-cycle'}:${team.id}:${seasonKey}`,
       cycleId: cycleId || null,
-      clubId: team.id,
+      teamId: team.id,
+      clubId: team.clubId,
       competitionId,
       seasonKey,
       date: iso,
@@ -457,17 +478,21 @@
     while (remaining > 0 && step < CC().EMERGENCY.ladder.length) {
       const actionType = CC().EMERGENCY.ladder[step];
       let applied = null;
+      // WORLD-CONTEXT-1: el resolver de competición (si el llamador lo
+      // aporta) viaja a cada paso para que el seeder pueda calibrar sin
+      // inferir nada.
+      const competitionIdForTeam = params.competitionIdForTeam;
       if (actionType === 'promote-academy') {
         applied = tryPromoteFromAcademy({
-          report, team, deps, iso, seasonKey, config, cycle, requiredClassification, delegatedByUser,
+          report, team, deps, iso, seasonKey, config, cycle, requiredClassification, delegatedByUser, competitionIdForTeam,
         });
       } else if (actionType === 'sign-existing-free-agent') {
         applied = trySignExistingFreeAgent({
-          report, team, deps, iso, seasonKey, config, cycle, requiredClassification, delegatedByUser, careerSeed,
+          report, team, deps, iso, seasonKey, config, cycle, requiredClassification, delegatedByUser, careerSeed, competitionIdForTeam,
         });
       } else {
         applied = tryGenerateEmergencyPlayer({
-          report, team, deps, iso, seasonKey, config, cycle, requiredClassification, delegatedByUser, careerSeed,
+          report, team, deps, iso, seasonKey, config, cycle, requiredClassification, delegatedByUser, careerSeed, competitionIdForTeam,
           sequence: actions.length,
         });
       }
@@ -513,6 +538,9 @@
         team,
         date: iso,
         seasonKey,
+        // WORLD-CONTEXT-1: competición explícita del informe auditado.
+        domesticCompetitionId: report.competitionId,
+        competitionIdForTeam: params.competitionIdForTeam,
         config,
         calibration,
         lineup,
@@ -522,7 +550,8 @@
         id: actionId,
         cycleId: cycle ? cycle.id : null,
         reportId: report.id,
-        clubId: team.id,
+        teamId: team.id,
+        clubId: team.clubId,
         actionType: 'promote-academy',
         playerId: best.playerId,
         appliedAt: iso,
@@ -540,7 +569,8 @@
         id: actionId,
         cycleId: cycle ? cycle.id : null,
         reportId: report.id,
-        clubId: team.id,
+        teamId: team.id,
+        clubId: team.clubId,
         actionType: 'promote-academy',
         playerId: best.playerId,
         appliedAt: iso,
@@ -583,13 +613,16 @@
         iso,
         seasonKey,
         config,
+        domesticCompetitionId: report.competitionId,
+        competitionIdForTeam: params.competitionIdForTeam,
         requiredClassification,
       });
       const action = new CycleEntities.EmergencyRosterAction({
         id: actionId,
         cycleId: cycle ? cycle.id : null,
         reportId: report.id,
-        clubId: team.id,
+        teamId: team.id,
+        clubId: team.clubId,
         actionType: 'sign-existing-free-agent',
         playerId: best.id,
         appliedAt: iso,
@@ -608,7 +641,8 @@
         id: actionId,
         cycleId: cycle ? cycle.id : null,
         reportId: report.id,
-        clubId: team.id,
+        teamId: team.id,
+        clubId: team.clubId,
         actionType: 'sign-existing-free-agent',
         playerId: best.id,
         appliedAt: iso,
@@ -664,13 +698,16 @@
         iso,
         seasonKey,
         config,
+        domesticCompetitionId: report.competitionId,
+        competitionIdForTeam: params.competitionIdForTeam,
         requiredClassification,
       });
       const action = new CycleEntities.EmergencyRosterAction({
         id: actionId,
         cycleId: cycle ? cycle.id : null,
         reportId: report.id,
-        clubId: team.id,
+        teamId: team.id,
+        clubId: team.clubId,
         actionType: 'generate-emergency-player',
         playerId: player.id,
         appliedAt: iso,
@@ -690,7 +727,8 @@
         id: actionId,
         cycleId: cycle ? cycle.id : null,
         reportId: report.id,
-        clubId: team.id,
+        teamId: team.id,
+        clubId: team.clubId,
         actionType: 'generate-emergency-player',
         playerId,
         appliedAt: iso,
@@ -724,9 +762,12 @@
 
   // Alta ATÓMICA de un jugador (libre existente o de emergencia) por los
   // servicios NORMALES: contrato -> afiliación -> licencia/inscripción.
+  // WORLD-CONTEXT-1: `domesticCompetitionId` OBLIGATORIO — se contrata con
+  // el CLUB (`team.clubId`, dentro de los servicios de contrato) y se
+  // afilia/inscribe en el EQUIPO (`team.id`).
   function signPlayerForEmergency(params) {
     const {
-      player, team, deps, iso, seasonKey, config, requiredClassification,
+      player, team, deps, iso, seasonKey, config, requiredClassification, domesticCompetitionId, competitionIdForTeam,
     } = params;
     const {
       playerRegistry, contractRegistry, registrationRegistry, teams, lineup, calibration,
@@ -742,6 +783,10 @@
         config,
         calibration,
         teams,
+        domesticCompetitionId: CompetitionContext().requireCompetitionId(domesticCompetitionId, {
+          operation: 'signPlayerForEmergency', teamId: team.id, clubId: team.clubId, seasonKey,
+        }),
+        competitionIdForTeam,
         isFirstProfessionalContract: false,
       });
       ctx.registerUndo(() => { contractRegistry.unregister(contract.id); });
@@ -766,6 +811,7 @@
           registrationRegistry,
           contractRegistry,
           config,
+          domesticCompetitionId,
           existingClassification: buildForcedClassification(team, player.id, requiredClassification),
         });
         licenseId = seeded.license ? seeded.license.id : null;

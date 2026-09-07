@@ -870,6 +870,17 @@ function linkLegacyClub(team) {
   return team;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): fixture HISTÓRICO — la competición de
+// cada equipo de prueba se declara EXPLÍCITAMENTE al construirlo; el
+// adaptador legacy `competitionIdFromLegacyDivision()` se usa solo aquí, en
+// `scripts/`, nunca en código productivo.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture (un ascenso dentro
+  // del propio test cambia la competición) — nunca se congela al construir.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+
 function buildRealWorld() {
   const refDate = LocalDate.toJsDate(GAME_DATE);
   const teams = REAL_DATA_INDEX.map((entry) => {
@@ -885,17 +896,20 @@ function buildRealWorld() {
       competitionId: CompetitionRules.competitionIdFromLegacyDivision(teamData.division), seasonKey: SEASON, date: refDate, operation: 'buildMatchSquad',
     }).squadRules;
     padRosterToMinimum(roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate: refDate });
-    return linkLegacyClub(new Team({ ...teamData, roster }));
+    const team = linkLegacyClub(new Team({ ...teamData, roster }));
+    return team;
   });
   const playerRegistry = new PlayerRegistry();
   teams.forEach((team) => playerRegistry.registerMany(team.roster));
   const contractRegistry = new ContractRegistry();
   ContractSeeder.seedContractsForTeams({
     teams, seasonKey: SEASON, date: GAME_DATE, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: (team) => fixtureCompetitionIdFor(team),
   });
   const registrationRegistry = new RegistrationRegistry();
   const { results, warnings } = RegistrationSeeder.seedRegistrationsForTeams({
     teams, seasonKey: SEASON, date: GAME_DATE, registrationRegistry, contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: (team) => fixtureCompetitionIdFor(team),
   });
   return {
     teams, playerRegistry, contractRegistry, registrationRegistry, results, warnings,
@@ -929,10 +943,12 @@ check('Seeder: determinismo total — dos ejecuciones sobre los mismos equipos p
   const registrationRegistryA = new RegistrationRegistry();
   const resultA = RegistrationSeeder.seedRegistrationsForTeams({
     teams: world.teams, seasonKey: SEASON, date: GAME_DATE, registrationRegistry: registrationRegistryA, contractRegistry: world.contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: (team) => fixtureCompetitionIdFor(team),
   });
   const registrationRegistryB = new RegistrationRegistry();
   const resultB = RegistrationSeeder.seedRegistrationsForTeams({
     teams: world.teams, seasonKey: SEASON, date: GAME_DATE, registrationRegistry: registrationRegistryB, contractRegistry: world.contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: (team) => fixtureCompetitionIdFor(team),
   });
   assert.deepStrictEqual(resultA.results, resultB.results);
 });
@@ -957,7 +973,7 @@ check('Seeder: no escribe en data/real/', () => {
 
 check('Seeder: los 36 clubes reales tienen una solución legal inicial (cupo de formación + no comunitarios)', () => {
   world.teams.forEach((team) => {
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    const competitionId = fixtureCompetitionIdFor(team);
     const resolved = RegistrationService.resolveRegistrationRules({
       competitionId, seasonKey: SEASON, date: GAME_DATE, phaseId: 'league',
     });

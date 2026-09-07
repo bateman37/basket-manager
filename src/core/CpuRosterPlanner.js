@@ -30,7 +30,7 @@
   const CareerAgeModule = isNode ? require('../utils/CareerAge.js') : global.BasketManager;
   const CanonicalHashModule = isNode ? require('../utils/CanonicalHash.js') : global.BasketManager;
   const DeterministicRandomModule = isNode ? require('../utils/DeterministicRandom.js') : global.BasketManager;
-  const CompetitionRules = isNode ? require('./CompetitionRules.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
   const CycleConfigModule = isNode ? require('./CycleConfig.js') : global.BasketManager;
   const CycleEntities = isNode ? require('../entities/Cycle.js') : global.BasketManager;
   const PlayerCore = isNode ? require('../entities/Player.js') : global.BasketManager;
@@ -48,6 +48,9 @@
   function ContractSvc() { return ContractServiceModule.ContractService; }
   function Med() { return MedicalModule; }
   function SquadElig() { return SquadEligibilityModule.SquadEligibilityService; }
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   const { POSITIONS } = PlayerCore;
 
@@ -62,17 +65,27 @@
   // `CanonicalHash.stableHash` (serialización canónica RECURSIVA, no solo
   // del primer nivel — BUG-TRANSFER1-17). Barajar los arrays de entrada
   // produce EXACTAMENTE el mismo snapshot y el mismo fingerprint.
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): operación BATCH — `competitionIdForTeam`
+  // es un resolver OBLIGATORIO y puro. Cada fila de club lleva los TRES ids
+  // canónicos (`teamId` deportivo, `clubId` institucional y la
+  // `competitionId` resuelta para esa temporada); `division` desaparece del
+  // snapshot.
   function buildSnapshot(params) {
     const {
       teams, playerRegistry, contractRegistry, registrationRegistry, academyRegistry, annualCycleRegistry,
-      loanRegistry, date, seasonKey, config, cycle,
+      loanRegistry, date, seasonKey, config, cycle, competitionIdForTeam,
     } = params;
     const iso = toIso(date);
     const clubs = [...(teams || [])]
       .sort((a, b) => (a.id < b.id ? -1 : 1))
       .map((team) => {
-        const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
-        const clubCase = cycle && annualCycleRegistry ? annualCycleRegistry.clubCaseFor(cycle.id, team.id) : null;
+        const competitionId = CompetitionContext().competitionIdForTeamWith(competitionIdForTeam, team, {
+          seasonKey, operation: 'CpuRosterPlanner.buildSnapshot',
+        });
+        // WORLD-CONTEXT-1: el expediente de club se busca por el `clubId`
+        // INSTITUCIONAL real (antes se buscaba por `team.id`, que desde
+        // CLUB-CORE-1 ya no es el id del Club).
+        const clubCase = cycle && annualCycleRegistry ? annualCycleRegistry.clubCaseFor(cycle.id, team.clubId) : null;
         const roster = [...team.roster]
           .sort((a, b) => (a.id < b.id ? -1 : 1))
           .map((player) => describePlayerForPlan({
@@ -95,9 +108,9 @@
             .sort((a, b) => (a.playerId < b.playerId ? -1 : 1))
           : [];
         return {
+          teamId: team.id,
           clubId: team.clubId,
           competitionId,
-          division: team.division,
           sportingGoal: team.board ? team.board.sportingGoal : null,
           roster,
           academyPool,
@@ -333,6 +346,9 @@
       id: `plan:${cycle ? cycle.id : 'no-cycle'}:${clubSnapshot.clubId}:r${roundIndex}`,
       cycleId: cycle ? cycle.id : 'no-cycle',
       clubId: clubSnapshot.clubId,
+      // WORLD-CONTEXT-1: el equipo senior sobre el que se ejecutan
+      // plantilla/inscripción — DISTINTO del Club institucional.
+      teamId: clubSnapshot.teamId,
       roundIndex,
       builtAt: snapshot.date,
       seasonKey: snapshot.seasonKey,

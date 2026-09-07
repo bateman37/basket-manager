@@ -38,6 +38,9 @@ const WorldFactory = require('../src/core/WorldFactory.js');
 const { WORLD_CORE_MANIFEST } = require('../data/world/world-core-2026.1.js');
 const { SPAIN_MANIFEST } = require('../data/world/spain-2026.1.js');
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
+const { CompetitionContextService } = require('../src/core/CompetitionContextService.js');
+const { WorldSimulationProfile } = require('../src/entities/WorldSimulation.js');
+const CompetitionCatalog = require('../src/core/CompetitionCatalog.js');
 const { padRosterToMinimum, FICTIONAL_FALLBACK_DATA_SOURCE } = require('../src/utils/playerGenerator.js');
 
 let passed = 0;
@@ -98,12 +101,24 @@ function linkLegacyClub(team) {
   return team;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): el contexto competitivo es SIEMPRE
+// explícito. Este FIXTURE HISTÓRICO declara la competición de cada equipo de
+// prueba al construirlo — `competitionIdFromLegacyDivision()` se usa solo
+// aquí, en `scripts/`, nunca en código productivo.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture (un ascenso dentro
+  // del propio test cambia la competición) — nunca se congela al construir.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+
 function makeTeam(clubId, division, rosterSize = 10) {
   const roster = [];
   for (let i = 0; i < rosterSize; i += 1) roster.push(makePlayer({ id: `${clubId}-p${i}` }));
-  return linkLegacyClub(new Team({
+  const team = linkLegacyClub(new Team({
     id: clubId, name: clubId, city: 'Test', division, roster,
   }));
+  return team;
 }
 
 const ES_ACB_TEAM = () => makeTeam('team-real-madrid', '1ª');
@@ -113,6 +128,7 @@ const ES_FEB_TEAM = () => makeTeam('team-palencia-baloncesto', '2ª');
 function resolveFor(team, options) {
   return ContractService.resolveRulesForClub(team, Object.assign({
     seasonKey: SEASON, date: GAME_DATE, operation: 'signContract',
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   }, options || {}));
 }
 
@@ -381,17 +397,45 @@ check('los 36 clubes reales tienen contexto laboral EXPLÍCITO (35 ES + 1 AD)', 
   ['1ª', '2ª'].forEach((div) => {
     teamsByDivision[div] = REAL_DATA_INDEX.filter((e) => e.division === div).map((e) => new Team({ ...REAL_DATA_TEAMS[e.id], roster: [] }));
   });
+  // BUG-WORLD-CONTEXT-03: este fixture llamaba a `buildCareerWorld()` sin el
+  // `simulationProfile` que `spain-2026.1` exige desde WORLD-SIM-1 — la
+  // comprobación llevaba fallando desde entonces. Se corrige el FIXTURE
+  // (mismo perfil transitorio que game.js/test-club-core1.js), nunca
+  // relajando la validación productiva.
+  const simulationProfile = new WorldSimulationProfile({
+    id: 'simulation-profile:test-contract1',
+    version: '1.0.0',
+    defaultDetailLevel: 'abstract',
+    assignments: [
+      { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.ACB, detailLevel: 'playable' },
+      { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, detailLevel: 'playable' },
+      { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.COPA_ACB, detailLevel: 'playable' },
+    ],
+    provenance: { status: 'design', notes: 'Perfil transitorio de test-contract1.js — mismo criterio que game.js.' },
+  });
   const world = WorldFactory.buildCareerWorld({
     id: 'world:test-contract1', careerSeed: 'test-contract1-seed', packs: [WORLD_CORE_MANIFEST, SPAIN_MANIFEST],
     context: { teamsByDivision, seasonKey: SEASON, seasonStartDate: GAME_DATE },
+    simulationProfile,
   });
   const allTeams = world.registries.teams.all();
   assert.strictEqual(allTeams.length, 36);
-  const contexts = allTeams.map((team) => ContractService.resolveEmploymentContext(team, {}));
+  // WORLD-CONTEXT-1: la competición doméstica se resuelve desde las
+  // `CompetitionEntry` REALES del mundo instalado — nunca de `team.division`.
+  const contextFor = (team) => ContractService.resolveEmploymentContext(team, {
+    seasonKey: SEASON,
+    domesticCompetitionId: CompetitionContextService.resolveDomesticCompetitionId(world.registries, team.id, {
+      seasonKey: SEASON, operation: 'test-contract1',
+    }),
+  });
+  const contexts = allTeams.map((team) => contextFor(team));
   assert.strictEqual(contexts.filter((c) => c.employerJurisdictionId === 'ES').length, 35);
   assert.strictEqual(contexts.filter((c) => c.employerJurisdictionId === 'AD').length, 1);
   const moraBanc = world.registries.teams.require('team-morabanc-andorra');
-  assert.strictEqual(ContractService.resolveEmploymentContext(moraBanc, {}).employerJurisdictionId, 'AD');
+  const moraBancContext = contextFor(moraBanc);
+  assert.strictEqual(moraBancContext.employerJurisdictionId, 'AD');
+  // Participa en ACB con jurisdicción laboral andorrana: dos ejes distintos.
+  assert.strictEqual(moraBancContext.domesticCompetitionId, CompetitionCatalog.COMPETITION_IDS.ACB);
 });
 
 // =====================================================================
@@ -493,6 +537,7 @@ check('un conflicto irresoluble impide crear el contrato (no se oculta)', () => 
   const team = makeTeam(ClubEmploymentContextCatalog.TEST_CLUB_ID, '1ª', 3);
   const resolved = ContractService.resolveRulesForClub(team, {
     seasonKey: SEASON, date: GAME_DATE, operation: 'signContract', extraModuleIds: ['bm-test-foreign-currency-v1'],
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   const player = team.roster[0];
   const registry = new ContractRegistry();
@@ -1069,7 +1114,11 @@ check('un contrato firmado congela sus módulos: un ascenso posterior no reescri
   assert.ok(!frozenModules.includes('acb-abp-cba-2018-22-operational-provisional-v1'));
   // El club asciende a ACB: el contrato ya firmado NO cambia.
   team.division = '1ª';
-  const afterPromotion = ContractService.resolveRulesForClub(team, { seasonKey: '2027-28', date: '2027-07-01' });
+  // WORLD-CONTEXT-1: la competición NUEVA se declara EXPLÍCITA (el fixture la
+  // deriva de su división vigente, ya mutada por el ascenso).
+  const afterPromotion = ContractService.resolveRulesForClub(team, {
+    seasonKey: '2027-28', date: '2027-07-01', domesticCompetitionId: CompetitionCatalog.COMPETITION_IDS.ACB,
+  });
   assert.ok(afterPromotion.ruleModuleIds.includes('acb-abp-cba-2018-22-operational-provisional-v1'));
   assert.deepStrictEqual([...contract.signingContext.ruleModuleIds], frozenModules);
   // Y una firma NUEVA sí usa el contexto nuevo.
@@ -1130,13 +1179,16 @@ function buildRealWorld() {
       operation: 'buildMatchSquad',
     }).squadRules;
     padRosterToMinimum(roster, squadRules.min, { minAge: 18, maxAge: 34, referenceDate: refDate });
-    return linkLegacyClub(new Team({ ...teamData, roster }));
+    const team = linkLegacyClub(new Team({ ...teamData, roster }));
+    return team;
   });
   const playerRegistry = new PlayerRegistry();
   teams.forEach((team) => playerRegistry.registerMany(team.roster));
   const registry = new ContractRegistry();
   const result = ContractSeeder.seedContractsForTeams({
     teams, seasonKey: SEASON, date: GAME_DATE, registry, playerRegistry, config: CONFIG_BASE,
+    // WORLD-CONTEXT-1: resolver obligatorio de la operación batch.
+    competitionIdForTeam: (team) => fixtureCompetitionIdFor(team),
   });
   return {
     teams, playerRegistry, registry, warnings: result.warnings, calibration: result.calibration,
@@ -1205,7 +1257,9 @@ check('todos los contratos del bootstrap se identifican como SIMULADOS', () => {
 
 check('ningún salario baja del mínimo normativo del perfil de su club', () => {
   world.teams.forEach((team) => {
-    const resolved = ContractService.resolveRulesForClub(team, { seasonKey: SEASON, date: GAME_DATE });
+    const resolved = ContractService.resolveRulesForClub(team, {
+      seasonKey: SEASON, date: GAME_DATE, domesticCompetitionId: fixtureCompetitionIdFor(team),
+    });
     const floor = resolved.employment.effectiveMinimumAnnual.amountMinor;
     world.registry.forClubInSeason(team.id, SEASON).forEach((contract) => {
       const counted = contract.salaryForMinimumCheck(SEASON, resolved.employment.effectiveMinimumAnnual
@@ -1227,7 +1281,7 @@ check('la nómina de cada club cuadra EXACTAMENTE con el objetivo de calibració
 check('los rangos de nómina simulada se mantienen dentro del perfil económico declarado', () => {
   const byCompetition = { acb: [], 'primera-feb': [] };
   world.teams.forEach((team) => {
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    const competitionId = fixtureCompetitionIdFor(team);
     byCompetition[competitionId].push(ContractService.guaranteedPayrollForClub(world.registry, team.id, SEASON).amountMinor);
   });
   Object.entries(byCompetition).forEach(([competitionId, payrolls]) => {
@@ -1320,6 +1374,7 @@ check('un newgen recibe contrato con el contexto vigente y sus marcadores de men
     playerRegistry: world.playerRegistry,
     config: CONFIG_BASE,
     calibration: world.calibration,
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   assert.ok(contract.minorProtections, 'un menor debe llevar marcadores de protección');
   assert.ok(contract.minorProtections.markers.includes('guardian-consent'));
@@ -1347,6 +1402,8 @@ check('un club ascendido firma a su cantera con la competición NUEVA sin reescr
     playerRegistry: world2.playerRegistry,
     config: CONFIG_BASE,
     teams: world2.teams,
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
+    competitionIdForTeam: (candidate) => fixtureCompetitionIdFor(candidate),
   });
   assert.ok(contract.signingContext.ruleModuleIds.includes('acb-abp-cba-2018-22-operational-provisional-v1'));
   assert.deepStrictEqual([...oldContract.signingContext.ruleModuleIds], frozen);

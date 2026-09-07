@@ -577,6 +577,13 @@
   <script src="src/core/CompetitionSimulationService.js"></script>
   <script src="src/core/CompetitionEngine.js"></script>
   <script src="src/core/CompetitionParticipationService.js"></script>
+  <!-- WORLD-CONTEXT-1 (DESIGN.md 10.20): utilidad PURA de contexto
+       competitivo explícito (resuelve la competición doméstica de un equipo
+       desde sus CompetitionEntry reales y valida los ids que reciben los
+       dominios profesionales). Depende de CompetitionParticipationService.js,
+       así que carga justo después; los servicios que la consumen la leen
+       siempre en tiempo de llamada. -->
+  <script src="src/core/CompetitionContextService.js"></script>
   <!-- PATHWAYS-1 (DESIGN.md 10.15): clasificación/ascenso-descenso
        declarativos — la entidad y el catálogo deben cargar ANTES que
        `data/world/spain-2026.1.js`, que registra ahí su pathway doméstico;

@@ -41,6 +41,11 @@
   const RosterMutationModule = isNode ? require('./RosterMutationService.js') : global.BasketManager;
   const ContractSeederModule = isNode ? require('./ContractSeeder.js') : global.BasketManager;
   const RegistrationSeederModule = isNode ? require('./RegistrationSeeder.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
+
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   function LD() { return LocalDateModule.LocalDate; }
   function CareerAge() { return CareerAgeModule.CareerAge; }
@@ -273,12 +278,20 @@
   //   4) solicita licencia/inscripción por REG-1;
   //   5) si falla lo administrativo, deja estado PENDIENTE claro (nunca un
   //      commit parcial: el contrato+roster son atómicos entre sí).
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): `domesticCompetitionId` OBLIGATORIO
+  // — la cantera pertenece al CLUB (`membership.clubId`) y la promoción
+  // afilia/inscribe en el EQUIPO (`team.id`) de la competición explícita
+  // que declara el llamador, nunca traducida de `team.division`.
   function promoteToFirstTeam(params) {
     const {
       academyRegistry, playerRegistry, contractRegistry, registrationRegistry, teams,
       membership, team, date, seasonKey, config, calibration, lineup, existingClassification,
+      domesticCompetitionId, competitionIdForTeam,
     } = params;
     const iso = toIso(date);
+    CompetitionContext().requireCompetitionId(domesticCompetitionId, {
+      operation: 'AcademyService.promoteToFirstTeam', teamId: team.id, clubId: team.clubId, seasonKey,
+    });
     const player = playerRegistry.require(membership.playerId);
     const status = membership.currentStatus();
     if (status === 'promoted') {
@@ -302,6 +315,10 @@
         config,
         calibration,
         teams,
+        domesticCompetitionId,
+        // WORLD-CONTEXT-1: si el llamador no aporta `calibration`, el seeder
+        // la construye sobre `teams` y necesita el resolver explícito.
+        competitionIdForTeam,
         isFirstProfessionalContract: true,
       });
       ctx.registerUndo(() => { contractRegistry.unregister(contract.id); });
@@ -332,6 +349,7 @@
           registrationRegistry,
           contractRegistry,
           config,
+          domesticCompetitionId,
           existingClassification,
         });
         licenseId = seeded.license ? seeded.license.id : null;

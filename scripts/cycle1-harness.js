@@ -50,6 +50,20 @@ function createCycleRegistries() {
   };
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): este arnés es un FIXTURE HISTÓRICO
+// pre-World (sus equipos no tienen `CompetitionEntry`): declara la
+// competición de cada equipo con el adaptador legacy, permitido SOLO en
+// `scripts/`, y la pasa EXPLÍCITA a los servicios profesionales (que ya no
+// aceptan derivarla de `team.division` por su cuenta).
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
+
 function resolveRegistrationRulesForDivision(division, seasonKey, date, phaseId) {
   return RegistrationService.resolveRegistrationRules({
     competitionId: CompetitionRules.competitionIdFromLegacyDivision(division),
@@ -93,6 +107,8 @@ function selfHealClubLegality(params) {
   const report = RosterLegalityService.buildReport({
     team,
     seasonKey,
+    competitionId: fixtureCompetitionIdFor(team),
+    competitionIdForTeam: fixtureCompetitionResolver,
     date: context.date,
     phaseId: context.phaseId,
     cycleId: null,
@@ -108,10 +124,13 @@ function selfHealClubLegality(params) {
   return RosterLegalityService.applyEmergencyLadder({
     report,
     team,
+    competitionIdForTeam: fixtureCompetitionResolver,
     deps: {
       academyRegistry, playerRegistry, contractRegistry, registrationRegistry, loanRegistry, teams,
       lineup: null,
-      calibration: ContractSeeder.buildCompetitionCalibration(teams, config || CONFIG_BASE),
+      calibration: ContractSeeder.buildCompetitionCalibration(teams, config || CONFIG_BASE, {
+        seasonKey, competitionIdForTeam: fixtureCompetitionResolver,
+      }),
     },
     date: context.date,
     seasonKey,
@@ -195,7 +214,10 @@ function ensureAllClubsLegalBeforeFirstMatch(params) {
     careerSeed,
     userClubId: userClubId || null,
     delegateEmergencyForUserClub: delegateEmergencyForUserClub !== false,
-    calibration: calibration || ContractSeeder.buildCompetitionCalibration(teams, config || CONFIG_BASE),
+    calibration: calibration || ContractSeeder.buildCompetitionCalibration(teams, config || CONFIG_BASE, {
+      seasonKey, competitionIdForTeam: fixtureCompetitionResolver,
+    }),
+    competitionIdForTeam: fixtureCompetitionResolver,
     classificationCache: classificationCache || new Map(),
     retirementService: RetirementService,
   });
@@ -224,10 +246,12 @@ function collectSeasonEvidence(params) {
     league.schedule
       .filter((match) => match.status === 'played' && match.date)
       .forEach((match) => collector.recordMatch({
-        homeClubId: match.homeTeam.id,
-        awayClubId: match.awayTeam.id,
+        homeTeamId: match.homeTeam.id,
+        homeClubId: match.homeTeam.clubId,
+        awayTeamId: match.awayTeam.id,
+        awayClubId: match.awayTeam.clubId,
         date: match.date,
-        competitionId: CompetitionRules.competitionIdFromLegacyDivision(match.homeTeam.division),
+        competitionId: fixtureCompetitionIdFor(match.homeTeam),
         phaseId: 'league',
         matchId: match.result && match.result.gameId ? match.result.gameId : null,
       }));
@@ -246,10 +270,12 @@ function collectSeasonEvidence(params) {
         (series.games || []).forEach((game) => {
           if (!game.date) return;
           collector.recordMatch({
-            homeClubId: game.homeEntry.team.id,
-            awayClubId: game.awayEntry.team.id,
+            homeTeamId: game.homeEntry.team.id,
+            homeClubId: game.homeEntry.team.clubId,
+            awayTeamId: game.awayEntry.team.id,
+            awayClubId: game.awayEntry.team.clubId,
             date: game.date,
-            competitionId: CompetitionRules.competitionIdFromLegacyDivision(game.homeEntry.team.division),
+            competitionId: fixtureCompetitionIdFor(game.homeEntry.team),
             phaseId,
             matchId: game.result && game.result.gameId ? game.result.gameId : null,
           });
@@ -283,10 +309,10 @@ function runAnnualCycleTransition(params) {
   const activeConfig = config || CONFIG_BASE;
   const seasonEndIso = typeof seasonEndDateTime === 'string'
     ? seasonEndDateTime : LocalDate.fromJsDate(seasonEndDateTime);
-  const missing = evidence.missingClubIds(teams);
+  const missing = evidence.missingTeamIds(teams);
   assert.strictEqual(
     missing.length, 0,
-    `[cycle1-harness] hay ${missing.length} club(es) sin evidencia de último partido oficial: ${missing.join(', ')}`,
+    `[cycle1-harness] hay ${missing.length} equipo(s) sin evidencia de último partido oficial: ${missing.join(', ')}`,
   );
 
   const { cycle } = AnnualCycleService.openCycle({
@@ -298,6 +324,7 @@ function runAnnualCycleTransition(params) {
     date: seasonEndIso,
     playerRegistry,
     contractRegistry,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
 
   const summary = { promoted: [], relegated: [] };
@@ -354,7 +381,13 @@ function runAnnualCycleTransition(params) {
     userClubId: userClubId || null,
     lineup: lineup || null,
     operationalContext: OPERATIONAL_CONTEXT,
-    calibration: calibration || ContractSeeder.buildCompetitionCalibration(teams, activeConfig),
+    calibration: calibration || ContractSeeder.buildCompetitionCalibration(teams, activeConfig, {
+      seasonKey: targetSeasonKey, competitionIdForTeam: fixtureCompetitionResolver,
+    }),
+    // WORLD-CONTEXT-1: el ciclo resuelve la competición de cada equipo con
+    // este resolver explícito, por temporada de ORIGEN o de DESTINO según la
+    // fase (aquí, fixture legacy sin Entries reales).
+    competitionIdForTeam: fixtureCompetitionResolver,
     classificationCache: classificationCache || new Map(),
     delegateEmergencyForUserClub: delegateEmergencyForUserClub !== false,
     hooks,
@@ -371,7 +404,7 @@ function runAnnualCycleTransition(params) {
     if (onPhase) onPhase({ phaseId, date: phaseDate, result });
     if (result && result.ready === false) {
       const detail = (result.audit && result.audit.notReady ? result.audit.notReady : [])
-        .map((entry) => `${entry.clubId}: ${entry.gaps.filter((g) => g.severity === 'blocking').map((g) => `${g.code}${g.detail ? ` ${JSON.stringify(g.detail)}` : ''}`).join('; ')} counts=${JSON.stringify(entry.counts)}`);
+        .map((entry) => `${entry.teamId || entry.clubId}: ${entry.gaps.filter((g) => g.severity === 'blocking').map((g) => `${g.code}${g.detail ? ` ${JSON.stringify(g.detail)}` : ''}`).join('; ')} counts=${JSON.stringify(entry.counts)}`);
       throw new Error(
         `[cycle1-harness] la fase "${phaseId}" dejó ${detail.length} club(es) NOT READY — el ciclo nunca empieza `
         + `temporada con un club ilegal:\n  ${detail.slice(0, 10).join('\n  ')}`,
@@ -413,6 +446,8 @@ function assertAllClubsCanBuildLegalSquad(params) {
     const report = RosterLegalityService.buildReport({
       team,
       seasonKey,
+      competitionId: fixtureCompetitionIdFor(team),
+      competitionIdForTeam: fixtureCompetitionResolver,
       date: iso,
       phaseId: 'league',
       cycleId: null,
@@ -425,7 +460,7 @@ function assertAllClubsCanBuildLegalSquad(params) {
       classificationCache: classificationCache || new Map(),
     });
     if (!report.isLegal) {
-      illegal.push({ clubId: team.id, gaps: report.gaps.filter((gap) => gap.severity === 'blocking').map((gap) => gap.code) });
+      illegal.push({ teamId: team.id, clubId: team.clubId, gaps: report.gaps.filter((gap) => gap.severity === 'blocking').map((gap) => gap.code) });
     }
   });
   assert.strictEqual(

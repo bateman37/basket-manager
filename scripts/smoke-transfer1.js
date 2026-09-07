@@ -90,6 +90,19 @@ function linkLegacyClub(team) {
   return team;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): este smoke es un FIXTURE HISTÓRICO
+// pre-World — declara la competición de cada equipo con el adaptador legacy
+// (permitido SOLO en `scripts/`) y la pasa EXPLÍCITA a los servicios
+// profesionales, que ya no aceptan derivarla de `team.division`.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
+
 function buildRealTeam(teamData, referenceDate, seasonKey) {
   const roster = teamData.roster.map((playerData) => {
     const { dataSource, ...playerFields } = playerData;
@@ -233,10 +246,10 @@ assert.ok(ClubEmploymentContextCatalog.validateCatalog(allTeams).valid, 'context
 
 const contractRegistry = new ContractRegistry();
 let bootstrapIsoDate = LocalDate.fromJsDate(referenceDate);
-ContractSeeder.seedContractsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE });
+ContractSeeder.seedContractsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE, competitionIdForTeam: fixtureCompetitionResolver });
 
 const registrationRegistry = new RegistrationRegistry();
-RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE });
+RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE, competitionIdForTeam: fixtureCompetitionResolver });
 
 let agentRegistry = new AgentRegistry();
 let marketRegistry = new MarketRegistry();
@@ -288,7 +301,7 @@ console.log('OK: Player/Contract/Registration/Agent/Market/Transfer/Loan Registr
 // simulación de temporadas, sobre el mundo real recién sembrado.
 // =====================================================================
 function buildValidOfferDraft(team, player, isoDate, salaryMinor, seasons) {
-  const resolved = ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' });
+  const resolved = ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' , domesticCompetitionId: fixtureCompetitionIdFor(team) });
   const employment = resolved.employment;
   const currency = employment.allowedCurrencies[0];
   const seasonKeys = [];
@@ -362,6 +375,7 @@ function buildLiveAgreementForPlayer(team, player, isoDate, seed) {
   const offer = MarketService.createAndSendOffer({
     marketRegistry, thread, draft, offeredBy: 'club', date: isoDate, careerSeed: seed, marketContext,
     team, player, playerRegistry, contractRegistry, seasonKey,
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   offer.addEvent({ id: `${offer.id}:accept`, type: 'player-accepted', date: isoDate });
   return MarketService.createAgreementInPrinciple({ marketRegistry, thread, offer, date: isoDate, employmentSnapshot: { profileId: marketContext.bundleId } });
@@ -377,6 +391,7 @@ function runFreeAgentSigningFixture() {
     transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
     agreement, destinationTeam: team, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
     operationalContext: OPERATIONAL_CONTEXT,
+    destinationCompetitionId: fixtureCompetitionIdFor(team),
   });
   assert.strictEqual(plan.blockers.length, 0, `fichaje de libre bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -420,6 +435,8 @@ function runNegotiatedTransferFixture() {
     agreement, originTeam, destinationTeam, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
     clubOffer, playerConsentGrantedAt: isoDate,
     operationalContext: OPERATIONAL_CONTEXT,
+    originCompetitionId: fixtureCompetitionIdFor(originTeam),
+    destinationCompetitionId: fixtureCompetitionIdFor(destinationTeam),
   });
   assert.strictEqual(plan.blockers.length, 0, `traspaso negociado bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -506,6 +523,8 @@ function runReleaseClauseExerciseFixture() {
     agreement, originTeam, destinationTeam, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
     clauseId: clause.id, exercisedBy: 'player',
     operationalContext: OPERATIONAL_CONTEXT,
+    originCompetitionId: fixtureCompetitionIdFor(originTeam),
+    destinationCompetitionId: fixtureCompetitionIdFor(destinationTeam),
   });
   assert.strictEqual(plan.blockers.length, 0, `ejercicio de cláusula bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -530,6 +549,8 @@ function runMutualReleaseFixture() {
     originTeam, destinationTeam: null, playerId: player.id, seasonKey, effectiveDate: isoDate, now: isoDate, commit: true,
     mutualSettlement: { partiesConsent: ['club', 'player'], amount: { amountMinor: 2000000, currency: 'EUR' } },
     operationalContext: OPERATIONAL_CONTEXT,
+    originCompetitionId: fixtureCompetitionIdFor(originTeam),
+    destinationCompetitionId: fixtureCompetitionIdFor(null),
   });
   assert.strictEqual(plan.blockers.length, 0, `liberación por mutuo acuerdo bloqueada: ${JSON.stringify(plan.blockers)}`);
   assert.ok(result.record, 'debe producir un TransactionRecord');
@@ -553,6 +574,7 @@ function runScheduledFutureSigningFixture() {
     transferRegistry, marketRegistry, registrationRegistry, contractRegistry, playerRegistry, teams: allTeams,
     agreement, destinationTeam: team, seasonKey, effectiveDate: futureDate, now: isoDate, commit: true,
     operationalContext: OPERATIONAL_CONTEXT,
+    destinationCompetitionId: fixtureCompetitionIdFor(team),
   });
   assert.strictEqual(plan.blockers.length, 0, `fichaje futuro bloqueado: ${JSON.stringify(plan.blockers)}`);
   assert.strictEqual(result.notYetDue, true);
