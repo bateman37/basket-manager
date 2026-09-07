@@ -56,6 +56,12 @@
     // el paquete raíz obligatorio de cualquier carrera.
     careerSetup: { isRootRequired: true },
     install,
+    // WORLD-HARDEN-1 (DESIGN.md 10.19): World Core no posee ninguna
+    // competición/schedule/pathway propio — declara el shape vacío para que
+    // `ContentPackLifecycleService.prepareCatalogs()` pueda iterar TODOS los
+    // manifiestos instalados de forma uniforme sin comprobar por nombre de
+    // paquete si tiene hooks.
+    hooks: {},
   };
 
   const exportsObj = { WORLD_CORE_MANIFEST, WORLD_CORE_AREA_IDS: AREA_IDS };

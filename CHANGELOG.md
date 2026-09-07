@@ -1,5 +1,94 @@
 # CHANGELOG.md
 
+## 2026-09-07 — WORLD-HARDEN-1 (parcial): orquestación genérica de arranque/cierre + frontera de persistencia (DESIGN.md sección 10.19)
+
+Novena entrega de la EPIC **World Architecture** — **entregada
+PARCIALMENTE** (ver DESIGN.md 10.19.2 para la lista exacta de deuda
+pendiente; esta sesión NO declara la EPIC 100 % cerrada). Base: merge de
+la PR de WORLD-UI-1 en `origin/main` (`38049ca`). Rama
+`claude/modest-gauss-ab8bat`.
+
+### Qué se implementó
+
+- **`src/core/ContentPackLifecycleService.js`** (nuevo) — orquesta
+  `prepareCatalogs()`/`resolveEditionBindings()` de los paquetes YA
+  resueltos, localizando propietario por `manifest.provides` (nunca por
+  nombre de paquete). `unionScheduleIds()` une schedules de varios
+  paquetes.
+- **`src/core/CareerParticipantFactory.js`** (nuevo) —
+  `materializeParticipants()`/`groupTeamsByCompetitionId()`/
+  `competitionIdByTeamIdFrom()`, extracción PURA de la materialización de
+  participantes de `game.js`.
+- **`src/core/CareerPersistenceBoundary.js`** (nuevo) — sonda de
+  persistibilidad: `inventory()` (21 colecciones/componentes, 16
+  durables + 5 derivadas/efímeras) + `project(runtime, {snapshotAtGameDate})`
+  (envelope JSON plano con fingerprint, reutilizando los `.snapshot()`
+  ya existentes de cada registro de dominio). No implementa save/load.
+- **`data/world/content-pack-catalog.js`** (nuevo) — único índice de los
+  DOS paquetes de contenido disponibles (World Core + España).
+- **`src/ui/game.js` ya NO llama a `registerSpainSchedules`,
+  `registerSpainPathways`, `resolveSpainEditionBindings`,
+  `SPAIN_PATHWAY_IDS`, `SPAIN_DOMESTIC_TRANSITION_GROUP_ID` ni
+  `SPAIN_SCHEDULE_IDS`** (auditado estáticamente): `startCareerFromSetup()`
+  usa `ContentPackLifecycleService`; `closeSeasonAndPrepareNext()` usa una
+  nueva `discoverReadyTransitionGroup()` que descubre el transition group
+  listo desde los `pathwayBindingIds` congelados en las Editions, y deriva
+  los `scheduleIds` de la temporada siguiente de los paquetes instalados.
+  `getLeague(division)`/`getBrackets(division)`/`competitionIdForDivision()`/
+  `state.division` quedan RETIRADOS por completo de `game.js` (sin
+  ninguna lectura productiva, solo escrituras muertas).
+- **`buildRealTeamFromData()` corregido** para recibir
+  `competitionDefinitionId` explícito — antes construía un `team`
+  provisional sin `.id` y sin competitionId, dependiente de
+  `state.world.registries` en un punto del arranque donde el mundo
+  TODAVÍA no existe (fragilidad real detectada durante esta entrega).
+- **`ContentPackRegistry.markInstalled(manifest, installedAtGameDate)`**
+  recibe la fecha de juego explícita — deja de usar `new Date()`.
+- **`scripts/audit-world-10-seasons.js`** (nuevo) — diez cierres de
+  temporada reales sobre los 36 equipos españoles, vía la ruta canónica
+  (`GameWorld`+`CompetitionEngine`+`CompetitionPathwayService`+
+  `AnnualCycleService`). Última ejecución: 10/10 temporadas OK, ~103 s,
+  terminando con 1508 jugadores en el Player Registry (324 afiliados
+  vivos, 97 retirados acumulados), integridad limpia en cada cierre.
+- **`scripts/test-world-harden1.js`** (20 comprobaciones, todas OK) y
+  **`scripts/smoke-world-harden1.js`** (carrera española real hasta la
+  primera parada de usuario + cierre administrativo sintético corto, OK).
+
+### Deuda NO resuelta en esta sesión (ver DESIGN.md 10.19.2)
+
+`competitionIdFromLegacyDivision()` sigue con ~22 call-sites productivos
+en `AnnualCycleService`/`ContractSeeder`/`RegistrationSeeder`/
+`CpuRosterPlanner`/`MarketClearinghouse`/`RosterLegalityService`/
+`TransferService`/`LoanService`/`ClubEmploymentContextCatalog` (migrarlos
+exige tocar 9 servicios normativos sensibles sin poder ejecutar sus
+baterías completas, fuera del presupuesto de verificación de esta
+sesión); `UI_COMPETITION_KEY_BY_STAGE_KEY`/`competitionKeyForStageKey()`/
+`BRACKET_PHASE_IDS` siguen vivos en `game.js`; el grafo completo de
+pathways para `CONTROLLED_CLUB_WITHOUT_USER_STOP` no se implementó
+(sigue comprobando solo la competición inicial); la semántica `clubId`/
+`teamId` de `ClubCycleCase`/`RosterLegalityReport`/`EmergencyRosterAction`
+no se corrigió; `Team.js` conserva `DIVISIONS`/`validateDivision`;
+`SpainLegacyCompetitionRuntime.js`/`src/core/Calendar.js` no se tocaron;
+`scripts/smoke-world-calendar1.js` sigue con la aserción obsoleta de
+`simulationProfile` sin corregir.
+
+### Pruebas ejecutadas
+
+`node scripts/test-world-harden1.js` (20/20), `node
+scripts/smoke-world-harden1.js` (OK), `node
+scripts/audit-world-10-seasons.js` (10/10 temporadas OK), `node
+scripts/test-world-ui1.js` (20/20), `node scripts/test-pathways1.js`
+(19/19), `node scripts/test-cycle1.js` (42/42), `node
+scripts/test-world-sim1.js` (19/19) — las cuatro regresiones históricas
+sin ninguna regresión nueva. `node --check` sobre todo el JS nuevo/
+modificado y `git diff --check` limpios. No se ejecutó Playwright ni el
+resto de smokes/tests históricos (fuera del presupuesto de esta entrega).
+
+### Checklist manual pendiente
+
+Ver `docs/manual/WORLD_ARCHITECTURE_ACCEPTANCE.md` — prueba manual amplia
+de Dennis, no ejecutada por esta sesión.
+
 ## 2026-09-07 — WORLD-UI-1: configuración de carrera y navegación mundial (DESIGN.md sección 10.18)
 
 Octava entrega de la EPIC **World Architecture** (WORLD-CORE-1 →

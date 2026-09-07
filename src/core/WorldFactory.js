@@ -28,14 +28,19 @@
   // Instala un conjunto de manifiestos sobre `world`, en el orden DERIVADO
   // de sus dependencias (`ContentPackRegistry.computeInstallOrder`) — nunca
   // el orden accidental del array `manifests` (invariante 20). Idempotente:
-  // un paquete ya instalado no se vuelve a instalar.
-  function installContentPacks(world, manifests, context) {
+  // un paquete ya instalado no se vuelve a instalar. WORLD-HARDEN-1
+  // (DESIGN.md 10.19): `installedAtGameDate` es la fecha EXPLÍCITA de la
+  // carrera (nunca `new Date()`) — si se omite, cae al `createdAtGameDate`
+  // ya explícito del propio `world` (nunca al reloj del proceso), para no
+  // romper llamadas históricas que todavía no la pasan.
+  function installContentPacks(world, manifests, context, installedAtGameDate) {
     manifests.forEach((manifest) => world.registries.packs.registerManifest(manifest));
     const order = world.registries.packs.computeInstallOrder(manifests);
+    const installDate = installedAtGameDate !== undefined ? installedAtGameDate : world.createdAtGameDate;
     order.forEach((manifest) => {
       if (world.registries.packs.isInstalled(manifest.id)) return;
       manifest.install(world, context || {});
-      world.registries.packs.markInstalled(manifest);
+      world.registries.packs.markInstalled(manifest, installDate);
     });
     return world;
   }
@@ -53,7 +58,7 @@
       id, name, careerSeed, createdAtGameDate,
     });
     if (simulationProfile) world.setSimulationProfile(simulationProfile);
-    installContentPacks(world, packs || [], context);
+    installContentPacks(world, packs || [], context, createdAtGameDate);
     return world;
   }
 
