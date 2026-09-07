@@ -616,8 +616,24 @@
   <script src="src/core/CareerSetupService.js"></script>
   <script src="src/core/WorldNavigationService.js"></script>
 
+  <!-- WORLD-HARDEN-1 (DESIGN.md 10.19): orquestación genérica de paquetes
+       — `ContentPackLifecycleService.js` reemplaza las llamadas directas de
+       game.js a funciones de España por nombre; `CareerParticipantFactory.js`
+       agrupa los Team/Player ya construidos por competitionDefinitionId real.
+       Ambos son PUROS, sin literales de país. -->
+  <script src="src/core/ContentPackLifecycleService.js"></script>
+  <script src="src/core/CareerParticipantFactory.js"></script>
+  <!-- WORLD-HARDEN-1: sonda de persistibilidad PURA — no implementa
+       save/load, no la llama ninguna pantalla todavía; se carga para que
+       `scripts/test-world-harden1.js` y una futura entrega de persistencia
+       la encuentren en el mismo `BasketManager` global que el resto. -->
+  <script src="src/core/CareerPersistenceBoundary.js"></script>
+
   <script src="data/world/world-core-2026.1.js"></script>
   <script src="data/world/spain-2026.1.js"></script>
+  <!-- WORLD-HARDEN-1: índice de paquetes DISPONIBLES — depende de los dos
+       manifiestos ya cargados arriba. -->
+  <script src="data/world/content-pack-catalog.js"></script>
   <script src="src/ui/game.js"></script>
   <script>
     // --- Landing: alternar entre modo juego y modo prueba ---

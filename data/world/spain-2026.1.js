@@ -1064,6 +1064,21 @@
     // española — construidos una sola vez al cargar el módulo (dato
     // estático de contenido, nunca recalculado por render).
     careerSetup: buildCareerSetupMetadata(),
+    // WORLD-HARDEN-1 (DESIGN.md 10.19): hooks RUNTIME opcionales que
+    // `ContentPackLifecycleService` invoca genéricamente — nunca
+    // serializados (la persistencia solo conserva `packId`+versión, ver
+    // `CareerPersistenceBoundary.js`). El core ya no llama a
+    // `registerSpainSchedules`/`registerSpainPathways`/
+    // `resolveSpainEditionBindings` por nombre — los localiza por
+    // `manifest.provides` (ownership) y llama a estos mismos hooks, que
+    // envuelven EXACTAMENTE las funciones de siempre (ningún
+    // comportamiento nuevo).
+    hooks: {
+      registerFormats,
+      registerSchedules,
+      registerPathways,
+      resolveEditionBindings: editionBindings,
+    },
   };
 
   const exportsObj = {

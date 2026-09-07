@@ -59,13 +59,17 @@
 
     // Solo llamado por `WorldFactory` tras ejecutar `manifest.install()` con
     // éxito — este registro nunca decide POR SÍ SOLO que algo quedó
-    // instalado.
-    markInstalled(manifest) {
+    // instalado. WORLD-HARDEN-1 (DESIGN.md 10.19): `installedAtGameDate`
+    // llega EXPLÍCITO del llamador (la fecha de la CARRERA, nunca
+    // `new Date()`/el reloj del proceso) — dos instalaciones con la misma
+    // fecha de carrera y el mismo conjunto de paquetes producen el mismo
+    // snapshot, bajo cualquier `TZ` del proceso.
+    markInstalled(manifest, installedAtGameDate) {
       this._installedById.set(manifest.id, {
         id: manifest.id,
         version: manifest.version,
         name: manifest.name || manifest.id,
-        installedAt: new Date().toISOString(),
+        installedAt: installedAtGameDate !== undefined ? installedAtGameDate : null,
       });
     }
 
