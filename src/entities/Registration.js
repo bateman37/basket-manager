@@ -412,7 +412,31 @@
         isReal: Boolean(p.isReal),
         dataSource: p.dataSource || null,
       }));
+      // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 4.2 del prompt): fuente
+      // CANÓNICA de una aparición internacional oficial pasa a ser
+      // `NationalTeamAppearanceReceipt` (`state.nationalTeamRegistry`) —
+      // este array sigue existiendo SOLO como evidencia LEGACY importada de
+      // fixtures/tests anteriores a esta entrega (p.ej. la excepción de
+      // formación FEB, ver `RegulatoryClassificationService.
+      // classifyFormationFeb28()`), NUNCA se vuelve a escribir aquí como
+      // fuente nueva.
       this.nationalTeamAppearances = Array.isArray(data.nationalTeamAppearances) ? [...data.nationalTeamAppearances] : [];
+      // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 4.2 del prompt) — área de
+      // nacimiento OPCIONAL y trazable (nunca se infiere de un nombre de
+      // ciudad/club/liga visible).
+      this.birthAreaId = data.birthAreaId !== undefined ? data.birthAreaId : null;
+      // Evidencias de PASAPORTE — ciudadanía, pasaporte vigente y
+      // nacionalidad deportiva FIBA son conceptos DISTINTOS (sección 4.2):
+      // esto es SOLO evidencia documental de pasaporte, nunca una decisión
+      // de elegibilidad (eso vive en `NationalStatusDecision`).
+      this.passportEvidences = Array.isArray(data.passportEvidences) ? data.passportEvidences.map((p) => ({
+        id: p.id || null,
+        areaId: p.areaId !== undefined ? p.areaId : null,
+        issuedDate: p.issuedDate || null,
+        expiryDate: p.expiryDate !== undefined ? p.expiryDate : null,
+        verificationStatus: p.verificationStatus || 'unverified',
+        provenance: p.provenance || null,
+      })) : [];
       // Evidencias de igualdad de trato / vínculo familiar / transición
       // (sección 5.3: Brexit, exención familiar, adopción sin vínculo).
       this.equalTreatmentEvidences = Array.isArray(data.equalTreatmentEvidences) ? [...data.equalTreatmentEvidences] : [];
@@ -444,6 +468,8 @@
         citizenships: this.citizenships,
         trainingPeriods: this.trainingPeriods,
         nationalTeamAppearances: this.nationalTeamAppearances,
+        birthAreaId: this.birthAreaId,
+        passportEvidences: this.passportEvidences,
         equalTreatmentEvidences: this.equalTreatmentEvidences,
         organizerApprovedClassifications: this.organizerApprovedClassifications,
         documentStatuses: this.documentStatuses,

@@ -218,7 +218,17 @@
 
     // Cohorte INTERACTIVO — los sistemas españoles (contratos/inscripción/
     // ciclo) solo procesan esto, nunca `getAllTeams()` a secas (BUG-WORLDSIM-06).
-    interactiveCohortTeams(seasonKey) { return this.teamsForDetailLevel('playable', seasonKey); }
+    // BUG-NATIONAL1-05 (NATIONAL-TEAMS-1, DESIGN.md 10.17): antes devolvía
+    // CUALQUIER Team "playable" sin mirar su `teamKind` — una selección
+    // "playable" futura habría entrado por accidente en bootstrap de
+    // contratos/licencias domésticas/mercado/ciclo anual de clubes. Ahora
+    // filtra explícitamente por "club-team" (invariante 16).
+    interactiveCohortTeams(seasonKey) {
+      return this.teamsForDetailLevel('playable', seasonKey).filter((teamId) => {
+        const team = this.world.registries.teams.get(teamId);
+        return Boolean(team) && team.teamKind === 'club-team';
+      });
+    }
 
     // Diagnóstico de población materializada frente a estimada — nunca
     // suma la estimación a `PlayerRegistry.size` ni la presenta como

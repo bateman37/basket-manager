@@ -64,6 +64,11 @@
     // que prohíbe al cedido jugar contra su club propietario — nunca se
     // presenta como lesión o sanción.
     PARENT_CLUB_MATCH_RESTRICTED: 'PARENT_CLUB_MATCH_RESTRICTED',
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 6 del prompt) — el
+    // jugador está de servicio internacional ('joined' en su
+    // NationalTeamCallUp, dentro de la ventana de su selección). Nunca se
+    // presenta como lesión ni sanción — el jugador nunca salió de su club.
+    NATIONAL_TEAM_DUTY: 'NATIONAL_TEAM_DUTY',
   };
 
   function reason(code, severity, params, sourceRuleIds) {
@@ -179,7 +184,7 @@
     // SquadEligibilityService — nunca "unknown" se convierte en favorable).
     const profile = deps.registrationRegistry.getProfile(playerId);
     const classification = Classification().classifyPlayer(
-      playerId, profile, context, deps.classificationCache,
+      playerId, profile, context, deps.classificationCache, { nationalTeamRegistry: deps.nationalTeamRegistry },
     );
     if (classification.formation.status === 'unknown' || classification.nonCommunitySlot.status === 'unknown') {
       reasons.push(reason(REASON_CODES.CLASSIFICATION_UNKNOWN, 'informational'));
@@ -197,6 +202,21 @@
     // regulatorias, médicas y disciplinarias por categoría".
     if (deps.disciplinarySuspensions && deps.disciplinarySuspensions.get(playerId)) {
       reasons.push(reason(REASON_CODES.DISCIPLINARY_SUSPENSION, 'blocking'));
+    }
+
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 6 del prompt) —
+    // indisponibilidad para el club durante el servicio internacional.
+    // Usuario y CPU consultan EXACTAMENTE el mismo registro inyectado,
+    // nunca una regla paralela. Sin `deps.nationalTeamRegistry` (fixtures/
+    // tests históricos que no lo inyectan), este bloque nunca se activa —
+    // comportamiento IDÉNTICO a antes de esta entrega.
+    if (deps.nationalTeamRegistry && context.date) {
+      const duty = deps.nationalTeamRegistry.activeDutyForPlayerOn(playerId, context.date);
+      if (duty) {
+        reasons.push(reason(REASON_CODES.NATIONAL_TEAM_DUTY, 'blocking', {
+          windowId: duty.window.id, nationalTeamId: duty.callUp.nationalTeamId,
+        }));
+      }
     }
 
     // LOAN-1 (DESIGN.md 9.21, sección 17.5 del prompt) — cláusula

@@ -59,12 +59,28 @@
   // para ACB (sección 5.1: "la definición FEB del art. 28 no se puede
   // reutilizar ciegamente para ACB").
   // ---------------------------------------------------------------------
-  function classifyFormationFeb28(profile, context) {
+  function classifyFormationFeb28(profile, context, deps) {
     if (!profile) return { status: 'unknown', basis: 'training-history', evidenceIds: [] };
 
     // Excepción: participación oficial con una selección FEB.
-    const nationalTeamEvidence = (profile.nationalTeamAppearances || [])
-      .find((a) => a.federationId === 'feb-general' && a.official);
+    //
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 4.2 del prompt): la fuente
+    // CANÓNICA de una aparición oficial pasa a ser
+    // `NationalTeamAppearanceReceipt` (consultado vía la dependencia
+    // EXPLÍCITA `deps.nationalTeamRegistry`) — `profile.
+    // nationalTeamAppearances` sigue funcionando como fallback de SOLO
+    // LECTURA para fixtures/tests anteriores a esta entrega que no inyectan
+    // ese registro, así que la excepción FEB ya existente no se rompe.
+    const nationalTeamRegistry = deps && deps.nationalTeamRegistry;
+    let nationalTeamEvidence = null;
+    if (nationalTeamRegistry && typeof nationalTeamRegistry.appearancesForPlayer === 'function') {
+      nationalTeamEvidence = nationalTeamRegistry.appearancesForPlayer(profile.playerId)
+        .find((a) => a.federationOrganizationId === 'feb-general' && a.official) || null;
+    }
+    if (!nationalTeamEvidence) {
+      nationalTeamEvidence = (profile.nationalTeamAppearances || [])
+        .find((a) => a.federationId === 'feb-general' && a.official) || null;
+    }
     if (nationalTeamEvidence) {
       return { status: 'qualifies', basis: 'national-team', evidenceIds: [nationalTeamEvidence.id].filter(Boolean) };
     }
@@ -197,7 +213,9 @@
 
   const CLASSIFIER_VERSION = 'reg-classification-v1';
 
-  function classifyPlayer(playerId, profile, context, cache) {
+  // `deps` (NATIONAL-TEAMS-1, DESIGN.md 10.17, opcional): { nationalTeamRegistry }
+  // — sin ella, comportamiento IDÉNTICO a antes de esta entrega.
+  function classifyPlayer(playerId, profile, context, cache, deps) {
     const warnings = [];
     let formation;
     let nonCommunitySlot;
@@ -225,7 +243,7 @@
       formation = { status: approvedOverride.formation || 'unknown', basis, evidenceIds: [approvedOverride.id].filter(Boolean) };
       nonCommunitySlot = { status: approvedOverride.nonCommunity || 'unknown', basis, evidenceIds: [approvedOverride.id].filter(Boolean) };
     } else if (context.competitionId === FEB_ART28_COMPETITION_ID()) {
-      formation = classifyFormationFeb28(profile, context);
+      formation = classifyFormationFeb28(profile, context, deps);
       nonCommunitySlot = classifyNonCommunitySlotFeb(profile, context);
     } else {
       formation = { status: 'unknown', basis: 'organizer-approved', evidenceIds: [] };
