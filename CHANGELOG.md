@@ -1,5 +1,159 @@
 # CHANGELOG.md
 
+## 2026-09-07 — WORLD-UI-1: configuración de carrera y navegación mundial (DESIGN.md sección 10.18)
+
+Octava entrega de la EPIC **World Architecture** (WORLD-CORE-1 →
+CLUB-CORE-1 → COMP-CORE-1 → WORLD-CALENDAR-1 → PATHWAYS-1 → WORLD-SIM-1 →
+NATIONAL-TEAMS-1 → **WORLD-UI-1** → WORLD-HARDEN-1). Base: merge de la PR
+de NATIONAL-TEAMS-1 en `origin/main` (`9fd7a08`). Rama
+`claude/modest-gauss-ab8bat`.
+
+La interfaz deja de presentar España/`1ª`/`2ª` como estructura universal:
+el usuario configura una carrera mediante paquetes de contenido y niveles
+de simulación, elige club sin construir el mundo durante el render, y
+navega Mundo → continente → país/territorio → competición. No se añade
+contenido: siguen World Core, Europa, España, Andorra, ACB, Primera FEB,
+Copa ACB y la Supercopa solo catalogada.
+
+### Bugs/deudas corregidos
+
+- **`BUG-WORLDUI-01`** — `renderTeamSelectScreen()` llamaba a
+  `getRealTeamsByDivision()` y construía instancias reales de
+  `Player`/`Team` en CADA render (incluso al cambiar de pestaña de
+  división), consumiendo el generador de relleno ficticio de cobertura.
+  *Corrección*: la nueva pantalla de configuración (`renderCareerSetupScreen()`,
+  paso "Club") lee SOLO metadatos planos (`CareerSetupService.buildCatalog()`
+  → `manifest.careerSetup.clubs`) — la construcción real ocurre una única
+  vez, tras pulsar "Comenzar carrera".
+- **`BUG-WORLDUI-02`** — `buildCareerSeasonKey()` caía a
+  `new Date().getFullYear()` si `state.seasonStartYear` no existía
+  todavía (usado por las tarjetas de previsualización de selección).
+  *Corrección*: retirado el fallback — la pantalla de configuración ya no
+  construye equipos para previsualizar, así que la función solo se llama
+  con la temporada ya explícita (lanza descriptivo en cualquier otro
+  caso).
+- **`BUG-WORLDUI-03`** — `startSeason()` fijaba dentro de `game.js` los
+  dos manifiestos, el huso horario, los tres `scheduleIds` y las dos
+  Editions de arranque (ACB/Primera FEB) como literales sueltos.
+  *Corrección*: `CareerSetupService.buildStartPlan()` resuelve los
+  manifiestos en orden de dependencias desde el snapshot; el huso y el
+  perfil de simulación se derivan del propio snapshot
+  (`buildSimulationProfile()`); el inicio de temporada es el MÁS TEMPRANO
+  entre los `scheduleIds` que esos paquetes declaran (nunca el de ACB por
+  defecto); las Editions de arranque a inicializar se DERIVAN del
+  registro (`competitionEditions.forSeason(seasonKey)`), nunca dos ids
+  codificados.
+- **`BUG-WORLDUI-04`** — `state.division` gobernaba selección de equipo,
+  pestañas de Competiciones/Estadísticas, el hero de Inicio y el filtro de
+  noticias/lesiones médicas. *Corrección*: nuevas funciones resuelven por
+  participación REAL vía `CompetitionParticipationService`
+  (`teamLeagueCompetitionId(team)`, `getLeagueForTeam(team)`,
+  `userLeagueCompetitionId()`, `isUserInTopFlight()`,
+  `getUserBracketsReal()`); `getUserLeague()` se redefine en términos de
+  ellas, corrigiendo de paso a todos sus consumidores existentes (partido
+  en vivo, rachas, agenda...) sin tocarlos uno a uno. `state.division`
+  sobrevive solo como proyección legacy (`team.legacyDivision`) y como
+  puente interno de `closeSeasonAndPrepareNext()`.
+- **`BUG-WORLDUI-05`** — Competiciones/Estadísticas tenían tabs fijas
+  `league/cup/playoffs/promotion` decididas por `state.division === '1ª'`.
+  *Corrección*: la visibilidad de Copa/Playoff vs. Ascenso se decide con
+  `isUserInTopFlight()` (participación real); los brackets se resuelven
+  con `getUserBracketsReal()`.
+- **`BUG-WORLDUI-06`** — `aggregatePlayerStats()` accedía ciegamente a
+  `result.boxScore.home/away`, incompatible con un resultado `standard`/
+  `abstract` (WORLD-SIM-1) que nunca lleva `boxScore` por jugador.
+  *Corrección*: un resultado sin `BM.hasIndividualMatchDetail(result)` se
+  EXCLUYE de las medias — nunca fabrica ceros ni lanza. Sin efecto
+  observable hoy (ACB/Primera FEB/Copa son `playable`).
+- **`BUG-WORLDUI-07`** — `pushMedicalDiffEvents()`/`pushMedicalMatchEvents()`
+  filtraban noticias/lesiones comparando `team.division`/`homeTeam.division`
+  contra `state.division`. *Corrección*: comparan
+  `teamLeagueCompetitionId(team) === userLeagueCompetitionId()` — identidad
+  de participación real, nunca igualdad de string de división.
+- **`BUG-WORLDUI-08`** — el mundo de la carrera solo aparecía como un
+  `<details>` técnico plegado en Inicio (`world.describe()`), sin ninguna
+  navegación real. *Corrección*: `src/core/WorldNavigationService.js`
+  (proyector puro) + pantalla **Mundo** nueva (`state.worldView`, botón
+  propio en `#gm-nav`) — el `<details>` técnico se conserva tal cual como
+  diagnóstico discreto, ahora complementado por la navegación real.
+- **`BUG-WORLDUI-09`** — `spain-2026.1.install()` exigía
+  `context.teamsByDivision` (`{'1ª': [...], '2ª': [...]}`) aunque la
+  pertenencia canónica ya vivía en Entries/CompetitionDefinition desde
+  COMP-CORE-1. *Corrección*: `install()` migra a un contexto canónico
+  `teamsByCompetitionId` (`{[competitionDefinitionId]: Team[]}`); un
+  normalizador privado acepta temporalmente `teamsByDivision` SOLO para
+  fixtures históricos (`scripts/test-world-calendar1.js`/
+  `smoke-world-calendar1.js`/`test-club-core1.js`); `SPAIN_CLUB_CONTENT`
+  gana `initialCompetitionDefinitionId` explícito por `teamId` — fuente
+  NUEVA de pertenencia competitiva, ya no `REAL_DATA_INDEX.division`.
+- Corrección incidental encontrada al ejecutar la regresión adicional (no
+  es un `BUG-WORLDUI-0x`, sin relación con esta entrega, mismo patrón ya
+  documentado para NATIONAL-TEAMS-1): `scripts/smoke-world-calendar1.js`
+  falla ya en `origin/main` porque construye el mundo sin
+  `simulationProfile`; no forma parte de la verificación reducida
+  obligatoria de esta entrega, queda señalado para quien retome ese
+  script.
+
+### Entidades, servicios y ficheros añadidos
+
+`src/entities/CareerSetup.js` (`CareerSetupSnapshot`, congelado,
+validado, serializable), `src/core/CareerSetupService.js` (catálogo desde
+manifiestos, borrador por defecto, validación con códigos, snapshot/perfil
+de simulación/plan de arranque), `src/core/WorldNavigationService.js`
+(breadcrumb, hijos de área, organizaciones por sede/ámbito, clubes por
+área, competiciones por área, competiciones externas, vista de
+competición con resultado tipado), `scripts/test-world-ui1.js`,
+`scripts/smoke-world-ui1.js`.
+
+### Ficheros modificados
+
+`data/world/world-core-2026.1.js` (metadatos `careerSetup: {isRootRequired:
+true}`), `data/world/spain-2026.1.js` (`careerSetup` completo: temporada/
+huso/competiciones/clubes; `initialCompetitionDefinitionId` en
+`SPAIN_CLUB_CONTENT`; `teamsByCompetitionId` canónico con normalizador
+legacy), `src/ui/game.js` (pantalla de configuración de 3 pasos reemplaza
+la selección por división; `startCareerFromSetup()` reemplaza
+`startSeason()`; pantalla Mundo nueva; Inicio/Competiciones/Estadísticas/
+noticias/lesiones migrados fuera de `state.division`;
+`isSeasonFullyClosable()` deriva de las competiciones de club
+`active-runtime` reales), `src/ui/game.css` (estilos de la pantalla de
+configuración y de la pantalla Mundo, reutilizando componentes
+existentes), `index.html` (scripts nuevos, botón y pantalla "Mundo").
+
+### Pruebas realmente ejecutadas
+
+`node scripts/test-world-ui1.js` (**20 OK, 0 FAIL**), `node
+scripts/smoke-world-ui1.js` (**OK en ~0.1s**). Regresiones obligatorias:
+`node scripts/test-world-calendar1.js` (**25 OK, 0 FAIL**), `node
+scripts/test-world-sim1.js` (**19 OK, 0 FAIL**), `node
+scripts/test-national-teams1.js` (**19 OK, 0 fallos**). Regresión
+adicional no exigida, ejecutada por el alcance amplio del cambio en
+`spain-2026.1.js`: `node scripts/test-club-core1.js` (**36 OK, 0
+fallidas**). `node --check` sobre todo el JS nuevo/modificado y `git diff
+--check`: sin errores.
+
+### Comprobaciones manuales pendientes (Dennis)
+
+- Configurar la carrera por defecto y elegir un club ACB/Primera FEB.
+- Comprobar los errores de una combinación de niveles incompatible.
+- Navegar Mundo/Europa/España/Andorra/ACB.
+- Revisar Inicio, Calendario, Competiciones y Estadísticas antes/después
+  de partidos y de la activación de Copa/playoff.
+- Repetir el recorrido en móvil al cierre de la EPIC.
+
+### Límites y siguiente entrega
+
+`data/real/*`, dependencias y persistencia NO cambiaron. Shims que quedan,
+con dueño **WORLD-HARDEN-1**: `getLeague`/`getBrackets`/
+`competitionIdForDivision` como puente interno de
+`closeSeasonAndPrepareNext()`; `UI_COMPETITION_KEY_BY_STAGE_KEY`;
+`teamsByDivision` en fixtures históricos; `state.division` como
+proyección legacy. `CONTROLLED_CLUB_WITHOUT_USER_STOP` solo comprueba la
+competición inicial declarada de un club, no un grafo completo de
+pathways multi-temporada. Siguiente entrega: **WORLD-HARDEN-1** (retira
+todos los puentes legacy de España, audita determinismo/población,
+prepara la frontera de persistencia).
+
 ## 2026-09-07 — NATIONAL-TEAMS-1: selecciones, elegibilidad y ventanas FIBA (DESIGN.md sección 10.17)
 
 Séptima entrega de la EPIC **World Architecture** (WORLD-CORE-1 →
