@@ -25,14 +25,20 @@
 //    detecta como error explícito (`buildEmploymentContext`/`validateCatalog`).
 //
 // La competición doméstica (`domesticCompetitionId`) NO se declara aquí:
-// cambia con ascensos/descensos y se obtiene en cada momento del ÚNICO
-// adaptador de frontera existente (`competitionIdFromLegacyDivision`), ver
-// `buildEmploymentContext()`.
+// cambia con ascensos/descensos y, desde WORLD-CONTEXT-1 (DESIGN.md 10.20),
+// llega SIEMPRE explícita desde el llamador — resuelta por sus
+// `CompetitionEntry` reales (`CompetitionContextService`). Ya NO existe el
+// fallback a `competitionIdFromLegacyDivision(team.division)`: un equipo
+// puede competir a la vez en liga, Copa y Europa, así que su "división" no
+// era un dato de participación sino una suposición.
 
 (function (global) {
-  const CompetitionRules = (typeof module !== 'undefined' && module.exports)
-    ? require('./CompetitionRules.js')
-    : global.BasketManager;
+  const isNode = (typeof module !== 'undefined' && module.exports);
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
+
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   // Jurisdicciones laborales usadas hoy (ISO 3166-1 alfa-2 del país del
   // EMPLEADOR). Añadir una liga/país nuevo es añadir entradas aquí, nunca
@@ -123,14 +129,17 @@
 
   // Contexto laboral COMPLETO de un club en un instante concreto de la
   // partida: identidad/jurisdicción/afiliación REALES del `Club` enlazado +
-  // competición doméstica vigente (cambia con ascensos/descensos, y llega
-  // del ÚNICO adaptador de frontera legacy).
+  // competición doméstica vigente, que llega SIEMPRE explícita en
+  // `options.domesticCompetitionId` (WORLD-CONTEXT-1).
   //
-  // `team`: instancia real de Team (usa `team.division` para la
-  // competición doméstica y `team.fullName` como respaldo de nombre).
+  // `team`: instancia real de Team (solo para diagnóstico y como respaldo
+  // de nombre — su `division` ya no participa en ninguna resolución).
   // `club`: instancia real de Club YA enlazada (`team.club`) — CLUB-CORE-1
   // exige que exista explícita; ya no hay fallback silencioso a `team.id`
-  // como clubId (ese puente era la deuda que esta entrega retira).
+  // como clubId (ese puente era la deuda que esa entrega retiró).
+  // `options.domesticCompetitionId`: OBLIGATORIO. La jurisdicción laboral
+  // sigue dependiendo del CLUB empleador, nunca de esta competición
+  // (MoraBanc Andorra: AD aunque compita en ACB).
   function buildEmploymentContext(team, club, options) {
     if (!club) {
       throw new Error(
@@ -141,8 +150,12 @@
     const opts = options || {};
     const employerJurisdictionId = requireJurisdictionIdForArea(club.employerJurisdictionAreaId);
     const federationId = resolveFederationId(club);
-    const domesticCompetitionId = opts.domesticCompetitionId
-      || CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    const domesticCompetitionId = CompetitionContext().requireCompetitionId(opts.domesticCompetitionId, {
+      operation: opts.operation || 'buildEmploymentContext',
+      teamId: team ? team.id : null,
+      clubId: club.id,
+      seasonKey: opts.seasonKey || null,
+    });
     return {
       clubId: club.id,
       clubName: club.name || (team && team.fullName) || club.id,

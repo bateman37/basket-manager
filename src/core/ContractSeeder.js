@@ -37,10 +37,14 @@
   // CYCLE-1: la distribución de duración de los contratos simulados es
   // CALIBRACIÓN DE JUEGO y vive en `CycleConfig`, nunca en este seeder.
   const CycleConfigModule = isNode ? require('./CycleConfig.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
 
   function M() { return MoneyModule.Money; }
   function LD() { return LocalDateModule.LocalDate; }
   function Service() { return ContractServiceModule.ContractService; }
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   // CYCLE-1 (DESIGN.md 9.22, sección 9 del prompt): procedencia y versión
   // NUEVAS del generador. La distribución de duración restante pasa a ser
@@ -143,10 +147,18 @@
 
   // Calibración por COMPETICIÓN: percentil de cada club dentro de su
   // competición + P10/P90 de calidad de jugador de esa misma competición.
-  function buildCompetitionCalibration(teams, config) {
+  //
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): operación BATCH — el llamador aporta
+  // el resolver obligatorio `options.competitionIdForTeam(team, seasonKey)`
+  // y la `options.seasonKey` de referencia. Nunca se traduce
+  // `team.division`.
+  function buildCompetitionCalibration(teams, config, options) {
+    const opts = options || {};
     const byCompetition = new Map();
     teams.forEach((team) => {
-      const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+      const competitionId = CompetitionContext().competitionIdForTeamWith(opts.competitionIdForTeam, team, {
+        seasonKey: opts.seasonKey, operation: 'buildCompetitionCalibration',
+      });
       const entry = byCompetition.get(competitionId) || { competitionId, teams: [], playerTmbs: [] };
       entry.teams.push({ team, strength: clubStrength(team, config) });
       team.roster.forEach((player) => entry.playerTmbs.push(playerTmb(player, config)));
@@ -400,7 +412,12 @@
     const {
       team, config, calibration, seasonKey, isoDate, resolved, warnings,
     } = params;
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    // WORLD-CONTEXT-1: la competición doméstica llega explícita del
+    // llamador, o del contexto YA CONGELADO en la normativa resuelta de
+    // ese club (nunca de `team.division`).
+    const competitionId = params.domesticCompetitionId
+      ? CompetitionContext().requireCompetitionId(params.domesticCompetitionId, { operation: 'buildClubSalaryPlan', teamId: team.id, seasonKey })
+      : CompetitionContext().domesticCompetitionIdFromResolvedEmployment(resolved, { operation: 'buildClubSalaryPlan', teamId: team.id, seasonKey });
     const economicProfile = getEconomicProfile(competitionId);
     const competitionCalibration = calibration[competitionId];
     const clubPercentile = competitionCalibration.clubPercentiles[team.id];
@@ -451,20 +468,28 @@
   // Contratos bootstrap de TODOS los jugadores afiliados de una lista de
   // equipos. Devuelve los contratos creados + warnings (calibración,
   // fuentes provisionales...).
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): operación BATCH — `competitionIdForTeam`
+  // es un resolver OBLIGATORIO y puro aportado por el llamador (resuelto
+  // desde las `CompetitionEntry` reales de `seasonKey`).
   function seedContractsForTeams(params) {
     const {
-      teams, seasonKey, date, registry, playerRegistry, config,
+      teams, seasonKey, date, registry, playerRegistry, config, competitionIdForTeam,
     } = params;
     const isoDate = typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
     const warnings = [];
     const contracts = [];
-    const calibration = buildCompetitionCalibration(teams, config);
+    const calibration = buildCompetitionCalibration(teams, config, { competitionIdForTeam, seasonKey });
 
     teams.forEach((team) => {
-      const resolved = Service().resolveRulesForClub(team, {
-        seasonKey, date: isoDate, operation: 'signContract',
+      const domesticCompetitionId = CompetitionContext().competitionIdForTeamWith(competitionIdForTeam, team, {
+        seasonKey, operation: 'seedContractsForTeams',
       });
-      const plan = buildClubSalaryPlan({ team, config, calibration, seasonKey, isoDate, resolved, warnings });
+      const resolved = Service().resolveRulesForClub(team, {
+        seasonKey, date: isoDate, operation: 'signContract', domesticCompetitionId,
+      });
+      const plan = buildClubSalaryPlan({
+        team, config, calibration, seasonKey, isoDate, resolved, warnings, domesticCompetitionId,
+      });
       plan.forEach((entry) => {
         const fingerprint = seedFingerprint(entry.player.id, team.id, seasonKey);
         const draft = buildContractDraft({
@@ -493,17 +518,31 @@
   // de `generateAcademyIntake()`, relleno ficticio de plantilla...). Usa
   // SIEMPRE el contexto doméstico vigente DESPUÉS de ascensos/descensos —
   // nunca reescribe los módulos de contratos anteriores.
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): `domesticCompetitionId` OBLIGATORIO
+  // (operación sobre UN equipo). Si el llamador no pasa `calibration`, se
+  // construye para este único club con ese mismo id explícito.
   function seedContractForNewPlayer(params) {
     const {
       player, team, seasonKey, date, registry, playerRegistry, config, calibration, teams,
     } = params;
     const isoDate = typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
     const warnings = [];
-    const activeCalibration = calibration || buildCompetitionCalibration(teams || [team], config);
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    const competitionId = CompetitionContext().requireCompetitionId(params.domesticCompetitionId, {
+      operation: 'seedContractForNewPlayer', teamId: team.id, clubId: team.clubId, seasonKey,
+    });
+    const activeCalibration = calibration || buildCompetitionCalibration(teams || [team], config, {
+      seasonKey,
+      // Sin `teams` explícitos la calibración es de ESTE club: el resolver
+      // devuelve su competición ya resuelta, nunca una supuesta.
+      competitionIdForTeam: (candidate) => (candidate && candidate.id === team.id
+        ? competitionId
+        : CompetitionContext().competitionIdForTeamWith(params.competitionIdForTeam, candidate, {
+          seasonKey, operation: 'seedContractForNewPlayer:calibration',
+        })),
+    });
     const competitionCalibration = activeCalibration[competitionId];
     const resolved = Service().resolveRulesForClub(team, {
-      seasonKey, date: isoDate, operation: 'signContract',
+      seasonKey, date: isoDate, operation: 'signContract', domesticCompetitionId: competitionId,
     });
 
     const profile = playerWeight(player, config, competitionCalibration, isoDate);

@@ -13,6 +13,7 @@
   const isNode = (typeof module !== 'undefined' && module.exports);
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
   const CompetitionRules = isNode ? require('./CompetitionRules.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
   const ContractServiceModule = isNode ? require('./ContractService.js') : global.BasketManager;
   const RegistrationServiceModule = isNode ? require('./RegistrationService.js') : global.BasketManager;
   const RegulatoryClassificationServiceModule = isNode ? require('./RegulatoryClassificationService.js') : global.BasketManager;
@@ -26,6 +27,9 @@
   function RegClass() { return RegulatoryClassificationServiceModule.RegulatoryClassificationService; }
   function ExecutionSvc() { return TransferExecutionServiceModule.TransferExecutionService; }
   function Rnd() { return DeterministicRandomModule.DeterministicRandom; }
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   function toIso(date) {
     return typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
@@ -36,13 +40,30 @@
   // de origen y destino a partir de los clubes REALES (nunca de
   // `team.division` directamente ni del próximo partido).
   // ---------------------------------------------------------------------
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): una operación ENTRE equipos recibe
+  // los ids de competición por PAPEL — `originCompetitionId` y
+  // `destinationCompetitionId` son OBLIGATORIOS y explícitos (resueltos por
+  // el llamador desde las Entries de la temporada de la operación); ninguno
+  // se deriva de `team.division`. Los pagos/derechos/contratos siguen
+  // usando el CLUB (`team.clubId`), y la jurisdicción laboral sigue siendo
+  // la del Club empleador (MoraBanc Andorra: AD aunque compita en ACB).
   function buildTransferRulesContext(params) {
     const {
       playerId, originTeam, destinationTeam, seasonKey, effectiveDate, operationType, mechanism, agreementInPrincipleId,
-      contractId, transactionScope,
+      contractId, transactionScope, originCompetitionId, destinationCompetitionId,
     } = params;
-    const destinationCtx = ContractSvc().resolveEmploymentContext(destinationTeam);
-    const originCtx = originTeam ? ContractSvc().resolveEmploymentContext(originTeam) : null;
+    const destinationCtx = ContractSvc().resolveEmploymentContext(destinationTeam, {
+      domesticCompetitionId: destinationCompetitionId,
+      seasonKey,
+      operation: `transfer:${operationType || 'unknown'}:destination`,
+    });
+    const originCtx = originTeam
+      ? ContractSvc().resolveEmploymentContext(originTeam, {
+        domesticCompetitionId: originCompetitionId,
+        seasonKey,
+        operation: `transfer:${operationType || 'unknown'}:origin`,
+      })
+      : null;
     return {
       playerId,
       originClubId: originTeam ? originTeam.clubId : destinationTeam.clubId,
@@ -164,11 +185,16 @@
   // — mismo criterio de clasificación que RegistrationSeeder, pero
   // resuelto AQUÍ para el club/temporada/fecha de la operación real.
   // ---------------------------------------------------------------------
+  // WORLD-CONTEXT-1: la inscripción de destino se valida/crea SIEMPRE con
+  // `destinationTeam.id` (el EQUIPO inscrito) y con la
+  // `destinationCompetitionId` explícita — nunca con la división legacy.
   function buildDestinationRegistrationCommand(params) {
     const {
-      destinationTeam, seasonKey, date, registrationRegistry,
+      destinationTeam, seasonKey, date, registrationRegistry, destinationCompetitionId,
     } = params;
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(destinationTeam.division);
+    const competitionId = CompetitionContext().requireCompetitionId(destinationCompetitionId, {
+      operation: 'buildDestinationRegistrationCommand', teamId: destinationTeam.id, clubId: destinationTeam.clubId, seasonKey, role: 'destination',
+    });
     const resolved = RegSvc().resolveRegistrationRules({
       competitionId, seasonKey, date: toIso(date), phaseId: 'league', operation: 'transfer',
     });
@@ -202,8 +228,10 @@
   // explícitos (si el llamador los pasa, p.ej. un origen recién
   // ascendido/descendido con ámbito de temporada anterior) tienen
   // prioridad sobre este valor por defecto.
-  function resolveOriginRegistrationScope(originTeam, seasonKey, date) {
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(originTeam.division);
+  function resolveOriginRegistrationScope(originTeam, seasonKey, date, originCompetitionId) {
+    const competitionId = CompetitionContext().requireCompetitionId(originCompetitionId, {
+      operation: 'resolveOriginRegistrationScope', teamId: originTeam.id, clubId: originTeam.clubId, seasonKey, role: 'origin',
+    });
     const resolved = RegSvc().resolveRegistrationRules({
       competitionId, seasonKey, date: toIso(date), phaseId: 'league', operation: 'transfer',
     });
@@ -306,12 +334,16 @@
     } = params;
     const rulesCtx = buildTransferRulesContext({
       playerId: agreement.playerId, originTeam: null, destinationTeam, seasonKey, effectiveDate, operationType: 'free-agent-signing', agreementInPrincipleId: agreement.id,
+      // WORLD-CONTEXT-1: contexto competitivo explícito por papel.
+      destinationCompetitionId: params.destinationCompetitionId,
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
       transferRegistry, marketRegistry, agreement, operationType: 'free-agent-signing', initiatingClubId: destinationTeam.clubId, date: now, effectiveDate, rulesSnapshot: resolvedRules.trace,
     });
-    const destinationRegistration = buildDestinationRegistrationCommand({ destinationTeam, seasonKey, date: effectiveDate, registrationRegistry });
+    const destinationRegistration = buildDestinationRegistrationCommand({
+      destinationTeam, seasonKey, date: effectiveDate, registrationRegistry, destinationCompetitionId: rulesCtx.destinationCompetitionId,
+    });
     const command = {
       transactionId: `tx:${transferCase.id}`,
       transferCaseId: transferCase.id,
@@ -351,6 +383,8 @@
     if (!originContract) throw new Error('TransferService.formalizeNegotiatedTransfer: el jugador no tiene contrato vigente con el club de origen.');
     const rulesCtx = buildTransferRulesContext({
       playerId: agreement.playerId, originTeam, destinationTeam, seasonKey, effectiveDate, operationType: 'negotiated-transfer', agreementInPrincipleId: agreement.id, contractId: originContract.id,
+      originCompetitionId: params.originCompetitionId,
+      destinationCompetitionId: params.destinationCompetitionId,
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
@@ -398,7 +432,9 @@
     transferCase.clubOfferId = clubOffer.id;
     transferCase.setConsent(agreementRecord.playerConsent);
 
-    const destinationRegistration = buildDestinationRegistrationCommand({ destinationTeam, seasonKey, date: effectiveDate, registrationRegistry });
+    const destinationRegistration = buildDestinationRegistrationCommand({
+      destinationTeam, seasonKey, date: effectiveDate, registrationRegistry, destinationCompetitionId: rulesCtx.destinationCompetitionId,
+    });
     const command = {
       transactionId: `tx:${transferCase.id}`,
       transferCaseId: transferCase.id,
@@ -421,7 +457,8 @@
         playerConsent: agreementRecord.playerConsent,
         playerParticipationPercentBasisPoints: params.playerParticipationPercentBasisPoints,
       },
-      originRegistrationScopeId: params.originRegistrationScopeId || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate),
+      originRegistrationScopeId: params.originRegistrationScopeId
+        || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate, rulesCtx.originCompetitionId),
       originSeasonKey: params.originSeasonKey || seasonKey,
       destinationRegistration,
       rightsOutcomeId: params.rightsOutcomeId || null,
@@ -453,6 +490,8 @@
     if (!clause || !clause.amount) throw new Error(`TransferService.formalizeReleaseClauseExercise: cláusula "${clauseId}" inexistente o sin importe.`);
     const rulesCtx = buildTransferRulesContext({
       playerId: agreement.playerId, originTeam, destinationTeam, seasonKey, effectiveDate, operationType: 'release-clause-exercise', agreementInPrincipleId: agreement.id, contractId: originContract.id,
+      originCompetitionId: params.originCompetitionId,
+      destinationCompetitionId: params.destinationCompetitionId,
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const transferCase = openCaseFromAgreement({
@@ -472,7 +511,9 @@
     transferRegistry.registerReleaseClauseExercise(exercise);
     transferCase.releaseClauseExerciseId = exercise.id;
 
-    const destinationRegistration = buildDestinationRegistrationCommand({ destinationTeam, seasonKey, date: effectiveDate, registrationRegistry });
+    const destinationRegistration = buildDestinationRegistrationCommand({
+      destinationTeam, seasonKey, date: effectiveDate, registrationRegistry, destinationCompetitionId: rulesCtx.destinationCompetitionId,
+    });
     const command = {
       transactionId: `tx:${transferCase.id}`,
       transferCaseId: transferCase.id,
@@ -493,7 +534,8 @@
       releaseClauseAmount: clause.amount,
       releaseClauseExercisedBy: exercisedBy || 'player',
       registrationRestrictionAfterMonthDay: resolvedRules.releaseClauseRules ? resolvedRules.releaseClauseRules.registrationRestrictionAfterMonthDay : null,
-      originRegistrationScopeId: params.originRegistrationScopeId || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate),
+      originRegistrationScopeId: params.originRegistrationScopeId
+        || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate, rulesCtx.originCompetitionId),
       originSeasonKey: params.originSeasonKey || seasonKey,
       destinationRegistration,
     };
@@ -524,6 +566,10 @@
     const releaseOnly = !destinationTeam;
     const rulesCtx = buildTransferRulesContext({
       playerId, originTeam, destinationTeam: destinationTeam || originTeam, seasonKey, effectiveDate, operationType: 'mutual-agreement', agreementInPrincipleId: agreement ? agreement.id : `self:${playerId}`, contractId: originContract.id,
+      originCompetitionId: params.originCompetitionId,
+      // Sin club de destino (liberación pura) la operación sigue siendo del
+      // ORIGEN: el papel de destino reutiliza su misma competición explícita.
+      destinationCompetitionId: destinationTeam ? params.destinationCompetitionId : params.originCompetitionId,
     });
     const resolvedRules = CompetitionRules.resolveTransferRules(rulesCtx);
     const id = `transfer-case:mutual:${playerId}:${effectiveDate}`;
@@ -542,7 +588,11 @@
     });
     transferRegistry.registerCase(transferCase);
 
-    const destinationRegistration = destinationTeam ? buildDestinationRegistrationCommand({ destinationTeam, seasonKey, date: effectiveDate, registrationRegistry }) : null;
+    const destinationRegistration = destinationTeam
+      ? buildDestinationRegistrationCommand({
+        destinationTeam, seasonKey, date: effectiveDate, registrationRegistry, destinationCompetitionId: rulesCtx.destinationCompetitionId,
+      })
+      : null;
     const command = {
       transactionId: `tx:${transferCase.id}`,
       transferCaseId: transferCase.id,
@@ -563,7 +613,8 @@
       destinationCompetitionId: destinationTeam ? rulesCtx.destinationCompetitionId : null,
       federationId: rulesCtx.federationId,
       mutualSettlement,
-      originRegistrationScopeId: params.originRegistrationScopeId || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate),
+      originRegistrationScopeId: params.originRegistrationScopeId
+        || resolveOriginRegistrationScope(originTeam, seasonKey, effectiveDate, rulesCtx.originCompetitionId),
       originSeasonKey: params.originSeasonKey || seasonKey,
       destinationRegistration,
     };

@@ -231,6 +231,10 @@
           contractRegistry,
           seasonKey: cmd.seasonKey,
           date: effectiveDate,
+          // WORLD-CONTEXT-1 (DESIGN.md 10.20): la competición de DESTINO ya
+          // viaja en el comando congelado — nunca se deriva de
+          // `destinationTeam.division`.
+          domesticCompetitionId: cmd.destinationCompetitionId,
         });
         check('El borrador de contrato aceptado revalida contra las reglas normativas actuales.', contractValidation.valid, 'CONTRACT_INVALID');
         if (contractValidation.valid) newContract = contractValidation.contract;

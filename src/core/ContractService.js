@@ -54,13 +54,20 @@
   // sustituye por `team.id`. Un `team` sin Club enlazado (fixture legacy
   // de una prueba de motor que no construye mundo) falla explícito en
   // `buildEmploymentContext()`, nunca hereda silenciosamente su propio id.
+  //
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): `options.domesticCompetitionId` es
+  // OBLIGATORIO — el llamador lo resuelve desde las `CompetitionEntry`
+  // reales del equipo (`CompetitionContextService`), nunca desde
+  // `team.division`.
   function resolveEmploymentContext(team, options) {
     return Catalog().buildEmploymentContext(team, team.club, options || {});
   }
 
   // Resuelve la normativa laboral de UN club en una temporada/fecha. Nunca
   // se resuelve por "la competición del próximo partido": el empleador es
-  // uno solo aunque el club dispute varias competiciones.
+  // uno solo aunque el club dispute varias competiciones — la competición
+  // doméstica de referencia llega SIEMPRE explícita
+  // (`options.domesticCompetitionId`).
   function resolveRulesForClub(team, options) {
     const opts = options || {};
     const context = resolveEmploymentContext(team, opts);
@@ -258,10 +265,13 @@
     }
 
     const contract = new ContractModule.Contract(draft);
+    // WORLD-CONTEXT-1: sin `resolved` previo, el llamador debe aportar
+    // `domesticCompetitionId` explícito (nunca se deriva aquí).
     const resolved = preResolved || resolveRulesForClub(team, {
       seasonKey: seasonKey || contract.coveredSeasonKeys[0],
       date: date || contract.signedDate,
       operation: 'signContract',
+      domesticCompetitionId: (params || {}).domesticCompetitionId,
       annualSalaryMinor: contract.breakdownForSeason(contract.coveredSeasonKeys[0]).guaranteedCashMinor,
       pinnedModuleIds: opts.pinnedModuleIds,
       extraModuleIds: opts.extraModuleIds,
@@ -306,6 +316,7 @@
       draft, team, player, playerRegistry, contractRegistry, seasonKey, date, resolved: preResolved, options,
     } = params || {};
     const opts = options || {};
+    const explicitDomesticCompetitionId = (params || {}).domesticCompetitionId;
     const errors = [];
     if (!draft) throw new Error('ContractService.validateDraft: falta "draft".');
     if (!team) throw new Error('ContractService.validateDraft: falta el club (team).');
@@ -333,10 +344,13 @@
       };
     }
 
+    // WORLD-CONTEXT-1: sin `resolved` previo el llamador aporta
+    // `domesticCompetitionId` explícito (nunca se deriva aquí).
     const resolved = preResolved || resolveRulesForClub(team, {
       seasonKey: seasonKey || contract.coveredSeasonKeys[0],
       date: date || contract.signedDate,
       operation: 'validateMarketOffer',
+      domesticCompetitionId: explicitDomesticCompetitionId,
       annualSalaryMinor: contract.breakdownForSeason(contract.coveredSeasonKeys[0]).guaranteedCashMinor,
       pinnedModuleIds: opts.pinnedModuleIds,
       extraModuleIds: opts.extraModuleIds,

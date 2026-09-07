@@ -20,12 +20,18 @@
   const LoanExecutionServiceModule = isNode ? require('./LoanExecutionService.js') : global.BasketManager;
   const LoanEntities = isNode ? require('../entities/Loan.js') : global.BasketManager;
   const DeterministicRandomModule = isNode ? require('../utils/DeterministicRandom.js') : global.BasketManager;
+  const CompetitionCatalogModule = isNode ? require('./CompetitionCatalog.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
 
   function LD() { return LocalDateModule.LocalDate; }
   function ContractSvc() { return ContractServiceModule.ContractService; }
   function TransferSvc() { return TransferServiceModule.TransferService; }
   function ExecutionSvc() { return LoanExecutionServiceModule.LoanExecutionService; }
   function Rnd() { return DeterministicRandomModule.DeterministicRandom; }
+  function CompetitionCatalog() { return (isNode ? CompetitionCatalogModule : global.BasketManager); }
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   function toIso(date) {
     return typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
@@ -34,16 +40,23 @@
   const CONSENT_PARTIES = ['ownerClub', 'borrowerClub', 'player'];
 
   // ---------------------------------------------------------------------
-  // Contexto normativo de UNA cesión — resuelve jurisdicción/competición de
-  // propietario y cesionario a partir de los clubes REALES (nunca de
-  // `team.division` directamente).
+  // Contexto normativo de UNA cesión — jurisdicción del CLUB empleador de
+  // cada parte (nunca la del organizador de la competición) y competición
+  // de cada papel EXPLÍCITA: WORLD-CONTEXT-1 (DESIGN.md 10.20) exige
+  // `ownerCompetitionId`/`borrowerCompetitionId` del llamador, resueltos
+  // desde las Entries reales de la temporada de la operación.
   // ---------------------------------------------------------------------
   function buildLoanRulesContext(params) {
     const {
       ownerTeam, borrowerTeam, seasonKey, effectiveDate, returnEffectiveDate, operation, transactionScope, masterContractId,
+      ownerCompetitionId, borrowerCompetitionId,
     } = params;
-    const ownerCtx = ContractSvc().resolveEmploymentContext(ownerTeam);
-    const borrowerCtx = ContractSvc().resolveEmploymentContext(borrowerTeam);
+    const ownerCtx = ContractSvc().resolveEmploymentContext(ownerTeam, {
+      domesticCompetitionId: ownerCompetitionId, seasonKey, operation: `loan:${operation || 'unknown'}:owner`,
+    });
+    const borrowerCtx = ContractSvc().resolveEmploymentContext(borrowerTeam, {
+      domesticCompetitionId: borrowerCompetitionId, seasonKey, operation: `loan:${operation || 'unknown'}:borrower`,
+    });
     return {
       playerId: params.playerId,
       masterContractId: masterContractId || null,
@@ -74,7 +87,7 @@
     const {
       loanRegistry, contractRegistry, ownerTeam, borrowerTeam, playerId, initiatingClubId, now, seasonKey,
       serviceStartDate, returnEffectiveDate, loanFee, salaryAllocation, clauses, medicalResponsibility, insuranceResponsibility,
-      documentsRequired, expiresAt, authorClubId,
+      documentsRequired, expiresAt, authorClubId, ownerCompetitionId, borrowerCompetitionId,
     } = params;
     const masterContract = contractRegistry.currentForPlayer(playerId, toIso(now));
     if (!masterContract) throw new Error('LoanService.openCaseAndPropose: el jugador no tiene contrato vigente con el club propietario.');
@@ -90,6 +103,7 @@
     }
     const resolvedRules = resolveLoanRules({
       playerId, ownerTeam, borrowerTeam, seasonKey, effectiveDate: serviceStartDate, returnEffectiveDate, operation: 'proposal', masterContractId: masterContract.id,
+      ownerCompetitionId, borrowerCompetitionId,
     });
     const loanCaseId = params.id || `loan-case:${playerId}:${ownerTeam.id}:${borrowerTeam.id}:${serviceStartDate}`;
     const loanCase = new LoanEntities.LoanCase({
@@ -287,9 +301,9 @@
   // ---------------------------------------------------------------------
   // Activación de salida (sección 14.1) — delega en LoanExecutionService.
   // ---------------------------------------------------------------------
-  function buildLoanDestinationRegistration(destinationTeam, seasonKey, date, registrationRegistry) {
+  function buildLoanDestinationRegistration(destinationTeam, seasonKey, date, registrationRegistry, destinationCompetitionId) {
     return TransferSvc().buildDestinationRegistrationCommand({
-      destinationTeam, seasonKey, date, registrationRegistry,
+      destinationTeam, seasonKey, date, registrationRegistry, destinationCompetitionId,
     });
   }
 
@@ -316,11 +330,17 @@
     const {
       loanRegistry, playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams, agreement,
       ownerTeam, borrowerTeam, now, effectiveDate, seasonKey, operationalContext, lineup, commit,
+      ownerCompetitionId, borrowerCompetitionId,
     } = params;
     const rulesCtx = buildLoanRulesContext({
       playerId: agreement.playerId, ownerTeam, borrowerTeam, seasonKey, effectiveDate, returnEffectiveDate: agreement.returnEffectiveDate, operation: 'activation', masterContractId: agreement.masterContractId,
+      ownerCompetitionId, borrowerCompetitionId,
     });
-    const toRegistration = buildLoanDestinationRegistration(borrowerTeam, seasonKey, effectiveDate, registrationRegistry);
+    // La inscripción de destino es la del EQUIPO cesionario, en SU
+    // competición explícita.
+    const toRegistration = buildLoanDestinationRegistration(
+      borrowerTeam, seasonKey, effectiveDate, registrationRegistry, rulesCtx.destinationCompetitionId,
+    );
     const command = {
       transactionId: params.transactionId || `loan-tx:${agreement.loanCaseId}:activation`,
       movementType: 'activation',
@@ -338,7 +358,8 @@
       fromFederationId: rulesCtx.originFederationId,
       toFederationId: rulesCtx.destinationFederationId,
       transactionScope: rulesCtx.transactionScope,
-      fromRegistrationScopeId: params.originRegistrationScopeId || TransferSvc().resolveOriginRegistrationScope(ownerTeam, seasonKey, effectiveDate),
+      fromRegistrationScopeId: params.originRegistrationScopeId
+        || TransferSvc().resolveOriginRegistrationScope(ownerTeam, seasonKey, effectiveDate, rulesCtx.originCompetitionId),
       fromSeasonKey: seasonKey,
       toRegistration,
       obligations: buildLoanObligations(agreement, 'activation'),
@@ -361,11 +382,17 @@
       loanRegistry, playerRegistry, contractRegistry, registrationRegistry, transferRegistry, teams, agreement,
       ownerTeam, borrowerTeam, now, effectiveDate, seasonKey, operationalContext, lineup, commit,
       movementType, recallClauseId, earlyTerminationClauseId, earlyTerminationConsents,
+      ownerCompetitionId, borrowerCompetitionId,
     } = params;
     const rulesCtx = buildLoanRulesContext({
       playerId: agreement.playerId, ownerTeam, borrowerTeam, seasonKey, effectiveDate, returnEffectiveDate: agreement.returnEffectiveDate, operation: movementType, masterContractId: agreement.masterContractId,
+      ownerCompetitionId, borrowerCompetitionId,
     });
-    const toRegistration = buildLoanDestinationRegistration(ownerTeam, seasonKey, effectiveDate, registrationRegistry);
+    // En el RETORNO, el destino administrativo es el EQUIPO propietario y su
+    // propia competición explícita.
+    const toRegistration = buildLoanDestinationRegistration(
+      ownerTeam, seasonKey, effectiveDate, registrationRegistry, rulesCtx.originCompetitionId,
+    );
     const command = {
       transactionId: params.transactionId || `loan-tx:${agreement.loanCaseId}:${movementType}`,
       movementType,
@@ -376,14 +403,15 @@
       toClubId: agreement.ownerClubId,
       effectiveDate,
       seasonKey,
-      ownerEmployerJurisdictionId: ContractSvc().resolveEmploymentContext(ownerTeam).employerJurisdictionId,
-      borrowerEmployerJurisdictionId: ContractSvc().resolveEmploymentContext(borrowerTeam).employerJurisdictionId,
+      ownerEmployerJurisdictionId: rulesCtx.ownerEmployerJurisdictionId,
+      borrowerEmployerJurisdictionId: rulesCtx.borrowerEmployerJurisdictionId,
       fromCompetitionId: rulesCtx.destinationCompetitionId,
       toCompetitionId: rulesCtx.originCompetitionId,
       fromFederationId: rulesCtx.destinationFederationId,
       toFederationId: rulesCtx.originFederationId,
       transactionScope: rulesCtx.transactionScope,
-      fromRegistrationScopeId: params.originRegistrationScopeId || TransferSvc().resolveOriginRegistrationScope(borrowerTeam, seasonKey, effectiveDate),
+      fromRegistrationScopeId: params.originRegistrationScopeId
+        || TransferSvc().resolveOriginRegistrationScope(borrowerTeam, seasonKey, effectiveDate, rulesCtx.destinationCompetitionId),
       fromSeasonKey: seasonKey,
       toRegistration,
       recallClauseId,
@@ -455,7 +483,36 @@
   // sección 11 (rivalidad, objetivo deportivo detallado, agente) quedan
   // como refinamiento futuro documentado, nunca fingidos aquí.
   // ---------------------------------------------------------------------
-  const CPU_LOAN_POLICY_VERSION = 'simulated-cpu-loan-policy-v1';
+  const CPU_LOAN_POLICY_VERSION = 'simulated-cpu-loan-policy-v2';
+
+  // WORLD-CONTEXT-1 (BUG-WORLD-CONTEXT-04, DESIGN.md 10.20) — CALIBRACIÓN
+  // DE SIMULACIÓN NEUTRAL, no una regla ni una fuente oficial. Antes, la
+  // reacción del jugador comparaba directamente la competición del
+  // cesionario con `COMPETITION_IDS.ACB`: un servicio genérico no puede
+  // preguntar "¿es ACB?" para tomar una decisión de IA. Ahora la señal es
+  // el NIVEL competitivo (`CompetitionDefinition.tier`) de la competición
+  // explícita del cesionario: la máxima categoría de cualquier pirámide
+  // (tier 1) conserva el mismo atractivo que tenía la ACB; un tier inferior
+  // o una competición sin tier declarado no reciben bonus (mismo balance
+  // observable que antes en ACB/Primera FEB).
+  const LOAN_ATTRACTIVENESS = {
+    topTierMax: 1,
+    topTierBonus: 0.15,
+    policyVersion: CPU_LOAN_POLICY_VERSION,
+  };
+
+  // Nivel competitivo declarado de una competición (o `null` si no declara
+  // ninguno) — consulta pura del catálogo de identidad, nunca del nombre.
+  function competitionTier(competitionId) {
+    const definition = CompetitionCatalog().getCompetitionDefinition(competitionId);
+    return definition && definition.tier !== undefined ? definition.tier : null;
+  }
+
+  function competitiveLevelBonus(competitionId) {
+    const tier = competitionTier(competitionId);
+    if (tier === null || tier === undefined) return 0;
+    return tier <= LOAN_ATTRACTIVENESS.topTierMax ? LOAN_ATTRACTIVENESS.topTierBonus : 0;
+  }
 
   function evaluateOwnerClub(params) {
     const {
@@ -520,22 +577,25 @@
     };
   }
 
+  // WORLD-CONTEXT-1: `borrowerCompetitionId` OBLIGATORIO y explícito — la
+  // valoración del jugador usa el NIVEL competitivo derivado de la
+  // `CompetitionDefinition`, nunca `team.division` ni una comparación
+  // directa con la id de una liga concreta.
   function evaluatePlayerReaction(params) {
     const {
-      player, proposal, borrowerTeam, careerSeed, date,
+      player, proposal, borrowerTeam, careerSeed, date, borrowerCompetitionId,
     } = params;
     const fingerprint = `${careerSeed}|loan-player-eval|${player.id}|${proposal.id}|${toIso(date)}`;
     const promisedRole = proposal.clauses.find((c) => c.type === 'promised-role');
-    // Nunca `team.division` como clave normativa — la competición del
-    // cesionario se resuelve por `competitionId` (mismo adaptador legacy
-    // que el resto de la EPIC), nunca comparando el string de división.
-    const borrowerCompetitionId = CompetitionRules.competitionIdFromLegacyDivision(borrowerTeam.division);
-    const divisionBonus = borrowerCompetitionId === CompetitionRules.COMPETITION_IDS.ACB ? 0.15 : 0;
-    const acceptScore = 0.45 + (promisedRole ? 0.2 : 0) + divisionBonus + (Rnd().unitFrom(fingerprint, 'sentiment') * 0.25);
+    const resolvedBorrowerCompetitionId = CompetitionContext().requireCompetitionId(borrowerCompetitionId, {
+      operation: 'LoanService.evaluatePlayerReaction', teamId: borrowerTeam ? borrowerTeam.id : null, role: 'borrower',
+    });
+    const levelBonus = competitiveLevelBonus(resolvedBorrowerCompetitionId);
+    const acceptScore = 0.45 + (promisedRole ? 0.2 : 0) + levelBonus + (Rnd().unitFrom(fingerprint, 'sentiment') * 0.25);
     const decision = acceptScore >= 0.55 ? 'accept' : 'reject';
     const reasons = [];
     if (promisedRole) reasons.push('Valora el rol prometido en el nuevo club.');
-    if (divisionBonus > 0) reasons.push('La cesión mantiene el nivel competitivo deseado.');
+    if (levelBonus > 0) reasons.push('La cesión mantiene el nivel competitivo deseado.');
     if (decision === 'reject' && !reasons.length) reasons.push('El jugador prefiere quedarse y pelear su sitio en el club actual.');
     return {
       decision, reasons, policyVersion: CPU_LOAN_POLICY_VERSION,
@@ -545,6 +605,9 @@
   const exportsObj = {
     LoanService: {
       CPU_LOAN_POLICY_VERSION,
+      LOAN_ATTRACTIVENESS,
+      competitionTier,
+      competitiveLevelBonus,
       buildLoanRulesContext,
       resolveLoanRules,
       openCaseAndPropose,

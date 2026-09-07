@@ -24,11 +24,14 @@
   const isNode = (typeof module !== 'undefined' && module.exports);
   const RegistrationEntities = isNode ? require('../entities/Registration.js') : global.BasketManager;
   const RegistrationServiceModule = isNode ? require('./RegistrationService.js') : global.BasketManager;
-  const CompetitionRules = isNode ? require('./CompetitionRules.js') : global.BasketManager;
   const LocalDateModule = isNode ? require('../utils/LocalDate.js') : global.BasketManager;
+  const CompetitionContextModule = isNode ? require('./CompetitionContextService.js') : global.BasketManager;
 
   function RegSvc() { return RegistrationServiceModule.RegistrationService; }
   function LD() { return LocalDateModule.LocalDate; }
+  function CompetitionContext() {
+    return (isNode ? CompetitionContextModule : global.BasketManager).CompetitionContextService;
+  }
 
   const SIMULATED_REGISTRATION_DATA_SOURCE = 'simulated-registration-v1';
   const GENERATOR_VERSION = 'registration-seeder-v1';
@@ -250,9 +253,14 @@
   // API pública: bootstrap de TODOS los jugadores afiliados de una lista
   // de equipos (sección 10.4, paso 6 del orden de inicialización).
   // ---------------------------------------------------------------------
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): operación BATCH — el llamador aporta
+  // el resolver obligatorio `competitionIdForTeam(team, seasonKey)`; la
+  // competición de la inscripción de cada equipo es SIEMPRE explícita, nunca
+  // traducida de `team.division`. `Registration.teamId` sigue identificando
+  // al EQUIPO inscrito (nunca al Club).
   function seedRegistrationsForTeams(params) {
     const {
-      teams, seasonKey, date, registrationRegistry, contractRegistry, config,
+      teams, seasonKey, date, registrationRegistry, contractRegistry, config, competitionIdForTeam,
     } = params;
     const isoDate = typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
     const warnings = [];
@@ -260,7 +268,9 @@
     const skipped = [];
 
     teams.forEach((team) => {
-      const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+      const competitionId = CompetitionContext().competitionIdForTeamWith(competitionIdForTeam, team, {
+        seasonKey, operation: 'seedRegistrationsForTeams',
+      });
       const resolved = RegSvc().resolveRegistrationRules({
         competitionId, seasonKey, date: isoDate, phaseId: 'league', operation: 'bootstrap',
       });
@@ -285,7 +295,11 @@
           .currentRegistration(player.id, resolved.registrationScopeId, seasonKey, isoDate);
         const existingLicense = registrationRegistry.currentLicenseForPlayer(player.id, isoDate);
         if (existingRegistration && existingLicense) {
-          skipped.push({ playerId: player.id, clubId: team.id, reason: 'ALREADY_REGISTERED_FOR_SCOPE_SEASON' });
+          // WORLD-CONTEXT-1: diagnóstico DEPORTIVO — el dato es el equipo
+          // inscrito (`teamId`), no el Club empleador.
+          skipped.push({
+            playerId: player.id, teamId: team.id, clubId: team.clubId, reason: 'ALREADY_REGISTERED_FOR_SCOPE_SEASON',
+          });
           results.push({ playerId: player.id, licenseId: existingLicense.id, registrationId: existingRegistration.id, reused: true });
           return;
         }
@@ -306,12 +320,16 @@
   // ya existente y alta regulatoria mediante servicios, nunca por estar en
   // el array". Se ejecuta DESPUÉS de que `ContractService` ya haya creado
   // su contrato (CONTRACT-1 sigue creando el contrato; REG-1 va después).
+  // WORLD-CONTEXT-1: `domesticCompetitionId` OBLIGATORIO (operación sobre
+  // UN equipo).
   function seedRegistrationForNewPlayer(params) {
     const {
       player, team, seasonKey, date, registrationRegistry, contractRegistry, config, existingClassification,
     } = params;
     const isoDate = typeof date === 'string' ? LD().requireIsoDate(date, 'date') : LD().fromJsDate(date);
-    const competitionId = CompetitionRules.competitionIdFromLegacyDivision(team.division);
+    const competitionId = CompetitionContext().requireCompetitionId(params.domesticCompetitionId, {
+      operation: 'seedRegistrationForNewPlayer', teamId: team.id, clubId: team.clubId, seasonKey,
+    });
     const resolved = RegSvc().resolveRegistrationRules({
       competitionId, seasonKey, date: isoDate, phaseId: 'league', operation: 'bootstrap',
     });
