@@ -44,6 +44,7 @@ const { recalculateSportingGoalsForDivision } = require('../src/core/SeasonGoals
 const { padRosterToMinimum } = require('../src/utils/playerGenerator.js');
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
 const WorldFactory = require('../src/core/WorldFactory.js');
+const { WorldSimulationProfile } = require('../src/entities/WorldSimulation.js');
 const { WORLD_CORE_MANIFEST } = require('../data/world/world-core-2026.1.js');
 const {
   SPAIN_MANIFEST, buildSeasonActivationPlan, bindNewSeasonEditions,
@@ -132,6 +133,23 @@ const teamsByDivision = { '1ª': [], '2ª': [] };
 const allTeams = [...teamsByDivision['1ª'], ...teamsByDivision['2ª']];
 allTeams.forEach((team) => playerRegistry.registerMany(team.roster));
 
+// BUG-WORLD-CLEANUP-02 (DESIGN.md 10.21): este fixture llamaba a
+// `buildCareerWorld()` sin el `simulationProfile` que `spain-2026.1` exige
+// desde WORLD-SIM-1 — mismo fallo ya documentado en 10.19.2 punto 7 y
+// corregido en `test-contract1.js`/`test-club-core1.js` (BUG-WORLD-CONTEXT-03).
+// Se corrige el FIXTURE con el mismo perfil transitorio que game.js, nunca
+// relajando la invariante productiva (`detailLevel` sigue obligatorio).
+const simulationProfile = new WorldSimulationProfile({
+  id: 'simulation-profile:smoke-world-calendar1',
+  version: '1.0.0',
+  defaultDetailLevel: 'abstract',
+  assignments: [
+    { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.ACB, detailLevel: 'playable' },
+    { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, detailLevel: 'playable' },
+    { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.COPA_ACB, detailLevel: 'playable' },
+  ],
+  provenance: { status: 'design', notes: 'Perfil transitorio de smoke-world-calendar1.js — mismo criterio que game.js.' },
+});
 const world = WorldFactory.buildCareerWorld({
   id: `world:smoke-world-calendar1:${careerSeed}`,
   name: 'Mundo de la carrera (smoke WORLD-CALENDAR-1)',
@@ -139,6 +157,7 @@ const world = WorldFactory.buildCareerWorld({
   createdAtGameDate: bootstrapIsoDate,
   packs: [WORLD_CORE_MANIFEST, SPAIN_MANIFEST],
   context: { teamsByDivision, seasonKey, seasonStartDate: bootstrapIsoDate },
+  simulationProfile,
 });
 world.setCalendar(calendar);
 assert.strictEqual(world.calendar, calendar, 'world.calendar debe ser la MISMA instancia que el calendario de la carrera');

@@ -1,4 +1,11 @@
-// src/core/SpainLegacyCompetitionRuntime.js
+// scripts/fixtures/legacy/SpainLegacyCompetitionRuntime.js
+// WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 11.1 del prompt): retirado de
+// `src/core` — ya NO participa en la ruta productiva (`index.html`/
+// `game.js`/`spain-2026.1.js` no lo cargan ni lo requieren). Sobrevive
+// ÚNICAMENTE como fixture de `scripts/test-world-core1.js`/
+// `smoke-world-core1.js`/`smoke-club-core1.js` — código NO productivo, no
+// se ejecuta en esta sesión.
+//
 // WORLD-CORE-1 (sección 8.2 del prompt) — adaptador de compatibilidad
 // EXPLÍCITAMENTE aislado: enlaza el runtime fijo español (`League`/
 // `Bracket`/`Cup`/`Playoffs`/`Promotion`, sin tocarlos) con su
@@ -27,8 +34,8 @@
 
 (function (global) {
   const isNode = (typeof module !== 'undefined' && module.exports);
-  const CompetitionEntitiesModule = isNode ? require('../entities/Competition.js') : global.BasketManager;
-  const CompetitionCatalogModule = isNode ? require('./CompetitionCatalog.js') : global.BasketManager;
+  const CompetitionEntitiesModule = isNode ? require('../../../src/entities/Competition.js') : global.BasketManager;
+  const CompetitionCatalogModule = isNode ? require('../../../src/core/CompetitionCatalog.js') : global.BasketManager;
 
   function Entities() { return CompetitionEntitiesModule; }
   function Catalog() { return CompetitionCatalogModule; }

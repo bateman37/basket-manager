@@ -25,7 +25,7 @@ const { ContentPackRegistry } = require('../src/core/ContentPackRegistry.js');
 const WorldFactory = require('../src/core/WorldFactory.js');
 const CompetitionRules = require('../src/core/CompetitionRules.js');
 const CompetitionCatalog = require('../src/core/CompetitionCatalog.js');
-const { SpainLegacyCompetitionRuntime } = require('../src/core/SpainLegacyCompetitionRuntime.js');
+const { SpainLegacyCompetitionRuntime } = require('./fixtures/legacy/SpainLegacyCompetitionRuntime.js');
 const { Calendar } = require('../src/core/Calendar.js');
 const { CONFIG_BASE } = require('../src/core/MatchConfig.js');
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
@@ -395,7 +395,7 @@ check('ningún archivo mundial genérico nuevo contiene literales/reglas de Espa
 });
 
 check('el adaptador legacy y el paquete español SÍ pueden declarar literales de España (excepción documentada)', () => {
-  const runtimeContent = fs.readFileSync(path.join(__dirname, '..', 'src/core/SpainLegacyCompetitionRuntime.js'), 'utf8');
+  const runtimeContent = fs.readFileSync(path.join(__dirname, 'fixtures/legacy/SpainLegacyCompetitionRuntime.js'), 'utf8');
   const packContent = fs.readFileSync(path.join(__dirname, '..', 'data/world/spain-2026.1.js'), 'utf8');
   assert.ok(/1ª/.test(runtimeContent) && /2ª/.test(runtimeContent));
   assert.ok(/España/.test(packContent));
