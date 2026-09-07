@@ -28,6 +28,9 @@
     'loanRegistry',
     'annualCycleRegistry',
     'academyRegistry',
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17) — mismo patrón: instancia
+    // EXPLÍCITA por carrera, adjuntada aquí por identidad, nunca copiada.
+    'nationalTeamRegistry',
   ];
 
   class GameWorld {
@@ -122,6 +125,12 @@
         // simulación + contadores — nunca runtimes vivos ni `Map`.
         simulationProfile: this.simulationProfile ? this.simulationProfile.toJSON() : null,
         simulationLevelCounters: this._simulationLevelCounters(),
+        // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 4.3 del prompt):
+        // resumen PLANO del registro nacional — solo contadores, nunca el
+        // volcado completo (que ya expone `nationalTeamRegistry.snapshot()`
+        // para quien lo necesite explícitamente).
+        nationalTeamRegistrySummary: this.domainRegistries.nationalTeamRegistry
+          ? this.domainRegistries.nationalTeamRegistry.describe() : null,
         ...this.registries.describe(),
       };
     }
