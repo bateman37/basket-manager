@@ -38,6 +38,12 @@
   const CompetitionPathwayCatalogModule = dep('../../src/core/CompetitionPathwayCatalog.js');
   const WorldSimulationModule = dep('../../src/entities/WorldSimulation.js');
   const WorldCoreManifestModule = dep('./world-core-2026.1.js');
+  // WORLD-UI-1 (DESIGN.md 10.18): solo para leer nombre/ciudad/tamaño CRUDO
+  // de roster por id (metadatos de prearranque, sección 5.3.3 del prompt) —
+  // nunca para construir instancias de `Player`/`Team` aquí (eso lo sigue
+  // haciendo únicamente `game.js`, con validación completa).
+  const RealDataBundleModule = dep('../real/real-data-bundle.js');
+  const LocalDateModule = dep('../../src/utils/LocalDate.js');
 
   function Geo() { return GeographyModule; }
   function Org() { return OrganizationModule; }
@@ -72,44 +78,50 @@
   // `employerJurisdictionId: 'AD'` — el test transfronterizo obligatorio de
   // toda la EPIC (organizador ACB/España, empleador domiciliado en
   // Andorra).
+  // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-09): `initialCompetitionDefinitionId`
+  // declara la afiliación competitiva INICIAL de cada `teamId` como dato
+  // ESTABLE del propio paquete — la fuente NUEVA de pertenencia para
+  // `CareerSetupService`/`game.js`, nunca `REAL_DATA_INDEX.division`
+  // (`data/real/real-data-bundle.js` sigue existiendo y sin tocar, solo deja
+  // de ser la fuente de pertenencia competitiva).
   const CLUB_CONTENT = [
-    { teamId: 'team-asisa-joventut', clubId: 'club-asisa-joventut', city: 'Badalona', employerJurisdictionId: 'ES' },
-    { teamId: 'team-barca', clubId: 'club-barca', city: 'Barcelona', employerJurisdictionId: 'ES' },
-    { teamId: 'team-casademont-zaragoza', clubId: 'club-casademont-zaragoza', city: 'Zaragoza', employerJurisdictionId: 'ES' },
-    { teamId: 'team-fiatc-girona', clubId: 'club-fiatc-girona', city: 'Girona', employerJurisdictionId: 'ES' },
-    { teamId: 'team-ilerna-lleida', clubId: 'club-ilerna-lleida', city: 'Lleida', employerJurisdictionId: 'ES' },
-    { teamId: 'team-kids-and-us-manresa', clubId: 'club-kids-and-us-manresa', city: 'Manresa', employerJurisdictionId: 'ES' },
-    { teamId: 'team-kosner-baskonia', clubId: 'club-kosner-baskonia', city: 'Vitoria-Gasteiz', employerJurisdictionId: 'ES' },
-    { teamId: 'team-la-laguna-tenerife', clubId: 'club-la-laguna-tenerife', city: 'San Cristóbal de La Laguna', employerJurisdictionId: 'ES' },
-    { teamId: 'team-leyma-coruna', clubId: 'club-leyma-coruna', city: 'A Coruña', employerJurisdictionId: 'ES' },
-    { teamId: 'team-monbus-obradoiro', clubId: 'club-monbus-obradoiro', city: 'Santiago de Compostela', employerJurisdictionId: 'ES' },
-    { teamId: 'team-real-madrid', clubId: 'club-real-madrid', city: 'Madrid', employerJurisdictionId: 'ES' },
-    { teamId: 'team-recoletas-salud-san-pablo-burgos', clubId: 'club-recoletas-salud-san-pablo-burgos', city: 'Burgos', employerJurisdictionId: 'ES' },
-    { teamId: 'team-rio-breogan', clubId: 'club-rio-breogan', city: 'Lugo', employerJurisdictionId: 'ES' },
-    { teamId: 'team-surne-bilbao-basket', clubId: 'club-surne-bilbao-basket', city: 'Bilbao', employerJurisdictionId: 'ES' },
-    { teamId: 'team-ucam-murcia', clubId: 'club-ucam-murcia', city: 'Murcia', employerJurisdictionId: 'ES' },
-    { teamId: 'team-unicaja', clubId: 'club-unicaja', city: 'Málaga', employerJurisdictionId: 'ES' },
-    { teamId: 'team-valencia-basket', clubId: 'club-valencia-basket', city: 'Valencia', employerJurisdictionId: 'ES' },
-    { teamId: 'team-alimerka-oviedo', clubId: 'club-alimerka-oviedo', city: 'Oviedo', employerJurisdictionId: 'ES' },
-    { teamId: 'team-grupo-alega-cantabria', clubId: 'club-grupo-alega-cantabria', city: 'Santander', employerJurisdictionId: 'ES' },
-    { teamId: 'team-bueno-arenas-albacete', clubId: 'club-bueno-arenas-albacete', city: 'Albacete', employerJurisdictionId: 'ES' },
-    { teamId: 'team-grupo-ureta-tizona-burgos', clubId: 'club-grupo-ureta-tizona-burgos', city: 'Burgos', employerJurisdictionId: 'ES' },
-    { teamId: 'team-caja-rural-cb-zamora', clubId: 'club-caja-rural-cb-zamora', city: 'Zamora', employerJurisdictionId: 'ES' },
-    { teamId: 'team-basquet-menorca', clubId: 'club-basquet-menorca', city: 'Maó', employerJurisdictionId: 'ES' },
-    { teamId: 'team-cajasol-coto-cordoba', clubId: 'club-cajasol-coto-cordoba', city: 'Córdoba', employerJurisdictionId: 'ES' },
-    { teamId: 'team-insolac-caja87', clubId: 'club-insolac-caja87', city: 'Huelva', employerJurisdictionId: 'ES' },
-    { teamId: 'team-club-ourense-baloncesto', clubId: 'club-ourense-baloncesto', city: 'Ourense', employerJurisdictionId: 'ES' },
-    { teamId: 'team-inveready-askatuak-gipuzkoa', clubId: 'club-inveready-askatuak-gipuzkoa', city: 'San Sebastián', employerJurisdictionId: 'ES' },
-    { teamId: 'team-coviran-granada', clubId: 'club-coviran-granada', city: 'Granada', employerJurisdictionId: 'ES' },
-    { teamId: 'team-hla-alicante', clubId: 'club-hla-alicante', city: 'Alicante', employerJurisdictionId: 'ES' },
-    { teamId: 'team-fibwi-mallorca-basquet-palma', clubId: 'club-fibwi-mallorca-basquet-palma', city: 'Palma', employerJurisdictionId: 'ES' },
-    { teamId: 'team-movistar-estudiantes', clubId: 'club-movistar-estudiantes', city: 'Madrid', employerJurisdictionId: 'ES' },
-    { teamId: 'team-flexicar-fuenlabrada', clubId: 'club-flexicar-fuenlabrada', city: 'Fuenlabrada', employerJurisdictionId: 'ES' },
-    { teamId: 'team-palmer-basket-mallorca-palma', clubId: 'club-palmer-basket-mallorca-palma', city: 'Palma', employerJurisdictionId: 'ES' },
-    { teamId: 'team-gran-canaria', clubId: 'club-gran-canaria', city: 'Las Palmas de Gran Canaria', employerJurisdictionId: 'ES' },
-    { teamId: 'team-palencia-baloncesto', clubId: 'club-palencia-baloncesto', city: 'Palencia', employerJurisdictionId: 'ES' },
+    { teamId: 'team-asisa-joventut', clubId: 'club-asisa-joventut', city: 'Badalona', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-barca', clubId: 'club-barca', city: 'Barcelona', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-casademont-zaragoza', clubId: 'club-casademont-zaragoza', city: 'Zaragoza', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-fiatc-girona', clubId: 'club-fiatc-girona', city: 'Girona', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-ilerna-lleida', clubId: 'club-ilerna-lleida', city: 'Lleida', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-kids-and-us-manresa', clubId: 'club-kids-and-us-manresa', city: 'Manresa', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-kosner-baskonia', clubId: 'club-kosner-baskonia', city: 'Vitoria-Gasteiz', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-la-laguna-tenerife', clubId: 'club-la-laguna-tenerife', city: 'San Cristóbal de La Laguna', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-leyma-coruna', clubId: 'club-leyma-coruna', city: 'A Coruña', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-monbus-obradoiro', clubId: 'club-monbus-obradoiro', city: 'Santiago de Compostela', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-real-madrid', clubId: 'club-real-madrid', city: 'Madrid', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-recoletas-salud-san-pablo-burgos', clubId: 'club-recoletas-salud-san-pablo-burgos', city: 'Burgos', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-rio-breogan', clubId: 'club-rio-breogan', city: 'Lugo', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-surne-bilbao-basket', clubId: 'club-surne-bilbao-basket', city: 'Bilbao', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-ucam-murcia', clubId: 'club-ucam-murcia', city: 'Murcia', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-unicaja', clubId: 'club-unicaja', city: 'Málaga', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-valencia-basket', clubId: 'club-valencia-basket', city: 'Valencia', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
+    { teamId: 'team-alimerka-oviedo', clubId: 'club-alimerka-oviedo', city: 'Oviedo', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-grupo-alega-cantabria', clubId: 'club-grupo-alega-cantabria', city: 'Santander', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-bueno-arenas-albacete', clubId: 'club-bueno-arenas-albacete', city: 'Albacete', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-grupo-ureta-tizona-burgos', clubId: 'club-grupo-ureta-tizona-burgos', city: 'Burgos', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-caja-rural-cb-zamora', clubId: 'club-caja-rural-cb-zamora', city: 'Zamora', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-basquet-menorca', clubId: 'club-basquet-menorca', city: 'Maó', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-cajasol-coto-cordoba', clubId: 'club-cajasol-coto-cordoba', city: 'Córdoba', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-insolac-caja87', clubId: 'club-insolac-caja87', city: 'Huelva', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-club-ourense-baloncesto', clubId: 'club-ourense-baloncesto', city: 'Ourense', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-inveready-askatuak-gipuzkoa', clubId: 'club-inveready-askatuak-gipuzkoa', city: 'San Sebastián', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-coviran-granada', clubId: 'club-coviran-granada', city: 'Granada', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-hla-alicante', clubId: 'club-hla-alicante', city: 'Alicante', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-fibwi-mallorca-basquet-palma', clubId: 'club-fibwi-mallorca-basquet-palma', city: 'Palma', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-movistar-estudiantes', clubId: 'club-movistar-estudiantes', city: 'Madrid', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-flexicar-fuenlabrada', clubId: 'club-flexicar-fuenlabrada', city: 'Fuenlabrada', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-palmer-basket-mallorca-palma', clubId: 'club-palmer-basket-mallorca-palma', city: 'Palma', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-gran-canaria', clubId: 'club-gran-canaria', city: 'Las Palmas de Gran Canaria', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
+    { teamId: 'team-palencia-baloncesto', clubId: 'club-palencia-baloncesto', city: 'Palencia', employerJurisdictionId: 'ES', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB },
     // El caso transfronterizo obligatorio de esta EPIC.
-    { teamId: 'team-morabanc-andorra', clubId: 'club-morabanc-andorra', city: 'Andorra la Vella', employerJurisdictionId: 'AD' },
+    { teamId: 'team-morabanc-andorra', clubId: 'club-morabanc-andorra', city: 'Andorra la Vella', employerJurisdictionId: 'AD', initialCompetitionDefinitionId: Catalog().COMPETITION_IDS.ACB },
   ];
 
   const CLUB_CONTENT_BY_TEAM_ID = new Map(CLUB_CONTENT.map((entry) => [entry.teamId, entry]));
@@ -163,12 +175,35 @@
     }));
   }
 
+  // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-09): contexto CANÓNICO de
+  // instalación — equipos agrupados por `competitionDefinitionId` real
+  // (ACB/Primera FEB), nunca por `'1ª'`/`'2ª'`. Un normalizador PRIVADO
+  // acepta temporalmente el `teamsByDivision` legacy solo para los
+  // fixtures históricos que aún lo construyen
+  // (`scripts/test-world-calendar1.js`/`scripts/smoke-world-calendar1.js`)
+  // — sin nuevos call-sites productivos de esa forma (deuda documentada de
+  // WORLD-HARDEN-1, sección 3.3 del prompt).
+  function normalizeTeamsByCompetitionId(context) {
+    const ctx = context || {};
+    if (ctx.teamsByCompetitionId) return ctx.teamsByCompetitionId;
+    if (ctx.teamsByDivision) {
+      return {
+        [Catalog().COMPETITION_IDS.ACB]: ctx.teamsByDivision['1ª'] || [],
+        [Catalog().COMPETITION_IDS.PRIMERA_FEB]: ctx.teamsByDivision['2ª'] || [],
+      };
+    }
+    return null;
+  }
+
   // Registra Club + Team + Squad para cada equipo YA CONSTRUIDO por
   // game.js. CLUB-CORE-1 retira el puente `club.id === team.id`: cada club
   // recibe su `clubId` institucional real de `CLUB_CONTENT` (arriba),
   // distinto de `team.id`.
-  function registerClubsAndTeams(world, teamsByDivision) {
-    const allTeams = [...teamsByDivision['1ª'], ...teamsByDivision['2ª']];
+  function registerClubsAndTeams(world, teamsByCompetitionId) {
+    const allTeams = [
+      ...(teamsByCompetitionId[Catalog().COMPETITION_IDS.ACB] || []),
+      ...(teamsByCompetitionId[Catalog().COMPETITION_IDS.PRIMERA_FEB] || []),
+    ];
     allTeams.forEach((team) => {
       const entry = CLUB_CONTENT_BY_TEAM_ID.get(team.id);
       if (!entry) {
@@ -839,21 +874,22 @@
   // por el título / de ascenso y la Copa se activan más tarde, cuando el
   // engine procesa los hechos reales (`stage-completed`/`round-completed`)
   // — nunca se fabrican aquí de antemano.
-  function bindCareerStartEditions(world, { seasonKey, teamsByDivision, startDate }) {
+  function bindCareerStartEditions(world, { seasonKey, teamsByCompetitionId, teamsByDivision, startDate }) {
+    const teams = teamsByCompetitionId || normalizeTeamsByCompetitionId({ teamsByDivision });
     const acbBindings = editionBindings(Catalog().COMPETITION_IDS.ACB, world);
     const febBindings = editionBindings(Catalog().COMPETITION_IDS.PRIMERA_FEB, world);
     const { edition: acbEdition } = Engine().registerEditionWithInitialEntries(world, {
       competitionDefinitionId: Catalog().COMPETITION_IDS.ACB,
       seasonKey,
       startDate: startDate || null,
-      participants: teamsByDivision['1ª'].map((team) => ({ id: team.id })),
+      participants: teams[Catalog().COMPETITION_IDS.ACB].map((team) => ({ id: team.id })),
       ...acbBindings,
     });
     const { edition: febEdition } = Engine().registerEditionWithInitialEntries(world, {
       competitionDefinitionId: Catalog().COMPETITION_IDS.PRIMERA_FEB,
       seasonKey,
       startDate: startDate || null,
-      participants: teamsByDivision['2ª'].map((team) => ({ id: team.id })),
+      participants: teams[Catalog().COMPETITION_IDS.PRIMERA_FEB].map((team) => ({ id: team.id })),
       ...febBindings,
     });
     return { acbEdition, febEdition };
@@ -863,11 +899,11 @@
   // ediciones/stages ACTIVOS previos de ACB/Primera FEB (nunca los borra,
   // sección 13.3) y abre las de la temporada nueva — mismo criterio que el
   // histórico `bindNewSeason`.
-  function bindNewSeasonEditions(world, { seasonKey, teamsByDivision, startDate }) {
+  function bindNewSeasonEditions(world, { seasonKey, teamsByCompetitionId, teamsByDivision, startDate }) {
     [Catalog().COMPETITION_IDS.ACB, Catalog().COMPETITION_IDS.PRIMERA_FEB].forEach((competitionId) => {
       Engine().completePreviousEditions(world, competitionId);
     });
-    return bindCareerStartEditions(world, { seasonKey, teamsByDivision, startDate });
+    return bindCareerStartEditions(world, { seasonKey, teamsByCompetitionId, teamsByDivision, startDate });
   }
 
   // Plan de activación de TEMPORADA (sección 11.1 del prompt) — la ÚNICA
@@ -913,8 +949,14 @@
 
   function install(world, context) {
     const ctx = context || {};
-    if (!ctx.teamsByDivision || !ctx.teamsByDivision['1ª'] || !ctx.teamsByDivision['2ª']) {
-      throw new Error('spain-2026.1: falta "teamsByDivision" ({ "1ª": [...], "2ª": [...] }) en el contexto de instalación.');
+    const teamsByCompetitionId = normalizeTeamsByCompetitionId(ctx);
+    if (!teamsByCompetitionId
+      || !teamsByCompetitionId[Catalog().COMPETITION_IDS.ACB]
+      || !teamsByCompetitionId[Catalog().COMPETITION_IDS.PRIMERA_FEB]) {
+      throw new Error(
+        'spain-2026.1: falta "teamsByCompetitionId" ({ [ACB]: [...], [PRIMERA_FEB]: [...] }) en el contexto de '
+        + 'instalación (el "teamsByDivision" legacy solo se acepta desde fixtures históricos).',
+      );
     }
     if (!ctx.seasonKey) {
       throw new Error('spain-2026.1: falta "seasonKey" en el contexto de instalación.');
@@ -922,7 +964,7 @@
 
     registerAreas(world);
     registerOrganizations(world);
-    registerClubsAndTeams(world, ctx.teamsByDivision);
+    registerClubsAndTeams(world, teamsByCompetitionId);
     registerCompetitionDefinitions(world);
     registerFormats();
     registerSchedules();
@@ -938,9 +980,62 @@
     // fabricados aquí de antemano.
     bindCareerStartEditions(world, {
       seasonKey: ctx.seasonKey,
-      teamsByDivision: ctx.teamsByDivision,
+      teamsByCompetitionId,
       startDate: ctx.seasonStartDate || null,
     });
+  }
+
+  // WORLD-UI-1 (DESIGN.md 10.18, sección 3.3 del prompt): metadatos PLANOS
+  // de prearranque — la pantalla de configuración los lee SIN construir
+  // ningún `Team`/`Player` (invariante 5). Nombre/ciudad/tamaño de roster se
+  // leen UNA VEZ del bundle real ya existente (`data/real/real-data-bundle.js`),
+  // nunca duplicados aquí ni reconstruidos por render.
+  function buildCareerSetupClubs() {
+    const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = RealDataBundleModule;
+    const byId = new Map(REAL_DATA_INDEX.map((entry) => [entry.id, entry]));
+    return CLUB_CONTENT.map((entry) => {
+      const indexEntry = byId.get(entry.teamId);
+      const rawTeam = REAL_DATA_TEAMS[entry.teamId];
+      return {
+        clubId: entry.clubId,
+        teamId: entry.teamId,
+        name: indexEntry ? indexEntry.name : entry.teamId,
+        city: entry.city,
+        rosterSize: rawTeam ? rawTeam.roster.length : 0,
+        // Dato real de origen (bundle de `data/real/`) — la cobertura
+        // incompleta de algún roster se completa EN MEMORIA al construir la
+        // carrera de verdad (`padRosterToMinimum()`, ver CLAUDE.md ROSTER-1),
+        // nunca en esta metadata de prearranque.
+        dataCoverage: 'real',
+        initialCompetitionDefinitionId: entry.initialCompetitionDefinitionId,
+      };
+    });
+  }
+
+  function buildCareerSetupMetadata() {
+    const acbDefinition = Catalog().getCompetitionDefinition(Catalog().COMPETITION_IDS.ACB);
+    const febDefinition = Catalog().getCompetitionDefinition(Catalog().COMPETITION_IDS.PRIMERA_FEB);
+    const copaDefinition = Catalog().getCompetitionDefinition(Catalog().COMPETITION_IDS.COPA_ACB);
+    const supercopaDefinition = Catalog().getCompetitionDefinition(Catalog().COMPETITION_IDS.SUPERCOPA_ACB);
+    return {
+      seasons: [{
+        seasonKey: LocalDateModule.LocalDate.seasonKeyFromStartYear(2026),
+        seasonStartYear: 2026,
+        isDefault: true,
+      }],
+      timeZones: [{ timeZoneId: SPAIN_TIME_ZONE_ID, isDefault: true }],
+      competitions: [
+        { competitionDefinitionId: acbDefinition.id, recommendedDetailLevel: 'playable', allowedDetailLevels: ['playable'] },
+        { competitionDefinitionId: febDefinition.id, recommendedDetailLevel: 'playable', allowedDetailLevels: ['playable'] },
+        { competitionDefinitionId: copaDefinition.id, recommendedDetailLevel: 'playable', allowedDetailLevels: ['playable'] },
+        // Supercopa ACB sigue `catalog-only` (sección 6/15 del prompt de
+        // WORLD-CORE-1) — aparece en el catálogo de configuración
+        // DESHABILITADA y explicada (sección 5 del prompt de WORLD-UI-1),
+        // sin `recommendedDetailLevel`: nunca gana Edition/nivel/controles.
+        { competitionDefinitionId: supercopaDefinition.id, recommendedDetailLevel: null, allowedDetailLevels: [] },
+      ],
+      clubs: buildCareerSetupClubs(),
+    };
   }
 
   const SPAIN_MANIFEST = {
@@ -965,6 +1060,10 @@
     dataSource: 'data/real/real-data-bundle.js',
     provenance: { status: 'verified', notes: 'No copia data/real/* — referencia las instancias ya construidas.' },
     install,
+    // WORLD-UI-1 (DESIGN.md 10.18): metadatos de prearranque de la vertical
+    // española — construidos una sola vez al cargar el módulo (dato
+    // estático de contenido, nunca recalculado por render).
+    careerSetup: buildCareerSetupMetadata(),
   };
 
   const exportsObj = {

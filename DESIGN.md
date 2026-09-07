@@ -5718,7 +5718,7 @@ FEB**. La regla andorrana de prueba por múltiplo salarial se modela como
 `src/entities/Contract.js` es una entidad **independiente de Player y
 Team**: `id`, `playerId`, `clubId`, fechas (`signedDate`/`startDate`/
 `endDate`, civiles ISO e **inclusivas**), `coveredSeasonKeys`,
-`guaranteeType`, `probation`, `compensation` (por temporada), 
+`guaranteeType`, `probation`, `compensation` (por temporada),
 `paymentPolicy` (+ `schedule`), `clauses`, `declaredDocuments`,
 `representation`, `minorProtections`, `signingContext` congelado,
 `lifecycleEvents` y `provenance`.
@@ -7647,7 +7647,7 @@ ninguna sea el caso por defecto.
 | 5 | **PATHWAYS-1** | Clasificación entre fases/torneos, ascenso/descenso, acceso a copas y plazas continentales mediante reglas declarativas versionadas. | **hecha**, ver 10.15 |
 | 6 | **WORLD-SIM-1** | Niveles de detalle `playable/full/standard/abstract`, simulación acotada del exterior y población/mercado mundial sin cargarlo todo al máximo — sustituye `external-abstract` por clubes/equipos normales con detalle abstracto. | **hecha**, ver 10.16 |
 | 7 | **NATIONAL-TEAMS-1** | Federaciones, selecciones, elegibilidad, convocatorias, ventanas y competiciones continentales/mundiales de selecciones. | **hecha**, ver 10.17 |
-| 8 | **WORLD-UI-1** | Navegación estilo manager Mundo → Continente → País → Competición, configuración de carrera, selección de ligas/nivel de detalle. | pendiente |
+| 8 | **WORLD-UI-1** | Navegación estilo manager Mundo → Continente → País → Competición, configuración de carrera, selección de ligas/nivel de detalle. | **hecha**, ver 10.18 |
 | 9 | **WORLD-HARDEN-1** | Elimina todos los puentes legacy de España, audita determinismo/población, prepara la frontera de persistencia — todavía sin imponer SQLite/PostgreSQL. | pendiente |
 
 Después de esta EPIC, ya sobre una base correcta: `EUROPE-CONTENT-1`
@@ -8042,7 +8042,9 @@ Mundo › Europa › España/Andorra, construido desde `state.world.describe()`
 Competiciones/Agenda/Noticias/Plantilla/Mercado no pierden ninguna función;
 la selección de equipo sigue mostrando ACB y Primera FEB porque son las
 únicas ediciones jugables instaladas. El navegador mundial completo
-(Mundo → Continente → País → Competición) es WORLD-UI-1.
+(Mundo → Continente → País → Competición) llegó en WORLD-UI-1 (ver 10.18)
+— este `<details>` de Home se conserva tal cual como diagnóstico técnico
+discreto, ahora complementado por la pantalla Mundo real.
 
 ### 10.7 Fuera de alcance de WORLD-CORE-1
 
@@ -8062,7 +8064,7 @@ datos reales modificados.
 
 | Puente legacy | Vive en | Se retira en |
 |---|---|---|
-| `Team.division`/`legacyDivision` como alias de participación | `Team.js` | Participación real ya es `CompetitionEntry` desde COMP-CORE-1. **Desde WORLD-CALENDAR-1 `division` NO decide tiempo, participación ni siguiente partido en ningún punto productivo** — sobrevive solo como filtro VISUAL de la selección de equipo y de las pantallas españolas (Clasificación/Competiciones/Estadísticas/Calendario) y como proyección histórica; retirada en **WORLD-UI-1** |
+| `Team.division`/`legacyDivision` como alias de participación | `Team.js` | Participación real ya es `CompetitionEntry` desde COMP-CORE-1. **Desde WORLD-CALENDAR-1 `division` NO decide tiempo, participación ni siguiente partido en ningún punto productivo**; **desde WORLD-UI-1 (ver 10.18) tampoco decide NINGUNA pantalla** (selección de equipo, Inicio, Calendario, Competiciones, Estadísticas, noticias/lesiones ya resuelven por participación real) — sobrevive SOLO como proyección legacy (`team.legacyDivision`, escrita tras arrancar/cerrar temporada, nunca leída como autoridad) y como puente interno de `closeSeasonAndPrepareNext()`/`getLeague(division)`/`getBrackets(division)` (honores de cierre, sin pantalla que los use ya); retirada definitiva de ese puente interno: **WORLD-HARDEN-1** |
 | ~~`SpainLegacyCompetitionRuntime` como autoridad productiva~~ | *(retirado de producción en COMP-CORE-1)* | **RETIRADO de `index.html`/`game.js`/`spain-2026.1.js`** — el archivo sigue existiendo únicamente como shim de `scripts/test-world-core1.js`/`smoke-world-core1.js`/`smoke-club-core1.js` (fixtures históricos); se elimina el archivo cuando esos scripts dejen de necesitarlo (WORLD-CALENDAR-1) |
 | ~~`League`/`Bracket`/`Cup`/`Playoffs`/`Promotion` como runner fijo~~ | *(retirado como autoridad en COMP-CORE-1)* | **Fachadas finas** sobre `RoundRobinStageRunner`/`BracketStageRunner` (`src/core/CompetitionRunners.js`) — mismo algoritmo, nunca duplicado; siguen siendo la vista legacy que consume `game.js`/`cycle1-harness.js`, construida SIEMPRE desde el runner del `CompetitionEngine` |
 | `competitionIdFromLegacyDivision()` | `CompetitionRules.js` | Sin nuevos call-sites productivos desde COMP-CORE-1 (game.js migró a `CompetitionParticipationService.primaryLeagueCompetitionId`/contexto canónico de partido) — retirada definitiva en WORLD-HARDEN-1, sigue exportada para scripts/tests históricos |
@@ -8072,7 +8074,7 @@ datos reales modificados.
 | ~~Calendario por `scheduleProfileId` de contenido español en `CONFIG_BASE.calendar` (`1ª`/`2ª`)~~ | *(retirado de la ruta productiva en WORLD-CALENDAR-1)* | **RETIRADO** — los perfiles, la ventana de Copa y los arranques de playoff/ascenso son ahora `CompetitionScheduleDefinition` versionadas de `data/world/spain-2026.1.js` (ids estables `spain-2026.1:schedule:1a`/`2a`/`copa-acb`). `CONFIG_BASE.calendar.scheduleProfiles` y `src/core/Calendar.js` siguen existiendo SOLO como shim del "modo prueba" técnico de `index.html` y de scripts standalone antiguos; ningún módulo nuevo los consulta. Eliminación del archivo: **WORLD-HARDEN-1** |
 | ~~`state.leagues`/`state.brackets` como mapa fijo de dos divisiones~~ | *(retirado en WORLD-CALENDAR-1)* | **RETIRADO** — `getLeague(division)`/`getBrackets(division)` construyen la vista `League`/`Bracket` BAJO DEMANDA desde el `stageId`/runner real; no queda ningún estado paralelo. Los accesores por división siguen siendo el puente de las pantallas españolas hasta **WORLD-UI-1** |
 | ~~`simulateBackgroundRound()`/`drainBackgroundBrackets()`/`getBackgroundDivision()`/`getBackgroundLeague()`~~ | *(retirados en WORLD-CALENDAR-1)* | **RETIRADOS** — no existe "la otra división" en el core ni en la orquestación productiva (BUG-WORLDCALENDAR-01/02) |
-| `UI_COMPETITION_KEY_BY_STAGE_KEY` (`stageKey` genérica → `'league'/'cup'/'playoff'/'promotion'` histórica) | `src/ui/game.js` | Puente de INTERFAZ/normativa legacy (`matchExposures`, `relatedCompetition`, `BRACKET_PHASE_IDS`) — nunca decide tiempo. Retirada en **WORLD-UI-1**/**PATHWAYS-1** |
+| `UI_COMPETITION_KEY_BY_STAGE_KEY` (`stageKey` genérica → `'league'/'cup'/'playoff'/'promotion'` histórica) | `src/ui/game.js` | Puente de INTERFAZ/normativa legacy (`matchExposures`, `relatedCompetition`, `BRACKET_PHASE_IDS`) — nunca decide tiempo. WORLD-UI-1 (ver 10.18) no lo retira (sigue siendo el único traductor de noticias/actas); retirada definitiva: **WORLD-HARDEN-1** |
 | ~~Cierre deportivo español (ascensos/descensos ACB↔Primera FEB) en `SeasonHistoryService`/`cycle1-harness`~~ | *(retirado de producción en PATHWAYS-1)* | **RETIRADO** — `SeasonHistoryService.applyPromotionsAndRelegations()` (mutaba `team.division`) queda sin call-sites productivos; `game.js` usa `CompetitionPathwayService.applyTransitionGroup()` + `deriveSeasonMovesFromTransitionReceipt()`. Sobrevive solo para `scripts/cycle1-harness.js`/smokes anteriores a esta entrega (retirada definitiva: **WORLD-HARDEN-1**) |
 | ~~`buildSeasonActivationPlan()`/`registerCrossEditionActivation()` (activación de Copa)~~ | *(retirado de producción en PATHWAYS-1)* | **RETIRADO** — la Copa se activa por la regla de pathway `acb-copa-qualification` (`competition-qualification`). Sobrevive exportado solo para `scripts/test-world-calendar1.js`/`scripts/smoke-world-calendar1.js` (fixtures históricos); retirada definitiva: **WORLD-HARDEN-1** |
 | `bindNewSeasonEditions()` (construcción manual de la temporada siguiente desde `team.division`) | `data/world/spain-2026.1.js` | Sin call-sites productivos desde **PATHWAYS-1** (`applyTransitionGroup()` crea las Editions/Entries de la temporada siguiente de forma atómica) — sigue exportado para `scripts/test-world-calendar1.js`/`scripts/smoke-world-calendar1.js`; retirada definitiva: **WORLD-HARDEN-1** |
@@ -9633,6 +9635,278 @@ Corregido con el MISMO perfil transitorio que ya usan `game.js`/
 explícito) — la regresión pasa a estar realmente verificada en vez de
 reportarse en falso como "verde" (no formaba parte de la verificación
 reducida obligatoria de WORLD-SIM-1, así que nunca se había detectado).
+
+### 10.18 WORLD-UI-1 — resultado
+
+Octava entrega de la EPIC. Base: merge de la PR de NATIONAL-TEAMS-1 en
+`origin/main` (`9fd7a08`). España deja de presentarse como estructura
+universal en la interfaz: el usuario configura una carrera mediante
+manifiestos de contenido, elige club sin construir el mundo durante el
+render, y navega Mundo → continente → país/territorio → competición. No se
+añade contenido: siguen World Core, Europa, España, Andorra, ACB, Primera
+FEB, Copa ACB y la Supercopa solo catalogada.
+
+#### 10.18.1 Snapshot y servicio de configuración
+
+`src/entities/CareerSetup.js` — `CareerSetupSnapshot`: value object
+explícito, validado y CONGELADO al construirse (`id, schemaVersion:
+'world-ui-1', seasonKey, seasonStartYear, timeZoneId,
+selectedContentPackIds[], controlledClubId, controlledTeamId, careerSeed,
+defaultDetailLevel, simulationAssignments[], createdAtGameDate,
+provenance`). `selectedContentPackIds` y `simulationAssignments` se
+normalizan por id (nunca por el orden de clics de la interfaz); dos
+assignments incompatibles para el mismo scope bloquean AL CONSTRUIRSE
+(reutiliza el mismo criterio de conflicto que `WorldSimulationProfile`,
+WORLD-SIM-1, nunca una segunda implementación). `toJSON()` es plano
+(objetos/arrays/strings/números/booleanos), nunca `Map`/funciones. El
+borrador de la pantalla (`state.careerSetupDraft` en `game.js`) es
+MUTABLE; en cuanto `CareerSetupService.buildSnapshot()` lo valida y
+congela, deja de ser autoridad.
+
+`src/core/CareerSetupService.js` — servicio PURO (sin DOM, sin `state`
+global, nunca construye `Team`/`Player`): `buildCatalog(manifests,
+competitionCatalog)` proyecta metadatos `careerSetup` planos de cada
+manifiesto + identidad de `CompetitionCatalog` en paquetes/temporadas/
+husos/competiciones/clubes; `buildDefaultDraft()` arma el borrador por
+defecto (paquetes raíz + seleccionables, temporada/huso `isDefault`,
+niveles recomendados, sin competiciones `catalog-only`); `validateDraft()`
+nunca corrige en silencio — devuelve `{valid, errors: [{code, message,
+field}]}` con códigos (`MISSING_ROOT_PACK`, `MISSING_DEPENDENCY`,
+`UNKNOWN_SEASON`, `UNKNOWN_TIME_ZONE`, `UNKNOWN_COMPETITION`,
+`UNKNOWN_DETAIL_LEVEL`, `DETAIL_LEVEL_NOT_ALLOWED`,
+`CONTROLLED_CLUB_WITHOUT_USER_STOP`, `MISSING_CONTROLLED_CLUB`,
+`UNKNOWN_CLUB`, `MISSING_CAREER_SEED`, `MISSING_CREATED_AT_GAME_DATE`).
+El cierre de dependencias de paquetes reutiliza EXACTAMENTE
+`ContentPackRegistry.computeInstallOrder()` (nunca una segunda
+comprobación que pudiera desincronizarse). `CONTROLLED_CLUB_WITHOUT_USER_STOP`
+comprueba que la competición INICIAL declarada del club controlado
+resuelve `allowsUserMatchStop` con el nivel elegido — alcance de esta
+entrega, documentado: solo la competición inicial, no un grafo completo de
+pathways multi-temporada. `buildSnapshot()`/`buildSimulationProfile()`
+(deriva SIEMPRE el `WorldSimulationProfile` del snapshot — nunca una
+segunda preferencia editable) /`buildStartPlan()` (manifiestos YA resueltos
+en orden de dependencias) completan la producción.
+
+#### 10.18.2 Contrato de manifiesto — metadatos `careerSetup`
+
+`ContentPackManifest.careerSetup` (opcional, plano): `{isRootRequired,
+seasons: [{seasonKey, seasonStartYear, isDefault}], timeZones:
+[{timeZoneId, isDefault}], competitions: [{competitionDefinitionId,
+recommendedDetailLevel, allowedDetailLevels}], clubs: [{clubId, teamId,
+name, city, rosterSize, dataCoverage, initialCompetitionDefinitionId}]}`.
+El core (`CareerSetupService.js`) solo conoce el SHAPE — auditado
+estáticamente (`scripts/test-world-ui1.js`) sin ningún literal de
+país/liga/división. `world-core-2026.1` declara `{isRootRequired: true}`
+(raíz obligatoria, sin temporadas/competiciones propias). `spain-2026.1`
+declara la vertical completa; sus competiciones catalogadas sin
+`recommendedDetailLevel` (Supercopa) nunca reciben selección de nivel
+(invariante 9). `SPAIN_CLUB_CONTENT` (`CLUB_CONTENT`) gana
+`initialCompetitionDefinitionId` explícito por `teamId` (BUG-WORLDUI-09) —
+fuente NUEVA de pertenencia competitiva, nunca `REAL_DATA_INDEX.division`;
+nombre/ciudad/tamaño de roster se leen UNA VEZ del bundle real ya
+existente por id, sin duplicarlo ni tocar `data/real/*`.
+
+`spain-2026.1.install(world, context)` migra a un contexto CANÓNICO
+`teamsByCompetitionId` (`{[competitionDefinitionId]: Team[]}`) — un
+normalizador PRIVADO (`normalizeTeamsByCompetitionId()`) acepta
+temporalmente el `teamsByDivision` legacy SOLO para los fixtures
+históricos que aún lo construyen (`scripts/test-world-calendar1.js`,
+`scripts/smoke-world-calendar1.js`, `scripts/test-club-core1.js` y
+similares) — sin nuevos call-sites productivos de esa forma; retirada
+definitiva del atajo legacy: **WORLD-HARDEN-1**.
+
+#### 10.18.3 Arranque: `startCareerFromSetup(snapshot)`
+
+`src/ui/game.js` sustituye `startSeason(teamId, division)` por
+`startCareerFromSetup(snapshot)`: recibe el snapshot YA validado e
+inmutable y deriva de él temporada/huso/paquetes/perfil de simulación —
+ningún literal se decide dentro de la función salvo los que siguen siendo
+contenido español explícito y permitido en esta capa (`game.js` es la
+ÚNICA capa que conoce ACB/Primera FEB/Copa como literales). Orden real:
+construir manifiestos resueltos (`CareerSetupService.buildStartPlan()`)
+→ derivar la unión de `scheduleIds` declarados por esos paquetes y el
+inicio de temporada MÁS TEMPRANO entre sus schedules (nunca el de ACB por
+defecto, BUG-WORLDUI-03) → construir los 36 `Team`/`Player` reales (misma
+construcción de siempre) → agrupar por `competitionDefinitionId` real
+leyendo `SPAIN_CLUB_CONTENT.initialCompetitionDefinitionId`
+(BUG-WORLDUI-09) → `WorldSimulationProfile` derivado del snapshot
+(`CareerSetupService.buildSimulationProfile()`) → `GameWorld` construido
+con los paquetes YA resueltos → inicializar TODAS las Editions
+`active-runtime` de la temporada que el registro ya contiene
+(`competitionEditions.forSeason(seasonKey)`, nunca dos ids ACB/Primera FEB
+codificados, BUG-WORLDUI-03) → pathways/contratos/inscripción/mercado/
+ciclo/selecciones (sin cambios de comportamiento) → `state.division`
+asignado SOLO como proyección legacy final (`team.legacyDivision`), nunca
+consultado como autoridad de aquí en adelante.
+
+`buildCareerSeasonKey()` (BUG-WORLDUI-02) retira el fallback a
+`new Date().getFullYear()` — ya no hace falta: la pantalla de
+configuración no construye equipos/jugadores para previsualizar
+(BUG-WORLDUI-01), así que la función solo se invoca con
+`state.seasonStartYear` ya explícito (o lanza descriptivo si no lo hay).
+
+#### 10.18.4 Pantalla de configuración (reemplaza la selección por división)
+
+`renderCareerSetupScreen()` (mismo contenedor `#gm-team-select`, screen key
+`'team-select'` sin cambios de wiring) sustituye a la antigua
+`renderTeamSelectScreen()` — tres pasos compactos en la MISMA pantalla:
+
+1. **Mundo** — paquetes instalados (World Core marcado "Requerido"),
+   selector de temporada/huso (hoy una sola opción cada uno, pero
+   implementado como selección real, no texto fijo).
+2. **Competiciones** — por cada competición del catálogo: nombre, estado,
+   selector de nivel de detalle (`<select>`, deshabilitado si solo admite
+   un nivel) y una descripción DERIVADA de `capabilitiesForDetailLevel()`
+   (parada de usuario, unidad temporal, tipo de resolución, cobertura
+   exigida) — nunca un texto fijo por nombre de nivel. `catalog-only`
+   (Supercopa) se ve deshabilitada y explicada ("Catalogada, sin edición
+   activa"), nunca desaparece ni gana selector.
+3. **Club** — tarjetas de club agrupadas por competición ACTUAL, leídas
+   SOLO de metadatos planos (`catalog.clubs`, id/nombre/ciudad/tamaño de
+   roster/cobertura) — BUG-WORLDUI-01 corregido: ningún render construye
+   `Team`/`Player` ni consume RNG, ni siquiera al cambiar de club/paso
+   repetidamente.
+
+"Comenzar carrera" solo se habilita con `validateDraft().valid`; los
+errores (código + mensaje) se listan bajo los pasos. Avanzar/retroceder
+entre pasos conserva el borrador y no muta ningún registro.
+
+#### 10.18.5 Navegador mundial (`WorldNavigationService.js` + pantalla Mundo)
+
+`src/core/WorldNavigationService.js` — proyector PURO sobre
+`WorldRegistries`/`CompetitionEngine`: `breadcrumbForArea`,
+`childrenOfArea`, `organizationsForArea` (distingue sede vs ámbito,
+DISTINTAS relaciones), `clubsForArea` (por `homeAreaId`),
+`competitionsForArea` (por `scopeAreaId` propio),
+`externalCompetitionsForAreaClubs` (competiciones de OTRA área en las que
+participa un equipo de un club local — nunca cambia el `scopeAreaId` real
+de la competición) y `competitionView()` (identidad + edición vigente +
+fases con resultado tipado + participantes; `catalog-only` nunca fabrica
+Edition/participantes). El resultado de cada fase se tipa
+(`not-available|standings|standings-compact|bracket|bracket-compact`) vía
+`capabilitiesForDetailLevel(edition.detailLevel).hasIndividualMatchDetail`
+— nunca confunde ausencia de detalle con cero.
+
+Nueva pantalla **Mundo** (`state.worldView: {kind: 'area'|'competition',
+areaId, competitionDefinitionId, editionId}`, navegación EXCLUSIVAMENTE
+por ids) con botón propio en `#gm-nav`. Casos verificados: `Mundo → Europa
+→ España` (35 clubes, sin MoraBanc); `Mundo → Europa → Andorra` (MoraBanc,
+sección "participa fuera de su área" con ACB, que conserva
+`scopeAreaId: area-country-es`); Supercopa "Catalogada, sin edición
+activa"; consultar/repetir consulta nunca muta ni consume RNG
+(verificado con orden de registro invertido). El `<details>` técnico de
+Home (`buildWorldDetailHtml()`, `world.describe()`) se conserva como
+diagnóstico discreto — BUG-WORLDUI-08 se corrige AÑADIENDO la navegación
+real, no quitando el detalle técnico.
+
+#### 10.18.6 Migración de Inicio/Calendario/Competiciones/Estadísticas
+
+`state.division` deja de ser AUTORIDAD de ninguna pantalla productiva
+(BUG-WORLDUI-04) — sobrevive solo como proyección legacy
+(`team.legacyDivision`, escrita tras `startCareerFromSetup()` y tras cada
+cierre de temporada). Nuevas funciones resuelven por participación REAL
+(`CompetitionParticipationService.primaryLeagueCompetitionId`), nunca por
+igualdad de string: `teamLeagueCompetitionId(team)`, `getLeagueForTeam(team)`,
+`userLeagueCompetitionId()`, `isUserInTopFlight()`, `getUserBracketsReal()`.
+`getUserLeague()` se redefine en términos de estas — todo consumidor
+existente (más de una decena de call-sites: partido en vivo, noticias,
+rachas, agenda) queda corregido sin tocarlos uno a uno.
+
+- **Inicio**: `${state.division} División` sustituido por el nombre real
+  de la competición (`CompetitionParticipationService` +
+  `CompetitionDefinition.name`) más un enlace "Ver en Mundo" que navega a
+  la pantalla Mundo enfocada en esa competición.
+- **Competiciones/Estadísticas** (BUG-WORLDUI-05): las pestañas Copa/
+  Playoff vs. Ascenso se deciden con `isUserInTopFlight()` (participación
+  real), nunca `state.division === '1ª'`; los brackets se resuelven con
+  `getUserBracketsReal()`.
+- **Estadísticas** (`aggregatePlayerStats()`, BUG-WORLDUI-06): un
+  resultado sin `hasIndividualMatchDetail(result)` (nivel `standard`/
+  `abstract`) se EXCLUYE de las medias — nunca accede ciegamente a
+  `result.boxScore.home/away` ni fabrica ceros. Hoy sin efecto observable
+  (ACB/Primera FEB/Copa son `playable`), protege cualquier competición
+  futura no `playable`.
+- **Noticias/lesiones** (`pushMedicalDiffEvents`/`pushMedicalMatchEvents`,
+  BUG-WORLDUI-07): filtran por `teamLeagueCompetitionId(team) ===
+  userLeagueCompetitionId()` — identidad de participación real, nunca
+  `team.division !== state.division`.
+- **Cierre de temporada** (`isSeasonFullyClosable()`, sección 7.3 del
+  prompt): ya no pregunta "¿han terminado 1ª y 2ª?" — deriva las
+  competiciones de club `active-runtime` del registro
+  (`activeClubLeagueCompetitionIds()`) y comprueba cada una
+  (`isCompetitionFullyDone()`), nunca un mapa fijo de dos divisiones. Los
+  brackets asociados a cada liga (Copa/playoff por el título para ACB,
+  playoff de ascenso para Primera FEB) siguen siendo estructura española
+  conocida, permitida en `game.js`.
+- `getLeague(division)`/`getBrackets(division)`/`competitionIdForDivision()`
+  SOBREVIVEN únicamente como puente interno de `closeSeasonAndPrepareNext()`
+  (honores de cierre de temporada, vía `SeasonHistoryService`) — ningún
+  call-site productivo de PANTALLA los usa ya. Retirada definitiva de este
+  puente interno: **WORLD-HARDEN-1** (requiere migrar el cierre de
+  temporada a facades por `competitionDefinitionId`, fuera de alcance
+  aquí). `UI_COMPETITION_KEY_BY_STAGE_KEY`/`competitionKeyForStageKey()`
+  (traducción legacy `stageKey` → `league/cup/playoff/promotion` para
+  noticias/`BRACKET_PHASE_IDS`) tampoco se retira en esta entrega — sigue
+  siendo puente de INTERFAZ/normativa, nunca decide tiempo; mismo
+  propietario de retirada.
+
+#### 10.18.7 Bugs verificados
+
+BUG-WORLDUI-01 a BUG-WORLDUI-09 (sección 8 del prompt) — los nueve
+confirmados presentes en el `main` real al empezar y corregidos según se
+describe en 10.18.3-10.18.6 arriba.
+
+#### 10.18.8 Pruebas de esta entrega
+
+`node scripts/test-world-ui1.js` — 20 comprobaciones agrupadas: snapshot
+(orden/inmutabilidad/serialización/conflicto de assignments), catálogo
+desde manifiestos reales (36 clubes/4 competiciones/1 temporada-huso, sin
+construir Team/Player), validación (paquete raíz ausente, nivel no
+permitido, club sin parada de usuario con catálogo sintético, club
+inexistente), mundo real construido desde el snapshot (36 equipos,
+Editions con el nivel congelado, integridad), `teamsByCompetitionId` real
+(BUG-WORLDUI-09), breadcrumb y relaciones de área/organización/club,
+MoraBanc/Andorra/ACB transfronterizo, Supercopa `catalog-only`, fases/
+participantes/resultado honesto (antes y después de resolver un partido),
+orden de registro invertido sin cambiar el view model, consulta repetida
+sin mutación, auditoría estática sin literales de España en los tres
+módulos genéricos nuevos. **20 OK, 0 FAIL.**
+
+`node scripts/smoke-world-ui1.js` — configuración por defecto (Unicaja)
+→ carrera real (36 equipos, Editions derivadas del registro) → `Mundo →
+Europa → España (35 clubes) / Andorra (MoraBanc, ACB) → ACB (18
+participantes)` → "Continuar" hasta la primera parada real del equipo
+controlado. **OK en ~0.1s.**
+
+Regresiones autorizadas ejecutadas, sin cambio de comportamiento
+pretendido: `node scripts/test-world-calendar1.js` (**25 OK, 0 FAIL**),
+`node scripts/test-world-sim1.js` (**19 OK, 0 FAIL**), `node
+scripts/test-national-teams1.js` (**19 OK, 0 fallos**). Comprobación
+adicional no exigida por el presupuesto reducido, ejecutada por afectar a
+`spain-2026.1.js` de forma amplia: `node scripts/test-club-core1.js`
+(**36 comprobaciones OK, 0 fallidas**). `node --check` sobre todo el JS
+nuevo/modificado y `git diff --check`: sin errores.
+
+**Hallazgo no atribuible a esta entrega**: `scripts/smoke-world-calendar1.js`
+falla ya en `origin/main` (antes de cualquier cambio de WORLD-UI-1) porque
+`buildCareerWorld()` no le pasa `simulationProfile` y, desde WORLD-SIM-1,
+`spain-2026.1.js` exige esa dependencia para resolver `detailLevel` —
+mismo patrón ya documentado para `scripts/test-club-core1.js` en 10.17.8.
+No forma parte de la verificación reducida obligatoria de esta entrega;
+queda señalado para quien retome ese script.
+
+#### 10.18.9 Fuera de alcance de esta entrega
+
+Contenido real europeo/mundial, países, clubes, ligas o selecciones
+adicionales; modo seleccionador nacional; crear/eliminar paquetes desde la
+UI o descargar contenido; editor de formatos/reglas/calendarios/pathways;
+materialización/desmaterialización dinámica de plantillas; persistencia/
+save-load/backend; rediseño visual completo; cambios a contratos/mercado/
+transferencias/cesiones/tácticas/`MatchEngine`/balance; limpieza completa
+de los shims legacy documentados en 10.18.6 (propiedad de
+**WORLD-HARDEN-1**); un grafo completo de pathways multi-temporada para
+`CONTROLLED_CLUB_WITHOUT_USER_STOP` (solo comprueba la competición
+inicial); cambios a `data/real/*`.
 
 ## 11. Modo Manager (futuro, derivado del modo Completo)
 

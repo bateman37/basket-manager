@@ -33,25 +33,42 @@
   // (CLAUDE.md: localStorage llegará más adelante, no es parte de esto).
   // ---------------------------------------------------------------------
   const state = {
-    screen: 'team-select', // 'team-select' | 'home' | 'lineup' | 'agenda' | 'news' | 'calendar' | 'competitions' | 'stats' | 'match'
-    division: '1ª',
+    screen: 'team-select', // 'team-select' | 'home' | 'world' | 'lineup' | 'agenda' | 'news' | 'calendar' | 'competitions' | 'stats' | 'match'
+    // WORLD-UI-1 (DESIGN.md 10.18): catálogo/borrador de configuración de
+    // carrera, ANTES de pulsar "Comenzar" — `null` hasta que se visita la
+    // pantalla de configuración. `careerSetupSnapshot` es el snapshot YA
+    // congelado de la carrera EN CURSO (`state.careerSetupSnapshot`,
+    // inmutable durante toda la carrera, nunca reeditado).
+    careerSetupCatalog: null,
+    careerSetupDraft: null,
+    careerSetupSnapshot: null,
+    // Estado de navegación del navegador Mundo — SOLO ids canónicos, nunca
+    // nombres visibles ni `division` (sección 6 del prompt).
+    worldView: {
+      kind: 'area', areaId: null, competitionDefinitionId: null, editionId: null,
+    },
+    // `Team.division`/`legacyDivision` sobrevive EXCLUSIVAMENTE como
+    // proyección histórica/legacy (ver CLAUDE.md, "Migración legacy") —
+    // WORLD-UI-1 lo retira como AUTORIDAD de selección/pantallas
+    // productivas (BUG-WORLDUI-04). `null` hasta que exista una carrera.
+    division: null,
     userTeamId: null,
     // CLUB-CORE-1 (DESIGN.md sección 10): identidad INSTITUCIONAL del club
     // controlado — DISTINTA de `userTeamId` (identidad DEPORTIVA). Se
-    // resuelve tras instalar el mundo (`startSeason()`, `team.clubId` del
+    // resuelve tras instalar el mundo (`startCareerFromSetup()`, `team.clubId` del
     // equipo elegido) — nunca se intercambian: pantallas institucionales
     // (contratos, mercado, planificación, academia) consultan `userClubId`;
     // pantallas deportivas (alineación, táctica, entrenamiento, partido,
     // inscripción) consultan `userTeamId`.
     userClubId: null,
     // WORLD-CORE-1 (DESIGN.md, "World Architecture"): `GameWorld` canónico
-    // de ESTA partida — `null` hasta `startSeason()`, nunca un singleton
+    // de ESTA partida — `null` hasta `startCareerFromSetup()`, nunca un singleton
     // oculto. `state.playerRegistry`/`contractRegistry`/etc. de abajo son
     // ALIASES de identidad estricta a `state.world.domainRegistries.*`
     // (misma instancia, nunca una copia) desde que se construye el mundo.
     world: null,
     // COMP-CORE-1 (DESIGN.md 10.13): instancia EXPLÍCITA por carrera del
-    // motor genérico de competiciones — `null` hasta `startSeason()`,
+    // motor genérico de competiciones — `null` hasta `startCareerFromSetup()`,
     // nunca un singleton (mismo criterio que el resto de registries de la
     // EPIC). Las vistas `League`/`Bracket` que consumen las pantallas
     // antiguas se construyen BAJO DEMANDA a partir de los runners que
@@ -59,7 +76,7 @@
     // (WORLD-CALENDAR-1 retiró `state.leagues`/`state.brackets`).
     competitionEngine: null,
     // WORLD-SIM-1 (DESIGN.md 10.16): instancia EXPLÍCITA por carrera del
-    // servicio de simulación — `null` hasta `startSeason()`, mismo criterio
+    // servicio de simulación — `null` hasta `startCareerFromSetup()`, mismo criterio
     // que `competitionEngine`.
     competitionSimulationService: null,
     // WORLD-CALENDAR-1 (DESIGN.md 10.14): FOCO DE INTERFAZ, no autoridad.
@@ -73,7 +90,7 @@
     uiFocusCompetitionEditionId: null,
     uiFocusStageId: null,
     // WORLD-CALENDAR-1: coordinador temporal de la carrera (fuentes +
-    // "Continuar"), instancia EXPLÍCITA creada en `startSeason()` — nunca
+    // "Continuar"), instancia EXPLÍCITA creada en `startCareerFromSetup()` — nunca
     // un singleton. `state.calendar` (más abajo) es el `WorldCalendar`
     // único, la MISMA instancia que `state.world.calendar`.
     calendarCoordinator: null,
@@ -84,14 +101,14 @@
     // verdad: siempre el objeto que devolvió `advanceUntilNextUserStop()`.
     pendingStop: null,
     // ROSTER-1 (DESIGN.md 9.16): instancia EXPLÍCITA del registro mundial
-    // de jugadores de ESTA partida — `null` hasta `startSeason()` (nunca
+    // de jugadores de ESTA partida — `null` hasta `startCareerFromSetup()` (nunca
     // un singleton global oculto: cada partida nueva construye la suya).
     // `Team.roster` sigue siendo la afiliación deportiva actual; este
     // registro es quien permite encontrar a un jugador aunque no esté en
     // ninguna plantilla (ficha universal, LIFE-4/BUG-LIFE4-03).
     playerRegistry: null,
     // CONTRACT-1 (DESIGN.md 9.17): instancia EXPLÍCITA del registro
-    // CONTRACTUAL de ESTA partida — `null` hasta `startSeason()`, nunca un
+    // CONTRACTUAL de ESTA partida — `null` hasta `startCareerFromSetup()`, nunca un
     // singleton global oculto. Es la fuente CANÓNICA de contratos: ni
     // `Player` ni `Team` guardan una copia (`currentContract` duplicado) y
     // la nómina de la interfaz es siempre una consulta derivada de aquí.
@@ -137,12 +154,12 @@
     // no existía ningún concepto de fecha real en el estado de partida
     // antes de esto. Decisión NO fijada en DESIGN.md, señalada aquí: se usa
     // el año en curso en el momento de empezar la partida (new Date() al
-    // llamar a startSeason()), no un año fijo — así cada partida nueva
+    // llamar a startCareerFromSetup()), no un año fijo — así cada partida nueva
     // arranca en la temporada "actual" real en vez de quedar anclada a una
     // fecha de cuando se escribió este código.
     seasonStartYear: null,
     // WORLD-CALENDAR-1 (DESIGN.md 10.14): `WorldCalendar` ÚNICO de la
-    // carrera (`src/core/WorldCalendar.js`), construido en `startSeason()`
+    // carrera (`src/core/WorldCalendar.js`), construido en `startCareerFromSetup()`
     // y NUNCA sustituido en el cierre de temporada (antes se creaba un
     // `Calendar` nuevo por temporada). Alias de identidad estricta de
     // `state.world.calendar`.
@@ -210,7 +227,7 @@
     academyRegistry: null,
     // NATIONAL-TEAMS-1 (DESIGN.md 10.17): registro canónico de decisiones/
     // ventanas/listas/convocatorias/apariciones nacionales — instancia
-    // EXPLÍCITA por carrera, creada en `startSeason()` y limpiada al volver
+    // EXPLÍCITA por carrera, creada en `startCareerFromSetup()` y limpiada al volver
     // a selección de equipo (nunca singleton). Vacía en la partida
     // española (no se instala ninguna federación/selección real todavía).
     nationalTeamRegistry: null,
@@ -282,7 +299,47 @@
     return buildLeagueFacadeForCompetition(competitionIdForDivision(division), buildCareerSeasonKey());
   }
 
-  function getUserLeague() { return getLeague(state.division); }
+  // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-04): competición de LIGA real
+  // de UN equipo cualquiera — resuelta por su `CompetitionEntry` real de
+  // la temporada (`CompetitionParticipationService`), nunca por
+  // `team.division`/`state.division`. Punto ÚNICO que reemplaza, en toda
+  // ruta productiva de pantalla/noticias, al antiguo `getLeague(team.division)`.
+  function teamLeagueCompetitionId(team) {
+    if (!team || !state.world) return null;
+    return BM.CompetitionParticipationService.primaryLeagueCompetitionId(
+      state.world.registries, team.id, { seasonKey: buildCareerSeasonKey() },
+    );
+  }
+
+  function getLeagueForTeam(team) {
+    if (!state.competitionEngine || !state.world) return null;
+    const competitionId = teamLeagueCompetitionId(team);
+    return competitionId ? buildLeagueFacadeForCompetition(competitionId, buildCareerSeasonKey()) : null;
+  }
+
+  function userLeagueCompetitionId() { return teamLeagueCompetitionId(getUserTeam()); }
+
+  function isUserInTopFlight() { return userLeagueCompetitionId() === BM.CompetitionCatalog.COMPETITION_IDS.ACB; }
+
+  // Sustituye a `getUserLeague()`/`getBrackets(state.division)` en toda
+  // pantalla productiva (Inicio/Calendario/Competiciones/Estadísticas) —
+  // la competición/brackets del usuario se resuelven SIEMPRE por su
+  // participación real, nunca por `state.division` (BUG-WORLDUI-04).
+  function getUserBracketsReal() {
+    const seasonKey = buildCareerSeasonKey();
+    if (!state.competitionEngine || !state.world) return { cup: null, titlePlayoff: null, promotionPlayoff: null };
+    if (isUserInTopFlight()) {
+      return {
+        cup: buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB, seasonKey, 'knockout'),
+        titlePlayoff: buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.ACB, seasonKey, 'title-playoff'),
+      };
+    }
+    return {
+      promotionPlayoff: buildPromotionPlayoffCompatView(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, seasonKey),
+    };
+  }
+
+  function getUserLeague() { return getLeagueForTeam(getUserTeam()); }
 
   function getBrackets(division) {
     const empty = division === '1ª' ? { cup: null, titlePlayoff: null } : { promotionPlayoff: null };
@@ -326,11 +383,14 @@
   // al leer de disco, ver DESIGN.md/CLAUDE.md "Datos reales".
   // -----------------------------------------------------------------
   // LIFE-4 (DESIGN.md 9.15, sección 17): "2026-27", nunca "Temporada 1" —
-  // derivado del año real de inicio de la partida en curso (o del año de
-  // la máquina en el instante de la llamada, para las tarjetas de
-  // previsualización de selección de equipo, ANTES de que exista partida).
+  // derivado SIEMPRE del `seasonStartYear` explícito de la carrera en
+  // curso. WORLD-UI-1 (BUG-WORLDUI-02): retira el fallback al año de la
+  // máquina — la pantalla de configuración ya no construye equipos/
+  // jugadores para previsualizar (BUG-WORLDUI-01), así que esta función
+  // solo se llama con `state.seasonStartYear` ya explícito.
   function buildCareerSeasonKey() {
-    return BM.seasonKeyFromStartYear(state.seasonStartYear || new Date().getFullYear());
+    if (!state.seasonStartYear) throw new Error('buildCareerSeasonKey: falta "state.seasonStartYear" — no hay ninguna carrera en curso.');
+    return BM.seasonKeyFromStartYear(state.seasonStartYear);
   }
 
   // REG-1 (DESIGN.md 9.18): traduce la `competitionKey` de `getActiveBracket()`
@@ -411,7 +471,7 @@
   // candidato llega YA evaluado por `EligibilityService` (el MISMO
   // servicio que usa la CPU y que valida al usuario). Devuelve `null` si la
   // partida todavía no tiene `state.registrationRegistry` (defensivo; tras
-  // REG-1 siempre debería existir desde `startSeason()`).
+  // REG-1 siempre debería existir desde `startCareerFromSetup()`).
   function buildEligiblePoolForMatch(team, context) {
     const registry = state.registrationRegistry;
     if (!registry) return null;
@@ -605,48 +665,225 @@
       .map((entry) => buildRealTeamFromData(REAL_DATA_TEAMS[entry.id]));
   }
 
-  // ---------------------------------------------------------------------
-  // Pantalla: selección de equipo
-  // ---------------------------------------------------------------------
-  function renderTeamSelectScreen() {
-    const container = byId('gm-team-select');
-    const division = state.division;
-    const teams = getRealTeamsByDivision(division)
-      .sort((a, b) => a.fullName.localeCompare(b.fullName, 'es'));
+  // =======================================================================
+  // WORLD-UI-1 (DESIGN.md 10.18) — configuración de carrera basada en
+  // manifiestos. Sustituye la antigua selección por división por tres
+  // pasos compactos en la MISMA pantalla (sección 5 del prompt): Mundo,
+  // Competiciones, Club. Todo el trabajo real (catálogo, validación,
+  // snapshot) vive en `CareerSetupService`/`CareerSetup.js` — esta sección
+  // solo pinta el borrador y traduce clics, nunca decide una regla propia.
+  // =======================================================================
 
-    const cards = teams.map((team) => {
-      const bestPlayers = [...team.roster]
-        .sort((a, b) => (b.technical.outsideShot + b.technical.insideShot) - (a.technical.outsideShot + a.technical.insideShot))
-        .slice(0, 3)
-        .map((p) => p.fullName)
-        .join(', ');
-      return `
-        <button class="team-card" data-team-id="${team.id}" data-division="${division}">
-          <span class="team-card__name">${team.name}</span>
-          <span class="team-card__city">${team.city}</span>
-          <span class="team-card__roster">${team.roster.length} jugadores</span>
-          <span class="team-card__stars">${bestPlayers}</span>
-        </button>`;
-    }).join('');
+  // Los DOS manifiestos disponibles hoy — game.js es la ÚNICA capa que
+  // sabe qué paquetes existen (CareerSetupService solo conoce el SHAPE de
+  // un manifiesto, nunca una lista fija de ids).
+  function careerSetupManifests() { return [BM.WORLD_CORE_MANIFEST, BM.SPAIN_MANIFEST]; }
+  function careerSetupManifestsById() { return new Map(careerSetupManifests().map((m) => [m.id, m])); }
 
+  // `createdAtGameDate`/`careerSeed` del snapshot son EXPLÍCITOS (invariante
+  // 7: nunca reloj del sistema) — se derivan del ancla de apertura de la
+  // temporada elegida (mismo ancla que ya usaba `startCareerFromSetup()` para
+  // arrancar el calendario), nunca de `new Date()`.
+  function seasonAnchorIsoDate(seasonStartYear) {
+    const anchor = BM.SPAIN_SEASON_ANCHOR;
+    return `${seasonStartYear}-${String(anchor.month).padStart(2, '0')}-${String(anchor.day).padStart(2, '0')}`;
+  }
+
+  // Construye catálogo (memoizado) + borrador por defecto la primera vez
+  // que se visita la pantalla — invariante 5: nunca construye Team/Player,
+  // nunca consume RNG. Volver a esta pantalla conserva el borrador en
+  // curso (nunca lo reinicia) salvo que la carrera anterior ya terminase
+  // ("Volver a selección de equipo", que sí limpia `careerSetupDraft`).
+  function ensureCareerSetupState() {
+    if (!state.careerSetupCatalog) {
+      state.careerSetupCatalog = BM.CareerSetupService.buildCatalog(careerSetupManifests(), BM.CompetitionCatalog);
+    }
+    if (!state.careerSetupDraft) {
+      const defaultSeason = state.careerSetupCatalog.seasons.find((s) => s.isDefault) || state.careerSetupCatalog.seasons[0] || null;
+      state.careerSetupDraft = BM.CareerSetupService.buildDefaultDraft(state.careerSetupCatalog, {
+        referenceDate: defaultSeason ? seasonAnchorIsoDate(defaultSeason.seasonStartYear) : null,
+        careerSeed: null,
+      });
+    }
+  }
+
+  function careerSetupValidation() {
+    return BM.CareerSetupService.validateDraft(state.careerSetupCatalog, careerSetupManifestsById(), state.careerSetupDraft);
+  }
+
+  function renderCareerSetupWorldStep(container) {
+    const { careerSetupCatalog: catalog, careerSetupDraft: draft } = state;
+    const packsHtml = catalog.packs.map((pack) => `
+      <li class="setup-pack ${draft.selectedContentPackIds.includes(pack.id) ? 'is-selected' : ''}">
+        <span class="setup-pack__name">${escapeHtml(pack.name)} <span class="gm-muted">v${escapeHtml(pack.version)}</span></span>
+        <span class="setup-pack__badge">${pack.isRootRequired ? 'Requerido' : 'Contenido jugable'}</span>
+      </li>`).join('');
+    const seasonsHtml = catalog.seasons.map((season) => `
+      <button type="button" class="setup-choice ${draft.seasonKey === season.seasonKey ? 'is-active' : ''}" data-season-key="${season.seasonKey}">
+        Temporada ${escapeHtml(season.seasonKey)}
+      </button>`).join('');
+    const timeZonesHtml = catalog.timeZones.map((tz) => `
+      <button type="button" class="setup-choice ${draft.timeZoneId === tz.timeZoneId ? 'is-active' : ''}" data-time-zone-id="${escapeHtml(tz.timeZoneId)}">
+        ${escapeHtml(tz.timeZoneId)}
+      </button>`).join('');
     container.innerHTML = `
-      <div class="division-toggle" role="tablist">
-        <button class="division-toggle__btn ${division === '1ª' ? 'is-active' : ''}" data-division="1ª">1ª División</button>
-        <button class="division-toggle__btn ${division === '2ª' ? 'is-active' : ''}" data-division="2ª">2ª División</button>
+      <div class="gm-card">
+        <h3>Paquetes de contenido</h3>
+        <p class="gm-muted">España (ACB/Primera FEB) es el único contenido jugable disponible hoy — World Core es la raíz obligatoria de cualquier carrera.</p>
+        <ul class="setup-pack-list">${packsHtml}</ul>
       </div>
-      <div class="team-grid">${cards}</div>
+      <div class="gm-card">
+        <h3>Temporada</h3>
+        <div class="setup-choice-row" data-role="season-choices">${seasonsHtml}</div>
+      </div>
+      <div class="gm-card">
+        <h3>Huso horario</h3>
+        <div class="setup-choice-row" data-role="timezone-choices">${timeZonesHtml}</div>
+      </div>
     `;
-
-    container.querySelectorAll('.division-toggle__btn').forEach((btn) => {
+    container.querySelectorAll('[data-season-key]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        state.division = btn.dataset.division;
-        renderTeamSelectScreen();
+        const season = catalog.seasons.find((s) => s.seasonKey === btn.dataset.seasonKey);
+        draft.seasonKey = season.seasonKey;
+        draft.seasonStartYear = season.seasonStartYear;
+        draft.createdAtGameDate = seasonAnchorIsoDate(season.seasonStartYear);
+        renderCareerSetupScreen();
+      });
+    });
+    container.querySelectorAll('[data-time-zone-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        draft.timeZoneId = btn.dataset.timeZoneId;
+        renderCareerSetupScreen();
+      });
+    });
+  }
+
+  function renderCareerSetupCompetitionsStep(container) {
+    const { careerSetupCatalog: catalog, careerSetupDraft: draft } = state;
+    const rowsHtml = catalog.competitions.map((competition) => {
+      const isCatalogOnly = competition.implementationStatus === 'catalog-only';
+      const level = draft.competitionSelections[competition.competitionDefinitionId];
+      const capabilities = level ? BM.capabilitiesForDetailLevel(level) : null;
+      const levelOptionsHtml = competition.allowedDetailLevels.map((l) => `
+        <option value="${l}" ${l === level ? 'selected' : ''}>${l}</option>`).join('');
+      return `
+        <li class="setup-competition ${isCatalogOnly ? 'is-catalog-only' : ''}">
+          <div class="setup-competition__name">
+            <strong>${escapeHtml(competition.name)}</strong>
+            ${isCatalogOnly ? '<span class="setup-competition__badge">Catalogada, sin edición activa</span>' : ''}
+          </div>
+          ${isCatalogOnly
+            ? '<p class="gm-muted">Identidad registrada para el navegador Mundo; no es seleccionable ni jugable en esta entrega.</p>'
+            : `
+            <label class="setup-competition__level">
+              Nivel de detalle:
+              <select data-competition-id="${competition.competitionDefinitionId}" ${competition.allowedDetailLevels.length <= 1 ? 'disabled' : ''}>${levelOptionsHtml}</select>
+            </label>
+            <p class="gm-muted">${capabilities ? describeDetailLevelCapabilities(capabilities) : ''}</p>`}
+        </li>`;
+    }).join('');
+    container.innerHTML = `<div class="gm-card"><h3>Competiciones</h3><ul class="setup-competition-list">${rowsHtml}</ul></div>`;
+    container.querySelectorAll('[data-competition-id]').forEach((select) => {
+      select.addEventListener('change', () => {
+        draft.competitionSelections[select.dataset.competitionId] = select.value;
+        renderCareerSetupScreen();
+      });
+    });
+  }
+
+  // Descripción DERIVADA de las capacidades reales del nivel (sección 5.2
+  // del prompt) — nunca un texto fijo por nombre de nivel que pudiera
+  // desincronizarse de `capabilitiesForDetailLevel()`.
+  function describeDetailLevelCapabilities(capabilities) {
+    const stop = capabilities.allowsUserMatchStop ? 'permite parada del usuario' : 'nunca para al usuario';
+    const unit = capabilities.temporalUnit === 'phase' ? 'se resuelve por fase completa' : 'se resuelve partido a partido';
+    const resolution = { 'match-engine': 'motor de partido completo', 'compact-score': 'marcador compacto', 'aggregate-phase': 'resumen agregado' }[capabilities.resolutionKind];
+    const coverage = capabilities.requiredRosterCoverage === 'complete' ? 'exige roster real completo' : 'no exige roster completo';
+    return `${stop}; ${unit}; ${resolution}; ${coverage}.`;
+  }
+
+  function renderCareerSetupClubStep(container) {
+    const { careerSetupCatalog: catalog, careerSetupDraft: draft } = state;
+    const playableCompetitionIds = new Set(
+      catalog.competitions
+        .filter((c) => (draft.competitionSelections[c.competitionDefinitionId] || c.recommendedDetailLevel) === 'playable')
+        .map((c) => c.competitionDefinitionId),
+    );
+    const byCompetition = new Map();
+    catalog.clubs.forEach((club) => {
+      if (!playableCompetitionIds.has(club.initialCompetitionDefinitionId)) return;
+      if (!byCompetition.has(club.initialCompetitionDefinitionId)) byCompetition.set(club.initialCompetitionDefinitionId, []);
+      byCompetition.get(club.initialCompetitionDefinitionId).push(club);
+    });
+    const groupsHtml = [...byCompetition.entries()].map(([competitionId, clubs]) => {
+      const competition = catalog.competitions.find((c) => c.competitionDefinitionId === competitionId);
+      const cardsHtml = [...clubs].sort((a, b) => a.name.localeCompare(b.name, 'es')).map((club) => `
+        <button type="button" class="team-card ${draft.controlledClubId === club.clubId ? 'is-selected' : ''}" data-club-id="${club.clubId}" data-team-id="${club.teamId}">
+          <span class="team-card__name">${escapeHtml(club.name)}</span>
+          <span class="team-card__city">${escapeHtml(club.city)}</span>
+          <span class="team-card__roster">${club.rosterSize} jugadores · cobertura ${escapeHtml(club.dataCoverage)}</span>
+        </button>`).join('');
+      return `<div class="gm-card"><h3>${escapeHtml(competition ? competition.name : competitionId)}</h3><div class="team-grid">${cardsHtml}</div></div>`;
+    }).join('') || '<p class="gm-muted">Ninguna competición jugable disponible con la configuración actual — vuelve a "Competiciones" y pon alguna en "playable".</p>';
+    container.innerHTML = groupsHtml;
+    container.querySelectorAll('.team-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        draft.controlledClubId = card.dataset.clubId;
+        draft.controlledTeamId = card.dataset.teamId;
+        renderCareerSetupScreen();
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Pantalla: configuración de carrera (WORLD-UI-1) — reemplaza la antigua
+  // selección de equipo por división.
+  // ---------------------------------------------------------------------
+  function renderCareerSetupScreen() {
+    ensureCareerSetupState();
+    const container = byId('gm-team-select');
+    const step = container.dataset.setupStep || '1';
+    const validation = careerSetupValidation();
+
+    const stepsHtml = `
+      <div class="setup-steps" role="tablist">
+        <button type="button" class="setup-steps__btn ${step === '1' ? 'is-active' : ''}" data-step="1">1. Mundo</button>
+        <button type="button" class="setup-steps__btn ${step === '2' ? 'is-active' : ''}" data-step="2">2. Competiciones</button>
+        <button type="button" class="setup-steps__btn ${step === '3' ? 'is-active' : ''}" data-step="3">3. Club</button>
+      </div>`;
+    const errorsHtml = validation.errors.length
+      ? `<div class="gm-card setup-errors" role="alert"><ul>${validation.errors.map((e) => `<li>${escapeHtml(e.message)}</li>`).join('')}</ul></div>`
+      : '';
+    container.innerHTML = `${stepsHtml}<div id="gm-setup-step-body"></div>${errorsHtml}
+      <div class="setup-actions">
+        <button type="button" id="gm-setup-start-btn" class="gm-btn gm-btn--primary" ${validation.valid ? '' : 'disabled'}>Comenzar carrera</button>
+      </div>`;
+
+    container.querySelectorAll('.setup-steps__btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        container.dataset.setupStep = btn.dataset.step;
+        renderCareerSetupScreen();
       });
     });
 
-    container.querySelectorAll('.team-card').forEach((card) => {
-      card.addEventListener('click', () => startSeason(card.dataset.teamId, card.dataset.division));
-    });
+    const stepBody = byId('gm-setup-step-body');
+    if (step === '1') renderCareerSetupWorldStep(stepBody);
+    else if (step === '2') renderCareerSetupCompetitionsStep(stepBody);
+    else renderCareerSetupClubStep(stepBody);
+
+    const startBtn = byId('gm-setup-start-btn');
+    if (startBtn && !startBtn.disabled) {
+      startBtn.addEventListener('click', () => {
+        const draft = state.careerSetupDraft;
+        draft.careerSeed = draft.careerSeed || `${draft.controlledTeamId}|${draft.seasonStartYear}`;
+        draft.createdAtGameDate = draft.createdAtGameDate || seasonAnchorIsoDate(draft.seasonStartYear);
+        const snapshot = BM.CareerSetupService.buildSnapshot(
+          state.careerSetupCatalog, careerSetupManifestsById(), draft,
+          { idFactory: () => `career:${draft.controlledTeamId}:${draft.seasonStartYear}` },
+        );
+        startCareerFromSetup(snapshot);
+      });
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -810,26 +1047,52 @@
   }
 
   // ---------------------------------------------------------------------
-  // Arranque de temporada
+  // Arranque de carrera (WORLD-UI-1, DESIGN.md 10.18) — sustituye a la
+  // antigua `startSeason(teamId, division)`. Recibe un `CareerSetupSnapshot`
+  // YA VALIDADO e INMUTABLE (`renderCareerSetupScreen()`): ningún literal
+  // de temporada/huso/nivel se decide aquí, todos llegan del snapshot.
   // ---------------------------------------------------------------------
-  function startSeason(teamId, division) {
+  function startCareerFromSetup(snapshot) {
     const {
       CONFIG_BASE, recalculateSportingGoalsForDivision, PlayerRegistry,
     } = BM;
-    state.division = division;
+    const teamId = snapshot.controlledTeamId;
     state.userTeamId = teamId;
-    state.seasonStartYear = new Date().getFullYear();
+    state.seasonStartYear = snapshot.seasonStartYear;
+    // Manifiestos YA resueltos (orden de dependencias real) — fuente única
+    // para paquetes a instalar Y para los schedules que declaran (sección
+    // 4 del prompt, pasos 2-3).
+    const startPlan = BM.CareerSetupService.buildStartPlan(snapshot, careerSetupManifestsById());
     // WORLD-CALENDAR-1 (DESIGN.md 10.14): UN solo `WorldCalendar` por
-    // carrera, con huso por defecto EXPLÍCITO aportado por la composición
-    // (el paquete de contenido instalado) — el core nunca asume un país.
-    // Los perfiles de calendario se registran al instalar el paquete; el
-    // servicio de schedules es la única pieza que sabe programar fechas.
+    // carrera, con huso EXPLÍCITO del snapshot (WORLD-UI-1: ya no
+    // `BM.SPAIN_TIME_ZONE_ID` fijo — el snapshot es quien lo declaró tras
+    // validar contra los paquetes elegidos). Los perfiles de calendario se
+    // registran al instalar el paquete; el servicio de schedules es la
+    // única pieza que sabe programar fechas.
+    // Registro de contenido de calendarios — todavía un literal de España
+    // (game.js sigue siendo la única capa que conoce qué paquetes existen,
+    // sección 12.1 del prompt), necesario ANTES de instalar el mundo porque
+    // el `WorldCalendar` se construye antes que `GameWorld`. Un paquete
+    // futuro añadiría aquí su propia función de registro, resuelta desde
+    // `snapshot.selectedContentPackIds` — no una rama nueva por país.
     BM.registerSpainSchedules();
     state.scheduleService = new BM.CompetitionScheduleService({ catalog: BM.CompetitionScheduleCatalog });
-    const careerTimeZoneId = BM.SPAIN_TIME_ZONE_ID;
-    const careerSeasonKeyAtStart = BM.seasonKeyFromStartYear(state.seasonStartYear);
-    const careerSchedule = BM.CompetitionScheduleCatalog.requireSchedule(BM.SPAIN_SCHEDULE_IDS.ACB);
-    const seasonStartInstant = state.scheduleService.seasonStartInstant(careerSchedule, state.seasonStartYear);
+    const careerTimeZoneId = snapshot.timeZoneId;
+    const careerSeasonKeyAtStart = snapshot.seasonKey;
+    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-03, sección 4 del prompt,
+    // paso 3): el inicio de temporada es el MÁS TEMPRANO entre los
+    // schedules que declaran los paquetes YA resueltos por
+    // `CareerSetupService.buildStartPlan()` — nunca el de ACB por defecto.
+    const seasonScheduleIds = [...new Set(startPlan.packs.flatMap((pack) => (pack.provides && pack.provides.competitionSchedules) || []))];
+    const seasonSchedules = seasonScheduleIds.map((id) => BM.CompetitionScheduleCatalog.requireSchedule(id));
+    let seasonStartInstant = null;
+    let seasonWindowStartInstant = null;
+    seasonSchedules.forEach((schedule) => {
+      const start = state.scheduleService.seasonStartInstant(schedule, state.seasonStartYear);
+      const windowStart = state.scheduleService.seasonWindowStartInstant(schedule, state.seasonStartYear);
+      if (!seasonStartInstant || BM.GameDateTime.compare(start, seasonStartInstant) < 0) seasonStartInstant = start;
+      if (!seasonWindowStartInstant || BM.GameDateTime.compare(windowStart, seasonWindowStartInstant) < 0) seasonWindowStartInstant = windowStart;
+    });
     state.calendar = new BM.WorldCalendar({
       id: `calendar:${teamId}:${state.seasonStartYear}`,
       defaultTimeZoneId: careerTimeZoneId,
@@ -839,13 +1102,13 @@
       // cursor situado en el ancla los dejaría DETRÁS de él desde el minuto
       // cero (invariante 5). El ancla sigue siendo el "inicio de temporada"
       // que se registra y que usa el contexto de entrenamiento.
-      initialInstant: state.scheduleService.seasonWindowStartInstant(careerSchedule, state.seasonStartYear),
+      initialInstant: seasonWindowStartInstant,
     });
     state.calendar.registerSeason({
       seasonKey: careerSeasonKeyAtStart,
       startInstant: seasonStartInstant,
       timeZoneId: careerTimeZoneId,
-      scheduleIds: [BM.SPAIN_SCHEDULE_IDS.ACB, BM.SPAIN_SCHEDULE_IDS.PRIMERA_FEB, BM.SPAIN_SCHEDULE_IDS.COPA_ACB],
+      scheduleIds: seasonScheduleIds,
     });
     state.pendingStop = null;
     // ROSTER-1 (DESIGN.md 9.16): una carrera nueva construye su PROPIO
@@ -859,6 +1122,10 @@
 
     // DESIGN.md 3.4.1: las DOS divisiones reales se construyen SIEMPRE,
     // no solo la del usuario — comparten el mismo Calendar de temporada.
+    // `getRealTeamsByDivision()` sigue leyendo `REAL_DATA_INDEX.division`
+    // (dato crudo del bundle real, sin tocar `data/real/*`) solo para
+    // decidir QUÉ jugadores construir — la afiliación COMPETITIVA de cada
+    // equipo (qué Entry/Edition recibe) ya no sale de aquí, ver más abajo.
     ['1ª', '2ª'].forEach((div) => {
       const teams = getRealTeamsByDivision(div);
       teamsByDivision[div] = teams;
@@ -898,52 +1165,65 @@
       });
     });
 
+    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-09): agrupación por
+    // `competitionDefinitionId` REAL, leída de
+    // `SPAIN_CLUB_CONTENT.initialCompetitionDefinitionId` — ya NO de
+    // `REAL_DATA_INDEX.division`. `spain-2026.1.install()` recibe este
+    // contexto canónico, nunca `teamsByDivision` (retirado de la ruta
+    // productiva; sigue existiendo solo como shim de fixtures históricos).
+    const allTeams = [...teamsByDivision['1ª'], ...teamsByDivision['2ª']];
+    const teamsById = new Map(allTeams.map((team) => [team.id, team]));
+    const teamsByCompetitionId = {};
+    BM.SPAIN_CLUB_CONTENT.forEach((entry) => {
+      const team = teamsById.get(entry.teamId);
+      if (!team) return;
+      const key = entry.initialCompetitionDefinitionId;
+      if (!teamsByCompetitionId[key]) teamsByCompetitionId[key] = [];
+      teamsByCompetitionId[key].push(team);
+    });
+
     // WORLD-CORE-1 (DESIGN.md, "World Architecture") — `GameWorld` canónico
     // de la carrera: se construye AQUÍ (los 36 equipos ya existen, como
-    // MISMAS instancias, nunca reconstruidas) e instala `world-core-2026.1`
-    // + `spain-2026.1` — sección 13.1 del prompt de COMP-CORE-1, pasos 1-3:
-    // equipos ya construidos, mundo/paquetes instalados (Editions/Stage de
-    // Liga regular/Entries YA declarados por el contenido), TODAVÍA sin
-    // ningún runner vivo. Si la instalación lanzara, `state.world` NUNCA
-    // llega a asignarse (invariante 22: no debe quedar un mundo parcial
-    // utilizable) — el error se propaga tal cual.
-    const worldSeasonKey = buildCareerSeasonKey();
-    // WORLD-SIM-1 (DESIGN.md 10.16, sección 7 del prompt): perfil de
-    // simulación TRANSITORIO de la partida actual — ACB/Primera FEB/Copa
-    // ACB "playable" explícitos, default "abstract" para cualquier
-    // competición futura no configurada. Es una configuración de ARRANQUE
-    // de `game.js`, no lógica del core — WORLD-UI-1 añadirá los controles
-    // reales. Se asigna al mundo ANTES de instalar ningún paquete
+    // MISMAS instancias, nunca reconstruidas) e instala los paquetes YA
+    // resueltos por `CareerSetupService.buildStartPlan()` — sección 13.1
+    // del prompt de COMP-CORE-1, pasos 1-3: equipos ya construidos, mundo/
+    // paquetes instalados (Editions/Stage de Liga regular/Entries YA
+    // declarados por el contenido), TODAVÍA sin ningún runner vivo. Si la
+    // instalación lanzara, `state.world` NUNCA llega a asignarse
+    // (invariante 22: no debe quedar un mundo parcial utilizable) — el
+    // error se propaga tal cual.
+    const worldSeasonKey = snapshot.seasonKey;
+    // WORLD-SIM-1 (DESIGN.md 10.16) / WORLD-UI-1 (DESIGN.md 10.18): el
+    // perfil de simulación se DERIVA del snapshot YA validado — nunca una
+    // segunda preferencia editable ni literales de ACB/Primera FEB/Copa
+    // reconstruidos aquí (`CareerSetupService.buildSimulationProfile()`).
+    // Se asigna al mundo ANTES de instalar ningún paquete
     // (`spain-2026.1.js` ya crea Editions dentro de `install()`).
-    const simulationProfile = new BM.WorldSimulationProfile({
-      id: `simulation-profile:${teamId}:${state.seasonStartYear}`,
-      version: '2026.1.0',
-      selectedAtGameDate: currentGameIsoDate(),
-      defaultDetailLevel: 'abstract',
-      assignments: [
-        { scopeType: 'competition', scopeId: BM.CompetitionCatalog.COMPETITION_IDS.ACB, detailLevel: 'playable' },
-        { scopeType: 'competition', scopeId: BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, detailLevel: 'playable' },
-        { scopeType: 'competition', scopeId: BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB, detailLevel: 'playable' },
-      ],
-      provenance: {
-        status: 'design',
-        notes: 'Perfil transitorio de arranque (WORLD-SIM-1) — sin selector real de nivel de detalle todavía (WORLD-UI-1).',
-      },
-    });
+    const simulationProfile = BM.CareerSetupService.buildSimulationProfile(snapshot);
     const world = BM.buildCareerWorld({
       id: `world:${teamId}:${state.seasonStartYear}`,
       name: 'Mundo de la carrera',
-      careerSeed: buildMarketCareerSeed(),
-      createdAtGameDate: currentGameIsoDate(),
-      packs: [BM.WORLD_CORE_MANIFEST, BM.SPAIN_MANIFEST],
-      context: { teamsByDivision, seasonKey: worldSeasonKey, seasonStartDate: currentGameIsoDate() },
+      careerSeed: snapshot.careerSeed,
+      createdAtGameDate: snapshot.createdAtGameDate,
+      packs: startPlan.packs,
+      context: { teamsByCompetitionId, seasonKey: worldSeasonKey, seasonStartDate: snapshot.createdAtGameDate },
       simulationProfile,
     });
     state.world = world;
     // CLUB-CORE-1: `userClubId` se resuelve AQUÍ, con el mundo ya instalado
     // (el equipo elegido ya tiene `clubId` real enlazado por
     // `spain-2026.1.js`) — nunca antes, nunca igual a `teamId`.
-    state.userClubId = state.world.registries.teams.require(teamId).clubId;
+    const userTeamEntity = state.world.registries.teams.require(teamId);
+    state.userClubId = userTeamEntity.clubId;
+    // `Team.division`/`legacyDivision` sobrevive EXCLUSIVAMENTE como
+    // proyección legacy (CLAUDE.md) — nunca autoridad de pantalla/
+    // selección desde aquí en adelante (BUG-WORLDUI-04).
+    state.division = userTeamEntity.legacyDivision || null;
+    state.careerSetupSnapshot = snapshot;
+    // El borrador deja de ser autoridad en cuanto existe una carrera —
+    // se reconstruye limpio la próxima vez que se visite la pantalla de
+    // configuración ("Volver a selección de equipo").
+    state.careerSetupDraft = null;
 
     // WORLD-SIM-1: instancia EXPLÍCITA por carrera (nunca singleton) — hoy
     // inerte en la partida española (ACB/Primera FEB/Copa son "playable",
@@ -952,7 +1232,7 @@
     // instale una competición no jugable.
     state.competitionSimulationService = new BM.CompetitionSimulationService({
       world: state.world,
-      careerSeed: buildMarketCareerSeed(),
+      careerSeed: snapshot.careerSeed,
     });
 
     // COMP-CORE-1 (DESIGN.md 10.13, sección 13.1 del prompt, pasos 4-6):
@@ -965,8 +1245,14 @@
     // (WORLD-CALENDAR-1: `state.leagues`/`state.brackets` ya no existen).
     state.competitionEngine = new BM.CompetitionEngine({ world: state.world, simulationService: state.competitionSimulationService });
     state.competitionEngine.setDateResolverProvider(buildCompetitionDateResolverProvider());
-    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.ACB, worldSeasonKey));
-    state.competitionEngine.initializeEdition(BM.buildEditionId(BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, worldSeasonKey));
+    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-03): las Editions de
+    // arranque a inicializar se DERIVAN del registro (todas las que el
+    // paquete instalado ya registró para esta temporada), nunca dos ids
+    // ACB/Primera FEB codificados aquí — un paquete futuro con más
+    // competiciones de arranque no necesitaría tocar esta función.
+    state.world.registries.competitionEditions.forSeason(worldSeasonKey)
+      .filter((edition) => edition.status !== 'completed' && edition.status !== 'cancelled')
+      .forEach((edition) => state.competitionEngine.initializeEdition(edition.id));
     // PATHWAYS-1 (DESIGN.md 10.15): el pathway doméstico español (playoff
     // por el título, Copa en jornada 17, playoff de ascenso, transición
     // ACB<->Primera FEB) decide TODA la progresión — ya NO se registra la
@@ -1056,6 +1342,12 @@
       fixedSegments: [],
       segmentDraft: null,
       garbageTime: { enabled: false },
+    };
+    // WORLD-UI-1 (DESIGN.md 10.18): el navegador Mundo arranca en la raíz
+    // mundial — nunca en una división ni en el país del usuario por
+    // defecto (invariante 1: navegación siempre por ids canónicos).
+    state.worldView = {
+      kind: 'area', areaId: BM.WORLD_CORE_AREA_IDS.WORLD, competitionDefinitionId: null, editionId: null,
     };
 
     goToScreen('home');
@@ -1484,11 +1776,13 @@
     return map;
   }
 
-  // Noticias/Agenda médicas SOLO para la división visible del usuario
-  // (sección 30: "división de fondo: ninguna noticia médica") — comparado
+  // Noticias/Agenda médicas SOLO para la competición de liga REAL del
+  // usuario (sección 30: "competición de fondo: ninguna noticia médica") —
+  // WORLD-UI-1 (BUG-WORLDUI-07): identidad de participación real
+  // (`teamLeagueCompetitionId`), nunca igualdad de `division` — comparado
   // contra el snapshot `before` de snapshotMedicalIdentity().
   function pushMedicalDiffEvents(team, before) {
-    if (!BM.CONFIG_BASE.medical.enabled || team.division !== state.division) return;
+    if (!BM.CONFIG_BASE.medical.enabled || teamLeagueCompetitionId(team) !== userLeagueCompetitionId()) return;
     team.roster.forEach((player) => {
       const prev = before.get(player.id);
       if (!prev || !player.medicalState) return;
@@ -1510,7 +1804,9 @@
   // helper solo decide cuándo redactar Agenda/Noticias a partir de él.
   function pushMedicalMatchEvents(homeTeam, awayTeam, result, competitionKey) {
     if (!BM.CONFIG_BASE.medical.enabled || !result.injuries || !result.injuries.length) return;
-    if (homeTeam.division !== state.division) return; // división de fondo: nunca noticia médica
+    // WORLD-UI-1 (BUG-WORLDUI-07): identidad de participación real, nunca
+    // igualdad de `division` — competición de fondo: nunca noticia médica.
+    if (teamLeagueCompetitionId(homeTeam) !== userLeagueCompetitionId()) return;
     result.injuries.forEach((entry) => {
       const team = entry.teamId === homeTeam.id ? homeTeam : awayTeam;
       const player = team.roster.find((p) => p.id === entry.playerId);
@@ -2265,12 +2561,13 @@
   function pushMatchNewsAfterCommit(info) {
     const { descriptor, competitionKey } = info;
     const involvesUser = descriptor.homeParticipantId === state.userTeamId || descriptor.awayParticipantId === state.userTeamId;
-    const userCompetitionId = state.userTeamId
-      ? BM.CompetitionParticipationService.primaryLeagueCompetitionId(state.world.registries, state.userTeamId, { seasonKey: buildCareerSeasonKey() })
-      : null;
+    const userCompetitionId = state.userTeamId ? userLeagueCompetitionId() : null;
     const relevant = involvesUser
       || descriptor.competitionDefinitionId === userCompetitionId
-      || (competitionKey !== 'league' && descriptor.competitionDefinitionId === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB && state.division === '1ª');
+      // WORLD-UI-1 (BUG-WORLDUI-04): "¿el usuario compite en ACB?" se
+      // decide por su competición REAL, nunca por `state.division`.
+      || (competitionKey !== 'league' && descriptor.competitionDefinitionId === BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB
+        && userCompetitionId === BM.CompetitionCatalog.COMPETITION_IDS.ACB);
     if (!relevant) return;
     const normalized = {
       homeTeam: info.homeTeam, awayTeam: info.awayTeam, date: descriptor.scheduledDate, result: descriptor.result, status: 'played',
@@ -2281,7 +2578,7 @@
     pushNews(BM.buildBigPerformanceNewsEvents(normalized, BM.CONFIG_BASE, opts));
     pushMedicalMatchEvents(info.homeTeam, info.awayTeam, descriptor.result, competitionKey);
     if (competitionKey === 'league') {
-      const league = getLeague(info.homeTeam.division);
+      const league = getLeagueForTeam(info.homeTeam);
       const userTeam = getUserTeam();
       if (league && userTeam && involvesUser) {
         pushNews(BM.buildStreakNewsEvent(league.schedule, userTeam, BM.CONFIG_BASE, opts));
@@ -2340,21 +2637,44 @@
     state.pendingStop = null;
   }
 
-  // ¿Ha terminado esta división del todo (liga regular + TODOS sus
-  // brackets)? DESIGN.md 3.4.2: condición para poder cerrar el ciclo de
-  // temporada — necesita cumplirse en AMBAS divisiones a la vez.
-  function isDivisionFullyDone(division) {
-    const league = getLeague(division);
+  // WORLD-UI-1 (DESIGN.md 10.18, sección 7.3 del prompt): la condición de
+  // cierre de temporada ya NO pregunta "¿han terminado 1ª y 2ª?" — se
+  // deriva de las Editions `active-runtime` de club de la temporada
+  // seleccionada (ACB/Primera FEB, cualesquiera que sean sus
+  // `competitionDefinitionId` reales) y su estado real, nunca de un mapa
+  // fijo de dos divisiones.
+  function activeClubLeagueCompetitionIds() {
+    return state.world.registries.competitionDefinitions.all()
+      .filter((definition) => definition.participantType === 'club-team'
+        && definition.implementationStatus === 'active-runtime' && definition.kind === 'league')
+      .map((definition) => definition.id);
+  }
+
+  // ¿Ha terminado esta competición de LIGA del todo (liga regular + TODOS
+  // sus brackets asociados)? — DESIGN.md 3.4.2. Los brackets de Copa/
+  // playoff por el título/playoff de ascenso siguen siendo estructura
+  // ESPAÑOLA conocida (ACB siempre lleva Copa+playoff por el título,
+  // Primera FEB siempre lleva playoff de ascenso) — literal permitido en
+  // esta capa (CLAUDE.md: "game.js es la ÚNICA capa que conoce ACB/Primera
+  // FEB/Copa como literales"), nunca decidido por `state.division`.
+  function isCompetitionFullyDone(competitionId) {
+    const seasonKey = buildCareerSeasonKey();
+    const league = buildLeagueFacadeForCompetition(competitionId, seasonKey);
     if (!league || !league.isSeasonComplete) return false;
-    const brackets = getBrackets(division);
-    if (division === '1ª') {
-      return !!(brackets.cup && brackets.cup.isComplete && brackets.titlePlayoff && brackets.titlePlayoff.isComplete);
+    if (competitionId === BM.CompetitionCatalog.COMPETITION_IDS.ACB) {
+      const cup = buildBracketFacadeForStageKey(BM.CompetitionCatalog.COMPETITION_IDS.COPA_ACB, seasonKey, 'knockout');
+      const titlePlayoff = buildBracketFacadeForStageKey(competitionId, seasonKey, 'title-playoff');
+      return !!(cup && cup.isComplete && titlePlayoff && titlePlayoff.isComplete);
     }
-    return !!(brackets.promotionPlayoff && brackets.promotionPlayoff.isComplete);
+    if (competitionId === BM.CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB) {
+      const promotionPlayoff = buildPromotionPlayoffCompatView(competitionId, seasonKey);
+      return !!(promotionPlayoff && promotionPlayoff.isComplete);
+    }
+    return true;
   }
 
   function isSeasonFullyClosable() {
-    return isDivisionFullyDone('1ª') && isDivisionFullyDone('2ª');
+    return activeClubLeagueCompetitionIds().every((competitionId) => isCompetitionFullyDone(competitionId));
   }
 
   // LIFE-4 (DESIGN.md 9.15, sección 10): rol asignado + familiaridad de ESE
@@ -2727,6 +3047,10 @@
     const container = byId('gm-home');
     const league = getUserLeague();
     const team = getUserTeam();
+    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-04): nombre de la liga
+    // principal real del club, vía `CompetitionParticipationService` — no
+    // `${state.division} División`.
+    const userLeagueName = state.world.registries.competitionDefinitions.require(userLeagueCompetitionId()).name;
     const standings = league.getStandingsTable();
     const userRank = standings.findIndex((s) => s.team.id === team.id) + 1;
     const userStanding = standings[userRank - 1];
@@ -2851,7 +3175,7 @@
         <div class="home-hero__team">
           <span class="home-hero__label">Tu club</span>
           <h2>${team.fullName}</h2>
-          <span class="home-hero__division">${state.division} División</span>
+          <span class="home-hero__division">${escapeHtml(userLeagueName)} <a href="#" id="gm-home-goto-world" class="home-hero__world-link">Ver en Mundo</a></span>
         </div>
         <div class="home-hero__standing">
           <span class="home-hero__rank">${userRank}</span>
@@ -2909,6 +3233,14 @@
 
     byId('gm-goto-agenda-btn').addEventListener('click', () => goToScreen('agenda'));
     byId('gm-goto-news-btn').addEventListener('click', () => goToScreen('news'));
+    const gotoWorldLink = byId('gm-home-goto-world');
+    if (gotoWorldLink) {
+      gotoWorldLink.addEventListener('click', (event) => {
+        event.preventDefault();
+        focusWorldViewOnCompetition(userLeagueCompetitionId());
+        goToScreen('world');
+      });
+    }
   }
 
   function matchLabel(match, highlightTeamId) {
@@ -2922,12 +3254,147 @@
     return `${homeMarker} vs ${awayMarker}`;
   }
 
+  // =======================================================================
+  // WORLD-UI-1 (DESIGN.md 10.18) — pantalla Mundo: navegador de solo
+  // lectura Mundo → continente → país/territorio → competición, por ids
+  // canónicos (`state.worldView`), vía `WorldNavigationService.js`
+  // (BUG-WORLDUI-08). Nunca muta el mundo ni consume aleatoriedad.
+  // =======================================================================
+  function focusWorldViewOnCompetition(competitionDefinitionId) {
+    const definition = state.world.registries.competitionDefinitions.get(competitionDefinitionId);
+    state.worldView = {
+      kind: 'competition',
+      areaId: definition ? definition.scopeAreaId : state.worldView.areaId,
+      competitionDefinitionId,
+      editionId: null,
+    };
+  }
+
+  function focusWorldViewOnArea(areaId) {
+    state.worldView = {
+      kind: 'area', areaId, competitionDefinitionId: null, editionId: null,
+    };
+  }
+
+  function worldOrgListHtml(orgs) {
+    if (!orgs.length) return '<p class="gm-muted">Ninguna.</p>';
+    return `<ul class="world-list">${orgs.map((o) => `<li>${escapeHtml(o.name)} <span class="gm-muted">(${escapeHtml(o.type)})</span></li>`).join('')}</ul>`;
+  }
+
+  function worldResultHtml(result) {
+    if (!result || result.kind === 'not-available') return '<p class="gm-muted">Sin resultado disponible todavía.</p>';
+    if (result.kind === 'standings' || result.kind === 'standings-compact') {
+      const rows = result.standings.slice(0, 8).map((s) => {
+        const team = state.world.registries.teams.get(s.participantId);
+        const name = team ? (team.fullName || team.name) : s.participantId;
+        return `<tr><td>${escapeHtml(name)}</td><td>${s.wins}-${s.losses}</td></tr>`;
+      }).join('');
+      const compactNote = result.kind === 'standings-compact' ? '<p class="gm-muted">Este nivel no conserva detalle individual (marcador compacto).</p>' : '';
+      return `<div class="gm-table-scroll"><table class="gm-table"><tbody>${rows}</tbody></table></div>${compactNote}`;
+    }
+    const championTeam = result.champion ? state.world.registries.teams.get(result.champion.participantId) : null;
+    const championLabel = championTeam ? escapeHtml(championTeam.fullName || championTeam.name) : 'Sin campeón todavía';
+    const compactNote = result.kind === 'bracket-compact' ? '<p class="gm-muted">Este nivel no conserva detalle individual (resumen agregado).</p>' : '';
+    return `<p class="gm-champion">🏆 ${championLabel}</p>${compactNote}`;
+  }
+
+  function renderWorldAreaView(container, areaId) {
+    const registries = state.world.registries;
+    const breadcrumb = BM.breadcrumbForArea(registries, areaId);
+    const children = BM.childrenOfArea(registries, areaId);
+    const orgs = BM.organizationsForArea(registries, areaId);
+    const clubs = BM.clubsForArea(registries, areaId);
+    const competitions = BM.competitionsForArea(registries, areaId);
+    const external = BM.externalCompetitionsForAreaClubs(registries, areaId);
+
+    const breadcrumbHtml = breadcrumb.map((a) => `<button type="button" class="world-breadcrumb__btn" data-area-id="${a.areaId}">${escapeHtml(a.name)}</button>`).join(' <span class="gm-muted">›</span> ');
+    const childrenHtml = children.length
+      ? `<ul class="world-list">${children.map((a) => `<li><button type="button" class="world-list__btn" data-area-id="${a.areaId}">${escapeHtml(a.name)}</button></li>`).join('')}</ul>`
+      : '<p class="gm-muted">Sin subáreas registradas.</p>';
+    const clubsHtml = clubs.length
+      ? `<ul class="world-list">${clubs.map((c) => `<li>${escapeHtml(c.name)} <span class="gm-muted">— ${escapeHtml(c.primaryTeamName || '')}</span></li>`).join('')}</ul>`
+      : '<p class="gm-muted">Sin clubes con sede en esta área.</p>';
+    const competitionsHtml = competitions.length
+      ? `<ul class="world-list">${competitions.map((c) => `<li><button type="button" class="world-list__btn" data-competition-id="${c.competitionDefinitionId}">${escapeHtml(c.name)} <span class="gm-muted">(${escapeHtml(c.implementationStatus)})</span></button></li>`).join('')}</ul>`
+      : '<p class="gm-muted">Sin competiciones con ámbito en esta área.</p>';
+    const externalHtml = external.map((c) => `
+      <li><button type="button" class="world-list__btn" data-competition-id="${c.competitionDefinitionId}">${escapeHtml(c.name)}</button>
+      <span class="gm-muted">— participa fuera de su área (${c.localParticipantTeamIds.length} equipo(s) local(es))</span></li>`).join('');
+
+    container.innerHTML = `
+      <div class="world-breadcrumb">${breadcrumbHtml}</div>
+      <div class="gm-card"><h3>Subáreas</h3>${childrenHtml}</div>
+      <div class="gm-card">
+        <h3>Organizaciones</h3>
+        <h4>Con sede aquí</h4>${worldOrgListHtml(orgs.headquartered)}
+        <h4>Con ámbito aquí</h4>${worldOrgListHtml(orgs.scoped)}
+      </div>
+      <div class="gm-card"><h3>Clubes</h3>${clubsHtml}</div>
+      <div class="gm-card"><h3>Competiciones</h3>${competitionsHtml}</div>
+      ${external.length ? `<div class="gm-card"><h3>Participa fuera de su área</h3><ul class="world-list">${externalHtml}</ul></div>` : ''}
+    `;
+
+    container.querySelectorAll('[data-area-id]').forEach((btn) => {
+      btn.addEventListener('click', () => { focusWorldViewOnArea(btn.dataset.areaId); renderWorldScreen(); });
+    });
+    container.querySelectorAll('[data-competition-id]').forEach((btn) => {
+      btn.addEventListener('click', () => { focusWorldViewOnCompetition(btn.dataset.competitionId); renderWorldScreen(); });
+    });
+  }
+
+  function renderWorldCompetitionView(container, competitionDefinitionId) {
+    const view = BM.competitionView(state.world.registries, competitionDefinitionId, {
+      engine: state.competitionEngine, seasonKey: buildCareerSeasonKey(),
+    });
+    const backAreaId = view.scopeAreaId || state.worldView.areaId;
+    const stagesHtml = view.stages.length
+      ? view.stages.map((stage) => `
+        <div class="world-stage">
+          <h4>${escapeHtml(stage.name)} <span class="gm-muted">(${escapeHtml(stage.status)})</span></h4>
+          ${worldResultHtml(stage.result)}
+        </div>`).join('')
+      : '<p class="gm-muted">Sin fases todavía.</p>';
+    const participantsHtml = view.participants.length
+      ? `<ul class="world-list">${view.participants.map((p) => `<li>${p.seed ? `${p.seed}. ` : ''}${escapeHtml(p.name)}</li>`).join('')}</ul>`
+      : '<p class="gm-muted">Sin participantes todavía.</p>';
+
+    container.innerHTML = `
+      <div class="world-breadcrumb"><button type="button" class="world-breadcrumb__btn" data-back-area-id="${backAreaId}">← Volver al área</button></div>
+      <div class="gm-card">
+        <h3>${escapeHtml(view.name)} <span class="gm-muted">(${escapeHtml(view.implementationStatus)})</span></h3>
+        <p class="gm-muted">Organiza: ${escapeHtml(view.organizer.name)}</p>
+        ${view.catalogOnly
+          ? '<p class="gm-muted">Catalogada, sin edición activa.</p>'
+          : (view.edition
+            ? `<p class="gm-muted">Temporada ${escapeHtml(view.edition.seasonKey)} — nivel de detalle: ${escapeHtml(view.edition.detailLevel)}</p>`
+            : '<p class="gm-muted">Todavía no hay edición registrada para esta temporada.</p>')}
+      </div>
+      ${!view.catalogOnly ? `
+        <div class="gm-card"><h3>Fases</h3>${stagesHtml}</div>
+        <div class="gm-card"><h3>Participantes</h3>${participantsHtml}</div>` : ''}
+    `;
+    container.querySelectorAll('[data-back-area-id]').forEach((btn) => {
+      btn.addEventListener('click', () => { focusWorldViewOnArea(btn.dataset.backAreaId); renderWorldScreen(); });
+    });
+  }
+
+  function renderWorldScreen() {
+    const container = byId('gm-world');
+    if (!state.world) { container.innerHTML = '<p class="gm-muted">Todavía no hay ninguna carrera en curso.</p>'; return; }
+    const view = state.worldView;
+    if (view.kind === 'competition' && view.competitionDefinitionId) {
+      renderWorldCompetitionView(container, view.competitionDefinitionId);
+      return;
+    }
+    renderWorldAreaView(container, view.areaId || (BM.WORLD_CORE_AREA_IDS && BM.WORLD_CORE_AREA_IDS.WORLD));
+  }
+
   // ---------------------------------------------------------------------
   // Pantalla: calendario (próximos partidos y resultados pasados)
   // ---------------------------------------------------------------------
   // DESIGN.md 3.3 (Entidad Calendario): fecha real del partido, si la Liga
   // se construyó con un dateResolver de Calendar.js — '—' si no (siempre
-  // debería haberlo desde startSeason(), pero se protege igual).
+  // debería haberlo desde startCareerFromSetup(), pero se protege igual).
   function formatMatchDate(date) {
     return date ? date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '—';
   }
@@ -3311,14 +3778,17 @@
   function renderCompetitionsScreen() {
     const container = byId('gm-competitions');
     const league = getUserLeague();
-    const brackets = getBrackets(state.division);
+    // WORLD-UI-1 (DESIGN.md 10.18, BUG-WORLDUI-04/05): las pestañas se
+    // derivan de la participación REAL del usuario (`isUserInTopFlight()`,
+    // resuelta por Entry real), nunca de `state.division`.
+    const brackets = getUserBracketsReal();
     const team = getUserTeam();
     const activeTab = container.dataset.activeTab || 'league';
 
     const tabsAvailable = [
       { id: 'league', label: 'Liga regular' },
     ];
-    if (state.division === '1ª') {
+    if (isUserInTopFlight()) {
       tabsAvailable.push({ id: 'cup', label: 'Copa' });
       tabsAvailable.push({ id: 'playoffs', label: 'Playoff por el título' });
     } else {
@@ -3454,7 +3924,12 @@
 
     playedMatches.forEach((match) => {
       const result = match.result;
-      if (!result) return;
+      // WORLD-SIM-1/WORLD-UI-1 (BUG-WORLDUI-06): un resultado `standard`/
+      // `abstract` (`!BM.hasIndividualMatchDetail(result)`) nunca lleva
+      // `boxScore` por jugador — se excluye de las medias en vez de
+      // fallar o fabricar ceros (invariante 15: ausencia de detalle nunca
+      // se confunde con cero).
+      if (!result || !result.boxScore || !BM.hasIndividualMatchDetail(result)) return;
       result.boxScore.home.forEach((line) => addLine(line, match.homeTeam.fullName));
       result.boxScore.away.forEach((line) => addLine(line, match.awayTeam.fullName));
     });
@@ -3546,14 +4021,15 @@
     const competition = state.statsCompetition;
 
     const tabsAvailable = [{ id: 'league', label: 'Liga regular' }];
-    if (state.division === '1ª') {
+    // WORLD-UI-1 (BUG-WORLDUI-04/05): participación real, nunca `state.division`.
+    if (isUserInTopFlight()) {
       tabsAvailable.push({ id: 'cup', label: 'Copa' });
       tabsAvailable.push({ id: 'playoffs', label: 'Playoff' });
     } else {
       tabsAvailable.push({ id: 'promotion', label: 'Ascenso' });
     }
 
-    const brackets = getBrackets(state.division);
+    const brackets = getUserBracketsReal();
     let playedMatches = [];
     if (competition === 'league') playedMatches = getUserLeague().schedule.filter((m) => m.status === 'played');
     else if (competition === 'cup') playedMatches = getBracketPlayedMatches(brackets.cup);
@@ -5840,7 +6316,7 @@
     const info = describeMatchDescriptor(descriptor);
     if (info.competitionKey === 'league') {
       pushTacticalTrendNewsIfAny({ homeTeam: info.homeTeam, awayTeam: info.awayTeam }, team);
-      const standingsBefore = captureStandingsSnapshot(getLeague(info.homeTeam.division));
+      const standingsBefore = captureStandingsSnapshot(getLeagueForTeam(info.homeTeam));
       const engineOptions = buildMatchEngineOptionsForDescriptor(info, {});
       startLiveMatch(info.homeTeam, info.awayTeam, engineOptions, (finalResult) => {
         finishUserLiveMatch(stop, info, finalResult, standingsBefore);
@@ -5880,7 +6356,7 @@
   // la comparación antes/después que solo existe en este instante.
   function publishStandingsNewsAfterUserMatch(info, standingsBefore) {
     if (!standingsBefore) return;
-    const league = getLeague(info.homeTeam.division);
+    const league = getLeagueForTeam(info.homeTeam);
     if (!league) return;
     const normalized = {
       homeTeam: info.homeTeam, awayTeam: info.awayTeam, date: info.descriptor.scheduledDate, result: info.descriptor.result, status: 'played',
@@ -5924,7 +6400,7 @@
   // propia liga (vista derivada, nunca un estado guardado aparte).
   function lastRoundMatchesForUser(info) {
     if (info.competitionKey !== 'league') return state.lastRoundMatches;
-    const league = getLeague(info.homeTeam.division);
+    const league = getLeagueForTeam(info.homeTeam);
     if (!league) return state.lastRoundMatches;
     return league.schedule.filter((m) => m.round === info.descriptor.round);
   }
@@ -8760,7 +9236,7 @@
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
   const SCREENS = [
-    'team-select', 'home', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'team-select', 'home', 'world', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
     'player-profile',
   ];
 
@@ -8774,7 +9250,9 @@
       btn.classList.toggle('is-active', btn.dataset.screen === screen);
     });
 
+    if (screen === 'team-select') renderCareerSetupScreen();
     if (screen === 'home') renderHomeScreen();
+    if (screen === 'world') renderWorldScreen();
     if (screen === 'lineup') renderLineupScreen();
     if (screen === 'tactics') renderTacticsScreen();
     if (screen === 'training') renderTrainingScreen();
@@ -8875,6 +9353,16 @@
       // nacional pertenece a UNA partida, nunca sobrevive a "Volver a
       // selección de equipo".
       state.nationalTeamRegistry = null;
+      // WORLD-UI-1 (DESIGN.md 10.18): mismo criterio — snapshot/borrador de
+      // configuración y proyección legacy de división pertenecen a UNA
+      // partida; el catálogo (dato estático de los paquetes) puede
+      // reutilizarse tal cual.
+      state.careerSetupSnapshot = null;
+      state.careerSetupDraft = null;
+      state.division = null;
+      state.worldView = {
+        kind: 'area', areaId: null, competitionDefinitionId: null, editionId: null,
+      };
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado
@@ -8891,7 +9379,7 @@
       event.stopPropagation();
       openPlayerProfile(link.dataset.playerLinkId, { returnScreen: state.screen });
     });
-    renderTeamSelectScreen();
+    renderCareerSetupScreen();
   }
 
   // ---------------------------------------------------------------------
@@ -9303,7 +9791,7 @@
   }
 
   global.BasketManagerGame = {
-    state, init, goToScreen, getUserTeam, startSeason,
+    state, init, goToScreen, getUserTeam, startCareerFromSetup,
     // WORLD-CALENDAR-1 (DESIGN.md 10.14): `simulateNextRound`,
     // `simulateBackgroundRound`, `drainBackgroundBrackets` y
     // `buildCpuOnlyResolver` han DESAPARECIDO — no había forma de

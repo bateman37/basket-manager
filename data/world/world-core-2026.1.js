@@ -49,6 +49,12 @@
     provides: { areas: [AREA_IDS.WORLD, AREA_IDS.EUROPE], organizations: [] },
     dataSource: MANIFEST_ID,
     provenance: { status: 'verified' },
+    // WORLD-UI-1 (DESIGN.md 10.18): metadatos de PREARRANQUE, planos y
+    // opcionales — el core (`CareerSetupService.js`) solo conoce el SHAPE,
+    // nunca decide con literales de un paquete concreto. World Core no
+    // aporta temporadas/competiciones/clubes propios — solo declara que es
+    // el paquete raíz obligatorio de cualquier carrera.
+    careerSetup: { isRootRequired: true },
     install,
   };
 
