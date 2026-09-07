@@ -37,6 +37,7 @@
     </div>
     <nav id="gm-nav" class="is-hidden">
       <button class="gm-nav__btn" data-screen="home" type="button">Inicio</button>
+      <button class="gm-nav__btn" data-screen="world" type="button">Mundo</button>
       <button class="gm-nav__btn" data-screen="lineup" type="button">Alineación</button>
       <button class="gm-nav__btn" data-screen="tactics" type="button">Tácticas</button>
       <button class="gm-nav__btn" data-screen="training" type="button">Entrenamiento</button>
@@ -54,12 +55,19 @@
     </nav>
 
     <section id="gm-screen-team-select" class="gm-screen is-active">
-      <h2>Elige tu club</h2>
+      <h2>Configura tu carrera</h2>
       <div id="gm-team-select"></div>
     </section>
 
     <section id="gm-screen-home" class="gm-screen">
       <div id="gm-home"></div>
+    </section>
+
+    <!-- WORLD-UI-1 (DESIGN.md 10.18): navegador mundial de solo lectura —
+         Mundo → continente → país/territorio → competición, por ids
+         canónicos (`state.worldView`), vía `WorldNavigationService.js`. -->
+    <section id="gm-screen-world" class="gm-screen">
+      <div id="gm-world"></div>
     </section>
 
     <section id="gm-screen-lineup" class="gm-screen">
@@ -595,6 +603,18 @@
   <script src="src/core/NationalTeamRules.js"></script>
   <script src="src/core/NationalTeamEligibilityService.js"></script>
   <script src="src/core/NationalTeamService.js"></script>
+
+  <!-- WORLD-UI-1 (DESIGN.md 10.18): configuración de carrera basada en
+       manifiestos + navegador mundial de solo lectura. `CareerSetup.js`
+       depende de `WorldSimulation.js` (ya cargado como entidad, arriba);
+       `CareerSetupService.js` depende además de `ContentPackRegistry.js`
+       (arriba) y de `CareerSetup.js`; `WorldNavigationService.js` depende
+       solo de `WorldSimulation.js`. Los tres cargan ANTES que los paquetes
+       de contenido, que ya declaran metadatos `careerSetup` planos que
+       estos módulos consumen. -->
+  <script src="src/entities/CareerSetup.js"></script>
+  <script src="src/core/CareerSetupService.js"></script>
+  <script src="src/core/WorldNavigationService.js"></script>
 
   <script src="data/world/world-core-2026.1.js"></script>
   <script src="data/world/spain-2026.1.js"></script>

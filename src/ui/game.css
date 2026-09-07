@@ -110,6 +110,61 @@
 .team-card__city { font-size: 13px; color: var(--ink-soft); }
 .team-card__roster { font-size: 12px; color: var(--ink-soft); }
 .team-card__stars { font-size: 12px; color: var(--brick-dark); font-weight: 600; margin-top: 2px; }
+.team-card.is-selected { border-left-color: var(--slate); box-shadow: 0 0 0 2px var(--slate) inset; }
+
+/* --- WORLD-UI-1 (DESIGN.md 10.18): configuración de carrera por pasos ---
+   Reutiliza gm-card/gm-btn/gm-muted/team-card/team-grid ya existentes —
+   solo se añaden los componentes propios de esta pantalla. */
+.setup-steps { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.setup-steps__btn {
+  font-family: var(--font-score);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.setup-steps__btn.is-active { background: var(--ink); color: var(--court-bg); }
+
+.setup-pack-list, .setup-competition-list, .world-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.setup-pack {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--white-line);
+}
+.setup-pack__badge, .setup-competition__badge {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px;
+}
+
+.setup-choice-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.setup-choice {
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  padding: 8px 14px; border: 1px solid var(--ink); border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer;
+}
+.setup-choice.is-active { background: var(--ink); color: var(--court-bg); }
+
+.setup-competition { border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; background: var(--white-line); }
+.setup-competition.is-catalog-only { opacity: 0.65; }
+.setup-competition__name { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.setup-competition__level { display: block; font-size: 13px; margin-top: 6px; }
+.setup-competition__level select { margin-left: 6px; }
+
+.setup-errors { border: 1px solid var(--brick); }
+.setup-errors ul { margin: 0; padding-left: 18px; color: var(--brick-dark); font-size: 13px; }
+.setup-actions { margin-top: 16px; }
+
+/* --- WORLD-UI-1: navegador Mundo --- */
+.world-breadcrumb { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.world-breadcrumb__btn, .world-list__btn {
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  background: transparent; border: none; color: var(--brick-dark); cursor: pointer; padding: 0; text-decoration: underline;
+}
+.world-stage { margin-bottom: 14px; }
+.world-stage h4 { margin-bottom: 4px; }
 
 /* --- Home --- */
 /* CAL-1 (DESIGN.md 3.3.5): reloj de mundo visible — fecha+hora actual de
@@ -137,6 +192,7 @@
 .home-hero__label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #B8AF9C; }
 .home-hero__team h2 { font-family: var(--font-score); font-size: 30px; margin: 2px 0; text-transform: uppercase; }
 .home-hero__division { font-size: 13px; color: #C9C0AB; }
+.home-hero__world-link { color: var(--white-line); margin-left: 8px; }
 .home-hero__standing { text-align: right; }
 .home-hero__rank { font-family: var(--font-score); font-size: 40px; color: var(--brick); line-height: 1; }
 .home-hero__rank-label { display: block; font-size: 11px; text-transform: uppercase; color: #B8AF9C; }
