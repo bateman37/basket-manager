@@ -80,7 +80,47 @@ function linkLegacyClub(team) {
   return team;
 }
 
-function realTeam(id) { return linkLegacyClub(new Team({ ...REAL_DATA_TEAMS[id], roster: [] })); }
+function realTeam(id) {
+  const team = linkLegacyClub(new Team({ ...REAL_DATA_TEAMS[id], roster: [] }));
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): fixture HISTÓRICO — competición
+  // declarada EXPLÍCITAMENTE al construir el equipo; el adaptador legacy solo
+  // se usa aquí, en `scripts/`, nunca en código productivo.
+  return team;
+}
+
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture (un ascenso dentro
+  // del propio test cambia la competición) — nunca se congela al construir.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+
+// WORLD-CONTEXT-1: las operaciones de LOAN-1 exigen la competición de
+// PROPIETARIO y de CESIONARIO por separado — este envoltorio de fixture las
+// inyecta desde los equipos ya construidos.
+function withFixtureLoanContext(params) {
+  const enriched = { ...params };
+  if (params.ownerTeam && enriched.ownerCompetitionId === undefined) {
+    enriched.ownerCompetitionId = fixtureCompetitionIdFor(params.ownerTeam);
+  }
+  if (params.borrowerTeam && enriched.borrowerCompetitionId === undefined) {
+    enriched.borrowerCompetitionId = fixtureCompetitionIdFor(params.borrowerTeam);
+  }
+  return enriched;
+}
+
+const LoanFixture = {
+  openCaseAndPropose: (p) => LoanService.openCaseAndPropose(withFixtureLoanContext(p)),
+  activateLoan: (p) => LoanService.activateLoan(withFixtureLoanContext(p)),
+  returnLoan: (p) => LoanService.returnLoan(withFixtureLoanContext(p)),
+  recallLoan: (p) => LoanService.recallLoan(withFixtureLoanContext(p)),
+  earlyTerminateLoan: (p) => LoanService.earlyTerminateLoan(withFixtureLoanContext(p)),
+  buildLoanRulesContext: (p) => LoanService.buildLoanRulesContext(withFixtureLoanContext(p)),
+  evaluatePlayerReaction: (p) => LoanService.evaluatePlayerReaction({
+    ...p,
+    borrowerCompetitionId: p.borrowerCompetitionId || (p.borrowerTeam ? fixtureCompetitionIdFor(p.borrowerTeam) : undefined),
+  }),
+};
 
 function makeWorld() {
   const playerRegistry = new PlayerRegistry();
@@ -130,7 +170,7 @@ function fullyNegotiatedFixture(seedSuffix, overrides) {
   const borrowerTeam = realTeam(opts.borrowerTeamId || 'team-barca');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 20, maxAge: 23 });
   const masterContract = makeMasterContract(world, ownerTeam, player, { id: `mc:${seedSuffix}` });
-  const { loanCase, proposal, resolvedRules } = LoanService.openCaseAndPropose({
+  const { loanCase, proposal, resolvedRules } = LoanFixture.openCaseAndPropose({
     loanRegistry: world.loanRegistry, contractRegistry: world.contractRegistry, ownerTeam, borrowerTeam,
     playerId: player.id, initiatingClubId: ownerTeam.id, now: GAME_DATE, seasonKey: SEASON,
     serviceStartDate: SERVICE_START, returnEffectiveDate: RETURN_DATE,
@@ -161,7 +201,7 @@ function fullyNegotiatedFixture(seedSuffix, overrides) {
 function activateFixture(seedSuffix, overrides) {
   const fx = fullyNegotiatedFixture(seedSuffix, overrides);
   const teams = [fx.ownerTeam, fx.borrowerTeam];
-  const { plan, result } = LoanService.activateLoan({
+  const { plan, result } = LoanFixture.activateLoan({
     loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
     registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams,
     agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: SERVICE_START, effectiveDate: SERVICE_START,
@@ -268,7 +308,7 @@ check('LoanProposal: cambiar términos cambia termsHash (invalida aceptaciones p
   const borrowerTeam = realTeam('team-barca');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 20, maxAge: 23 });
   makeMasterContract(world, ownerTeam, player, { id: 'mc:t2-1' });
-  const { loanCase, proposal } = LoanService.openCaseAndPropose({
+  const { loanCase, proposal } = LoanFixture.openCaseAndPropose({
     loanRegistry: world.loanRegistry, contractRegistry: world.contractRegistry, ownerTeam, borrowerTeam, playerId: player.id, initiatingClubId: ownerTeam.id,
     now: GAME_DATE, seasonKey: SEASON, serviceStartDate: SERVICE_START, returnEffectiveDate: RETURN_DATE, loanFee: { amountMinor: 2000000, currency: 'EUR' },
     salaryAllocation: { ownerShareBasisPoints: 6000, borrowerShareBasisPoints: 4000 }, clauses: [],
@@ -289,7 +329,7 @@ check('una contraoferta NUNCA muta la propuesta anterior (versión nueva, inmuta
   const borrowerTeam = realTeam('team-barca');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 20, maxAge: 23 });
   makeMasterContract(world, ownerTeam, player, { id: 'mc:t2-2' });
-  const { loanCase, proposal } = LoanService.openCaseAndPropose({
+  const { loanCase, proposal } = LoanFixture.openCaseAndPropose({
     loanRegistry: world.loanRegistry, contractRegistry: world.contractRegistry, ownerTeam, borrowerTeam, playerId: player.id, initiatingClubId: ownerTeam.id,
     now: GAME_DATE, seasonKey: SEASON, serviceStartDate: SERVICE_START, returnEffectiveDate: RETURN_DATE, loanFee: null,
     salaryAllocation: { ownerShareBasisPoints: 5000, borrowerShareBasisPoints: 5000 }, clauses: [],
@@ -359,7 +399,7 @@ check('openCaseAndPropose bloquea si returnEffectiveDate excede la vigencia del 
   const borrowerTeam = realTeam('team-barca');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 20, maxAge: 23 });
   makeMasterContract(world, ownerTeam, player, { id: 'mc:t3-2', endDate: '2027-07-31', seasonKeys: ['2025-26', SEASON] });
-  assert.throws(() => LoanService.openCaseAndPropose({
+  assert.throws(() => LoanFixture.openCaseAndPropose({
     loanRegistry: world.loanRegistry, contractRegistry: world.contractRegistry, ownerTeam, borrowerTeam, playerId: player.id, initiatingClubId: ownerTeam.id,
     now: GAME_DATE, seasonKey: SEASON, serviceStartDate: SERVICE_START, returnEffectiveDate: '2028-08-31', loanFee: null,
     salaryAllocation: { ownerShareBasisPoints: 5000, borrowerShareBasisPoints: 5000 }, clauses: [], medicalResponsibility: { responsibleParty: 'owner' },
@@ -520,7 +560,7 @@ check('recall-right pactado y en ventana: el retorno anticipado se ejecuta atóm
   const fx = activateFixture('t6-3', {
     clauses: [{ type: 'recall-right', holderClubId: 'owner', windows: [{ startDate: '2026-11-01', endDate: '2026-11-30' }], noticeDays: 0 }],
   });
-  const { plan, result } = LoanService.recallLoan({
+  const { plan, result } = LoanFixture.recallLoan({
     loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
     registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams: fx.teams,
     agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: '2026-11-10', effectiveDate: '2026-11-10', seasonKey: SEASON,
@@ -608,18 +648,21 @@ check('repetir el mismo comando de activación (transactionId) es idempotente �
 check('un plan de activación obsoleto (roster de destino cambió de CONTENIDO) se rechaza, nunca se ejecuta a ciegas', () => {
   const fx = fullyNegotiatedFixture('t7-3');
   const teams = [fx.ownerTeam, fx.borrowerTeam];
-  const rulesCtx = LoanService.buildLoanRulesContext({
+  const rulesCtx = LoanFixture.buildLoanRulesContext({
     playerId: fx.player.id, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, seasonKey: SEASON, effectiveDate: SERVICE_START, returnEffectiveDate: RETURN_DATE, operation: 'activation',
   });
   const toRegistration = require('../src/core/TransferService.js').TransferService.buildDestinationRegistrationCommand({
     destinationTeam: fx.borrowerTeam, seasonKey: SEASON, date: SERVICE_START, registrationRegistry: fx.world.registrationRegistry,
+    destinationCompetitionId: fixtureCompetitionIdFor(fx.borrowerTeam),
   });
   const command = {
     transactionId: 'tx-stale-t7-3', movementType: 'activation', loanCaseId: fx.loanCase.id, loanAgreementId: fx.agreement.id, playerId: fx.player.id,
     fromClubId: fx.ownerTeam.id, toClubId: fx.borrowerTeam.id, effectiveDate: SERVICE_START, seasonKey: SEASON,
     ownerEmployerJurisdictionId: rulesCtx.ownerEmployerJurisdictionId, borrowerEmployerJurisdictionId: rulesCtx.borrowerEmployerJurisdictionId,
     fromCompetitionId: rulesCtx.originCompetitionId, toCompetitionId: rulesCtx.destinationCompetitionId, transactionScope: 'domestic',
-    fromRegistrationScopeId: require('../src/core/TransferService.js').TransferService.resolveOriginRegistrationScope(fx.ownerTeam, SEASON, SERVICE_START),
+    fromRegistrationScopeId: require('../src/core/TransferService.js').TransferService.resolveOriginRegistrationScope(
+      fx.ownerTeam, SEASON, SERVICE_START, fixtureCompetitionIdFor(fx.ownerTeam),
+    ),
     toRegistration,
     obligations: fx.agreement.loanFee ? [{
       concept: 'loan-fee', debtorType: 'club', debtorId: fx.borrowerTeam.id, creditorType: 'club', creditorId: fx.ownerTeam.id, amountMinor: fx.agreement.loanFee.amountMinor, currency: fx.agreement.loanFee.currency, legalSource: { ruleModuleId: 'loan-agreement', article: null },
@@ -650,7 +693,7 @@ check('un plan de activación obsoleto (roster de destino cambió de CONTENIDO) 
 check('partido del usuario pendiente bloquea la activación (operationalContext obligatorio)', () => {
   const fx = fullyNegotiatedFixture('t7-4');
   const teams = [fx.ownerTeam, fx.borrowerTeam];
-  const { plan } = LoanService.activateLoan({
+  const { plan } = LoanFixture.activateLoan({
     loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
     registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams,
     agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: SERVICE_START, effectiveDate: SERVICE_START, seasonKey: SEASON,
@@ -666,7 +709,7 @@ check('un fallo inyectado durante la activación revierte roster/inscripción/af
   RegistrationService.issueLicense = () => { throw new Error('INJECTED'); };
   let threw = false;
   try {
-    LoanService.activateLoan({
+    LoanFixture.activateLoan({
       loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
       registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams,
       agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: SERVICE_START, effectiveDate: SERVICE_START, seasonKey: SEASON,
@@ -683,7 +726,7 @@ check('un fallo inyectado durante la activación revierte roster/inscripción/af
 
 check('retorno programado: recibo reutiliza TransactionRecord (mechanism "loan-return"), agreement queda "returned"', () => {
   const fx = activateFixture('t7-6');
-  const { plan, result } = LoanService.returnLoan({
+  const { plan, result } = LoanFixture.returnLoan({
     loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
     registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams: fx.teams,
     agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: RETURN_DATE, effectiveDate: RETURN_DATE, seasonKey: SEASON,
@@ -702,7 +745,7 @@ check('retorno con alta del propietario bloqueada: "returned-pending-registratio
   RegistrationService.issueLicense = () => { throw new Error('INJECTED registration failure'); };
   let result;
   try {
-    ({ result } = LoanService.returnLoan({
+    ({ result } = LoanFixture.returnLoan({
       loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
       registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams: fx.teams,
       agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: RETURN_DATE, effectiveDate: RETURN_DATE, seasonKey: SEASON,
@@ -718,7 +761,7 @@ check('retorno con alta del propietario bloqueada: "returned-pending-registratio
 
 check('terminación anticipada exige cláusula/consentimiento — sin base, bloquea', () => {
   const fx = activateFixture('t7-8');
-  const { plan } = LoanService.earlyTerminateLoan({
+  const { plan } = LoanFixture.earlyTerminateLoan({
     loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
     registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams: fx.teams,
     agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: '2026-12-01', effectiveDate: '2026-12-01', seasonKey: SEASON,
@@ -729,7 +772,7 @@ check('terminación anticipada exige cláusula/consentimiento — sin base, bloq
 
 check('terminación anticipada con consentimiento mutuo explícito de las tres partes: ejecuta y marca terminatedEarly', () => {
   const fx = activateFixture('t7-9');
-  const { plan, result } = LoanService.earlyTerminateLoan({
+  const { plan, result } = LoanFixture.earlyTerminateLoan({
     loanRegistry: fx.world.loanRegistry, playerRegistry: fx.world.playerRegistry, contractRegistry: fx.world.contractRegistry,
     registrationRegistry: fx.world.registrationRegistry, transferRegistry: fx.world.transferRegistry, teams: fx.teams,
     agreement: fx.agreement, ownerTeam: fx.ownerTeam, borrowerTeam: fx.borrowerTeam, now: '2026-12-01', effectiveDate: '2026-12-01', seasonKey: SEASON,

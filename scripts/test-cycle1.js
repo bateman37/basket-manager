@@ -122,8 +122,22 @@ function buildRealTeamInner(id, isoDate, annualCycleRegistry) {
       seasonKey: SEASON, historyCompleteness: 'complete', annualCycleRegistry, retirementService: RetirementService, careerSeed: CAREER_SEED,
     });
   });
-  return linkLegacyClub(new Team({ ...teamData, roster }));
+  const team = linkLegacyClub(new Team({ ...teamData, roster }));
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): fixture HISTÓRICO — competición
+  // declarada EXPLÍCITAMENTE al construir el equipo; el adaptador legacy solo
+  // se usa aquí, en `scripts/`, nunca en código productivo.
+  return team;
 }
+
+// Resolver de fixture para las operaciones BATCH del ciclo/planificación.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
 
 function readSrc(relPath) {
   return fs.readFileSync(path.join(__dirname, '..', relPath), 'utf8');
@@ -318,18 +332,22 @@ check('AnnualCycleService.openCycle: exige evidencia real de último partido por
   const annualCycleRegistry = new AnnualCycleRegistry();
   assert.throws(() => AnnualCycleService.openCycle({
     annualCycleRegistry, teams: [], fromSeasonKey: SEASON, targetSeasonKey: '2027-28', evidence: [], date: '2027-07-15',
+    competitionIdForTeam: fixtureCompetitionResolver,
   }), /evidencia del último partido/);
 });
 
 check('AnnualCycleService.openCycle: idempotente por fromSeasonKey', () => {
   const annualCycleRegistry = new AnnualCycleRegistry();
   const teams = [realTeam('team-real-madrid')];
-  const evidence = [{ clubId: teams[0].id, date: '2027-06-20' }];
+  // WORLD-CONTEXT-1: la evidencia de último partido es del EQUIPO.
+  const evidence = [{ teamId: teams[0].id, clubId: teams[0].clubId, date: '2027-06-20' }];
   const first = AnnualCycleService.openCycle({
     annualCycleRegistry, teams, fromSeasonKey: SEASON, targetSeasonKey: '2027-28', evidence, date: '2027-07-01',
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   const second = AnnualCycleService.openCycle({
     annualCycleRegistry, teams, fromSeasonKey: SEASON, targetSeasonKey: '2027-28', evidence, date: '2027-07-01',
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   assert.strictEqual(second.idempotent, true);
   assert.strictEqual(second.cycle.id, first.cycle.id);
@@ -340,22 +358,26 @@ check('Clubes con último partido distinto: el ciclo conserva CADA fecha real, n
   const teamA = realTeam('team-real-madrid');
   const teamB = realTeam('team-gran-canaria');
   const evidence = [
-    { clubId: teamA.id, date: '2027-05-10' }, // eliminado pronto
-    { clubId: teamB.id, date: '2027-06-25' }, // finalista
+    { teamId: teamA.id, clubId: teamA.clubId, date: '2027-05-10' }, // eliminado pronto
+    { teamId: teamB.id, clubId: teamB.clubId, date: '2027-06-25' }, // finalista
   ];
   const { cycle } = AnnualCycleService.openCycle({
     annualCycleRegistry, teams: [teamA, teamB], fromSeasonKey: SEASON, targetSeasonKey: '2027-28', evidence, date: '2027-07-01',
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
-  const byClub = new Map(cycle.clubLastOfficialMatchEvidence.map((row) => [row.clubId, row.date]));
-  assert.strictEqual(byClub.get(teamA.id), '2027-05-10');
-  assert.strictEqual(byClub.get(teamB.id), '2027-06-25');
-  assert.notStrictEqual(byClub.get(teamA.id), byClub.get(teamB.id));
+  const byTeam = new Map(cycle.teamLastOfficialMatchEvidence.map((row) => [row.teamId, row.date]));
+  assert.strictEqual(byTeam.get(teamA.id), '2027-05-10');
+  assert.strictEqual(byTeam.get(teamB.id), '2027-06-25');
+  assert.notStrictEqual(byTeam.get(teamA.id), byTeam.get(teamB.id));
+  assert.strictEqual(cycle.lastOfficialMatchDateForTeam(teamA.id), '2027-05-10');
 });
 
 check('AnnualRosterCycle: evento duplicado (mismo id) lanza colisión descriptiva, nunca duplica efectos (sección 7)', () => {
   const cycle = new CycleEntities.AnnualRosterCycle({
     id: 'cycle-test-dup', fromSeasonKey: SEASON, targetSeasonKey: '2027-28', openedAt: '2027-07-01',
-    openingWorldFingerprint: 'fp', competitionMembershipSnapshot: [], clubLastOfficialMatchEvidence: [{ clubId: 'x', date: '2027-06-01' }],
+    openingWorldFingerprint: 'fp',
+    competitionMembershipSnapshot: [],
+    teamLastOfficialMatchEvidence: [{ teamId: 'team:x', clubId: 'club:x', date: '2027-06-01' }],
     summerSchedule: [{ phaseId: 'snapshot-frozen', date: '2027-07-01' }], sourceVersion: 'v1', provenance: { dataSource: 'simulated-cycle-v1', isReal: false },
   });
   // El constructor deja el ledger VACÍO — la única transición inicial
@@ -397,12 +419,16 @@ function buildMiniWorld(seasonKey, isoDate) {
   [teamA, teamB].forEach((team) => {
     team.roster.forEach((player) => playerRegistry.register(player));
   });
-  const calibration = ContractSeeder.buildCompetitionCalibration([teamA, teamB], CONFIG_BASE);
+  const calibration = ContractSeeder.buildCompetitionCalibration([teamA, teamB], CONFIG_BASE, {
+    seasonKey, competitionIdForTeam: fixtureCompetitionResolver,
+  });
   ContractSeeder.seedContractsForTeams({
     teams: [teamA, teamB], seasonKey, date: isoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE, calibration,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   RegistrationSeeder.seedRegistrationsForTeams({
     teams: [teamA, teamB], seasonKey, date: isoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   return {
     playerRegistry, contractRegistry, registrationRegistry, marketRegistry, agentRegistry, transferRegistry, loanRegistry, teamA, teamB,
@@ -677,6 +703,7 @@ check('CpuRosterPlanner: planificar es PURO — no muta contractRegistry/playerR
   const snapshot = CpuRosterPlanner.buildSnapshot({
     teams: [world.teamA, world.teamB], playerRegistry: world.playerRegistry, contractRegistry: world.contractRegistry,
     registrationRegistry: world.registrationRegistry, loanRegistry: world.loanRegistry, date: GAME_DATE, seasonKey: SEASON, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   CpuRosterPlanner.buildAllPlans({
     snapshot, teams: [world.teamA, world.teamB], config: CONFIG_BASE, seasonKey: SEASON, date: GAME_DATE, careerSeed: CAREER_SEED,
@@ -693,10 +720,12 @@ check('CpuRosterPlanner: el orden del array de equipos no cambia el conjunto de 
   const snapshotA = CpuRosterPlanner.buildSnapshot({
     teams, playerRegistry: world.playerRegistry, contractRegistry: world.contractRegistry, registrationRegistry: world.registrationRegistry,
     loanRegistry: world.loanRegistry, date: GAME_DATE, seasonKey: SEASON, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   const snapshotB = CpuRosterPlanner.buildSnapshot({
     teams: shuffled, playerRegistry: world.playerRegistry, contractRegistry: world.contractRegistry, registrationRegistry: world.registrationRegistry,
     loanRegistry: world.loanRegistry, date: GAME_DATE, seasonKey: SEASON, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   assert.strictEqual(snapshotA.fingerprint, snapshotB.fingerprint, 'el snapshot canónico debe ser byte-equivalente sin importar el orden del array de entrada');
 });
@@ -706,6 +735,7 @@ check('CpuRosterPlanner.buildAllPlans: misma semilla + mismo snapshot = mismos p
   const snapshot = CpuRosterPlanner.buildSnapshot({
     teams: [world.teamA, world.teamB], playerRegistry: world.playerRegistry, contractRegistry: world.contractRegistry,
     registrationRegistry: world.registrationRegistry, loanRegistry: world.loanRegistry, date: GAME_DATE, seasonKey: SEASON, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   const plansA = CpuRosterPlanner.buildAllPlans({
     snapshot, teams: [world.teamA, world.teamB], config: CONFIG_BASE, seasonKey: SEASON, date: GAME_DATE, careerSeed: CAREER_SEED,
@@ -733,16 +763,20 @@ check('RosterLegalityService.buildReport: ACB y Primera FEB conservan cupos/rang
   [teamAcb, teamFeb].forEach((team) => team.roster.forEach((p) => playerRegistry.register(p)));
   ContractSeeder.seedContractsForTeams({
     teams: [teamAcb, teamFeb], seasonKey: SEASON, date: GAME_DATE, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   RegistrationSeeder.seedRegistrationsForTeams({
     teams: [teamAcb, teamFeb], seasonKey: SEASON, date: GAME_DATE, registrationRegistry, contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   const reportAcb = RosterLegalityService.buildReport({
-    team: teamAcb, seasonKey: SEASON, date: GAME_DATE, phaseId: 'league', cycleId: null, config: CONFIG_BASE,
+    team: teamAcb, seasonKey: SEASON, competitionId: fixtureCompetitionIdFor(teamAcb), competitionIdForTeam: fixtureCompetitionResolver,
+    date: GAME_DATE, phaseId: 'league', cycleId: null, config: CONFIG_BASE,
     playerRegistry, contractRegistry, registrationRegistry, loanRegistry: new LoanRegistry(), teams: [teamAcb, teamFeb], classificationCache: new Map(),
   });
   const reportFeb = RosterLegalityService.buildReport({
-    team: teamFeb, seasonKey: SEASON, date: GAME_DATE, phaseId: 'league', cycleId: null, config: CONFIG_BASE,
+    team: teamFeb, seasonKey: SEASON, competitionId: fixtureCompetitionIdFor(teamFeb), competitionIdForTeam: fixtureCompetitionResolver,
+    date: GAME_DATE, phaseId: 'league', cycleId: null, config: CONFIG_BASE,
     playerRegistry, contractRegistry, registrationRegistry, loanRegistry: new LoanRegistry(), teams: [teamAcb, teamFeb], classificationCache: new Map(),
   });
   assert.notDeepStrictEqual(reportAcb.squadRules, reportFeb.squadRules, 'ACB y Primera FEB deben resolver reglas de convocatoria DISTINTAS');
@@ -765,9 +799,11 @@ check('BUG-LOAN1-01: con contexto regulado real y roster suficiente, la convocat
   team.roster.forEach((p) => playerRegistry.register(p));
   ContractSeeder.seedContractsForTeams({
     teams: [team], seasonKey: SEASON, date: GAME_DATE, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   RegistrationSeeder.seedRegistrationsForTeams({
     teams: [team], seasonKey: SEASON, date: GAME_DATE, registrationRegistry, contractRegistry, config: CONFIG_BASE,
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   const resolved = RegistrationService.resolveRegistrationRules({
     competitionId: CompetitionRules.competitionIdFromLegacyDivision(team.division), seasonKey: SEASON, date: GAME_DATE, phaseId: 'league',

@@ -1456,9 +1456,11 @@ paquetes de contenido, o la frontera de persistencia:
 - Ningún dominio nuevo resuelve competición leyendo `Team.division`/
   `state.division`/nombre visible de liga — usa `competitionId`/
   `CompetitionParticipationService`/identidad mundial, o falla explícito.
-  `competitionIdFromLegacyDivision()` SIGUE con call-sites productivos
-  reales fuera de `game.js` (ver DESIGN.md 10.19.2, punto 1) — no asumas
-  que está retirado en ningún archivo que no hayas comprobado tú mismo.
+  `competitionIdFromLegacyDivision()` YA NO tiene ningún call-site
+  productivo (WORLD-CONTEXT-1 migró los nueve servicios; ver DESIGN.md
+  10.20 y el bloque de convenciones de abajo): sigue exportado solo para
+  fixtures históricos de `scripts/`, y su retirada definitiva es de
+  WORLD-CLEANUP-1.
 - Los paquetes de contenido POSEEN su contenido y sus hooks runtime
   (`manifest.hooks.registerFormats/registerSchedules/registerPathways/
   resolveEditionBindings`) — el core (`ContentPackLifecycleService.js`)
@@ -1469,10 +1471,11 @@ paquetes de contenido, o la frontera de persistencia:
   ACB/Primera FEB/Copa como literales de COMPETICIÓN (nunca de división)
   para resolver honores/facades de UI.
 - `clubId` nunca significa `teamId` en código nuevo — la deuda de naming
-  YA EXISTENTE (`ClubCycleCase`/`RosterLegalityReport`/
-  `EmergencyRosterAction`/`LastOfficialMatchEvidenceCollector`, desde
-  CLUB-CORE-1/PATHWAYS-1) sigue sin resolver; no la agraves con un campo
-  nuevo mal nombrado.
+  de `ClubCycleCase`/`RosterLegalityReport`/`EmergencyRosterAction`/
+  `LastOfficialMatchEvidenceCollector` (desde CLUB-CORE-1/PATHWAYS-1) YA
+  está resuelta en WORLD-CONTEXT-1 (DESIGN.md 10.20); la que sigue viva
+  está enumerada allí (10.20.5) — no la agraves con un campo nuevo mal
+  nombrado.
 - Todo comando MATERIAL (instalar un paquete, abrir un transition group,
   registrar una temporada) recibe fecha/seed/id EXPLÍCITOS — nunca
   `new Date()`/`Math.random()` dentro del core. `ContentPackRegistry.
@@ -1498,6 +1501,70 @@ paquetes de contenido, o la frontera de persistencia:
   pre-World de `scripts/cycle1-harness.js` como fuente de verdad de
   competición/participación (sus utilidades de contratos/registro/ciclo
   siguen siendo reutilizables, su modelo de división NO).
+
+### WORLD-CONTEXT-1 (DESIGN.md 10.20) — contexto competitivo explícito e identidades canónicas
+
+Convenciones permanentes de la corrección posterior a WORLD-HARDEN-1
+(queda pendiente `WORLD-CLEANUP-1`; la EPIC NO está cerrada). Aplican a
+TODA sesión futura que toque contratos, inscripciones, mercado, traspasos,
+cesiones, ciclo anual, planificación CPU o legalidad de plantilla:
+
+- **El contexto de competición es SIEMPRE explícito.** Una operación sobre
+  UN equipo recibe `domesticCompetitionId`; una operación ENTRE equipos
+  recibe ids por PAPEL (`originCompetitionId`/`destinationCompetitionId`/
+  `ownerCompetitionId`/`borrowerCompetitionId`); una operación BATCH recibe
+  el resolver OBLIGATORIO `competitionIdForTeam(team, seasonKey)` (o una
+  proyección plana `{teamId: competitionId}` construida por el llamador).
+  Ninguna función de dominio infiere competición por su cuenta.
+- **Resolución canónica por Entries**: `CompetitionContextService`
+  (`src/core/CompetitionContextService.js`, PURO, sin literales de país/
+  liga) sobre `CompetitionParticipationService.primaryLeagueCompetitionId`.
+  En la interfaz, el punto ÚNICO es `domesticCompetitionIdForTeam(team,
+  seasonKey)`/`buildDomesticCompetitionResolver()` de `game.js`. No se
+  crea ningún registro nuevo ni caché durable de contexto.
+- **PROHIBIDO** derivar competición de `team.division`/`legacyDivision`,
+  guardar un `team.competitionId` como supuesto único, elegir "la primera"
+  competición de un array, usar ACB como default, usar la competición del
+  próximo partido, o leer `state`/globales dentro de un resolver de
+  dominio. Sin contexto suficiente se FALLA con diagnóstico (`teamId`,
+  `seasonKey`, operación) y sin dejar nada aplicado a medias.
+- Resolver/consultar NUNCA muta el mundo, NUNCA proyecta división y NUNCA
+  consume aleatoriedad.
+- La transición anual distingue SIEMPRE competición de ORIGEN
+  (`cycle.fromSeasonKey`) y de DESTINO (`targetSeasonKey`) — un ascenso/
+  descenso hace que sean distintas; nunca se reutiliza una sola id.
+  `targetCompetitionId` de un `ClubCycleCase` se resuelve desde las
+  Entries de la temporada destino, DESPUÉS del pathway.
+- **`clubId` identifica SIEMPRE un `Club`; `teamId`, un `Team`** (tabla
+  completa en DESIGN.md 10.20.3): contrato/empleador/nómina/presupuesto/
+  academia/derechos/cesión (propietario y cesionario)/licencia federativa
+  → `clubId`; `CompetitionEntry`/inscripción/plantilla/acta/evidencia de
+  último partido/legalidad/táctica/`Player.teamId` → `teamId`. Un
+  diagnóstico o snapshot nuevo lleva AMBOS ids cuando el consumidor pueda
+  necesitarlos.
+- Formas canónicas del ciclo (ya migradas, no volver atrás):
+  `competitionMembershipSnapshot: [{teamId, clubId, competitionId}]`,
+  `teamLastOfficialMatchEvidence` (nunca `clubLastOfficialMatchEvidence`),
+  `lastOfficialMatchDateForTeam()`, `ClubCycleCase.teamId`,
+  `ClubSquadPlan.teamId`, `RosterLegalityReport.teamId`+`clubId`,
+  `EmergencyRosterAction.teamId`+`clubId`,
+  `AnnualCycleRegistry.legalityReportsForTeam/emergencyActionsForTeam`,
+  colector de evidencia indexado por `teamId` (`forTeam`/`missingTeamIds`,
+  `recordMatch({homeTeamId, homeClubId, awayTeamId, awayClubId, ...})`).
+- Ninguna decisión de IA pregunta "¿es ACB?": el nivel competitivo se
+  deriva de `CompetitionDefinition.tier` con configuración neutral
+  (`LoanService.LOAN_ATTRACTIVENESS`). Una competición sin `tier`
+  declarado no recibe trato preferente por defecto.
+- **Todo fixture/test NUEVO usa ids de Club y de Team DELIBERADAMENTE
+  DISTINTOS** (`club:test` !== `team:test`) para que una confusión
+  `clubId`/`teamId` no pueda volver a quedar oculta. En `scripts/`, el
+  único uso tolerado de `competitionIdFromLegacyDivision()` es el helper
+  marcado `fixtureCompetitionIdFor(team)` de un fixture histórico, y debe
+  derivar de la división VIGENTE (nunca congelarla al construir el equipo:
+  un ascenso dentro del propio smoke cambia su competición).
+- `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
+  cuando cambie el contrato de contexto competitivo o la semántica de
+  identidades.
 
 ## Qué NO hacer sin confirmar con Dennis primero
 

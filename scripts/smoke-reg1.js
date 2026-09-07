@@ -80,6 +80,19 @@ function linkLegacyClub(team) {
   return team;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): este smoke es un FIXTURE HISTÓRICO
+// pre-World — declara la competición de cada equipo con el adaptador legacy
+// (permitido SOLO en `scripts/`) y la pasa EXPLÍCITA a los servicios
+// profesionales, que ya no aceptan derivarla de `team.division`.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
+
 function buildRealTeam(teamData, referenceDate, seasonKey) {
   const roster = teamData.roster.map((playerData) => {
     const { dataSource, ...playerFields } = playerData;
@@ -285,11 +298,13 @@ const contractRegistry = new ContractRegistry();
 let bootstrapIsoDate = LocalDate.fromJsDate(referenceDate);
 ContractSeeder.seedContractsForTeams({
   teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+  competitionIdForTeam: fixtureCompetitionResolver,
 });
 
 const registrationRegistry = new RegistrationRegistry();
 const registrationBootstrap = RegistrationSeeder.seedRegistrationsForTeams({
   teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE,
+  competitionIdForTeam: fixtureCompetitionResolver,
 });
 console.log(`OK: ${registrationBootstrap.results.length} licencias/inscripciones simuladas creadas para ${playerRegistry.all().length} jugadores mundiales.`);
 
@@ -335,7 +350,7 @@ console.log('OK: Player/Contract/Registration Registry íntegros al arranque.');
 // --- MoraBanc: contrato AD, inscripción bajo ACB ------------------------
 {
   const morabanc = allTeamsById.get('team-morabanc-andorra');
-  const employment = ContractService.resolveRulesForClub(morabanc, { seasonKey, date: bootstrapIsoDate });
+  const employment = ContractService.resolveRulesForClub(morabanc, { seasonKey, date: bootstrapIsoDate , domesticCompetitionId: fixtureCompetitionIdFor(morabanc) });
   assert.strictEqual(employment.requestedContext.employerJurisdictionId, 'AD');
   const resolved = resolveRegistrationRulesForDivision(morabanc.division, seasonKey, bootstrapIsoDate);
   assert.strictEqual(resolved.competitionId, CompetitionRules.COMPETITION_IDS.ACB);
@@ -401,6 +416,8 @@ function runOwnLowerAndLinkedFixture() {
   playerRegistry.register(linkedPlayer);
   ContractSeeder.seedContractForNewPlayer({
     player: linkedPlayer, team: lowerClub, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
+    domesticCompetitionId: fixtureCompetitionIdFor(lowerClub),
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
   const linkFixture = RegistrationSeeder.seedLinkedPlayerFixture({
     player: linkedPlayer, lowerClub, upperClub, seasonKey, date: bootstrapIsoDate, registrationRegistry, resolved, direction: 'lowerToUpper',

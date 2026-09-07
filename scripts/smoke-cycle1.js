@@ -150,10 +150,12 @@ function buildWorld(options) {
 
   ContractSeeder.seedContractsForTeams({
     teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE,
-  });
+  competitionIdForTeam: fixtureCompetitionResolver,
+});
   RegistrationSeeder.seedRegistrationsForTeams({
     teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE,
-  });
+  competitionIdForTeam: fixtureCompetitionResolver,
+});
 
   const initialFreeAgents = MarketSeeder.seedFreeAgentPool({
     playerRegistry, careerSeed, referenceDate, config: CONFIG_BASE,
@@ -227,6 +229,19 @@ function buildWorld(options) {
   return world;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): este smoke es un FIXTURE HISTÓRICO
+// pre-World — declara la competición de cada equipo con el adaptador legacy
+// (permitido SOLO en `scripts/`) y la pasa EXPLÍCITA a los servicios
+// profesionales, que ya no aceptan derivarla de `team.division`.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
+
 // =====================================================================
 // Resolución de partidos con pool REGULADO y acta registrada
 // =====================================================================
@@ -273,7 +288,9 @@ function buildMatchSides(world, params) {
     });
     if (evidence) {
       evidence.record({
-        clubId: team.id,
+        // WORLD-CONTEXT-1: la evidencia de último partido es del EQUIPO.
+        teamId: team.id,
+        clubId: team.clubId,
         date,
         competitionId: resolved.competitionId,
         phaseId: competitionKeyForEvidence || phaseId,
@@ -378,7 +395,9 @@ function advanceWorldClock(world, date) {
       if (!ownerTeam || !borrowerTeam) return;
       const { result } = LoanService.returnLoan({
         ...deps, agreement, ownerTeam, borrowerTeam, effectiveDate: agreement.returnEffectiveDate, seasonKey: world.seasonKey, commit: true,
-      });
+    ownerCompetitionId: fixtureCompetitionIdFor(ownerTeam),
+    borrowerCompetitionId: fixtureCompetitionIdFor(borrowerTeam),
+  });
       if (result && result.record) world.stats.loanReturns += 1;
     });
 }
@@ -829,10 +848,12 @@ function determinismProbe(world, shuffle) {
   }).sort((a, b) => (a.playerId < b.playerId ? -1 : 1));
 
   const academy = order(world.allTeams).map((team) => {
-    const pool = order(world.academyRegistry.activePoolForClub(team.id, iso));
+    // WORLD-CONTEXT-1: la cantera pertenece al CLUB institucional.
+    const pool = order(world.academyRegistry.activePoolForClub(team.clubId, iso));
     const qualityIndex = AcademyService.buildPoolQualityIndex(pool, world.playerRegistry, CONFIG_BASE);
     return {
-      clubId: team.id,
+      teamId: team.id,
+      clubId: team.clubId,
       pool: pool.map((membership) => ({ id: membership.id, quality: qualityIndex[membership.id] || 0 }))
         .sort((a, b) => (a.id < b.id ? -1 : 1)),
     };
@@ -854,6 +875,8 @@ function determinismProbe(world, shuffle) {
     date: iso,
     seasonKey: world.seasonKey,
     config: CONFIG_BASE,
+    // WORLD-CONTEXT-1: resolver explícito del fixture (batch).
+    competitionIdForTeam: fixtureCompetitionResolver,
   });
 
   const plans = CpuRosterPlanner.buildAllPlans({
@@ -899,6 +922,9 @@ function determinismProbe(world, shuffle) {
     const report = harness.RosterLegalityService.buildReport({
       team,
       seasonKey: world.seasonKey,
+      // WORLD-CONTEXT-1: competición EXPLÍCITA del equipo auditado.
+      competitionId: fixtureCompetitionIdFor(team),
+      competitionIdForTeam: fixtureCompetitionResolver,
       date: iso,
       phaseId: 'league',
       cycleId: null,

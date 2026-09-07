@@ -73,6 +73,19 @@ function linkLegacyClub(team) {
   return team;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): este smoke es un FIXTURE HISTÓRICO
+// pre-World — declara la competición de cada equipo con el adaptador legacy
+// (permitido SOLO en `scripts/`) y la pasa EXPLÍCITA a los servicios
+// profesionales, que ya no aceptan derivarla de `team.division`.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
+
 function buildRealTeam(teamData, referenceDate, seasonKey) {
   const roster = teamData.roster.map((playerData) => {
     const { dataSource, ...playerFields } = playerData;
@@ -124,7 +137,7 @@ allTeams.forEach((team) => playerRegistry.registerMany(team.roster));
 const catalogCheck = ClubEmploymentContextCatalog.validateCatalog(allTeams);
 assert.ok(catalogCheck.valid, `contexto laboral incompleto: ${JSON.stringify(catalogCheck.errors)}`);
 const jurisdictionCounts = allTeams.reduce((acc, team) => {
-  const context = ContractService.resolveEmploymentContext(team, {});
+  const context = ContractService.resolveEmploymentContext(team, { domesticCompetitionId: fixtureCompetitionIdFor(team) });
   acc[context.employerJurisdictionId] = (acc[context.employerJurisdictionId] || 0) + 1;
   return acc;
 }, {});
@@ -142,10 +155,11 @@ const bootstrap = ContractSeeder.seedContractsForTeams({
   registry: contractRegistry,
   playerRegistry,
   config: CONFIG_BASE,
+  competitionIdForTeam: fixtureCompetitionResolver,
 });
 const provisionalWarnings = new Set();
 allTeams.forEach((team) => {
-  ContractService.resolveRulesForClub(team, { seasonKey, date: bootstrapIsoDate })
+  ContractService.resolveRulesForClub(team, { seasonKey, date: bootstrapIsoDate , domesticCompetitionId: fixtureCompetitionIdFor(team) })
     .warnings.forEach((warning) => provisionalWarnings.add(warning));
 });
 
@@ -173,6 +187,7 @@ RegistrationSeeder.seedRegistrationsForTeams({
   registrationRegistry,
   contractRegistry,
   config: CONFIG_BASE,
+  competitionIdForTeam: fixtureCompetitionResolver,
 });
 let agentRegistry = new AgentRegistry();
 let marketRegistry = new MarketRegistry();
@@ -204,7 +219,7 @@ console.log('OK: Player Registry + Contract Registry íntegros al arranque; nóm
 // --- 4. MoraBanc: jurisdicción andorrana ------------------------------
 {
   const morabanc = allTeams.find((t) => t.id === 'team-morabanc-andorra');
-  const resolved = ContractService.resolveRulesForClub(morabanc, { seasonKey, date: bootstrapIsoDate });
+  const resolved = ContractService.resolveRulesForClub(morabanc, { seasonKey, date: bootstrapIsoDate , domesticCompetitionId: fixtureCompetitionIdFor(morabanc) });
   assert.strictEqual(resolved.requestedContext.employerJurisdictionId, 'AD');
   assert.ok(!resolved.ruleModuleIds.includes('es-rd1006-1985-v1'));
   assert.ok(!resolved.ruleModuleIds.includes('es-smi-2026-v1'));

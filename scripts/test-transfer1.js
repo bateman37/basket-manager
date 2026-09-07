@@ -79,7 +79,41 @@ function linkLegacyClub(team) {
   return team;
 }
 
-function realTeam(id) { return linkLegacyClub(new Team({ ...REAL_DATA_TEAMS[id], roster: [] })); }
+function realTeam(id) {
+  const team = linkLegacyClub(new Team({ ...REAL_DATA_TEAMS[id], roster: [] }));
+  // WORLD-CONTEXT-1 (DESIGN.md 10.20): fixture HISTÓRICO — la competición de
+  // cada equipo se declara EXPLÍCITAMENTE al construirlo; el adaptador legacy
+  // solo se usa aquí, en `scripts/`, nunca en código productivo.
+  return team;
+}
+
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture (un ascenso dentro
+  // del propio test cambia la competición) — nunca se congela al construir.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+
+// WORLD-CONTEXT-1: las fachadas de TRANSFER-1 exigen contexto competitivo
+// EXPLÍCITO por papel — este envoltorio de fixture lo inyecta desde los
+// equipos ya construidos, para no repetirlo en cada comprobación.
+function withFixtureTransferContext(params) {
+  const enriched = { ...params };
+  if (params.originTeam && enriched.originCompetitionId === undefined) {
+    enriched.originCompetitionId = fixtureCompetitionIdFor(params.originTeam);
+  }
+  if (params.destinationTeam && enriched.destinationCompetitionId === undefined) {
+    enriched.destinationCompetitionId = fixtureCompetitionIdFor(params.destinationTeam);
+  }
+  return enriched;
+}
+
+const TransferFixture = {
+  formalizeFreeAgentSigning: (p) => TransferService.formalizeFreeAgentSigning(withFixtureTransferContext(p)),
+  formalizeNegotiatedTransfer: (p) => TransferService.formalizeNegotiatedTransfer(withFixtureTransferContext(p)),
+  formalizeReleaseClauseExercise: (p) => TransferService.formalizeReleaseClauseExercise(withFixtureTransferContext(p)),
+  formalizeMutualAgreement: (p) => TransferService.formalizeMutualAgreement(withFixtureTransferContext(p)),
+};
 
 function makeWorld() {
   const playerRegistry = new PlayerRegistry();
@@ -110,7 +144,7 @@ function makeLiveAgreement(world, destinationTeam, player, seed, date, overrides
     prospectiveCompetitionIds: ['acb'], date: d, marketContext, careerSeed: seed,
   });
   thread.addEvent({ id: `${thread.id}:confirmed`, type: 'interest-confirmed', date: d });
-  const resolved = ContractService.resolveRulesForClub(destinationTeam, { seasonKey: SEASON, date: d, operation: 'signContract' });
+  const resolved = ContractService.resolveRulesForClub(destinationTeam, { seasonKey: SEASON, date: d, operation: 'signContract' , domesticCompetitionId: fixtureCompetitionIdFor(destinationTeam) });
   const employment = resolved.employment;
   const currency = employment.allowedCurrencies[0];
   const baseSalary = opts.baseSalaryMinor || 12000000;
@@ -131,6 +165,7 @@ function makeLiveAgreement(world, destinationTeam, player, seed, date, overrides
   const offer = MarketService.createAndSendOffer({
     marketRegistry: world.marketRegistry, thread, draft, offeredBy: 'club', date: d, careerSeed: seed,
     team: destinationTeam, player, playerRegistry: world.playerRegistry, contractRegistry: world.contractRegistry, seasonKey: SEASON,
+    domesticCompetitionId: fixtureCompetitionIdFor(destinationTeam),
   });
   offer.addEvent({ id: `${offer.id}:accept`, type: 'player-accepted', date: d });
   return MarketService.createAgreementInPrinciple({ marketRegistry: world.marketRegistry, thread, offer, date: d, employmentSnapshot: { profileId: marketContext.bundleId } });
@@ -342,7 +377,7 @@ check('España: fee de 100.000,00€ sin pacto -> participación mínima exacta 
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
   makeOriginContract(world, originTeam, player, { salaryMinor: 5000000 });
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-t4-1');
-  const { plan, result } = TransferService.formalizeNegotiatedTransfer({
+  const { plan, result } = TransferFixture.formalizeNegotiatedTransfer({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     clubOffer: { id: 'co-t4-1', fee: { amountMinor: 10000000, currency: 'EUR' } }, playerConsentGrantedAt: GAME_DATE,
   });
@@ -357,7 +392,7 @@ check('fee cero/mutuo acuerdo: NUNCA inventa participación positiva', () => {
   const originTeam = realTeam('team-real-madrid');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 30, maxAge: 34 });
   makeOriginContract(world, originTeam, player, { salaryMinor: 3000000, id: 'origin:mutual-zero' });
-  const { plan, result } = TransferService.formalizeMutualAgreement({
+  const { plan, result } = TransferFixture.formalizeMutualAgreement({
     ...world, teams: [originTeam], originTeam, destinationTeam: null, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     mutualSettlement: { partiesConsent: ['club', 'player'] }, playerId: player.id,
   });
@@ -375,7 +410,7 @@ check('buyout de cláusula: NO añade el 15% del art. 13.a por defecto', () => {
     id: 'origin:buyout-2', clauses: [{ id: 'clause-2', type: 'player-release', holder: 'player', amount: { amountMinor: 20000000, currency: 'EUR' }, support: 'modeled-only', status: 'simulated' }],
   });
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-t6-1', EARLY_DATE);
-  const { plan, result } = TransferService.formalizeReleaseClauseExercise({
+  const { plan, result } = TransferFixture.formalizeReleaseClauseExercise({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: EARLY_DATE, now: EARLY_DATE, commit: true, clauseId: 'clause-2', exercisedBy: 'player',
   });
   assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
@@ -433,7 +468,7 @@ check('cláusula ejercida tras el 15 de septiembre: bloqueada por restricción d
     id: 'origin:late-clause', clauses: [{ id: 'clause-late', type: 'player-release', holder: 'player', amount: { amountMinor: 15000000, currency: 'EUR' }, support: 'modeled-only', status: 'simulated' }],
   });
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-t6-late', GAME_DATE); // 15-oct, DESPUÉS del 15-09
-  const { plan } = TransferService.formalizeReleaseClauseExercise({
+  const { plan } = TransferFixture.formalizeReleaseClauseExercise({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true, clauseId: 'clause-late', exercisedBy: 'player',
   });
   assert.ok(plan.blockers.some((b) => b.code === 'RELEASE_CLAUSE_REGISTRATION_RESTRICTED'));
@@ -451,7 +486,7 @@ check('fichaje de libre: contrato + roster + inscripción aparecen juntos, misma
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
   world.playerRegistry.register(player);
   const agreement = makeLiveAgreement(world, team, player, 'seed-t7-1');
-  const { plan, result } = TransferService.formalizeFreeAgentSigning({
+  const { plan, result } = TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
   });
   assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
@@ -469,7 +504,7 @@ check('repetición del mismo comando (transactionId) es idempotente — no dupli
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
   world.playerRegistry.register(player);
   const agreement = makeLiveAgreement(world, team, player, 'seed-t7-2');
-  const { plan, result } = TransferService.formalizeFreeAgentSigning({
+  const { plan, result } = TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
   });
   const second = TransferExecutionService.commitTransaction(plan, { ...world, teams: [team], now: GAME_DATE });
@@ -486,7 +521,7 @@ check('renderizar/consultar (planTransaction) nunca muta ni reserva', () => {
   world.playerRegistry.register(player);
   const agreement = makeLiveAgreement(world, team, player, 'seed-t7-3');
   const before = deepWorldSnapshot(world, [team]);
-  TransferService.formalizeFreeAgentSigning({
+  TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: false,
   });
   const after = deepWorldSnapshot(world, [team]);
@@ -504,7 +539,7 @@ check('sin oferta club-club ni consentimiento del jugador, no se completa nada',
   const destinationTeam = realTeam('team-barca');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
   makeOriginContract(world, originTeam, player, { id: 'origin:t8-1' });
-  assert.throws(() => TransferService.formalizeNegotiatedTransfer({
+  assert.throws(() => TransferFixture.formalizeNegotiatedTransfer({
     ...world, teams: [originTeam, destinationTeam], agreement: null, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true, clubOffer: { id: 'x', fee: { amountMinor: 1, currency: 'EUR' } },
   }));
 });
@@ -516,7 +551,7 @@ check('traspaso completo: origen termina, destino se registra, fee y participaci
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
   const originContract = makeOriginContract(world, originTeam, player, { id: 'origin:t8-2', salaryMinor: 8000000 });
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-t8-2');
-  const { plan, result } = TransferService.formalizeNegotiatedTransfer({
+  const { plan, result } = TransferFixture.formalizeNegotiatedTransfer({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     clubOffer: { id: 'co-t8-2', fee: { amountMinor: 50000000, currency: 'EUR' } }, playerConsentGrantedAt: GAME_DATE,
   });
@@ -540,7 +575,7 @@ check('si el traspaso falla (blockers), el mundo queda EXACTAMENTE igual', () =>
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-t8-3');
   const before = deepWorldSnapshot(world, [originTeam, destinationTeam]);
   // Sin transferAgreement ni consentimiento -> debe bloquear, nunca ejecutar.
-  const { plan, result } = TransferService.formalizeNegotiatedTransfer({
+  const { plan, result } = TransferFixture.formalizeNegotiatedTransfer({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     clubOffer: { id: 'co-t8-3', fee: { amountMinor: 1, currency: 'EUR' } }, playerConsentGrantedAt: null,
   });
@@ -571,7 +606,7 @@ check('el ejercicio de cláusula NO requiere ninguna aceptación del club de ori
     id: 'origin:t9-1', clauses: [{ id: 'clause-9', type: 'player-release', holder: 'player', amount: { amountMinor: 8000000, currency: 'EUR' }, support: 'modeled-only', status: 'simulated' }],
   });
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-t9-1', EARLY_DATE);
-  const { plan, result } = TransferService.formalizeReleaseClauseExercise({
+  const { plan, result } = TransferFixture.formalizeReleaseClauseExercise({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: EARLY_DATE, now: EARLY_DATE, commit: true, clauseId: 'clause-9', exercisedBy: 'player',
   });
   assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
@@ -588,7 +623,7 @@ check('un importe distinto al de la cláusula congelada se rechaza', () => {
     id: 'origin:t9-2', clauses: [{ id: 'clause-9b', type: 'player-release', holder: 'player', amount: { amountMinor: 8000000, currency: 'EUR' }, support: 'modeled-only', status: 'simulated' }],
   });
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-t9-2', EARLY_DATE);
-  assert.throws(() => TransferService.formalizeReleaseClauseExercise({
+  assert.throws(() => TransferFixture.formalizeReleaseClauseExercise({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: EARLY_DATE, now: EARLY_DATE, commit: true, clauseId: 'clause-does-not-exist', exercisedBy: 'player',
   }), /inexistente/);
 });
@@ -603,7 +638,7 @@ check('liberación sin destino: jugador libre, accesible en el Player Registry, 
   const originTeam = realTeam('team-real-madrid');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 30, maxAge: 34 });
   makeOriginContract(world, originTeam, player, { id: 'origin:t10-1', salaryMinor: 4000000 });
-  const { plan, result } = TransferService.formalizeMutualAgreement({
+  const { plan, result } = TransferFixture.formalizeMutualAgreement({
     ...world, teams: [originTeam], originTeam, destinationTeam: null, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     mutualSettlement: { partiesConsent: ['club', 'player'], amount: { amountMinor: 500000, currency: 'EUR' } }, playerId: player.id,
   });
@@ -619,7 +654,7 @@ check('mutuo acuerdo sin pacto explícito bloquea (nunca inventa importe/decisi�
   const originTeam = realTeam('team-real-madrid');
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 30, maxAge: 34 });
   makeOriginContract(world, originTeam, player, { id: 'origin:t10-2' });
-  const { plan, result } = TransferService.formalizeMutualAgreement({
+  const { plan, result } = TransferFixture.formalizeMutualAgreement({
     ...world, teams: [originTeam], originTeam, destinationTeam: null, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     mutualSettlement: null, playerId: player.id,
   });
@@ -652,7 +687,7 @@ function buildFreeAgentFixture(seed) {
     RegistrationService[methodName] = () => { throw new Error(`INJECTED:${methodName}`); };
     let threw = false;
     try {
-      TransferService.formalizeFreeAgentSigning({
+      TransferFixture.formalizeFreeAgentSigning({
         ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
       });
     } catch (err) {
@@ -678,7 +713,7 @@ check('fallo inyectado tras mover el roster revierte también la afiliación e i
     throw new Error('INJECTED after roster move');
   };
   try {
-    assert.throws(() => TransferService.formalizeFreeAgentSigning({
+    assert.throws(() => TransferFixture.formalizeFreeAgentSigning({
       ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     }));
   } finally {
@@ -702,7 +737,7 @@ check('fallo inyectado en el registro del contrato nuevo no deja el AIP consumid
     throw new Error('INJECTED at contract register');
   };
   try {
-    assert.throws(() => TransferService.formalizeFreeAgentSigning({
+    assert.throws(() => TransferFixture.formalizeFreeAgentSigning({
       ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     }));
   } finally {
@@ -720,7 +755,7 @@ group('12. Idempotencia y AIP');
 
 check('un AIP completado deja de bloquear el mercado para ese jugador', () => {
   const fx = buildFreeAgentFixture('seed-t12-1');
-  TransferService.formalizeFreeAgentSigning({
+  TransferFixture.formalizeFreeAgentSigning({
     ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
   });
   assert.strictEqual(fx.marketRegistry.hasLiveAgreementForPlayer(fx.player.id, GAME_DATE), false);
@@ -730,7 +765,7 @@ check('un AIP expirado no se ejecuta', () => {
   const fx = buildFreeAgentFixture('seed-t12-2');
   // Forzamos la expiración moviendo la fecha de ejecución más allá de validUntil.
   const farFuture = LocalDate.addDays(fx.agreement.validUntil, 5);
-  assert.throws(() => TransferService.formalizeFreeAgentSigning({
+  assert.throws(() => TransferFixture.formalizeFreeAgentSigning({
     ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: farFuture, now: farFuture, commit: true,
   }));
 });
@@ -817,7 +852,7 @@ check('effectiveDate futura: NO se ejecuta hoy, el expediente queda "scheduled" 
   const agreement = makeLiveAgreement(world, team, player, 'seed-t14-1', GAME_DATE);
   const futureDate = LocalDate.addDays(GAME_DATE, 10);
   const before = deepWorldSnapshot(world, [team]);
-  const { plan, result } = TransferService.formalizeFreeAgentSigning({
+  const { plan, result } = TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
   });
   assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));
@@ -839,7 +874,7 @@ check('retryScheduledTransferCase antes de la fecha efectiva: sigue "scheduled",
   world.playerRegistry.register(player);
   const agreement = makeLiveAgreement(world, team, player, 'seed-t14-2', GAME_DATE);
   const futureDate = LocalDate.addDays(GAME_DATE, 10);
-  TransferService.formalizeFreeAgentSigning({
+  TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
   });
   const transferCase = world.transferRegistry.casesForPlayer(player.id)[0];
@@ -859,7 +894,7 @@ check('retryScheduledTransferCase en/tras la fecha efectiva: ejecuta el fichaje 
   world.playerRegistry.register(player);
   const agreement = makeLiveAgreement(world, team, player, 'seed-t14-3', GAME_DATE);
   const futureDate = LocalDate.addDays(GAME_DATE, 10);
-  TransferService.formalizeFreeAgentSigning({
+  TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
   });
   const transferCase = world.transferRegistry.casesForPlayer(player.id)[0];
@@ -878,7 +913,7 @@ check('retryScheduledTransferCase sobre un expediente ya completado no reintenta
   const player = PlayerGenerator.generateFictionalPlayer({ minAge: 24, maxAge: 28 });
   world.playerRegistry.register(player);
   const agreement = makeLiveAgreement(world, team, player, 'seed-t14-4', GAME_DATE);
-  const { transferCase } = TransferService.formalizeFreeAgentSigning({
+  const { transferCase } = TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
   });
   assert.strictEqual(transferCase.statusOn(GAME_DATE), 'completed');
@@ -900,7 +935,7 @@ check('retryScheduledTransferCase con fechas fuera de orden (dos divisiones/liga
   world.playerRegistry.register(player);
   const agreement = makeLiveAgreement(world, team, player, 'seed-t14-5', GAME_DATE);
   const futureDate = LocalDate.addDays(GAME_DATE, 10);
-  TransferService.formalizeFreeAgentSigning({
+  TransferFixture.formalizeFreeAgentSigning({
     ...world, teams: [team], agreement, destinationTeam: team, seasonKey: SEASON, effectiveDate: futureDate, now: GAME_DATE, commit: true,
   });
   const transferCase = world.transferRegistry.casesForPlayer(player.id)[0];
@@ -980,7 +1015,7 @@ check('BUG-TRANSFER1-13: fallo tras emitir la licencia de destino revierte la li
   const originalCreate = RegistrationService.createRegistration;
   RegistrationService.createRegistration = () => { throw new Error('INJECTED after issueLicense'); };
   try {
-    assert.throws(() => TransferService.formalizeFreeAgentSigning({
+    assert.throws(() => TransferFixture.formalizeFreeAgentSigning({
       ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     }));
   } finally {
@@ -997,7 +1032,7 @@ check('BUG-TRANSFER1-14: un fallo AL REGISTRAR el recibo revierte también la pr
   const originalRegisterTx = fx.transferRegistry.registerTransactionRecord.bind(fx.transferRegistry);
   fx.transferRegistry.registerTransactionRecord = () => { throw new Error('INJECTED after salary projection refresh'); };
   try {
-    assert.throws(() => TransferService.formalizeFreeAgentSigning({
+    assert.throws(() => TransferFixture.formalizeFreeAgentSigning({
       ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     }));
   } finally {
@@ -1021,7 +1056,7 @@ check('BUG-TRANSFER1-15: matchupOverrides (objeto, no array) y foco/rol individu
   originTeam.tacticalProfile.matchupOverrides[player.id] = otherPlayer.id; // saliente como DEFENSOR
   originTeam.tacticalProfile.matchupOverrides[otherPlayer.id] = player.id; // saliente como OBJETIVO de otro
   const agreement = makeLiveAgreement(world, destinationTeam, player, 'seed-bug15');
-  const { plan, result } = TransferService.formalizeNegotiatedTransfer({
+  const { plan, result } = TransferFixture.formalizeNegotiatedTransfer({
     ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
     clubOffer: { id: 'co-bug15', fee: { amountMinor: 100000, currency: 'EUR' } }, playerConsentGrantedAt: GAME_DATE,
   });
@@ -1049,7 +1084,7 @@ check('BUG-TRANSFER1-15: un fallo inyectado tras mover el roster restaura EXACTO
   const originalIssue = RegistrationService.issueLicense;
   RegistrationService.issueLicense = () => { throw new Error('INJECTED bug15 rollback after roster move'); };
   try {
-    assert.throws(() => TransferService.formalizeNegotiatedTransfer({
+    assert.throws(() => TransferFixture.formalizeNegotiatedTransfer({
       ...world, teams: [originTeam, destinationTeam], agreement, originTeam, destinationTeam, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: true,
       clubOffer: { id: 'co-bug15b', fee: { amountMinor: 100000, currency: 'EUR' } }, playerConsentGrantedAt: GAME_DATE,
     }));
@@ -1066,6 +1101,9 @@ check('BUG-TRANSFER1-16: planTransaction bloquea explícito sin "operationalCont
   const fx = buildFreeAgentFixture('seed-bug16');
   const command = {
     transactionId: 'tx-bug16', operationType: 'free-agent-signing', playerId: fx.player.id, destinationClubId: fx.team.id, effectiveDate: GAME_DATE, agreementInPrincipleId: fx.agreement.id,
+    // WORLD-CONTEXT-1: un comando construido a mano declara su contexto
+    // competitivo explícito, igual que el que construye TransferService.
+    destinationCompetitionId: fixtureCompetitionIdFor(fx.team),
   };
   const depsNoContext = {
     playerRegistry: fx.playerRegistry, contractRegistry: fx.contractRegistry, registrationRegistry: fx.registrationRegistry, marketRegistry: fx.marketRegistry, transferRegistry: fx.transferRegistry, teams: [fx.team],
@@ -1093,7 +1131,7 @@ check('BUG-TRANSFER1-17: un plan queda obsoleto por CONTENIDO aunque el roster d
   fx.team.roster.push(stayingPlayer);
   stayingPlayer.teamId = fx.team.id;
   fx.playerRegistry.register(stayingPlayer);
-  const { plan } = TransferService.formalizeFreeAgentSigning({
+  const { plan } = TransferFixture.formalizeFreeAgentSigning({
     ...fx, teams: [fx.team], destinationTeam: fx.team, seasonKey: SEASON, effectiveDate: GAME_DATE, now: GAME_DATE, commit: false,
   });
   assert.strictEqual(plan.blockers.length, 0, JSON.stringify(plan.blockers));

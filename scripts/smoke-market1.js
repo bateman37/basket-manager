@@ -86,6 +86,19 @@ function linkLegacyClub(team) {
   return team;
 }
 
+// WORLD-CONTEXT-1 (DESIGN.md 10.20): este smoke es un FIXTURE HISTÓRICO
+// pre-World — declara la competición de cada equipo con el adaptador legacy
+// (permitido SOLO en `scripts/`) y la pasa EXPLÍCITA a los servicios
+// profesionales, que ya no aceptan derivarla de `team.division`.
+function fixtureCompetitionIdFor(team) {
+  if (!team) return null; // liberación pura: no hay club de destino
+  // Se deriva SIEMPRE de la división VIGENTE del fixture: un ascenso/descenso
+  // dentro del propio smoke cambia la competición del equipo, así que nunca
+  // se congela el valor al construirlo.
+  return CompetitionRules.competitionIdFromLegacyDivision(team.division);
+}
+const fixtureCompetitionResolver = (team) => fixtureCompetitionIdFor(team);
+
 function buildRealTeam(teamData, referenceDate, seasonKey) {
   const roster = teamData.roster.map((playerData) => {
     const { dataSource, ...playerFields } = playerData;
@@ -229,10 +242,10 @@ assert.ok(ClubEmploymentContextCatalog.validateCatalog(allTeams).valid, 'context
 
 const contractRegistry = new ContractRegistry();
 let bootstrapIsoDate = LocalDate.fromJsDate(referenceDate);
-ContractSeeder.seedContractsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE });
+ContractSeeder.seedContractsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registry: contractRegistry, playerRegistry, config: CONFIG_BASE, competitionIdForTeam: fixtureCompetitionResolver });
 
 const registrationRegistry = new RegistrationRegistry();
-RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE });
+RegistrationSeeder.seedRegistrationsForTeams({ teams: allTeams, seasonKey, date: bootstrapIsoDate, registrationRegistry, contractRegistry, config: CONFIG_BASE, competitionIdForTeam: fixtureCompetitionResolver });
 
 // --- MARKET-1: registros y bootstrap de mercado, por CARRERA -----------
 let agentRegistry = new AgentRegistry();
@@ -293,7 +306,7 @@ console.log('OK: Player/Contract/Registration/Agent/Market/Transfer/Loan Registr
 // Fixtures dirigidos de mercado (sección 19.2 del prompt)
 // =====================================================================
 function buildValidOfferDraft(team, player, isoDate, salaryMinor, seasons) {
-  const resolved = ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' });
+  const resolved = ContractService.resolveRulesForClub(team, { seasonKey, date: isoDate, operation: 'validateMarketOffer' , domesticCompetitionId: fixtureCompetitionIdFor(team) });
   const employment = resolved.employment;
   const currency = employment.allowedCurrencies[0];
   const seasonKeys = [];
@@ -350,6 +363,7 @@ function runFreeAgentInquiryToAgreementFixture() {
   let offer = MarketService.createAndSendOffer({
     marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: 'core' }, date: dueEvent.dueDate, careerSeed: CAREER_SEED, marketContext,
     team, player, playerRegistry, contractRegistry, seasonKey,
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   let round = 0;
   let outcome = null;
@@ -357,7 +371,7 @@ function runFreeAgentInquiryToAgreementFixture() {
     const responseDate = LocalDate.addDays(offer.createdAt, 1);
     const result = MarketService.processOfferResponse({
       marketRegistry, playerRegistry, thread, offer, date: responseDate, careerSeed: CAREER_SEED, marketContext,
-      team, contractRegistry, seasonKey,
+      team, contractRegistry, seasonKey, domesticCompetitionId: fixtureCompetitionIdFor(team),
     });
     if (result.outcome !== 'countered') { outcome = result; break; }
     offer = result.counterOffer;
@@ -401,10 +415,11 @@ function runLowballRejectionFixture() {
   const offer = MarketService.createAndSendOffer({
     marketRegistry, thread, draft, offeredBy: 'club', date: isoDate, careerSeed: CAREER_SEED, marketContext,
     team, player, playerRegistry, contractRegistry, seasonKey,
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   const result = MarketService.processOfferResponse({
     marketRegistry, playerRegistry, thread, offer, date: LocalDate.addDays(isoDate, 1), careerSeed: CAREER_SEED, marketContext,
-    team, contractRegistry, seasonKey,
+    team, contractRegistry, seasonKey, domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   assert.strictEqual(result.outcome, 'rejected', 'una oferta insultantemente baja debe rechazarse');
   assert.ok(marketRegistry.getBudgetReservationGroup(`res:${offer.id}`).every((line) => line.status === 'released'));
@@ -423,6 +438,7 @@ function runContractedPlayerTransferConditionFixture() {
   const draft = buildValidOfferDraft(team, player, isoDate, 10000000, 1);
   const validation = ContractService.validateDraft({
     draft, team, player, playerRegistry, contractRegistry, seasonKey, date: isoDate,
+    domesticCompetitionId: fixtureCompetitionIdFor(team),
   });
   assert.strictEqual(validation.requiresTransferResolution, true, 'una oferta a jugador bajo contrato de OTRO club debe marcar requiresTransferResolution');
   assert.strictEqual(contractRegistry.currentForPlayer(player.id, isoDate).clubId, otherTeam.id, 'el contrato original no se toca');
