@@ -1,5 +1,154 @@
 # CHANGELOG.md
 
+## 2026-09-07 — NATIONAL-TEAMS-1: selecciones, elegibilidad y ventanas FIBA (DESIGN.md sección 10.17)
+
+Séptima entrega de la EPIC **World Architecture** (WORLD-CORE-1 →
+CLUB-CORE-1 → COMP-CORE-1 → WORLD-CALENDAR-1 → PATHWAYS-1 → WORLD-SIM-1 →
+**NATIONAL-TEAMS-1** → WORLD-UI-1 → WORLD-HARDEN-1). Base: merge de la PR
+de WORLD-SIM-1 en `origin/main` (`2314161`). Rama `claude/modest-gauss-ab8bat`.
+
+Incorpora selecciones nacionales al MISMO mundo, motor de competiciones,
+calendario y niveles de detalle ya existentes — no crea un segundo juego
+paralelo ni vuelve a colocar España en el centro de la arquitectura. La
+vertical de prueba es ficticia y vive únicamente en
+`scripts/test-national-teams1.js`/`scripts/smoke-national-teams1.js`: la
+partida española sigue teniendo únicamente ACB, Primera FEB y Copa ACB
+como Editions jugables, sin ninguna federación/selección/ventana FIBA real
+instalada.
+
+### Bugs/deudas corregidos
+
+- **`BUG-NATIONAL1-01`** — `WorldRegistries.registerTeam()` exigía
+  `clubId` a TODO equipo, así que un `national-team` (que nunca tiene
+  club) no podía registrarse pese a que `participantType: 'national-team'`
+  ya existía desde WORLD-CORE-1. *Corrección*: `Team` gana `teamKind:
+  'club-team' | 'national-team'` — `registerTeam()`/`validateIntegrity()`
+  validan la rama correcta según el tipo (national-team exige
+  `federationOrganizationId`/`representedAreaId` reales, nunca `clubId`).
+- **`BUG-NATIONAL1-02`** — un `CompetitionEntry` "national-team" podía
+  registrarse sin comprobar que su participante existiera de verdad ni que
+  su `teamKind` coincidiera con `participantType` (la comprobación previa
+  solo cubría `club-team`). *Corrección*: `WorldRegistries.
+  registerCompetitionEntry()` valida AMBOS tipos al registrar, revalidado
+  además en `validateIntegrity()`.
+- **`BUG-NATIONAL1-03`** — la unicidad GLOBAL de squad activo por jugador
+  impedía que un jugador estuviera a la vez en su plantilla de club y en
+  una selección. *Corrección*: `Squad` gana `membershipContext:
+  'club-service' | 'national-team-duty'` — la unicidad pasa a ser POR
+  CONTEXTO (máximo uno de cada, nunca dos del mismo), con
+  `activeClubSquadForPlayer()`/`activeNationalTeamSquadForPlayer()` nuevos
+  y `activeSquadForPlayer()` conservado como alias legacy de club-service.
+- **`BUG-NATIONAL1-04`** — `nationalTeamAppearances` era un array suelto
+  en `PlayerRegulatoryProfile` sin expediente canónico ni fuente de
+  verdad. *Corrección*: `NationalTeamAppearanceReceipt`
+  (`NationalTeamRegistry`) es la fuente CANÓNICA nueva — inmutable, exige
+  `detailLevel` `playable`/`full` (rechaza `standard`/`abstract` en el
+  propio constructor); el array legacy sigue existiendo SOLO como
+  fallback de solo lectura para fixtures/tests anteriores a esta entrega.
+- **`BUG-NATIONAL1-05`** — `CompetitionSimulationService.
+  interactiveCohortTeams()` devolvía cualquier Team de una Edition
+  "playable" sin mirar su tipo — una selección "playable" futura habría
+  entrado por accidente en bootstrap de contratos/licencias domésticas/
+  mercado/ciclo anual de clubes. *Corrección*: filtra además
+  explícitamente por `teamKind === 'club-team'`. Sin cambio observable
+  hoy (mismos 36 equipos españoles).
+- **`BUG-NATIONAL1-06`** — el calendario mundial no conocía ventanas ni
+  servicio internacional. *Corrección*: nueva fuente `national-team-duty`
+  (`WorldCalendarCoordinator.js`) que lista los 5 plazos de cada
+  `NationalTeamWindow` como items planos y delega en `NationalTeamService`
+  — nunca es parada del usuario, idempotente vía `window.
+  markStepResolved()`. No se conecta al calendario de la partida española
+  en esta entrega (no hay ninguna ventana real que listar ahí) — demostrada
+  en el módulo genérico y en el smoke.
+- **`BUG-NATIONAL1-07`** — la carga actual no contiene pasaportes/
+  decisiones suficientes para inferir elegibilidad real sin inventar
+  datos. *Corrección*: no se corrige inventando — `PlayerRegulatoryProfile`
+  gana `birthAreaId`/`passportEvidences[]` (ambos vacíos por defecto para
+  cualquier jugador real ya cargado) y
+  `NationalTeamEligibilityService.evaluateNationalEligibility()` devuelve
+  SIEMPRE `unknown` ante un pasaporte ausente — nunca elegible silencioso.
+  No se enriquece ningún jugador real de `data/real/*` con nacionalidad/
+  pasaporte inventados.
+- Corrección incidental encontrada al ejecutar la regresión obligatoria
+  (no es un `BUG-NATIONAL1-0x`, sin relación con selecciones):
+  `scripts/test-club-core1.js` fallaba 6 de sus comprobaciones (sección 9,
+  "paquete español real") en `origin/main` TAL CUAL, antes de cualquier
+  cambio de esta sesión (confirmado revirtiendo el árbol de trabajo y
+  reejecutando) — `buildSpainWorld()` construía el mundo sin
+  `simulationProfile`, y desde WORLD-SIM-1 `data/world/spain-2026.1.js`
+  exige esa dependencia para resolver `detailLevel`. Corregido con el
+  MISMO perfil transitorio que ya usan `game.js`/
+  `scripts/test-world-sim1.js` (ACB/Primera FEB/Copa ACB "playable"
+  explícito) — la regresión pasa a estar realmente verificada.
+
+### Entidades, registros y servicios añadidos
+
+`src/entities/NationalTeam.js` (`NationalStatusDecision`,
+`NationalTeamWindow`, `NationalTeamSelection`, `NationalTeamCallUp`,
+`NationalTeamAppearanceReceipt`), `src/core/NationalTeamRegistry.js`
+(instancia explícita por carrera, `Map` solo como implementación interna),
+`src/core/NationalTeamRules.js` (bundle `fiba-national-teams-2026.1`,
+fuentes FIBA Internal Regulations Books 1-3, composición semántica de
+overlay de handbook — nunca `Object.assign()`), `src/core/
+NationalTeamEligibilityService.js` (puro, `unknown`/`ineligible`/
+`pending-decision`/`eligible`/`eligible-restricted`) y `src/core/
+NationalTeamService.js` (único dueño de las transiciones: ventana, lista
+preliminar/final, notificar convocatorias, incorporar/liberar servicio
+internacional, retirada justificada, registrar aparición oficial —
+válida-todo-antes-de-mutar, nunca elige jugadores por overall/reputación).
+
+### Ficheros modificados
+
+`src/entities/Team.js` (`teamKind`), `src/entities/Squad.js`
+(`membershipContext`), `src/core/WorldRegistry.js` (`registerTeam`/
+`registerSquad`/`registerCompetitionEntry`/`validateIntegrity` por tipo/
+contexto), `src/entities/World.js` (`nationalTeamRegistry` en
+`domainRegistries` + resumen en `describe()`), `src/core/
+CompetitionSimulationService.js` (`interactiveCohortTeams` filtra por
+`teamKind`), `src/entities/Registration.js` (`PlayerRegulatoryProfile.
+birthAreaId`/`passportEvidences[]`), `src/core/
+RegulatoryClassificationService.js` (`classifyFormationFeb28` consulta
+`nationalTeamRegistry` con fallback legacy), `src/core/
+EligibilityService.js` (reason code `NATIONAL_TEAM_DUTY`), `src/core/
+WorldCalendarCoordinator.js` (fuente `national-team-duty`), `src/ui/
+game.js` (`state.nationalTeamRegistry`, adjuntado a `domainRegistries` y
+pasado como dependencia a los tres call-sites de
+`EligibilityService.evaluateEligibility()`), `index.html` (carga de los
+cinco módulos nuevos), `scripts/test-club-core1.js` (corrección incidental
+de `simulationProfile`, ver arriba).
+
+### Pruebas realmente ejecutadas
+
+- `node scripts/test-national-teams1.js` — **19 OK, 0 fallos**.
+- `node scripts/smoke-national-teams1.js` — **OK en ~0.1s** (4
+  selecciones, 1 ventana FIBA, Copa Continental "standard" + Mundial
+  "abstract", convocatoria→incorporación→simulación→liberación,
+  integridad y determinismo).
+- Regresión: `node scripts/test-club-core1.js` (**36 OK, 0 fallidas**,
+  tras la corrección incidental de arriba), `node scripts/test-reg1.js`
+  (**88 OK, 0 FAIL**), `node scripts/test-world-calendar1.js` (**25 OK, 0
+  FAIL**), `node scripts/test-world-sim1.js` (**19 OK, 0 FAIL**).
+- `node --check` sobre todos los `.js` nuevos/modificados de esta sesión:
+  sin errores. `git diff --check`: sin errores.
+
+### Límites de esta entrega
+
+Sin navegación/selector de selecciones (WORLD-UI-1); sin contenido real
+de selecciones/torneos/ventanas FIBA ni enriquecimiento real de
+nacionalidades/pasaportes de jugadores reales ya cargados; sin modo
+jugable de seleccionador ni elección de convocados por IA; sin
+estadísticas internacionales detalladas/récords/`PlayerCareer`
+internacional; sin transfer internacional/Letter of Clearance; sin
+cambios a balance/tácticas/`MatchEngine`/lesiones/desarrollo; la fuente
+`national-team-duty` del calendario no se conecta a la partida española
+(no hay ninguna ventana real que listar). Confirmado explícitamente:
+`data/real/*` no se modificó, no se añadió SQL/backend/save-load nuevo, no
+se añadió ninguna dependencia nueva (sigue sin `package.json`).
+
+Siguiente entrega: **WORLD-UI-1** (navegación Mundo → Continente → País →
+Competición, configuración de carrera, selección de ligas/nivel de
+detalle).
+
 ## 2026-09-06 — WORLD-SIM-1: niveles de detalle y simulación mundial acotada (DESIGN.md sección 10.16)
 
 Sexta entrega de la EPIC **World Architecture** (WORLD-CORE-1 →

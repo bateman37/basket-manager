@@ -38,6 +38,21 @@
 
   const DIVISIONS = ['1ª', '2ª'];
 
+  // NATIONAL-TEAMS-1 (DESIGN.md 10.17) — vocabulario CERRADO de qué clase de
+  // entidad deportiva es este `Team`. `club-team` es el fallback SOLO del
+  // constructor aislado usado por fixtures/tests legacy (sección 3.1 del
+  // prompt: "para evitar reescribir decenas de tests irrelevantes") — todo
+  // equipo registrado por un paquete de contenido nuevo declara su
+  // `teamKind` explícito.
+  const TEAM_KINDS = ['club-team', 'national-team'];
+
+  function validateTeamKind(kind) {
+    if (!TEAM_KINDS.includes(kind)) {
+      throw new Error(`Team: teamKind "${kind}" no válido — debe ser una de ${TEAM_KINDS.join(', ')}.`);
+    }
+    return kind;
+  }
+
   // CLUB-CORE-1 (DESIGN.md sección 10, "no combines género, edad y rol en
   // un único string imposible de extender"): rol/categoría estructurados,
   // con `teamType` conservado como ALIAS legacy derivado (nunca fuente de
@@ -183,6 +198,11 @@
     constructor(data = {}) {
       this.id = data.id || generateId();
 
+      // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 3.1 del prompt) — se
+      // resuelve ANTES que `clubId`/federación/área representada, porque
+      // esos tres campos son relaciones VÁLIDAS distintas según el tipo.
+      this.teamKind = validateTeamKind(data.teamKind || 'club-team');
+
       // --- Datos básicos ---
       this.name = data.name || '';
       this.city = data.city || '';
@@ -206,7 +226,31 @@
       // migrado (Liga/Copa/Playoffs/Ascenso), pero `legacyDivision` es el
       // nombre explícito para código NUEVO que necesite leer ese puente
       // sabiendo que es compatibilidad, no verdad.
-      this.clubId = data.clubId || null;
+      // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 3.1 del prompt) —
+      // relaciones VÁLIDAS por `teamKind`: un "club-team" exige `clubId`
+      // (al entrar en `GameWorld`, comprobado por
+      // `WorldRegistries.registerTeam()`, no aquí en modo bootstrap) y
+      // nunca tiene federación/área representada; un "national-team" NUNCA
+      // tiene club y exige federación+área representada explícitas ya en el
+      // constructor (fallan rápido, no solo al registrar).
+      if (this.teamKind === 'national-team') {
+        if (data.clubId) {
+          throw new Error(`Team "${this.id}": un equipo "national-team" no puede declarar "clubId" (solo un "club-team" tiene club).`);
+        }
+        if (!data.federationOrganizationId) {
+          throw new Error(`Team "${this.id}": un equipo "national-team" exige "federationOrganizationId" explícito.`);
+        }
+        if (!data.representedAreaId) {
+          throw new Error(`Team "${this.id}": un equipo "national-team" exige "representedAreaId" explícito.`);
+        }
+        this.clubId = null;
+        this.federationOrganizationId = data.federationOrganizationId;
+        this.representedAreaId = data.representedAreaId;
+      } else {
+        this.clubId = data.clubId || null;
+        this.federationOrganizationId = null;
+        this.representedAreaId = null;
+      }
       // CLUB-CORE-1: referencia VIVA a la instancia real de `Club` (nunca
       // una copia) — `null` hasta que un paquete de contenido la enlace
       // (`team.club = clubInstance`, mismo patrón que `team.clubId`). Los
@@ -563,7 +607,10 @@
         name: this.name,
         city: this.city,
         division: this.division,
+        teamKind: this.teamKind,
         clubId: this.clubId,
+        federationOrganizationId: this.federationOrganizationId,
+        representedAreaId: this.representedAreaId,
         teamType: this.teamType,
         role: this.role,
         category: { ...this.category },
@@ -599,6 +646,7 @@
   const exportsObj = {
     Team,
     DIVISIONS,
+    TEAM_KINDS,
     MATCH_SQUAD_MIN,
     MATCH_SQUAD_MAX,
     TEST_MATCH_SQUAD_POLICY,

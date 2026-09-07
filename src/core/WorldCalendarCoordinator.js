@@ -32,6 +32,11 @@
     MARKET_EVENT: 'market-event',
     TRANSFER_EVENT: 'transfer-event',
     LOAN_EVENT: 'loan-event',
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 6 del prompt): plazos
+    // administrativos + servicio internacional de una NationalTeamWindow —
+    // nunca es parada del usuario (ver `requiresUser()` más abajo, que no
+    // declara ninguna rama para esta fuente).
+    NATIONAL_TEAM_DUTY: 'national-team-duty',
   };
 
   const STOP_TYPES = {
@@ -286,6 +291,67 @@
   }
 
   // =======================================================================
+  // Fuente NUEVA — `national-team-duty` (NATIONAL-TEAMS-1, DESIGN.md 10.17,
+  // sección 6 del prompt): plazos administrativos y servicio internacional
+  // de cada `NationalTeamWindow` — lista items PLANOS y delega SIEMPRE en
+  // `NationalTeamService` a través del callback inyectado; esta fuente no
+  // contiene reglas propias. Nunca es parada del usuario (una ventana FIBA
+  // jamás exige intervención humana en el club, `requiresUser()` no declara
+  // ninguna rama para este `sourceType`).
+  //
+  // Cada ventana declara 5 pasos fechados (aviso, lista preliminar, lista
+  // final, inicio y fin de servicio); `window.hasResolvedStep()`/
+  // `markStepResolved()` evita relistar un paso ya resuelto en la próxima
+  // sincronización (mismo problema que resuelven los eventos "processed" de
+  // Market/Loan, aquí resuelto en la propia ventana porque declara varios
+  // plazos distintos, no uno solo) — así reprocesar un item ya resuelto es
+  // idempotente (sección 6: "reprocesar un item ya resuelto es idempotente").
+  // =======================================================================
+  function createNationalTeamDutySource({ nationalTeamRegistry, resolveItem, timeZoneId }) {
+    if (!nationalTeamRegistry) throw new Error('createNationalTeamDutySource: falta "nationalTeamRegistry".');
+    requireFunction(resolveItem, 'resolveItem({ windowId, step, item })');
+    const fallbackZone = timeZoneId || null;
+    return {
+      sourceType: SOURCE_TYPES.NATIONAL_TEAM_DUTY,
+      listPendingItems() {
+        const items = [];
+        nationalTeamRegistry.allWindows()
+          .filter((window) => window.status !== 'completed' && window.status !== 'cancelled')
+          .forEach((window) => {
+            const zone = window.timeZoneId || fallbackZone;
+            if (!zone) {
+              throw new Error(`national-team-duty: la ventana "${window.id}" no declara "timeZoneId" y la fuente no tiene huso por defecto.`);
+            }
+            [
+              ['notice-due', window.noticeDueAt],
+              ['preliminary-roster-due', window.preliminaryRosterDueAt],
+              ['final-roster-due', window.finalRosterDueAt],
+              ['duty-starts', window.dutyStartsAt],
+              ['duty-ends', window.dutyEndsAt],
+            ]
+              .filter(([step]) => !window.hasResolvedStep(step))
+              .forEach(([step, instant]) => {
+                items.push({
+                  sourceId: `${window.id}:${step}`,
+                  moment: { precision: 'instant', instant, timeZoneId: zone },
+                  // Nunca exige atención del usuario (sección 6 del prompt).
+                  attentionScope: { teamIds: [], clubIds: [] },
+                  metadata: { kind: 'national-team-duty', step, windowId: window.id },
+                });
+              });
+          });
+        return items;
+      },
+      resolveItem(item) {
+        const result = resolveItem({ windowId: item.metadata.windowId, step: item.metadata.step, item });
+        const window = nationalTeamRegistry.getWindow(item.metadata.windowId);
+        if (window) window.markStepResolved(item.metadata.step);
+        return result;
+      },
+    };
+  }
+
+  // =======================================================================
   // Coordinador temporal
   // =======================================================================
   class WorldCalendarCoordinator {
@@ -518,6 +584,7 @@
     createMarketEventSource,
     createTransferEventSource,
     createLoanEventSource,
+    createNationalTeamDutySource,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

@@ -14,6 +14,14 @@
 (function (global) {
   const SQUAD_STATUSES = ['active', 'inactive', 'historical', 'fictional-test'];
 
+  // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 3.2 del prompt) — club y
+  // selección son afiliaciones SIMULTÁNEAS distintas: `membershipContext`
+  // distingue el squad OPERATIVO de club (`club-service`, todos los squads
+  // anteriores a esta entrega) del squad de convocatoria nacional
+  // (`national-team-duty`). Por defecto `club-service` — ningún squad
+  // existente cambia de forma.
+  const MEMBERSHIP_CONTEXTS = ['club-service', 'national-team-duty'];
+
   class Squad {
     constructor(data = {}) {
       if (!data.id) throw new Error('Squad: falta "id".');
@@ -21,6 +29,10 @@
       this.id = data.id;
       this.teamId = data.teamId;
       this.name = data.name || this.id;
+      this.membershipContext = data.membershipContext || 'club-service';
+      if (!MEMBERSHIP_CONTEXTS.includes(this.membershipContext)) {
+        throw new Error(`Squad "${data.id}": membershipContext "${this.membershipContext}" no válido — debe ser una de ${MEMBERSHIP_CONTEXTS.join(', ')}.`);
+      }
       // Rol explícito coherente con el equipo (DESIGN.md 5.3) — por ahora
       // "un equipo activo tiene exactamente un squad operativo activo", así
       // que el valor por defecto asume la plantilla senior principal.
@@ -65,6 +77,7 @@
         teamId: this.teamId,
         name: this.name,
         squadType: this.squadType,
+        membershipContext: this.membershipContext,
         status: this.status,
         playerIds: this.players.map((player) => player.id),
         dataSource: this.dataSource,
@@ -73,7 +86,7 @@
     }
   }
 
-  const exportsObj = { Squad, SQUAD_STATUSES };
+  const exportsObj = { Squad, SQUAD_STATUSES, MEMBERSHIP_CONTEXTS };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = exportsObj;

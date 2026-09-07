@@ -126,10 +126,21 @@
       return this.forTeam(teamId).find((squad) => squad.status === 'active') || null;
     }
 
-    // Squad ACTIVO que contiene actualmente a un jugador concreto — un
-    // Player aparece como máximo en un squad activo del mundo (invariante 8).
-    activeSquadForPlayer(playerId) {
-      return this.all().find((squad) => squad.status === 'active' && squad.hasPlayer(playerId)) || null;
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 3.2 del prompt) — club y
+    // selección son afiliaciones SIMULTÁNEAS distintas: un jugador puede
+    // tener a la vez un squad activo `club-service` y uno
+    // `national-team-duty`, nunca dos del MISMO contexto. `activeSquadForPlayer()`
+    // sobrevive como alias LEGACY de `activeClubSquadForPlayer()` — sus
+    // consumidores actuales (anteriores a esta entrega) preguntan siempre
+    // por afiliación laboral/de club, nunca por deber internacional.
+    activeSquadForPlayer(playerId) { return this.activeClubSquadForPlayer(playerId); }
+
+    activeClubSquadForPlayer(playerId) {
+      return this.all().find((squad) => squad.status === 'active' && squad.membershipContext === 'club-service' && squad.hasPlayer(playerId)) || null;
+    }
+
+    activeNationalTeamSquadForPlayer(playerId) {
+      return this.all().find((squad) => squad.status === 'active' && squad.membershipContext === 'national-team-duty' && squad.hasPlayer(playerId)) || null;
     }
   }
 
@@ -294,9 +305,29 @@
     }
 
     // `team` es la instancia REAL ya construida (invariante 16) — este
-    // método solo la registra, nunca la reconstruye. Requiere que
-    // `team.clubId` ya apunte a un club existente.
+    // método solo la registra, nunca la reconstruye. BUG-NATIONAL1-01
+    // (DESIGN.md 10.17): antes exigía `clubId` a TODO Team, así que un
+    // `national-team` (que nunca tiene club) no podía registrarse. Ahora
+    // valida la rama correcta según `teamKind` (invariante 5/nueva
+    // invariante de NATIONAL-TEAMS-1: "un national-team no tiene Club y sí
+    // federación/área válidas").
     registerTeam(team) {
+      if (team.teamKind === 'national-team') {
+        if (team.clubId) {
+          throw new Error(`WorldRegistries: el equipo "${team.id}" es "national-team" y no puede declarar "clubId".`);
+        }
+        if (!team.federationOrganizationId || !this.organizations.has(team.federationOrganizationId)) {
+          throw new Error(`WorldRegistries: el equipo "${team.id}" referencia una federación inexistente "${team.federationOrganizationId}".`);
+        }
+        const federation = this.organizations.get(team.federationOrganizationId);
+        if (federation.type !== 'national-federation') {
+          throw new Error(`WorldRegistries: el equipo "${team.id}" referencia la organización "${team.federationOrganizationId}", que no es "national-federation" (es "${federation.type}").`);
+        }
+        if (!team.representedAreaId || !this.areas.has(team.representedAreaId)) {
+          throw new Error(`WorldRegistries: el equipo "${team.id}" referencia un área representada inexistente "${team.representedAreaId}".`);
+        }
+        return this.teams.register(team);
+      }
       if (!team.clubId) {
         throw new Error(`WorldRegistries: el equipo "${team.id}" no tiene "clubId" — asígnalo antes de registrar.`);
       }
@@ -310,7 +341,15 @@
     // ANTES de registrar, las dos unicidades que Squad no puede comprobar
     // por sí solo (no conoce a los demás squads del mundo): un squad activo
     // por equipo (invariante 7) y un jugador en como máximo un squad activo
-    // de TODO el mundo (invariante 8) — nunca repartidas por quien llama.
+    // de TODO el mundo — nunca repartidas por quien llama.
+    //
+    // BUG-NATIONAL1-03 (NATIONAL-TEAMS-1, DESIGN.md 10.17): la unicidad de
+    // jugador pasa a ser POR CONTEXTO (`club-service`/`national-team-duty`)
+    // en vez de global — un jugador puede tener a la vez un squad activo de
+    // club Y uno de selección, nunca dos del MISMO contexto. La unicidad de
+    // "un squad activo por equipo" NO cambia (sigue siendo por `Team`,
+    // sección 3.2 del prompt: "sigue habiendo máximo un squad activo por
+    // Team").
     registerSquad(squad) {
       this.teams.require(squad.teamId);
       if (squad.status === 'active') {
@@ -322,11 +361,12 @@
           );
         }
         squad.players.forEach((player) => {
-          const already = this.squads.all().find((s) => s.status === 'active' && s.id !== squad.id && s.hasPlayer(player.id));
+          const already = this.squads.all().find((s) => s.status === 'active' && s.id !== squad.id
+            && s.membershipContext === squad.membershipContext && s.hasPlayer(player.id));
           if (already) {
             throw new Error(
-              `WorldRegistries: el jugador "${player.id}" ya está en el squad activo "${already.id}" — no puede `
-              + `estar también en "${squad.id}".`,
+              `WorldRegistries: el jugador "${player.id}" ya está en el squad activo "${already.id}" `
+              + `(contexto "${squad.membershipContext}") — no puede estar también en "${squad.id}".`,
             );
           }
         });
@@ -388,6 +428,12 @@
     // pertenezca a la MISMA edición que declara el Entry (invariante 5) —
     // antes de esta corrección era posible registrar un Entry en la
     // edición B apuntando a un Stage de la edición A.
+    //
+    // BUG-NATIONAL1-02 (NATIONAL-TEAMS-1, DESIGN.md 10.17): un Entry podía
+    // registrarse sin comprobar que su PARTICIPANTE existiera de verdad ni
+    // que su `teamKind` coincidiera con `participantType` — antes solo se
+    // auditaba en `validateIntegrity()` y solo para `club-team`. Ahora se
+    // valida AQUÍ, al registrar, para ambos tipos.
     registerCompetitionEntry(entry) {
       const edition = this.competitionEditions.require(entry.editionId);
       const definition = this.competitionDefinitions.require(edition.competitionDefinitionId);
@@ -395,6 +441,16 @@
         throw new Error(
           `WorldRegistries: el entry "${entry.id}" declara participantType "${entry.participantType}", pero la `
           + `competición "${definition.id}" es de participantType "${definition.participantType}".`,
+        );
+      }
+      const participantTeam = this.teams.get(entry.participantId);
+      if (!participantTeam) {
+        throw new Error(`WorldRegistries: el entry "${entry.id}" referencia un participante inexistente "${entry.participantId}".`);
+      }
+      if (participantTeam.teamKind !== entry.participantType) {
+        throw new Error(
+          `WorldRegistries: el entry "${entry.id}" declara participantType "${entry.participantType}" pero el `
+          + `equipo "${entry.participantId}" es "${participantTeam.teamKind}".`,
         );
       }
       if (entry.stageId) {
@@ -456,7 +512,23 @@
         if (club.primaryTeamId && !this.teams.has(club.primaryTeamId)) errors.push(`Club "${club.id}": primaryTeamId inexistente "${club.primaryTeamId}".`);
       });
       this.teams.all().forEach((team) => {
-        if (!team.clubId || !this.clubs.has(team.clubId)) errors.push(`Equipo "${team.id}": club inexistente "${team.clubId}".`);
+        // NATIONAL-TEAMS-1 (DESIGN.md 10.17) — misma rama que
+        // `registerTeam()`: un "national-team" nunca tiene club y sí
+        // federación/área representada válidas; un "club-team" sigue
+        // exigiendo club existente.
+        if (team.teamKind === 'national-team') {
+          if (team.clubId) errors.push(`Equipo "${team.id}": es "national-team" pero declara "clubId".`);
+          if (!team.federationOrganizationId || !this.organizations.has(team.federationOrganizationId)) {
+            errors.push(`Equipo "${team.id}": federación inexistente "${team.federationOrganizationId}".`);
+          } else if (this.organizations.get(team.federationOrganizationId).type !== 'national-federation') {
+            errors.push(`Equipo "${team.id}": la organización "${team.federationOrganizationId}" no es "national-federation".`);
+          }
+          if (!team.representedAreaId || !this.areas.has(team.representedAreaId)) {
+            errors.push(`Equipo "${team.id}": área representada inexistente "${team.representedAreaId}".`);
+          }
+        } else if (!team.clubId || !this.clubs.has(team.clubId)) {
+          errors.push(`Equipo "${team.id}": club inexistente "${team.clubId}".`);
+        }
         if (team.primarySquadId && !this.squads.has(team.primarySquadId)) {
           errors.push(`Equipo "${team.id}": primarySquadId inexistente "${team.primarySquadId}".`);
         }
@@ -464,8 +536,13 @@
       // CLUB-CORE-1 — mismas dos unicidades que `registerSquad()` ya evita
       // al registrar, revalidadas aquí de forma agregada (un squad podría,
       // en teoría, mutar su `status` después de registrado).
+      //
+      // BUG-NATIONAL1-03 (NATIONAL-TEAMS-1): la unicidad de jugador es POR
+      // CONTEXTO (`club-service`/`national-team-duty`) — un jugador puede
+      // tener un squad activo de cada contexto a la vez, nunca dos del
+      // mismo.
       const activeSquadsByTeam = new Map();
-      const activeSquadByPlayer = new Map();
+      const activeSquadByPlayerContext = new Map();
       this.squads.all().forEach((squad) => {
         if (!this.teams.has(squad.teamId)) errors.push(`Squad "${squad.id}": equipo inexistente "${squad.teamId}".`);
         if (squad.status !== 'active') return;
@@ -475,11 +552,12 @@
         }
         activeSquadsByTeam.set(squad.teamId, squad.id);
         squad.players.forEach((player) => {
-          const already = activeSquadByPlayer.get(player.id);
+          const key = `${squad.membershipContext}:${player.id}`;
+          const already = activeSquadByPlayerContext.get(key);
           if (already && already !== squad.id) {
-            errors.push(`Jugador "${player.id}": presente en más de un squad activo ("${already}" y "${squad.id}").`);
+            errors.push(`Jugador "${player.id}": presente en más de un squad activo de contexto "${squad.membershipContext}" ("${already}" y "${squad.id}").`);
           }
-          activeSquadByPlayer.set(player.id, squad.id);
+          activeSquadByPlayerContext.set(key, squad.id);
         });
       });
       this.competitionEditions.all().forEach((edition) => {
@@ -533,8 +611,14 @@
             errors.push(`Entry "${entry.id}": su stage "${entry.stageId}" pertenece a la edición "${stage.editionId}", no a "${entry.editionId}".`);
           }
         }
-        if (entry.participantType === 'club-team' && !this.teams.has(entry.participantId)) {
-          errors.push(`Entry "${entry.id}": equipo inexistente "${entry.participantId}".`);
+        // BUG-NATIONAL1-02 (NATIONAL-TEAMS-1) — auditoría AGREGADA para
+        // AMBOS `participantType` (antes solo cubría "club-team"): el
+        // participante debe existir y su `teamKind` debe coincidir.
+        const participantTeam = this.teams.get(entry.participantId);
+        if (!participantTeam) {
+          errors.push(`Entry "${entry.id}": participante inexistente "${entry.participantId}".`);
+        } else if (participantTeam.teamKind !== entry.participantType) {
+          errors.push(`Entry "${entry.id}": participantType "${entry.participantType}" no coincide con teamKind "${participantTeam.teamKind}" del equipo "${entry.participantId}".`);
         }
         if (entry.qualificationReceiptId && !this.pathwayReceipts.has(entry.qualificationReceiptId)
           && !this.seasonTransitionReceipts.has(entry.qualificationReceiptId)) {

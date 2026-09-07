@@ -43,6 +43,8 @@ const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bun
 const WorldFactory = require('../src/core/WorldFactory.js');
 const { WORLD_CORE_MANIFEST } = require('../data/world/world-core-2026.1.js');
 const { SPAIN_MANIFEST, SPAIN_CLUB_CONTENT } = require('../data/world/spain-2026.1.js');
+const { WorldSimulationProfile } = require('../src/entities/WorldSimulation.js');
+const CompetitionCatalog = require('../src/core/CompetitionCatalog.js');
 
 let passed = 0;
 let failed = 0;
@@ -178,9 +180,27 @@ function buildTeamsByDivision() {
   return teamsByDivision;
 }
 
+// Corrección incidental (no de NATIONAL-TEAMS-1): desde WORLD-SIM-1
+// (DESIGN.md 10.16) `spain-2026.1.js` exige `world.simulationProfile`
+// asignado ANTES de instalar el paquete — este fixture se había quedado
+// sin ese perfil (regresión detectada al ejecutar esta batería como parte
+// de la verificación de NATIONAL-TEAMS-1). Mismo perfil TRANSITORIO que usa
+// `game.js`/`scripts/test-world-sim1.js`: ACB/Primera FEB/Copa ACB
+// "playable" explícito.
 function buildSpainWorld() {
   const teamsByDivision = buildTeamsByDivision();
   const calendar = new Calendar(2026, CONFIG_BASE);
+  const simulationProfile = new WorldSimulationProfile({
+    id: 'simulation-profile:test-club-core1',
+    version: '1.0.0',
+    defaultDetailLevel: 'abstract',
+    assignments: [
+      { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.ACB, detailLevel: 'playable' },
+      { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.PRIMERA_FEB, detailLevel: 'playable' },
+      { scopeType: 'competition', scopeId: CompetitionCatalog.COMPETITION_IDS.COPA_ACB, detailLevel: 'playable' },
+    ],
+    provenance: { status: 'design', notes: 'Perfil transitorio de test-club-core1.js — mismo criterio que game.js/test-world-sim1.js.' },
+  });
   const world = WorldFactory.buildCareerWorld({
     id: 'world:test-club-core1',
     name: 'Mundo de prueba CLUB-CORE-1',
@@ -188,6 +208,7 @@ function buildSpainWorld() {
     createdAtGameDate: GAME_DATE,
     packs: [WORLD_CORE_MANIFEST, SPAIN_MANIFEST],
     context: { teamsByDivision, seasonKey: '2026-27', seasonStartDate: GAME_DATE },
+    simulationProfile,
   });
   world.setCalendar(calendar);
   const allTeams = [...teamsByDivision['1ª'], ...teamsByDivision['2ª']];

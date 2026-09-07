@@ -208,6 +208,12 @@
     // equipo (nunca singletons).
     annualCycleRegistry: null,
     academyRegistry: null,
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17): registro canónico de decisiones/
+    // ventanas/listas/convocatorias/apariciones nacionales — instancia
+    // EXPLÍCITA por carrera, creada en `startSeason()` y limpiada al volver
+    // a selección de equipo (nunca singleton). Vacía en la partida
+    // española (no se instala ninguna federación/selección real todavía).
+    nationalTeamRegistry: null,
     // Evidencia del último partido oficial de CADA club: el ciclo abre los
     // plazos de verano desde la fecha REAL de cierre de cada club (un
     // eliminado en cuartos tiene más verano que el campeón), nunca desde una
@@ -427,6 +433,11 @@
         // "parent-club-match-eligibility" — usuario y CPU consultan el
         // MISMO servicio con el MISMO registro.
         loanRegistry: state.loanRegistry,
+        // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 6 del prompt):
+        // habilita el reason code "NATIONAL_TEAM_DUTY" — usuario y CPU
+        // consultan EXACTAMENTE el mismo registro (hoy vacío en la partida
+        // española, sin efecto observable).
+        nationalTeamRegistry: state.nationalTeamRegistry,
         clubId: team.clubId,
         ...extraDeps,
       };
@@ -996,8 +1007,17 @@
     // incluidos los libres del pool de mercado.
     bootstrapCycleForNewCareer();
 
+    // NATIONAL-TEAMS-1 (DESIGN.md 10.17, sección 4.3 del prompt): instancia
+    // EXPLÍCITA por carrera, nunca singleton — hoy vacía en la partida
+    // española (no se instala ninguna federación/selección real, sección 2
+    // del prompt: "no instales aún selecciones reales... en la partida
+    // española"), pero disponible para que `EligibilityService`
+    // (`NATIONAL_TEAM_DUTY`) y `RegulatoryClassificationService`
+    // (excepción de formación por selección) la consulten como una
+    // dependencia real más — nunca inerte por estar hardcodeada fuera.
+    state.nationalTeamRegistry = new BM.NationalTeamRegistry();
     // WORLD-CORE-1 (sección 5.2 del prompt): adjunta por IDENTIDAD (nunca
-    // copia) los siete registros de dominio ya creados arriba —
+    // copia) los registros de dominio ya creados arriba —
     // `state.world.domainRegistries.playerRegistry === state.playerRegistry`
     // es una comprobación de identidad estricta, no de contenido.
     state.world.attachDomainRegistries({
@@ -1010,6 +1030,7 @@
       loanRegistry: state.loanRegistry,
       annualCycleRegistry: state.annualCycleRegistry,
       academyRegistry: state.academyRegistry,
+      nationalTeamRegistry: state.nationalTeamRegistry,
     });
     // WORLD-CALENDAR-1 (invariante 2): identidad estricta —
     // `state.calendar === state.world.calendar` durante TODA la carrera.
@@ -6810,6 +6831,7 @@
         registrationRegistry: registry,
         medicalAvailability: getLineupMedicalAvailability(team),
         classificationCache,
+        nationalTeamRegistry: state.nationalTeamRegistry,
         clubId: team.clubId,
       });
       const reasonsHtml = evaluation.reasons.length
@@ -7350,6 +7372,7 @@
           registrationRegistry: registry,
           medicalAvailability,
           classificationCache,
+          nationalTeamRegistry: state.nationalTeamRegistry,
           clubId: team.clubId,
         });
         const provenance = license ? (license.provenance.isReal ? 'Real' : 'Simulado') : 'Desconocido';
@@ -8848,6 +8871,10 @@
       state.annualCycle = null;
       state.cycleWarnings = [];
       state.cycleLastTransition = null;
+      // NATIONAL-TEAMS-1 (DESIGN.md 10.17): mismo criterio — el registro
+      // nacional pertenece a UNA partida, nunca sobrevive a "Volver a
+      // selección de equipo".
+      state.nationalTeamRegistry = null;
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado

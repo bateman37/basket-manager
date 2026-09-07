@@ -7646,7 +7646,7 @@ ninguna sea el caso por defecto.
 | 4 | **WORLD-CALENDAR-1** | Calendario mundial y cola cronológica única; varias competiciones simultáneas, paradas de usuario y simulación de fondo sin el concepto especial de "la otra división". | **hecha**, ver 10.14 |
 | 5 | **PATHWAYS-1** | Clasificación entre fases/torneos, ascenso/descenso, acceso a copas y plazas continentales mediante reglas declarativas versionadas. | **hecha**, ver 10.15 |
 | 6 | **WORLD-SIM-1** | Niveles de detalle `playable/full/standard/abstract`, simulación acotada del exterior y población/mercado mundial sin cargarlo todo al máximo — sustituye `external-abstract` por clubes/equipos normales con detalle abstracto. | **hecha**, ver 10.16 |
-| 7 | **NATIONAL-TEAMS-1** | Federaciones, selecciones, elegibilidad, convocatorias, ventanas y competiciones continentales/mundiales de selecciones. | pendiente |
+| 7 | **NATIONAL-TEAMS-1** | Federaciones, selecciones, elegibilidad, convocatorias, ventanas y competiciones continentales/mundiales de selecciones. | **hecha**, ver 10.17 |
 | 8 | **WORLD-UI-1** | Navegación estilo manager Mundo → Continente → País → Competición, configuración de carrera, selección de ligas/nivel de detalle. | pendiente |
 | 9 | **WORLD-HARDEN-1** | Elimina todos los puentes legacy de España, audita determinismo/población, prepara la frontera de persistencia — todavía sin imponer SQLite/PostgreSQL. | pendiente |
 
@@ -7676,7 +7676,11 @@ El modelo debe poder expresar (sin implementarlas todavía, ver 10.7 "Fuera
 de alcance"): Mundial/JJOO (mundial, selecciones), Intercontinental de
 clubes (mundial, clubes), EuroBasket (continental, selecciones), Euroliga/
 EuroCup/BCL (continental, clubes), Liga/Copa/Supercopa españolas (nacional,
-clubes).
+clubes). **NATIONAL-TEAMS-1 (ver 10.17)** hace ejecutable la mitad de
+"selecciones" de esa lista — el `participantType: 'national-team'` de
+`CompetitionEntry` ya corre sobre el mismo motor, demostrado con un
+fixture ficticio continental/mundial; el contenido real (Mundial/JJOO/
+EuroBasket) sigue sin instalarse.
 
 ### 10.3 Entidades
 
@@ -7728,9 +7732,13 @@ de `Player`, nunca copias — misma colección que `Team.roster` devuelve),
 (en `WorldRegistries.squads`) exige exactamente un squad ACTIVO por equipo y
 que un jugador esté en como máximo un squad ACTIVO de todo el mundo —
 ambas invariantes se comprueban al registrar y se revalidan en
-`WorldRegistries.validateIntegrity()`.
+`WorldRegistries.validateIntegrity()`. **NATIONAL-TEAMS-1 (ver 10.17)**
+añade `membershipContext: 'club-service' | 'national-team-duty'` (por
+defecto `'club-service'`) — la unicidad "un jugador en como máximo un
+squad ACTIVO" pasa a ser POR CONTEXTO, nunca global: puede haber un squad
+activo de cada contexto para el mismo jugador a la vez.
 
-#### `Team` (`src/entities/Team.js`, ampliado en WORLD-CORE-1 y CLUB-CORE-1)
+#### `Team` (`src/entities/Team.js`, ampliado en WORLD-CORE-1, CLUB-CORE-1 y NATIONAL-TEAMS-1)
 
 Añade `clubId` explícito (Club real, nunca `team.id`), `club` (referencia
 VIVA a la instancia, `null` hasta enlazar), `role`
@@ -7744,6 +7752,14 @@ proporciona (BUG-WORLDCORE-09, ver 10.12), no es fuente de verdad de
 participación, y no debe usarse en código mundial nuevo. Un club puede
 tener varios equipos en el modelo (el pack actual solo crea uno por club)
 — `TeamRegistry.forClub(clubId)` ya lo consulta así.
+
+**`teamKind` (NATIONAL-TEAMS-1, ver 10.17)**: vocabulario cerrado
+`'club-team' | 'national-team'` (por defecto `'club-team'`, fallback SOLO
+del constructor aislado de fixtures legacy). `club-team` exige `clubId`;
+`national-team` nunca tiene `clubId`/`club` y exige
+`federationOrganizationId` (`Organization` real `type: 'national-
+federation'`) y `representedAreaId` (área real) — no hay clase `NationalTeam`
+paralela.
 
 **Migración institucional (CLUB-CORE-1)**: `foundationYear`, `budget`,
 `clubDNA`, `facilities`, `board`, `fanbase`, `finances` y los totales
@@ -7792,7 +7808,11 @@ entrega: `organizerCountry`, `federationId`, `legacyDivision`.
 - **Entry**: FUENTE DE VERDAD de participación (invariante 8) — `id`,
   `editionId`, `stageId` opcional, `participantType`, `participantId`,
   `entryStatus` (`invited|qualified|active|eliminated|withdrawn|completed`),
-  `seed`, `qualificationSource`, vigencia.
+  `seed`, `qualificationSource`, vigencia. **NATIONAL-TEAMS-1 (ver 10.17,
+  BUG-NATIONAL1-02)**: `WorldRegistries.registerCompetitionEntry()` exige
+  AL REGISTRAR (no solo al validar después) que el `participantId`
+  referencie un `Team` existente y que su `teamKind` coincida con
+  `participantType` — antes solo se comprobaba para `club-team`.
 
 **Invariante 13 (Liga/Copa/Playoff no se confunden)**: la Copa ACB es una
 `CompetitionDefinition` SEPARADA (su propia `CompetitionEdition` cada
@@ -8005,6 +8025,15 @@ propio engine desde el runner de la fase fuente, nunca "recalculada" aparte.
 existe (ARCH-WORLD-08: "equipos desde World Registry, no desde una lista de
 clubes españoles") — mismas instancias que devolvía antes el recorrido por
 `League.teams`.
+
+**Actualizado en NATIONAL-TEAMS-1 (ver 10.17 para el detalle completo)** —
+`startSeason()` crea además `state.nationalTeamRegistry` (instancia
+EXPLÍCITA por carrera, siempre VACÍA en la partida española) y la adjunta
+a `state.world.domainRegistries`; los tres puntos donde `game.js` llama a
+`EligibilityService.evaluateEligibility()` le pasan ese registro como
+dependencia — sin ninguna `NationalTeamWindow` real, el reason code
+`NATIONAL_TEAM_DUTY` nunca se activa, así que el comportamiento observable
+de la partida española no cambia.
 
 **Interfaz mínima** (Home, `renderHomeScreen()`): un bloque `<details>`
 plegado ("Mundo de la carrera") con los paquetes instalados y la jerarquía
@@ -8242,6 +8271,71 @@ WORLD-HARDEN-1 lo decida.
     explícito.
 71. `data/real/*` no cambia; no se añade SQL/save-load/backend/dependencia
     nueva ni competición/club real nuevo en esta entrega.
+
+**Ampliación NATIONAL-TEAMS-1** (ver 10.17; se auditan en
+`scripts/test-national-teams1.js` y en el smoke):
+
+72. Cada `Player` existe exactamente una vez en `PlayerRegistry`; club y
+    selección referencian esa misma instancia viva.
+73. Una convocatoria jamás cambia `Player.teamId` ni el contrato/
+    inscripción de club — el jugador nunca "sale" de su club.
+74. Puede existir un squad activo `club-service` y uno `national-team-duty`
+    para el mismo jugador a la vez; nunca dos activos del MISMO contexto
+    (`WorldRegistries.registerSquad()`/`validateIntegrity()`).
+75. Un `Team` con `teamKind: 'national-team'` no tiene `clubId` y sí
+    `federationOrganizationId` (una `Organization` real de tipo
+    `national-federation`) y `representedAreaId` (un área real) válidos.
+76. Todo `CompetitionEntry` referencia un `Team` existente cuyo `teamKind`
+    coincide con `entry.participantType` — comprobado al REGISTRAR
+    (`WorldRegistries.registerCompetitionEntry()`), no solo al final.
+77. Selecciones y clubes usan el MISMO `CompetitionEngine`, `WorldCalendar`,
+    `PATHWAYS` y niveles de detalle `playable/full/standard/abstract` — no
+    hay un motor/calendario/pathway paralelo para selecciones.
+78. La lista final de una `NationalTeamSelection` tiene el tamaño que fija
+    el ruleset vigente, es subconjunto de una lista preliminar dentro de su
+    máximo, y respeta el máximo de jugadores `eligible-restricted` — todo
+    validado ANTES de mutar (`NationalTeamService.finalizeList()`).
+79. `unknown` y `pending-decision` (`NationalTeamEligibilityService`) nunca
+    se convierten en elegibles para una lista final.
+80. Ciudadanía (`PlayerRegulatoryProfile.citizenships`), pasaporte
+    (`passportEvidences`) y nacionalidad deportiva FIBA
+    (`NationalStatusDecision`) son conceptos DISTINTOS — nunca se infiere
+    uno de otro.
+81. Un cambio de nacionalidad deportiva o un caso marginal (territorio/
+    refugio/vínculo significativo) exige una `NationalStatusDecision`
+    trazable — el motor nunca se arroga esa decisión.
+82. Finalizar lista, incorporar (`startInternationalService`) y liberar
+    (`endInternationalService`) son operaciones atómicas (todo se valida
+    antes de mutar) e idempotentes (reprocesar un callup/paso ya resuelto
+    no lo duplica ni falla).
+83. Durante el servicio internacional ('joined'), tanto el club del usuario
+    como la CPU ven el reason code `NATIONAL_TEAM_DUTY`
+    (`EligibilityService`, vía `deps.nationalTeamRegistry` inyectado); al
+    terminar la ventana, el jugador vuelve a estar disponible sin ninguna
+    acción adicional (nunca salió de su club).
+84. El squad de club, historial médico, desarrollo y carrera de un jugador
+    convocado sobreviven intactos durante y después del servicio
+    internacional.
+85. Un resultado `standard`/`abstract` nunca fabrica una
+    `NationalTeamAppearanceReceipt` — el propio constructor de la entidad
+    rechaza `detailLevel` distinto de `playable`/`full`.
+86. Ninguna selección entra en `CompetitionSimulationService.
+    interactiveCohortTeams()` (bootstrap de contratos/registros/mercado/
+    ciclo anual de clubes) — el cohorte filtra explícitamente por
+    `teamKind === 'club-team'`.
+87. Ninguna regla de `NationalTeamRules.js`/`NationalTeamEligibilityService.js`/
+    `NationalTeamService.js` depende de España, `1ª`/`2ª`, ACB/FEB ni del
+    orden de arrays/`Map` — auditado por construcción (módulos genéricos
+    nuevos sin literales españoles) y por el test de determinismo (orden de
+    registro invertido).
+88. Consultar, describir, sincronizar o renderizar el dominio nacional
+    (`NationalTeamRegistry`, la fuente `national-team-duty` del calendario)
+    nunca muta ni consume aleatoriedad.
+89. Todo diagnóstico/`toJSON()` del dominio nacional es serializable y no
+    contiene instancias vivas/`Map`/funciones.
+90. La partida española actual conserva exactamente su comportamiento y
+    sus 36 equipos de club — no se instala ninguna federación/selección/
+    ventana real en `data/world/spain-2026.1.js` ni en `game.js`.
 
 ### 10.11 Verificación reducida (esta entrega)
 
@@ -9270,6 +9364,275 @@ ciclo anual de clubes abstractos; mercado CPU-a-CPU exterior, transfer
 internacional o Letter of Clearance; cambios al `MatchEngine`/tácticas/
 lesiones/desarrollo/balance; SQL/save-load/backend/dependencias nuevas;
 retirada general de shims legacy reservados a **WORLD-HARDEN-1**.
+
+### 10.17 NATIONAL-TEAMS-1 — resultado
+
+Séptima entrega de la EPIC. Base: merge de la PR de WORLD-SIM-1 en
+`origin/main`. Incorpora selecciones nacionales al MISMO mundo, motor de
+competiciones, calendario y niveles de detalle ya existentes — no crea un
+segundo juego paralelo ni vuelve a colocar España en el centro de la
+arquitectura. La vertical de prueba es ficticia y vive únicamente en
+`scripts/test-national-teams1.js`/`scripts/smoke-national-teams1.js`; la
+partida española sigue teniendo únicamente ACB, Primera FEB y Copa ACB
+como Editions jugables, sin ninguna federación/selección/ventana FIBA real
+instalada.
+
+#### 10.17.1 `Team` es la entidad deportiva común
+
+`Team` gana `teamKind: 'club-team' | 'national-team'` (`src/entities/
+Team.js`). `club-team` (fallback SOLO del constructor aislado de fixtures
+legacy) exige `clubId`; `national-team` NUNCA tiene `clubId`/`club` y exige
+`federationOrganizationId` (una `Organization` real `type: 'national-
+federation'`) y `representedAreaId` (un área real) — ambas comprobaciones
+viven tanto en el constructor de `Team` (falla rápido) como en
+`WorldRegistries.registerTeam()`/`validateIntegrity()` (BUG-NATIONAL1-01,
+antes exigía `clubId` a TODO equipo). `category.gender`/`ageTier` siguen
+definiendo categoría — nunca un string que mezcle selección+federación+país.
+No existe `NationalTeam` como clase paralela: nombre, roster, categoría,
+táctica y participación siguen siendo de `Team`.
+
+#### 10.17.2 Club y selección son afiliaciones simultáneas distintas
+
+`Squad` gana `membershipContext: 'club-service' | 'national-team-duty'`
+(`src/entities/Squad.js`, por defecto `'club-service'` — ningún squad
+existente cambia de forma). `WorldRegistries.registerSquad()`/
+`validateIntegrity()` (BUG-NATIONAL1-03) protegen las invariantes: máximo
+un squad activo `club-service` por jugador, máximo uno `national-team-duty`,
+ambos pueden coexistir, sigue habiendo máximo un squad activo por `Team`.
+`SquadRegistry` gana `activeClubSquadForPlayer()`/
+`activeNationalTeamSquadForPlayer()`; `activeSquadForPlayer()` sobrevive
+como alias LEGACY documentado de `activeClubSquadForPlayer()` (sus
+consumidores anteriores a esta entrega preguntan por afiliación laboral).
+`Player.teamId` conserva EXACTAMENTE su significado — espejo del club de
+servicio — y ninguna operación de convocatoria lo toca jamás (invariante
+73); `Team.addPlayer()`/`removePlayer()` no cambiaron.
+
+#### 10.17.3 El motor común ejecuta selecciones de verdad
+
+`participantType: 'national-team'` (ya declarado desde WORLD-CORE-1) es
+ahora ejecutable: todo `CompetitionEntry` debe referenciar un `Team`
+existente cuyo `teamKind` coincida con `participantType`, comprobado AL
+REGISTRAR (`WorldRegistries.registerCompetitionEntry()`, BUG-NATIONAL1-02
+— antes solo se auditaba en `validateIntegrity()` y solo para `club-team`)
+y revalidado de forma agregada. El resolver estándar de participantes de
+`CompetitionEngine` (`world.registries.teams.require(id)`) ya servía para
+ambos tipos sin cambios. No existe `NationalCompetitionEngine`, calendario
+paralelo, standings paralelos ni pathway especial por país —
+`CompetitionSimulationService` sigue siendo genérico para cualquier `Team`.
+El smoke demuestra una competición continental `standard` y una mundial
+`abstract` sobre el MISMO `CompetitionDefinition -> Edition -> Stage ->
+Entry` y el mismo `CompetitionEngine` que ACB/Primera FEB.
+
+`CompetitionSimulationService.interactiveCohortTeams(seasonKey)`
+(BUG-NATIONAL1-05) filtra ahora también por `teamKind === 'club-team'` —
+antes devolvía cualquier Team "playable" sin mirar su tipo, así que una
+selección "playable" futura habría entrado por accidente en bootstrap de
+contratos/licencias domésticas/mercado/ciclo anual de clubes (`game.js`
+sigue llamando al mismo helper `interactiveCohortTeams()`, sin cambio de
+comportamiento observable para los 36 equipos españoles).
+
+**Límite documentado**: la posproducción actual de un partido `playable`
+(estadísticas de carrera, contratos, licencias) sigue pensada solo para
+`club-team` — esta entrega NO conecta partidos `playable` de selecciones
+con esa ruta ni con la UI española; instalar contenido `playable` de
+selecciones queda fuera de alcance (sección 10.17.7).
+
+#### 10.17.4 Modelo de dominio nacional
+
+`src/entities/NationalTeam.js` — cinco entidades planas y serializables
+(BUG-NATIONAL1-04, antes `nationalTeamAppearances` era un array suelto sin
+expediente canónico):
+
+- **`NationalStatusDecision`**: única forma autorizada de cerrar un caso de
+  vínculo significativo, territorio dependiente, refugio/asilo,
+  nacionalidad dudosa o cambio de selección — `status`
+  (`pending|approved-unrestricted|approved-restricted|denied|superseded`),
+  vigencia, ruleset congelado, referencia a decisión anterior y contador de
+  cambios aprobados. El motor NUNCA se arroga esta decisión.
+- **`NationalTeamWindow`**: ventana FIBA — `noticeDueAt`/
+  `preliminaryRosterDueAt`/`finalRosterDueAt`/`dutyStartsAt`/`dutyEndsAt`
+  SIEMPRE con instante UTC + `timeZoneId` IANA explícito y cronología
+  validada al construirse; `coversLocalDate()` resuelve el solapamiento con
+  un partido de club por FECHA CIVIL en el huso de la ventana (semiabierto,
+  mismo criterio que `LoanAgreement.isActiveOn`). `_resolvedSteps`
+  (bookkeeping interno, nunca en `toJSON()`) evita que la fuente del
+  calendario mundial relist un paso ya resuelto.
+- **`NationalTeamSelection`**: lista preliminar/final por ventana+selección
+  — máquina de estados `draft -> preliminary-filed -> final-filed ->
+  released` (o `cancelled`); la lista final es SIEMPRE subconjunto de la
+  preliminar y queda inmutable en cuanto `final-filed`.
+- **`NationalTeamCallUp`**: convocatoria de un jugador — `clubTeamId` es
+  una FOTO tomada al convocar (nunca se recalcula); `status`
+  `selected -> notified -> joined -> released` (o `withdrawn` antes de
+  incorporarse); referencias de seguro/gastos como metadatos, sin mutar
+  economía.
+- **`NationalTeamAppearanceReceipt`**: evidencia INMUTABLE de una aparición
+  individual REAL — su propio constructor RECHAZA `detailLevel` distinto de
+  `playable`/`full` (invariante 85): lista final, convocatoria o resultado
+  agregado nunca equivalen a jugar.
+
+`src/core/NationalTeamRegistry.js` — instancia EXPLÍCITA por carrera
+(nunca singleton), `Map` solo como implementación interna; indexa y
+consulta por jugador/federación/ventana/selección. `activeDutyForPlayerOn(
+playerId, dateIso)` es la fuente ÚNICA de "¿está de servicio internacional
+en esta fecha?" — consultada tanto por `EligibilityService` como por
+cualquier diagnóstico futuro. Adjuntado por IDENTIDAD a
+`GameWorld.domainRegistries.nationalTeamRegistry` y a `state.
+nationalTeamRegistry`; `GameWorld.describe()` añade un resumen PLANO
+(`nationalTeamRegistrySummary`, solo contadores).
+
+`src/core/NationalTeamService.js` — único dueño de las transiciones:
+abrir ventana, guardar lista preliminar, finalizar lista, notificar
+convocatorias, iniciar/terminar servicio internacional, retirar
+justificadamente antes de incorporarse, registrar una aparición oficial.
+Cada comando valida TODO antes de mutar (invariante 82); no implementa una
+IA de seleccionador — recibe siempre `playerIds` ya elegidos por su
+caller, nunca simula negativas/sanciones/dietas/primas/seguros/disputas.
+`startInternationalService()` activa (o reutiliza) el squad
+`national-team-duty` de cada selección con las MISMAS instancias de
+`Player`; `endInternationalService()` libera los callups y deja el squad
+histórico — el jugador nunca "vuelve" a ningún sitio porque nunca salió de
+su club.
+
+#### 10.17.5 Elegibilidad y reglas FIBA
+
+`src/core/NationalTeamRules.js` — bundle `fiba-national-teams-2026.1`
+(estado `provisional`, vigente 22-04-2026), con fuentes oficiales citadas
+(FIBA Internal Regulations Books 1-3) y reglas VERSIONADAS: decisión de
+nacionalidad con ≥14 días de aviso, lista preliminar ≤24, lista final
+10-12, máximo 1 "restricted" en la lista final, liberación al club con ≥30
+días. Cada regla declara `kind: 'minimum'|'maximum'`; un overlay de
+handbook por competición se compone SEMÁNTICAMENTE (`composeOverlay()`:
+mínimos concurrentes -> el mayor, máximos concurrentes -> el menor) —
+NUNCA `Object.assign()`/"el último gana". `requireNationalTeamRuleset()`
+no tiene fallback ACB/FEB/España: un bundle desconocido lanza explícito.
+Un `fictional-test-national-teams-1` separado (números más pequeños)
+existe SOLO para los scripts de esta entrega.
+
+`src/core/NationalTeamEligibilityService.js` — PURO, nunca crea una
+decisión/convocatoria/receipt. Devuelve `{status, reasonCodes,
+evidenceIds, warnings, trace}` con `status` en
+`eligible|eligible-restricted|ineligible|pending-decision|unknown`:
+pasaporte ausente -> `unknown`; pasaporte inválido/caducado ->
+`ineligible`; caso que exige resolución externa sin ella -> `pending-
+decision`; decisión aprobada restringida -> `eligible-restricted`;
+compromiso oficial previo con otra federación -> `pending-decision`
+(exige expediente de cambio). `isFinalListEligible()` es la única puerta
+que usa `NationalTeamService.finalizeList()` — `unknown`/`pending-decision`
+NUNCA se convierten en elegibles (invariante 79).
+
+`src/entities/Registration.js` — `PlayerRegulatoryProfile` gana
+`birthAreaId` (opcional, trazable) y `passportEvidences[]` (id, área/país,
+fechas, `verificationStatus`, procedencia) — ciudadanía, pasaporte vigente
+y nacionalidad deportiva FIBA son conceptos DISTINTOS (invariante 80).
+`nationalTeamAppearances` pasa a ser SOLO evidencia legacy importada —
+`RegulatoryClassificationService.classifyFormationFeb28(profile, context,
+deps)` gana un cuarto parámetro opcional (`deps.nationalTeamRegistry`):
+consulta primero los receipts reales, y solo si no hay dependencia
+inyectada cae al array legacy — la excepción de formación FEB (aparición
+oficial con la selección) sigue funcionando sin duplicar historial
+mutable, y ningún fixture/test anterior a esta entrega cambia de
+comportamiento (el parámetro es opcional en toda la cadena).
+
+#### 10.17.6 Calendario y disponibilidad para el club
+
+`WorldCalendarCoordinator.js` gana la fuente `national-team-duty`
+(`createNationalTeamDutySource()`): lista los 5 pasos fechados de cada
+`NationalTeamWindow` (aviso, lista preliminar, lista final, inicio y fin
+de servicio) como items PLANOS y delega SIEMPRE en `NationalTeamService`
+vía el callback inyectado — nunca contiene reglas propias, nunca es
+parada del usuario (ninguna rama de `requiresUser()` la reconoce).
+`window.markStepResolved()`/`hasResolvedStep()` (bookkeeping interno de la
+propia ventana) hacen que reprocesar un paso ya resuelto sea idempotente,
+mismo problema que ya resuelven los eventos "processed" de Market/Loan,
+aquí resuelto en la ventana porque declara varios plazos distintos.
+
+`EligibilityService.evaluateEligibility()` gana el reason code bloqueante
+`NATIONAL_TEAM_DUTY`: si `deps.nationalTeamRegistry` está inyectado y hay
+un callup `'joined'` cuya ventana cubre `context.date`, bloquea — usuario
+y CPU consultan EXACTAMENTE el mismo registro (`buildEligiblePoolForMatch()`
+en `game.js` ya lo pasa como dependencia). Sin `deps.nationalTeamRegistry`
+(fixtures/tests históricos que no lo inyectan), el bloque nunca se activa
+— comportamiento IDÉNTICO a antes de esta entrega. Al terminar la ventana
+el jugador vuelve a estar disponible automáticamente (nunca se convierte
+en lesión/sanción/baja federativa, invariante 83) porque nunca salió de
+su plantilla.
+
+`game.js` (`startSeason()`) crea `state.nationalTeamRegistry = new
+BM.NationalTeamRegistry()` (instancia EXPLÍCITA por carrera, limpiada al
+volver a selección de equipo) y la adjunta a `state.world.
+domainRegistries` y a los tres puntos donde ya se llama a
+`EligibilityService.evaluateEligibility()` — en la partida española el
+registro está siempre VACÍO (no se instala ninguna ventana/selección
+real), así que esto no cambia ningún comportamiento observable (invariante
+90). La fuente `national-team-duty` del calendario NO se conecta al
+`WorldCalendarCoordinator` de la partida española en esta entrega (no hay
+ninguna `NationalTeamWindow` que listar ahí) — queda demostrada en el
+módulo genérico y en el smoke; conectarla a un calendario con ventanas
+reales es contenido, no motor, y queda fuera de alcance (sección 10.17.7).
+
+#### 10.17.7 Fuera de alcance de esta entrega
+
+Navegación/selector de selecciones (**WORLD-UI-1**); contenido real de
+selecciones/torneos/ventanas FIBA (Mundial/JJOO/EuroBasket) y
+enriquecimiento real de nacionalidades/pasaportes de jugadores reales ya
+cargados; modo jugable de seleccionador o elección de convocados por IA;
+estadísticas internacionales detalladas, récords, premios y
+`PlayerCareer` internacional; rescheduling automático de ligas, sanciones
+por negativa, primas, seguros y economía real; transfer internacional/
+Letter of Clearance; cambios a balance/tácticas/`MatchEngine`/lesiones/
+desarrollo; instalar el fixture ficticio en producción; conectar la fuente
+`national-team-duty` a un calendario con ventanas reales; SQL/save-load/
+backend/dependencias nuevas; limpieza general de shims legacy
+(**WORLD-HARDEN-1**).
+
+#### 10.17.8 Pruebas de esta entrega
+
+`node scripts/test-national-teams1.js` — 19 comprobaciones agrupadas:
+tipos/relaciones Team y Squad (incluida la doble pertenencia con identidad
+estricta de Player y `Player.teamId` intacto), Entry nacional válido/
+inválido al registrar, serialización, ciudadanía/pasaporte/decisión/
+unknown, listas preliminar/final (máximo, subconjunto, máximo de
+restricted), atomicidad e idempotencia, duty y reason code de club (con y
+sin `nationalTeamRegistry` inyectado), apariciones solo con evidencia
+individual (rechazo explícito de `standard`/`abstract`), excepción de
+formación FEB con fallback legacy, orden de registro invertido sin cambiar
+el resultado, composición semántica de un overlay de ruleset. **19 OK, 0
+fallos.**
+
+`node scripts/smoke-national-teams1.js` — fixture ficticio (dos clubes de
+origen, cuatro federaciones/selecciones, nunca instalado en producción):
+una ventana FIBA completa, una Copa Continental `standard` y un Mundial
+`abstract` sobre el mismo `CompetitionEngine`, convocatoria (preliminar 6
+-> final 5, una con condición "restricted") -> incorporación (squads
+`national-team-duty` activos, doble pertenencia verificada) ->
+disponibilidad de club bloqueada durante la ventana y recuperada después
+-> simulación (`standard` sin empates/detalle individual, `abstract` en un
+único hito/receipt, cero apariciones individuales fabricadas) ->
+liberación (callups `released`, squads históricos, plantilla de club
+intacta) -> integridad `World`/`NationalTeamRegistry` limpia ->
+determinismo con orden de registro invertido. **OK en ~0.1s.**
+
+Regresiones autorizadas ejecutadas, sin cambio de comportamiento
+pretendido: `node scripts/test-club-core1.js` (**36 OK, 0 fallidas** — ver
+nota abajo), `node scripts/test-reg1.js` (**88 OK, 0 FAIL**), `node
+scripts/test-world-calendar1.js` (**25 OK, 0 FAIL**), `node
+scripts/test-world-sim1.js` (**19 OK, 0 FAIL**). `node --check` sobre
+todo el JS nuevo/modificado y `git diff --check`: sin errores.
+
+**Corrección incidental encontrada al ejecutar la regresión obligatoria
+(no es un BUG-NATIONAL1-0x, no tiene relación con selecciones)**:
+`scripts/test-club-core1.js` fallaba 6 de sus comprobaciones (toda la
+sección 9, "paquete español real") con `origin/main` tal cual, ANTES de
+cualquier cambio de esta entrega (confirmado revirtiendo el árbol de
+trabajo y re-ejecutando el script) — `buildSpainWorld()` construía el
+mundo sin `simulationProfile`, y desde WORLD-SIM-1 `data/world/
+spain-2026.1.js` exige esa dependencia para resolver `detailLevel`.
+Corregido con el MISMO perfil transitorio que ya usan `game.js`/
+`scripts/test-world-sim1.js` (ACB/Primera FEB/Copa ACB "playable"
+explícito) — la regresión pasa a estar realmente verificada en vez de
+reportarse en falso como "verde" (no formaba parte de la verificación
+reducida obligatoria de WORLD-SIM-1, así que nunca se había detectado).
 
 ## 11. Modo Manager (futuro, derivado del modo Completo)
 
