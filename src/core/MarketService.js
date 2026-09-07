@@ -38,7 +38,7 @@
   // ---------------------------------------------------------------------
   function resolveMarketAvailability(params) {
     const {
-      playerId, playerRegistry, contractRegistry, marketRegistry, date,
+      playerId, playerRegistry, contractRegistry, marketRegistry, date, teamRegistry,
     } = params;
     const iso = toIso(date);
     if (!playerRegistry.has(playerId)) {
@@ -64,6 +64,21 @@
 
     const current = contractRegistry.currentForPlayer(playerId, iso);
     if (!current) {
+      // BUG-WORLDSIM-05 (DESIGN.md 10.16): un jugador afiliado a un Squad
+      // real (`player.teamId` no nulo, el "espejo" de CLUB-CORE-1) sin
+      // contrato materializado NUNCA es un agente libre — su cobertura
+      // contractual simplemente no está cargada en el nivel de detalle
+      // (`standard`/`abstract`) de su Team. Estado honesto y NO
+      // negociable, nunca una probabilidad/salario/cláusula inventados.
+      if (player.teamId) {
+        const team = teamRegistry ? teamRegistry.get(player.teamId) : null;
+        return {
+          status: 'affiliated-contract-unknown',
+          reasons: ['CONTRACT_NOT_MATERIALIZED'],
+          teamId: player.teamId,
+          clubId: team ? team.clubId : null,
+        };
+      }
       if (openRightsCase) {
         return {
           status: 'free-subject-to-rights', reasons: [], rightsCaseId: openRightsCase.id, teamId: player.teamId || null,

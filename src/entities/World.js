@@ -59,9 +59,40 @@
       // de construir el mundo, ver `WorldFactory`/`startSeason()`).
       this.domainRegistries = {};
       DOMAIN_REGISTRY_KEYS.forEach((key) => { this.domainRegistries[key] = null; });
+
+      // WORLD-SIM-1 (DESIGN.md 10.16): perfil de simulación EXPLÍCITO de la
+      // carrera (nunca del paquete de contenido) — decide qué `detailLevel`
+      // congela cada `CompetitionEdition` nueva. `null` hasta que
+      // `setSimulationProfile()` lo asigna, SIEMPRE antes de instalar
+      // paquetes de contenido (que ya crean Editions durante `install()`).
+      this.simulationProfile = null;
     }
 
     setCalendar(calendar) { this.calendar = calendar; }
+
+    setSimulationProfile(profile) { this.simulationProfile = profile; }
+
+    // Contadores DERIVADOS (nunca un segundo estado sincronizado a mano) de
+    // Editions/Teams por nivel de detalle — usados por `describe()` para el
+    // diagnóstico técnico de Home (10.6) y por los scripts de prueba. Un
+    // Team con Entries en varias Editions de la MISMA temporada cuenta en
+    // cada nivel que participe (no es "el nivel efectivo del Team", eso lo
+    // resuelve `CompetitionSimulationService.effectiveDetailLevelForTeam()`).
+    _simulationLevelCounters() {
+      const editionsByLevel = {};
+      const teamIdsByLevel = {};
+      this.registries.competitionEditions.all().forEach((edition) => {
+        const level = edition.detailLevel;
+        editionsByLevel[level] = (editionsByLevel[level] || 0) + 1;
+        if (!teamIdsByLevel[level]) teamIdsByLevel[level] = new Set();
+        this.registries.competitionEntries.forEdition(edition.id).forEach((entry) => {
+          teamIdsByLevel[level].add(entry.participantId);
+        });
+      });
+      const teamsByLevel = {};
+      Object.keys(teamIdsByLevel).forEach((level) => { teamsByLevel[level] = teamIdsByLevel[level].size; });
+      return { editionsByLevel, teamsByLevel };
+    }
 
     // Adjunta por IDENTIDAD (nunca copia) las instancias ya existentes de
     // los registros de dominio. Se puede llamar varias veces (cada cierre de
@@ -87,6 +118,10 @@
         careerSeed: this.careerSeed,
         createdAtGameDate: this.createdAtGameDate,
         schemaVersion: this.schemaVersion,
+        // WORLD-SIM-1 (DESIGN.md 10.16): vista PLANA del perfil de
+        // simulación + contadores — nunca runtimes vivos ni `Map`.
+        simulationProfile: this.simulationProfile ? this.simulationProfile.toJSON() : null,
+        simulationLevelCounters: this._simulationLevelCounters(),
         ...this.registries.describe(),
       };
     }

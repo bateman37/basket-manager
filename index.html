@@ -355,6 +355,10 @@
        dependencia de carga real con Club/Team (accesores perezosos, ver
        Team.js). -->
   <script src="src/entities/Squad.js"></script>
+  <!-- WORLD-SIM-1 (DESIGN.md 10.16): vocabulario cerrado de nivel de
+       detalle — cargado ANTES que Competition.js, que lo usa para validar
+       `CompetitionEdition.detailLevel`. -->
+  <script src="src/entities/WorldSimulation.js"></script>
   <script src="src/entities/Competition.js"></script>
   <!-- ROSTER-1 (DESIGN.md 9.16): PlayerRegistry.js es un módulo puro (no
        conoce Player/Team como clases, solo duck-typing sobre player.id/
@@ -557,6 +561,12 @@
        módulo para registrar sus formatos y construir Editions. -->
   <script src="src/core/CompetitionFormatCatalog.js"></script>
   <script src="src/core/CompetitionRuntimeRegistry.js"></script>
+  <!-- WORLD-SIM-1 (DESIGN.md 10.16): servicio de simulación + runtime
+       agregado "abstract" — cargan ANTES que `CompetitionEngine.js` (que
+       los recibe inyectados) y que `data/world/spain-2026.1.js`/`game.js`
+       (que construyen la instancia por carrera). -->
+  <script src="src/core/AbstractCompetitionStageRuntime.js"></script>
+  <script src="src/core/CompetitionSimulationService.js"></script>
   <script src="src/core/CompetitionEngine.js"></script>
   <script src="src/core/CompetitionParticipationService.js"></script>
   <!-- PATHWAYS-1 (DESIGN.md 10.15): clasificación/ascenso-descenso

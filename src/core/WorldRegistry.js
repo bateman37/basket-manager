@@ -189,6 +189,34 @@
     }
   }
 
+  // WORLD-SIM-1 (DESIGN.md 10.16) — fuerza/cobertura agregada de un Team en
+  // una temporada. Orden canónico por id (inserción); consultas por
+  // Team/temporada, nunca un array paralelo mantenido a mano.
+  class TeamSimulationSnapshotRegistry extends BaseRegistry {
+    constructor() { super('TeamSimulationSnapshotRegistry'); }
+
+    forTeam(teamId) { return this.all().filter((s) => s.teamId === teamId); }
+
+    forSeason(seasonKey) { return this.all().filter((s) => s.seasonKey === seasonKey); }
+
+    forTeamSeason(teamId, seasonKey) {
+      return this.all().find((s) => s.teamId === teamId && s.seasonKey === seasonKey) || null;
+    }
+  }
+
+  // WORLD-SIM-1 — evidencia INMUTABLE de una resolución `standard`/
+  // `abstract`. Orden canónico por id (nunca inserción), igual criterio que
+  // los receipts de PATHWAYS-1.
+  class CompetitionSimulationReceiptRegistry extends BaseRegistry {
+    constructor() { super('CompetitionSimulationReceiptRegistry'); }
+
+    all() { return [...this._byId.values()].sort((a, b) => (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0))); }
+
+    forEdition(editionId) { return this.all().filter((r) => r.editionId === editionId); }
+
+    forStage(stageId) { return this.all().filter((r) => r.stageId === stageId); }
+  }
+
   // PATHWAYS-1 — commit atómico de un transition group completo.
   class CompetitionSeasonTransitionReceiptRegistry extends BaseRegistry {
     constructor() { super('CompetitionSeasonTransitionReceiptRegistry'); }
@@ -228,6 +256,10 @@
       // PATHWAYS-1 (DESIGN.md 10.15) — receipts de clasificación, por carrera.
       this.pathwayReceipts = new CompetitionPathwayReceiptRegistry();
       this.seasonTransitionReceipts = new CompetitionSeasonTransitionReceiptRegistry();
+      // WORLD-SIM-1 (DESIGN.md 10.16) — fuerza agregada por Team/temporada y
+      // receipts de resolución `standard`/`abstract`, por carrera.
+      this.teamSimulationSnapshots = new TeamSimulationSnapshotRegistry();
+      this.competitionSimulationReceipts = new CompetitionSimulationReceiptRegistry();
       this.packs = new (CPR())();
     }
 
@@ -391,6 +423,25 @@
 
     registerSeasonTransitionReceipt(receipt) { return this.seasonTransitionReceipts.register(receipt); }
 
+    // WORLD-SIM-1 (DESIGN.md 10.16) — una snapshot referencia SIEMPRE un
+    // Team existente (nunca duplica Club/Team/Squad/Player).
+    registerTeamSimulationSnapshot(snapshot) {
+      if (!this.teams.has(snapshot.teamId)) {
+        throw new Error(`WorldRegistries: la snapshot "${snapshot.id}" referencia un equipo inexistente "${snapshot.teamId}".`);
+      }
+      return this.teamSimulationSnapshots.register(snapshot);
+    }
+
+    registerCompetitionSimulationReceipt(receipt) {
+      if (!this.competitionEditions.has(receipt.editionId)) {
+        throw new Error(`WorldRegistries: el receipt de simulación "${receipt.id}" referencia una edición inexistente "${receipt.editionId}".`);
+      }
+      if (!this.competitionStages.has(receipt.stageId)) {
+        throw new Error(`WorldRegistries: el receipt de simulación "${receipt.id}" referencia un stage inexistente "${receipt.stageId}".`);
+      }
+      return this.competitionSimulationReceipts.register(receipt);
+    }
+
     // Agrega TODOS los errores de todas las colecciones — nunca lanza en el
     // primero, para que un diagnóstico muestre el mundo completo de una vez.
     validateIntegrity() {
@@ -506,6 +557,19 @@
           }
         });
       });
+      // WORLD-SIM-1 (DESIGN.md 10.16) — snapshots referencian equipos
+      // existentes; receipts de simulación referencian edición/stage/
+      // participantes existentes.
+      this.teamSimulationSnapshots.all().forEach((snapshot) => {
+        if (!this.teams.has(snapshot.teamId)) errors.push(`TeamSimulationSnapshot "${snapshot.id}": equipo inexistente "${snapshot.teamId}".`);
+      });
+      this.competitionSimulationReceipts.all().forEach((receipt) => {
+        if (!this.competitionEditions.has(receipt.editionId)) errors.push(`CompetitionSimulationReceipt "${receipt.id}": edición inexistente "${receipt.editionId}".`);
+        if (!this.competitionStages.has(receipt.stageId)) errors.push(`CompetitionSimulationReceipt "${receipt.id}": stage inexistente "${receipt.stageId}".`);
+        receipt.participantIds.forEach((participantId) => {
+          if (!this.teams.has(participantId)) errors.push(`CompetitionSimulationReceipt "${receipt.id}": participante inexistente "${participantId}".`);
+        });
+      });
       return errors;
     }
 
@@ -526,6 +590,8 @@
         competitionEntries: this.competitionEntries.all().map((e) => e.toJSON()),
         pathwayReceipts: this.pathwayReceipts.all().map((r) => r.toJSON()),
         seasonTransitionReceipts: this.seasonTransitionReceipts.all().map((r) => r.toJSON()),
+        teamSimulationSnapshots: this.teamSimulationSnapshots.all().map((s) => s.toJSON()),
+        competitionSimulationReceipts: this.competitionSimulationReceipts.all().map((r) => r.toJSON()),
       };
     }
   }
@@ -543,6 +609,8 @@
     CompetitionEntryRegistry,
     CompetitionPathwayReceiptRegistry,
     CompetitionSeasonTransitionReceiptRegistry,
+    TeamSimulationSnapshotRegistry,
+    CompetitionSimulationReceiptRegistry,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
