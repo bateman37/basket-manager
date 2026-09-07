@@ -120,44 +120,22 @@
   // =====================================================================
   // 2. Ascensos y descensos
   // =====================================================================
-  function captureDivisionsBefore(teams) {
-    const map = new Map();
-    (teams || []).forEach((team) => map.set(team.id, team.division));
-    return map;
-  }
-
-  // Reutiliza EXACTAMENTE los datos ya calculados: los 2 últimos de la liga
-  // regular de 1ª y los dos ascendidos que ya resolvió `PromotionPlayoff`
-  // (`directPromotion` = campeón de la liga regular de 2ª,
-  // `secondPromotedEntry` = campeón del playoff de ascenso). No se
-  // recalcula ningún campeón aquí.
-  function applyPromotionsAndRelegations(params) {
-    const { leagueA, promotionPlayoff } = params;
-    const standingsA = leagueA.getStandingsTable();
-    const relegatedTeams = [
-      standingsA[standingsA.length - 1].team,
-      standingsA[standingsA.length - 2].team,
-    ];
-    relegatedTeams.forEach((team) => { team.division = '2ª'; });
-    const promotedTeams = [
-      promotionPlayoff.directPromotion.team,
-      promotionPlayoff.secondPromotedEntry.team,
-    ];
-    promotedTeams.forEach((team) => { team.division = '1ª'; });
-    return { promotedTeams, relegatedTeams };
-  }
-
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21): `captureDivisionsBefore()`/
+  // `applyPromotionsAndRelegations()` quedan RETIRADAS — ya no tienen
+  // ningún call-site canónico (la ruta productiva de `game.js` usa
+  // `deriveSeasonMovesFromTransitionReceipt()`, debajo) y mutaban
+  // `team.division`, retirado de `Team.js`. `scripts/cycle1-harness.js`
+  // (pre-COMP-CORE-1, fuera de la ruta productiva) sigue llamándolas — su
+  // migración queda como validación funcional/manual pendiente, no se
+  // ejecuta en esta sesión (CLAUDE.md, "no revivas cycle1-harness como
+  // fuente de verdad de competiciones").
+  //
   // PATHWAYS-1 (DESIGN.md 10.15, BUG-PATHWAYS-04) — deriva ascensos/
   // descensos del `CompetitionSeasonTransitionReceipt` YA comprometido por
   // `CompetitionPathwayService.applyTransitionGroup()`, en vez de recalcular
-  // standings/campeón desde `League`/`PromotionPlayoff` y mutar
-  // `team.division` aquí mismo. Nunca muta ningún Team — solo lee
-  // `receipt.moves` (ids reales, `outcomeCode` estable) y resuelve las
-  // instancias reales desde `teamsById`. `applyPromotionsAndRelegations()`
-  // arriba se conserva SOLO para los scripts de humo anteriores a esta
-  // entrega que todavía construyen su cierre desde `League`/
-  // `PromotionPlayoff` standalone (ver `scripts/cycle1-harness.js`) — la
-  // ruta productiva de `game.js` usa esta función.
+  // standings/campeón desde `League`/`PromotionPlayoff`. Nunca muta ningún
+  // Team — solo lee `receipt.moves` (ids reales, `outcomeCode` estable) y
+  // resuelve las instancias reales desde `teamsById`.
   function deriveSeasonMovesFromTransitionReceipt(transitionReceipt, teamsById) {
     let directPromotion = null;
     let playoffPromotion = null;
@@ -204,9 +182,12 @@
   // `rolesSnapshotFor(player, team)`: callback opcional (la interfaz aporta
   // el rol táctico real desde `team.tacticalProfile`). Sin él, se cierra
   // con roles nulos, exactamente el mismo criterio neutro de Tactics.js.
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21): ya no recibe `divisionsBefore` — el
+  // cierre de un jugador sin minutos conserva su afiliación real (Team/Club)
+  // vía `seasonInfo.clubId`/`clubName`, nunca una división.
   function closeCareerHistories(params) {
     const {
-      teams, honoursByTeamId, divisionsBefore, seasonEndDateTime, nextSeasonKey, config, rolesSnapshotFor,
+      teams, honoursByTeamId, seasonEndDateTime, nextSeasonKey, config, rolesSnapshotFor,
     } = params;
     let closed = 0;
     (teams || []).forEach((team) => {
@@ -218,7 +199,8 @@
           endDate: seasonEndDateTime,
           teamId: team.id,
           teamName: team.fullName,
-          division: (divisionsBefore && divisionsBefore.get(team.id)) || team.division,
+          clubId: team.clubId || null,
+          clubName: (team.club && team.club.name) || null,
           roles: rolesSnapshotFor ? rolesSnapshotFor(player, team) : { offense: null, defense: null },
           honours,
           nextSeasonKey,
@@ -232,8 +214,6 @@
   const exportsObj = {
     SeasonHistoryService: {
       LastOfficialMatchEvidenceCollector,
-      captureDivisionsBefore,
-      applyPromotionsAndRelegations,
       deriveSeasonMovesFromTransitionReceipt,
       buildSeasonHonoursByTeamId,
       closeCareerHistories,

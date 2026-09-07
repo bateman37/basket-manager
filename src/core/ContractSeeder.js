@@ -114,8 +114,12 @@
     return hash >>> 0;
   }
 
-  function seedFingerprint(playerId, clubId, seasonKey) {
-    return `${playerId}|${clubId}|${seasonKey}|${GENERATOR_VERSION}`;
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21, 10.20.5): el segundo componente se
+  // llama `teamId` porque el valor real que recibe es SIEMPRE `team.id` —
+  // se conserva EXACTAMENTE el mismo valor/orden por llamada, nunca se
+  // regenera el hash.
+  function seedFingerprint(playerId, teamId, seasonKey) {
+    return `${playerId}|${teamId}|${seasonKey}|${GENERATOR_VERSION}`;
   }
 
   // Valor determinista en [0, 1) a partir de la huella + un discriminante

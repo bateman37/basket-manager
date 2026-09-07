@@ -15,6 +15,8 @@
   const ContentPackRegistryModule = dep('./ContentPackRegistry.js');
   const WorldSimulationModule = dep('../entities/WorldSimulation.js');
   const CareerSetupModule = dep('../entities/CareerSetup.js');
+  const CompetitionPathwayCatalogModule = dep('./CompetitionPathwayCatalog.js');
+  const ContentPackLifecycleModule = dep('./ContentPackLifecycleService.js');
 
   function errorEntry(code, message, field) {
     return { code, message, field: field || null };
@@ -145,18 +147,112 @@
     };
   }
 
-  // Destinos alcanzables desde la competición ACTUAL de un club vía
-  // pathway declarativo (sección 3.2 del prompt: "la competición actual del
-  // club y destinos alcanzables por pathways deben permitir paradas de
-  // usuario"). Alcance de esta entrega (documentado, no fabricado): solo
-  // comprueba la competición inicial declarada — un grafo completo de
-  // pathways multi-temporada queda para una entrega futura si hiciera
-  // falta ampliarlo.
   function competitionAllowsUserStop(catalog, competitionDefinitionId, competitionSelections, defaultDetailLevel) {
     const declared = catalog.competitions.find((c) => c.competitionDefinitionId === competitionDefinitionId);
     if (!declared) return false;
     const chosenLevel = competitionSelections[competitionDefinitionId] || defaultDetailLevel;
     return WorldSimulationModule.capabilitiesForDetailLevel(chosenLevel).allowsUserMatchStop;
+  }
+
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 10 del prompt) — grafo
+  // COMPLETO de pathways alcanzable desde la competición inicial de un
+  // club, sustituyendo el alcance anterior (solo la competición inicial,
+  // WORLD-UI-1/WORLD-HARDEN-1). PURO: solo lee las `CompetitionPathwayRule`
+  // ya registradas (dato plano, congelado) — nunca instala packs, nunca
+  // crea Editions, nunca muta el mundo ni consume RNG.
+  //
+  // La fuente de un edge SIEMPRE viene del `selector` (nunca del `trigger`:
+  // un trigger `season-transition` no declara `stageRef` en absoluto) — la
+  // mayoría de selectores traen `stageRef.competitionDefinitionId`;
+  // `remaining-participants` trae `sourceCompetitionDefinitionId` directo.
+  function ruleSourceCompetitionId(rule) {
+    if (rule.selector.stageRef) return rule.selector.stageRef.competitionDefinitionId;
+    if (rule.selector.sourceCompetitionDefinitionId) return rule.selector.sourceCompetitionDefinitionId;
+    return null;
+  }
+
+  // El destino solo cruza a OTRA competición cuando `destination.type` es
+  // `competition-edition`/`next-season-competition` — un destino `stage`
+  // permanece dentro de la MISMA competición (otra fase, mismo Edition),
+  // nunca un nodo nuevo del grafo.
+  function ruleTargetCompetitionId(rule) {
+    if (rule.destination.type === 'competition-edition' || rule.destination.type === 'next-season-competition') {
+      return rule.destination.competitionDefinitionId;
+    }
+    return null;
+  }
+
+  // Recorre TODAS las `CompetitionPathwayDefinition` ya registradas por los
+  // paquetes seleccionados — soporta ciclos (nunca vuelve a expandir un
+  // competitionId ya visitado) y conserva el camino MÍNIMO (BFS) hasta cada
+  // destino, para poder explicarlo en el mensaje de error.
+  function reachableCompetitionGraph(startCompetitionId) {
+    const cameFrom = new Map();
+    const visited = new Set([startCompetitionId]);
+    const queue = [startCompetitionId];
+    const definitions = CompetitionPathwayCatalogModule.allPathwayDefinitions();
+    while (queue.length) {
+      const current = queue.shift();
+      definitions.forEach((definition) => {
+        definition.rules.forEach((rule) => {
+          if (ruleSourceCompetitionId(rule) !== current) return;
+          const target = ruleTargetCompetitionId(rule);
+          if (!target || visited.has(target)) return;
+          visited.add(target);
+          cameFrom.set(target, { from: current, ruleId: rule.id });
+          queue.push(target);
+        });
+      });
+    }
+    return { visited, cameFrom };
+  }
+
+  function describeReachabilityPath(cameFrom, startCompetitionId, targetCompetitionId) {
+    const steps = [];
+    let cursor = targetCompetitionId;
+    while (cursor !== startCompetitionId) {
+      const hop = cameFrom.get(cursor);
+      if (!hop) break; // defensivo: no debería ocurrir dado un cameFrom coherente
+      steps.unshift(`${hop.from} -> ${cursor} (${hop.ruleId})`);
+      cursor = hop.from;
+    }
+    return steps.join(', ');
+  }
+
+  // Asegura que los paquetes SELECCIONADOS ya registraron sus
+  // `CompetitionPathwayRule` — reutiliza EXACTAMENTE
+  // `ContentPackLifecycleService.prepareCatalogs()` (idempotente, nunca
+  // instala ningún paquete ni crea Editions/mundo), invocable ANTES de
+  // "Comenzar carrera".
+  function ensurePathwaysRegistered(resolvedManifests) {
+    new ContentPackLifecycleModule.ContentPackLifecycleService().prepareCatalogs(resolvedManifests);
+  }
+
+  // Destinos alcanzables desde la competición ACTUAL de un club vía
+  // pathway declarativo — grafo COMPLETO multi-temporada (sección 10 del
+  // prompt de WORLD-CLEANUP-1, DESIGN.md 10.21): copas, playoffs, ascensos,
+  // descensos y clasificaciones, con ciclos soportados y sin segunda tabla
+  // manual de alcanzabilidad. Devuelve `null` si todo es alcanzable con
+  // parada de usuario compatible, o un mensaje único con TODOS los
+  // destinos incompatibles y su camino mínimo.
+  function validateReachableCompetitionsAllowUserStop(catalog, resolvedManifests, initialCompetitionDefinitionId, competitionSelections, defaultDetailLevel) {
+    ensurePathwaysRegistered(resolvedManifests);
+    const { visited, cameFrom } = reachableCompetitionGraph(initialCompetitionDefinitionId);
+    const incompatible = [];
+    [...visited].sort().forEach((competitionDefinitionId) => {
+      const declared = catalog.competitions.find((c) => c.competitionDefinitionId === competitionDefinitionId);
+      // `catalog-only` (sin Edition activa) nunca puede programar al Team —
+      // se ignora, nunca bloquea "Comenzar carrera".
+      if (!declared || declared.implementationStatus !== 'active-runtime') return;
+      if (competitionAllowsUserStop(catalog, competitionDefinitionId, competitionSelections, defaultDetailLevel)) return;
+      const label = declared.name;
+      const path = competitionDefinitionId === initialCompetitionDefinitionId
+        ? '(competición inicial)'
+        : describeReachabilityPath(cameFrom, initialCompetitionDefinitionId, competitionDefinitionId);
+      incompatible.push(`"${label}" [${path}]`);
+    });
+    if (!incompatible.length) return null;
+    return `Estas competiciones alcanzables no admiten parada de usuario con el nivel de detalle elegido: ${incompatible.join('; ')}.`;
   }
 
   // ---------------------------------------------------------------------
@@ -175,11 +271,13 @@
     });
 
     const unknownPackId = selectedIds.find((id) => !manifestsById.has(id));
+    let resolvedManifests = [];
     if (unknownPackId) {
       errors.push(errorEntry('UNKNOWN_PACK', `El paquete "${unknownPackId}" no está disponible.`, 'selectedContentPackIds'));
     } else if (selectedIds.length) {
-      const { error } = computeInstallOrderSafe(selectedIds.map((id) => manifestsById.get(id)));
+      const { order, error } = computeInstallOrderSafe(selectedIds.map((id) => manifestsById.get(id)));
       if (error) errors.push(errorEntry('MISSING_DEPENDENCY', error, 'selectedContentPackIds'));
+      else resolvedManifests = order;
     }
 
     if (!draft.seasonKey || !catalog.seasons.some((s) => s.seasonKey === draft.seasonKey)) {
@@ -221,21 +319,19 @@
       if (!club) {
         errors.push(errorEntry('UNKNOWN_CLUB', `El club "${draft.controlledClubId}" no está disponible en los paquetes elegidos.`, 'controlledClubId'));
       } else if (!errors.length) {
-        // Invariante 10: un club controlado no puede quedar en una
-        // competición sin `allowsUserMatchStop` actual — bloquea "Comenzar"
-        // y explica QUÉ competición debería ser jugable, nunca eleva el
-        // nivel a escondidas.
-        const allowsStop = competitionAllowsUserStop(
-          catalog, club.initialCompetitionDefinitionId, competitionSelections, draft.defaultDetailLevel,
+        // WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 10 del prompt):
+        // invariante 10 ampliada — un club controlado no puede quedar SIN
+        // parada de usuario en NINGUNA competición alcanzable por pathway
+        // (misma temporada o siguientes: copas, playoffs, ascensos,
+        // descensos, clasificaciones), no solo su competición inicial.
+        // Bloquea "Comenzar" y explica QUÉ competiciones deberían ser
+        // jugables y por qué camino se alcanzan, nunca eleva el nivel a
+        // escondidas.
+        const incompatibleMessage = validateReachableCompetitionsAllowUserStop(
+          catalog, resolvedManifests, club.initialCompetitionDefinitionId, competitionSelections, draft.defaultDetailLevel,
         );
-        if (!allowsStop) {
-          const declared = catalog.competitions.find((c) => c.competitionDefinitionId === club.initialCompetitionDefinitionId);
-          const label = declared ? declared.name : club.initialCompetitionDefinitionId;
-          errors.push(errorEntry(
-            'CONTROLLED_CLUB_WITHOUT_USER_STOP',
-            `"${label}" debe ser "playable" para poder controlar a ${club.name} — ajusta su nivel de detalle.`,
-            'competitionSelections',
-          ));
+        if (incompatibleMessage) {
+          errors.push(errorEntry('CONTROLLED_CLUB_WITHOUT_USER_STOP', incompatibleMessage, 'competitionSelections'));
         }
       }
     }

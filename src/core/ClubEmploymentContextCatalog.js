@@ -27,10 +27,11 @@
 // La competición doméstica (`domesticCompetitionId`) NO se declara aquí:
 // cambia con ascensos/descensos y, desde WORLD-CONTEXT-1 (DESIGN.md 10.20),
 // llega SIEMPRE explícita desde el llamador — resuelta por sus
-// `CompetitionEntry` reales (`CompetitionContextService`). Ya NO existe el
-// fallback a `competitionIdFromLegacyDivision(team.division)`: un equipo
-// puede competir a la vez en liga, Copa y Europa, así que su "división" no
-// era un dato de participación sino una suposición.
+// `CompetitionEntry` reales (`CompetitionContextService`). Ya NO existe
+// ningún adaptador legacy de división como fallback (WORLD-CLEANUP-1,
+// DESIGN.md 10.21, retirado por completo junto con `Team.division`): un
+// equipo puede competir a la vez en liga, Copa y Europa, así que su
+// "división" nunca fue un dato de participación, solo una suposición.
 
 (function (global) {
   const isNode = (typeof module !== 'undefined' && module.exports);

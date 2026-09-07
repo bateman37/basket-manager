@@ -200,13 +200,44 @@
     return (player && player.careerHistory) ? player.careerHistory : null;
   }
 
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 7 del prompt) — un `teamStint`
+  // identifica el lugar donde el jugador PRESTA SERVICIO (el Team), nunca
+  // una liga única: un mismo Team que juega Liga y Copa a la vez produce UN
+  // SOLO stint, con un acumulado de servicio + un acumulado POR competición
+  // (`competitionStats`). Un traspaso/cesión dentro de la misma temporada
+  // produce varios stints (uno por Team distinto), como ya ocurría antes.
+  // `team`: { id, name, clubId, clubName } — snapshot plano aportado por el
+  // llamador (game.js), nunca la instancia viva de `Team`/`Club` (evita
+  // acoplar este módulo puro a las entidades del mundo).
   function ensureTeamStint(currentSeason, team) {
     let stint = currentSeason.teamStints.find((s) => s.teamId === team.id);
     if (!stint) {
-      stint = { teamId: team.id, teamName: team.name, division: team.division, stats: makeEmptyStats() };
+      stint = {
+        teamId: team.id,
+        teamName: team.name,
+        clubId: team.clubId !== undefined ? team.clubId : null,
+        clubName: team.clubName !== undefined ? team.clubName : null,
+        stats: makeEmptyStats(),
+        competitionStats: [],
+      };
       currentSeason.teamStints.push(stint);
     }
     return stint;
+  }
+
+  function ensureCompetitionStint(stint, competitionInfo) {
+    const competitionDefinitionId = competitionInfo.competitionDefinitionId;
+    let compStats = stint.competitionStats.find((c) => c.competitionDefinitionId === competitionDefinitionId);
+    if (!compStats) {
+      compStats = {
+        competitionDefinitionId,
+        competitionName: competitionInfo.competitionName || null,
+        competitionShortName: competitionInfo.competitionShortName || null,
+        stats: makeEmptyStats(),
+      };
+      stint.competitionStats.push(compStats);
+    }
+    return compStats;
   }
 
   // --- Sección 11/12: acumulación pura desde una línea de boxScore ya
@@ -260,7 +291,8 @@
       date: new Date(matchInfo.date),
       seasonKey: ch.currentSeason.seasonKey,
       teamId: matchInfo.team.id,
-      competition: matchInfo.competition,
+      competitionDefinitionId: matchInfo.competitionDefinitionId,
+      stageId: matchInfo.stageId || null,
       value: value === undefined ? null : value,
       metadata: metadata || null,
     };
@@ -316,7 +348,8 @@
         date: new Date(matchInfo.date),
         teamId: matchInfo.team.id,
         opponentId: (matchInfo.opponent && matchInfo.opponent.id) || null,
-        competition: matchInfo.competition,
+        competitionDefinitionId: matchInfo.competitionDefinitionId,
+        stageId: matchInfo.stageId || null,
         matchKey: matchInfo.matchKey || null,
       };
       if (value >= PB_MINIMUMS[stat]) {
@@ -331,8 +364,11 @@
   }
 
   // --- Sección 11/28/68: punto único de acumulación por partido resuelto.
-  // `matchInfo`: { date, competition, team:{id,name,division},
-  // opponent:{id,name}, boxScoreLine, isStarter, matchKey }. Devuelve
+  // `matchInfo`: { date, team:{id,name,clubId,clubName},
+  // opponent:{id,name}, competitionDefinitionId, competitionName,
+  // competitionShortName, stageId, boxScoreLine, isStarter, matchKey } —
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21): descriptor canónico de competición,
+  // nunca una clave `'league'/'cup'` ni `team.division`. Devuelve
   // `{ newMilestones, newPersonalBests }` para que el orquestador (game.js)
   // decida si alguno merece noticia (Events.js construye el texto).
   function recordResolvedMatch(player, matchInfo, config) {
@@ -349,6 +385,16 @@
     addStatsInto(cs.stats, delta);
     const stint = ensureTeamStint(cs, matchInfo.team);
     addStatsInto(stint.stats, delta);
+    // Un mismo Team que juega Liga y Copa produce UN stint de servicio y DOS
+    // acumulados de competición — nunca doble contabilización (el total del
+    // stint es la suma de los deltas reales, igual que antes; el desglose
+    // por competición es un acumulado APARTE, no un segundo sumando).
+    const compStint = ensureCompetitionStint(stint, {
+      competitionDefinitionId: matchInfo.competitionDefinitionId,
+      competitionName: matchInfo.competitionName,
+      competitionShortName: matchInfo.competitionShortName,
+    });
+    addStatsInto(compStint.stats, delta);
 
     if (matchInfo.matchKey) {
       cs.recentMatchKeys.push(matchInfo.matchKey);
@@ -366,18 +412,35 @@
 
   // --- Sección 16/56: cierre de temporada — snapshot final + honores,
   // reinicio de currentSeason. `seasonInfo`: { endDate, teamId, teamName,
-  // division, roles, honours, nextSeasonKey }. `roles`/`honours` llegan ya
-  // construidos por el llamador (Tactics.js/League.js/Bracket.js reales,
-  // nunca recalculados aquí — este módulo no decide tácticas ni
-  // competición).
+  // clubId, clubName, roles, honours, nextSeasonKey }. `roles`/`honours`
+  // llegan ya construidos por el llamador (Tactics.js/CompetitionEngine
+  // reales, nunca recalculados aquí — este módulo no decide tácticas ni
+  // competición). WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 7 del prompt):
+  // un stint ya NO guarda `division` — conserva la afiliación (Team/Club) y
+  // un desglose `competitionStats` por competición real disputada. Una
+  // temporada sin minutos (`teamStints` vacío) conserva la afiliación del
+  // jugador SIN inventar una única competición disputada
+  // (`competitionStats: []`, nunca un valor fijo).
   function closeSeason(player, seasonInfo, config) {
     const ch = player.careerHistory;
     if (!ch) return null;
     const cs = ch.currentSeason;
     const stints = cs.teamStints.length
-      ? cs.teamStints.map((s) => ({ teamId: s.teamId, teamName: s.teamName, division: s.division, stats: s.stats.slice() }))
+      ? cs.teamStints.map((s) => ({
+        teamId: s.teamId,
+        teamName: s.teamName,
+        clubId: s.clubId,
+        clubName: s.clubName,
+        stats: s.stats.slice(),
+        competitionStats: s.competitionStats.map((c) => ({ ...c, stats: c.stats.slice() })),
+      }))
       : [{
-        teamId: seasonInfo.teamId, teamName: seasonInfo.teamName, division: seasonInfo.division, stats: makeEmptyStats(),
+        teamId: seasonInfo.teamId,
+        teamName: seasonInfo.teamName,
+        clubId: seasonInfo.clubId !== undefined ? seasonInfo.clubId : null,
+        clubName: seasonInfo.clubName !== undefined ? seasonInfo.clubName : null,
+        stats: makeEmptyStats(),
+        competitionStats: [],
       }];
     const record = {
       seasonKey: cs.seasonKey,

@@ -1548,10 +1548,18 @@
         // porque el resto de la fórmula multiplica por un factor bastante
         // mayor que este suelo.
         zeroMinutesFactor: 0.15,
-        // Peso moderado por división (invariante 31: "de forma moderada",
-        // nunca un multiplicador extremo) — se aplica a los minutos antes
-        // de la raíz cuadrada.
-        divisionWeight: { '1ª': 1.0, '2ª': 0.7 },
+        // Peso moderado por NIVEL COMPETITIVO real (`CompetitionDefinition.
+        // tier`, WORLD-CLEANUP-1, DESIGN.md 10.21) — invariante 31: "de
+        // forma moderada", nunca un multiplicador extremo — se aplica a los
+        // minutos antes de la raíz cuadrada. Mismo balance observable que
+        // el antiguo `divisionWeight` (`'1ª'` -> tier 1, `'2ª'` -> tier 2),
+        // ahora sin ningún id/nombre español: tier 1 = liga principal, tier
+        // 2 = segundo nivel.
+        competitionTierWeight: { 1: 1.0, 2: 0.7 },
+        // Política genérica para una competición SIN tier declarado — nunca
+        // se decide por nombre/id de competición (CLAUDE.md, World
+        // Architecture).
+        defaultCompetitionTierWeight: 1,
       },
 
       // --- Instalaciones del club (sección 20) ---

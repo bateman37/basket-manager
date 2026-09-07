@@ -31,9 +31,10 @@
   }
 
   // Percentil 0-100 del top8Rating de cada equipo DENTRO de los `teams`
-  // recibidos (se espera la división completa, 18 equipos — el percentil
-  // no tiene sentido calculado sobre un subconjunto) — 0 = el más bajo de
-  // esa división, 100 = el más alto.
+  // recibidos (se espera el COHORTE completo de una misma competición, p.ej.
+  // los 18 equipos de una liga — el percentil no tiene sentido calculado
+  // sobre un subconjunto) — 0 = el más bajo de ese cohorte, 100 = el más
+  // alto.
   function computeOverallPercentiles(teams) {
     const ranked = teams
       .map((team) => ({ team, rating: top8Rating(team.roster) }))
@@ -62,10 +63,14 @@
   }
 
   // Recalcula board.sportingGoal de TODOS los `teams` recibidos a la vez
-  // (necesita la división completa para el percentil, no equipo a
-  // equipo) — no toca financialGoal ni multiYearPlan (DESIGN.md 3.4.3,
-  // explícitamente fuera de alcance).
-  function recalculateSportingGoalsForDivision(teams, config) {
+  // (necesita el cohorte completo de una misma competición para el
+  // percentil, no equipo a equipo) — no toca financialGoal ni
+  // multiYearPlan (DESIGN.md 3.4.3, explícitamente fuera de alcance).
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21): API genérica por cohorte — el
+  // llamador agrupa los `teams` por `competitionDefinitionId` real
+  // (Entries), nunca por `team.division` (retirado del renombre anterior,
+  // `recalculateSportingGoalsForDivision`).
+  function recalculateSportingGoalsForCohort(teams, config) {
     const percentiles = computeOverallPercentiles(teams);
     teams.forEach((team) => {
       team.board.sportingGoal = computeSportingGoal(team, percentiles.get(team.id), config);
@@ -75,7 +80,7 @@
   const exportsObj = {
     computeOverallPercentiles,
     computeSportingGoal,
-    recalculateSportingGoalsForDivision,
+    recalculateSportingGoalsForCohort,
     top8Rating,
     playerOverall,
   };

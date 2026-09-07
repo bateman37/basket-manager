@@ -7,8 +7,9 @@
 // servicios profesionales (contratos, inscripciones, planificación CPU,
 // clearinghouse, legalidad de plantilla, traspasos, cesiones, ciclo anual)
 // resolvían "en qué competición está este equipo" traduciendo su división
-// legacy (`CompetitionRules.competitionIdFromLegacyDivision(team.division)`).
-// Un equipo puede participar SIMULTÁNEAMENTE en liga, Copa y (en el futuro)
+// legacy con el adaptador de `CompetitionRules.js` (retirado por completo
+// en WORLD-CLEANUP-1, DESIGN.md 10.21, junto con `Team.division`). Un
+// equipo puede participar SIMULTÁNEAMENTE en liga, Copa y (en el futuro)
 // Europa: no posee una única "división" universal, así que esa traducción
 // era una suposición oculta, no un dato.
 //

@@ -248,7 +248,6 @@
       team.clubId = club.id;
       team.club = club;
       team.homeAreaId = homeAreaId;
-      team.legacyDivision = team.division;
       world.registries.registerTeam(team);
 
       // Squad senior activo — reutiliza las MISMAS instancias de Player
@@ -335,6 +334,11 @@
             legs: 2, pointsWin: 2, pointsLoss: 1, requireExactParticipantCount: 18, tiebreakSteps: TIEBREAK_STEPS,
           },
           completesEdition: false,
+          // WORLD-CLEANUP-1 (DESIGN.md 10.21): `rulesPhaseId` es el mismo
+          // identificador de fase que ya usaban `matchExposures`/REG-1 antes
+          // de esta entrega (mapas fijos de la UI, retirados de `game.js`)
+          // — mismo comportamiento, ahora declarado por contenido.
+          rulesPhaseId: 'league',
         },
         {
           key: 'title-playoff',
@@ -354,6 +358,7 @@
             roundPatterns: ['best-of-3-1-1-1', 'best-of-5-2-2-1', 'best-of-5-2-2-1'],
           },
           completesEdition: true,
+          rulesPhaseId: 'title-playoff',
         },
       ],
     });
@@ -383,6 +388,7 @@
             legs: 2, pointsWin: 2, pointsLoss: 1, requireExactParticipantCount: 18, tiebreakSteps: TIEBREAK_STEPS,
           },
           completesEdition: false,
+          rulesPhaseId: 'league',
         },
         {
           key: 'promotion-quarterfinals',
@@ -400,6 +406,7 @@
             roundPatterns: ['best-of-5-2-2-1'],
           },
           completesEdition: false,
+          rulesPhaseId: 'promotion',
         },
         {
           key: 'promotion-final-four',
@@ -415,6 +422,7 @@
           entrySource: { type: 'pathway-managed' },
           runnerConfig: { roundPatterns: ['single-game', 'single-game'] },
           completesEdition: true,
+          rulesPhaseId: 'promotion',
         },
       ],
     });
@@ -444,6 +452,7 @@
             roundPatterns: ['single-game', 'single-game', 'single-game'],
           },
           completesEdition: true,
+          rulesPhaseId: 'cup',
         },
       ],
     });

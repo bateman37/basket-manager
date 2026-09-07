@@ -517,7 +517,7 @@
         annualCycleRegistry,
         cycle,
         player,
-        clubId: player.teamId || null,
+        teamId: player.teamId || null,
         date: iso,
         currentContract,
         reasons: intent.reasons,

@@ -49,8 +49,13 @@
     return hash >>> 0;
   }
 
-  function seedFingerprint(playerId, clubId, seasonKey) {
-    return `${playerId}|${clubId}|${seasonKey}|${GENERATOR_VERSION}`;
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21, 10.20.5): el segundo componente se
+  // llama `teamId` porque casi todos los llamadores pasan `team.id` — se
+  // conserva EXACTAMENTE el mismo valor/orden por llamada (nunca se
+  // regenera el hash); un llamador puntual (vinculación) pasa el `Club.id`
+  // real del beneficiario, mismo criterio ya documentado en CLAUDE.md.
+  function seedFingerprint(playerId, teamId, seasonKey) {
+    return `${playerId}|${teamId}|${seasonKey}|${GENERATOR_VERSION}`;
   }
 
   function unitFrom(fingerprint, discriminator) {
@@ -213,7 +218,7 @@
     const impact = RegSvc().determineCumulativeCapImpact(finalAccessCategory, resolved);
     const cap = resolved.registration && resolved.registration.cumulativeRegistrationCap;
     const capFull = impact.counted && cap
-      && registrationRegistry.cumulativeCountForClub(team.id, resolved.registrationScopeId, seasonKey) >= cap.max;
+      && registrationRegistry.cumulativeCountForTeam(team.id, resolved.registrationScopeId, seasonKey) >= cap.max;
     if (capFull) {
       return {
         license, registration: null, profile,

@@ -125,6 +125,8 @@
         stageType: template.stageType,
         status: 'active',
         stageKey: template.key,
+        rulesPhaseId: template.rulesPhaseId,
+        presentationRole: template.presentationRole,
       });
       world.registries.registerCompetitionStage(stage);
       (participants || []).forEach((participant, index) => {
@@ -484,6 +486,8 @@
         stageType: template.stageType,
         status: 'active',
         stageKey: template.key,
+        rulesPhaseId: template.rulesPhaseId,
+        presentationRole: template.presentationRole,
         sourceStageIds: template.activation.sourceStageKey
           ? [buildStageId(edition.competitionDefinitionId, edition.seasonKey, template.activation.sourceStageKey)]
           : [],
@@ -887,6 +891,28 @@
     snapshot() { return this.runtimeRegistry.snapshot(); }
   }
 
+  // WORLD-CLEANUP-1 (DESIGN.md 10.21, sección 9.2 del prompt) — consulta
+  // PURA del descriptor canónico de un stage: nombres desde
+  // `CompetitionDefinition`/`CompetitionStage`, nunca desde un mapa fijo en
+  // la UI (los antiguos mapas de traducción stageKey -> clave de interfaz,
+  // retirados de `src/ui/game.js`).
+  function describeCompetitionContext(registries, stageId) {
+    const stage = registries.competitionStages.require(stageId);
+    const edition = registries.competitionEditions.require(stage.editionId);
+    const definition = registries.competitionDefinitions.require(edition.competitionDefinitionId);
+    return {
+      competitionDefinitionId: definition.id,
+      competitionName: definition.name,
+      competitionShortName: definition.shortName,
+      editionId: edition.id,
+      stageId: stage.id,
+      stageKey: stage.stageKey,
+      stageName: stage.name,
+      stageType: stage.stageType,
+      rulesPhaseId: stage.rulesPhaseId,
+    };
+  }
+
   const exportsObj = {
     CompetitionEngine,
     registerEditionWithInitialEntries,
@@ -896,6 +922,7 @@
     buildEntryId,
     resolveVenuePattern,
     VENUE_PATTERN_NAMES,
+    describeCompetitionContext,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
