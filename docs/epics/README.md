@@ -39,6 +39,7 @@ directamente a la que necesitas.
 | 2026-09-08 | `REPO-HARDEN-1` | `docs/epics/REPO-HARDEN-1.md` | `docs/STATUS.md` |
 | 2026-09-08 | `DOCS-CONTEXT-1` | `docs/epics/DOCS-CONTEXT-1.md` | este mismo directorio |
 | 2026-09-08 | `SAVE-LOAD-1` | `docs/epics/SAVE-LOAD-1.md` | `docs/architecture/persistence-boundary.md` |
+| 2026-09-08 | `SIM-CAL-1` | `docs/epics/SIM-CAL-1.md` | `docs/architecture/simulation-advance.md` |
 
 Sesiones sin Epic identificable (agosto 2026, construcción del motor
 antes de que se adoptara la convención de nombrar cada entrega) están en

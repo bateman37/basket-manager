@@ -1,11 +1,13 @@
 # STATUS — Estado actual del proyecto
 
 Fotografía del presente, no un resumen de sesiones. Fecha y commit
-contrastados: **2026-09-08**, `origin/main` en `a36a9ac` (PR #58,
-`DOCS-CONTEXT-1`, fusionada) + `SAVE-LOAD-1` completada en rama
-`claude/modest-gauss-ab8bat` (sin fusionar todavía). Si `origin/main` ha
-avanzado desde entonces, esta foto puede estar desactualizada —
-compruébalo antes de asumirla.
+contrastados: **2026-09-08**, `origin/main` en `1814fe4` (PR #59,
+`SAVE-LOAD-1`, ya FUSIONADA — corrige la foto anterior, que la daba por
+"sin fusionar todavía") + `SIM-CAL-1` (avance cooperativo y cancelable de
+"Continuar") completada en rama `claude/modest-gauss-ab8bat` (reiniciada
+desde `main`, sin fusionar todavía). Si `origin/main` ha avanzado desde
+entonces, esta foto puede estar desactualizada — compruébalo antes de
+asumirla.
 
 ## Arquitectura y contenido realmente disponibles
 
@@ -35,6 +37,14 @@ compruébalo antes de asumirla.
   fases con validación completa (fingerprint/schema/content packs/
   integridad de registries) antes de sustituir la carrera activa. Ver
   `docs/architecture/persistence-boundary.md` y `docs/epics/SAVE-LOAD-1.md`.
+- **Implementado (SIM-CAL-1)**: "Continuar" ya no es una operación
+  síncrona/bloqueante en el navegador — `WorldAdvanceRunner` reparte el
+  MISMO algoritmo de `WorldCalendarCoordinator` en slices cooperativos,
+  con overlay de progreso real, cancelación segura (para en el siguiente
+  límite cronológico seguro, nunca a mitad de un grupo) y protección
+  contra clicks duplicados. `advanceUntilNextUserStop()` síncrona se
+  mantiene sin cambios para scripts/Node. Ver
+  `docs/architecture/simulation-advance.md` y `docs/epics/SIM-CAL-1.md`.
 - **Diseñado pero NO implementado**: competición europea real, Supercopa,
   transfer internacional/Letter of Clearance (EUROPE-1, sin fecha),
   cuerpo técnico como entidad propia, categorías inferiores reales/club
@@ -42,7 +52,8 @@ compruébalo antes de asumirla.
 
 ## Últimas entregas relevantes
 
-SAVE-LOAD-1 (persistencia real de partidas) → REPO-HARDEN-1 (saneamiento
+SIM-CAL-1 (avance cooperativo y cancelable de "Continuar") → SAVE-LOAD-1
+(persistencia real de partidas) → REPO-HARDEN-1 (saneamiento
 técnico) → WORLD-CLEANUP-1 (retirada final de `Team.division`/
 proyecciones legacy) → WORLD-CONTEXT-1 (contexto competitivo explícito) →
 WORLD-HARDEN-1 parcial → WORLD-UI-1 → NATIONAL-TEAMS-1 → WORLD-SIM-1 →
@@ -61,27 +72,33 @@ Detalle completo en `docs/epics/`.
    (mismo `exportState()`/`restoreState()` que contratos/inscripciones/
    mercado, ya probados), no con datos reales de esos dominios en el
    fixture de `scripts/test-save-load1.js`.
-2. **`FORMATION_QUOTA_INFEASIBLE` flaky sin resolver.** REPO-HARDEN-1 no
+2. **Avance cooperativo de "Continuar": implementado, checklist manual
+   pendiente.** SIM-CAL-1 entregó el driver cooperativo/cancelable (ver
+   arriba); la única deuda activa es que ninguna sesión de Claude Code ha
+   ejecutado el checklist manual en navegador real
+   (`docs/manual/SIM_CAL_ACCEPTANCE.md`, pendiente de Dennis).
+3. **`FORMATION_QUOTA_INFEASIBLE` flaky sin resolver.** REPO-HARDEN-1 no
    pudo reproducirlo: la reproducción estaba bloqueada por un `TypeError`
    previo de `competitionIdFromLegacyDivision` en `smoke-reg1.js`/
    `smoke-loan1.js`. Diagnóstico acotado pero no cerrado — ver
    `docs/epics/REPO-HARDEN-1.md`.
-3. **`scripts/verify-cycle1-playwright.js`** conserva
+4. **`scripts/verify-cycle1-playwright.js`** conserva
    `fastForwardSeasonToClose()` sin migrar: usa `state.division`,
    `getLeague(division)`, `getBrackets(division)`, `simulateNextRound`,
    `simulateBackgroundRound`, `drainBackgroundBrackets` — APIs retiradas
    de la ruta productiva desde WORLD-CALENDAR-1/WORLD-CLEANUP-1.
-   Confirmado sin migrar en esta auditoría (2026-09-08).
-4. **Checklist manual de World Architecture pendiente de ejecución
+   Confirmado sin migrar en esta auditoría (2026-09-08); SIM-CAL-1 no lo ha
+   tocado (fuera de su alcance explícito).
+5. **Checklist manual de World Architecture pendiente de ejecución
    humana.** `docs/manual/WORLD_ARCHITECTURE_ACCEPTANCE.md` es documental
    — ninguna sesión de Claude Code la ha ejecutado en navegador/Playwright
    real; sigue pendiente de Dennis.
-5. **`src/core/Calendar.js`** sigue en disco (≈20 scripts históricos lo
+6. **`src/core/Calendar.js`** sigue en disco (≈20 scripts históricos lo
    `require()` directamente) pero su `<script>` ya NO se carga desde
    `index.html` desde REPO-HARDEN-1 — confirmado en esta auditoría
    (`index.html` línea 401, comentario explícito). Este punto ya estaba
    resuelto, no es una contradicción activa.
-6. Cohorte interactivo excluye ligas/selecciones futuras `standard`/
+7. Cohorte interactivo excluye ligas/selecciones futuras `standard`/
    `abstract` de bootstrap español — correcto por diseño (WORLD-SIM-1),
    sin equipos de ese tipo instalados hoy.
 
@@ -132,9 +149,13 @@ Epic es solo documental):
 - Checklist manual completa de `docs/manual/SAVE_LOAD_ACCEPTANCE.md`
   (SAVE-LOAD-1, navegador real, Dennis) — guardar/cargar/sobrescribir/
   eliminar, "Continuar", anchura móvil.
+- Checklist manual completa de `docs/manual/SIM_CAL_ACCEPTANCE.md`
+  (SIM-CAL-1, navegador real, Dennis) — overlay, cancelación, reanudación
+  sin duplicados, gating de mercado/alineación, guardado bloqueado durante
+  el avance, anchura móvil.
 - Cualquier verificación con Playwright/smokes/auditoría de temporadas —
-  no se ejecutó ninguna en SAVE-LOAD-1/DOCS-CONTEXT-1 (fuera de alcance
-  explícito de ambas).
+  no se ejecutó ninguna en SIM-CAL-1/SAVE-LOAD-1/DOCS-CONTEXT-1 (fuera de
+  alcance explícito de las tres).
 
 ## Enlaces al detalle
 

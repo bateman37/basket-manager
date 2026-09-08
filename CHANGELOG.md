@@ -6,6 +6,23 @@ bajo `docs/epics/`, o en `docs/history/` para sesiones sin Epic
 identificable. A partir de esta migración, una entrada nueva es un resumen
 corto con enlace al detalle — no un informe completo pegado aquí.
 
+## 2026-09-08 — `SIM-CAL-1`: avance cooperativo y cancelable de "Continuar"
+
+"Continuar" deja de ser una operación síncrona/bloqueante en el navegador:
+`WorldAdvanceRunner` reparte el MISMO algoritmo de
+`WorldCalendarCoordinator` (ahora expresado como generador,
+`WorldAdvanceSession`) en slices cooperativos con presupuesto de tiempo,
+mostrando un overlay compacto con progreso real (fecha simulada, eventos/
+partidos resueltos) tras 150ms, cancelación segura (para en el siguiente
+límite cronológico seguro, nunca a mitad de un grupo) y protección contra
+clicks duplicados. `advanceUntilNextUserStop()` síncrona se mantiene sin
+cambios para scripts/Node. Corrige además un acoplamiento prematuro: la
+validez de alineación ya no bloqueaba el avance antes de saber si la
+próxima parada era, de hecho, el partido del usuario. Guardar/cargar
+quedan bloqueados mientras el mundo avanza (`activeCalendarAdvance`).
+Detalle completo: `docs/epics/SIM-CAL-1.md`. Checklist manual pendiente de
+Dennis: `docs/manual/SIM_CAL_ACCEPTANCE.md`.
+
 ## 2026-09-08 — `SAVE-LOAD-1`: guardado y carga reales de una carrera
 
 Primera persistencia real de partidas: IndexedDB (3 ranuras manuales +

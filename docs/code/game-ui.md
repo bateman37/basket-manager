@@ -15,7 +15,8 @@ rg -n "function startCareerFromSetup" src/ui/game.js
 | Responsabilidad | Símbolo | Colaboradores | Diseño relacionado |
 |---|---|---|---|
 | Inicio de carrera y construcción del mundo | `startCareerFromSetup(snapshot)` | `CareerSetupService`, `GameWorld`, `WorldRegistries`, `bootstrapContractsForNewCareer()`, `bootstrapRegistrationsForNewCareer()`, `bootstrapMarketForNewCareer()` | `docs/architecture/career-setup-and-navigation.md`, `docs/architecture/world-model.md` |
-| Avance del calendario / "Continuar" | `buildWorldCalendarCoordinator()` → `state.calendarCoordinator` | `BM.WorldCalendarCoordinator.advanceUntilNextUserStop()` | `docs/architecture/world-calendar.md` |
+| Avance del calendario / "Continuar" (cooperativo, cancelable) | `playNextMatchWithLineup()` → `state.worldAdvanceRunner` (`buildWorldAdvanceRunner()`) → `routeWorldAdvanceTerminalStop()` | `BM.WorldAdvanceRunner`, `BM.WorldCalendarCoordinator.createAdvanceSession()` | `docs/architecture/simulation-advance.md`, `docs/architecture/world-calendar.md` |
+| Avance síncrono (scripts/Node/compatibilidad, sin overlay) | `advanceWorldUntilNextUserStop()` | `BM.WorldCalendarCoordinator.advanceUntilNextUserStop()` | `docs/architecture/simulation-advance.md` |
 | Partido de liga del usuario (motor pausable, modo `'live'`) | `startLiveMatch()`, `advanceLiveMatch()` | `BM.createMatchState`, `BM.advanceMatch`, `GamePlan` | `docs/design/match-simulation.md`, `docs/design/tactics/live-game.md` |
 | Partidos de Copa/Playoff/Ascenso (modo `'replay'`, reveal por cuartos) | `startReplayMatchReveal(match)` | `BM.simulateMatch`, `match.result.quarterScores` | `docs/design/game-ui-decisions.md` (revelado por cuartos, matizado) |
 | Cierre de temporada | `closeSeasonAndPrepareNext()` | `AnnualCycleService.runPhase()`, `CycleConfig.CYCLE_PHASES`, `SeasonHistoryService` | `docs/design/annual-cycle.md`, `docs/epics/CYCLE-1.md` |
@@ -50,7 +51,14 @@ rg -n "function startCareerFromSetup" src/ui/game.js
   `state.*` de una carrera anterior — lo usan tanto "Volver a selección
   de equipo" como `loadCareerFromSlot()` antes de sustituir por la
   carrera hidratada. Ninguna carga/reinicio nuevo debe reimplementar este
-  reseteo a mano.
+  reseteo a mano. SIM-CAL-1: también descarta (`dispose()`)
+  `state.worldAdvanceRunner` — ninguna carrera nueva/cargada hereda
+  progreso ni callbacks de avance de la anterior.
+- **Mientras el mundo avanza** (SIM-CAL-1, `isWorldAdvanceActive()`):
+  navegación, "Elegir otro club / salir", cargar/eliminar partida y cerrar
+  temporada quedan deshabilitados — solo "Detener tras este bloque" (dentro
+  del overlay) sigue operativo. Ningún comando nuevo que mute o sustituya
+  la carrera debe saltarse esta comprobación.
 
 ## Ejemplos de búsqueda útiles
 

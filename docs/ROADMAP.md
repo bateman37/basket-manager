@@ -19,6 +19,13 @@ Dennis. Cada punto enlaza a su documento de origen.
 
 ## Propuestas por estudiar (sin decisión de Dennis todavía)
 
+- ~~**Avance cooperativo y cancelable de "Continuar"**~~ — entregado en
+  `SIM-CAL-1` (`docs/architecture/simulation-advance.md`). Quedan fuera de
+  alcance, señalados explícitamente y pendientes de decisión: controles de
+  avanzar 1/3/7 días, modo vacaciones, autogestión de partidos del
+  usuario, fecha objetivo arbitraria, y resolución/reprogramación
+  automática de conflictos de calendario (hoy solo se detectan y
+  bloquean, `docs/architecture/world-calendar.md`).
 - ~~**Persistencia real de partidas**~~ — entregada en `SAVE-LOAD-1`
   (IndexedDB, 3 ranuras manuales + autoguardado). Ver
   `docs/architecture/persistence-boundary.md` y

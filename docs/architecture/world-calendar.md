@@ -70,6 +70,11 @@ Agenda/Home:
   persistencia, WORLD-HARDEN-1. Reprogramaciones, aplazamientos y
   resolución AUTOMÁTICA de conflictos horarios no están decididas: hay que
   proponerlas antes.
+- **SIM-CAL-1**: la ejecución de "Continuar" en el navegador es cooperativa
+  y cancelable de forma segura (avance por slices, overlay, cancelación),
+  pero usa EXACTAMENTE el mismo algoritmo/orden descrito arriba — ningún
+  invariante de esta ficha cambió. Contrato de ejecución completo:
+  `docs/architecture/simulation-advance.md`.
 - Los puentes legacy que quedan (`Calendar.js`/`CONFIG_BASE.calendar` como
   shim del "modo prueba", `getLeague(division)`/`getBrackets(division)`
   como vista derivada de las pantallas españolas) NO autorizan ningún
