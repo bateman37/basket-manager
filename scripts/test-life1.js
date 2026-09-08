@@ -104,7 +104,7 @@ check('Crecimiento nunca deja uncappedTmb > PA (invariante 9)', () => {
   PD.ensureDevelopmentState(p, CONFIG_BASE, NOW);
   for (let i = 0; i < 60; i++) { // ~60 semanas
     const target = new Date(p.developmentState.lastProcessedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    PD.recordMatchExposure(p, { date: target, minutes: 15, competition: 'league', division: '1ª' });
+    PD.recordMatchExposure(p, { date: target, minutes: 15, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage' }, CONFIG_BASE);
     PD.processPlayerToDate(p, target, CONFIG_BASE, { facilityLevel: 10 });
     const uncapped = PD.computeUncappedTmb(p, CONFIG_BASE);
     assert.ok(uncapped <= p.hidden.potential + 1e-6, `tick ${i}: uncapped=${uncapped} > PA=${p.hidden.potential}`);
@@ -173,8 +173,8 @@ check('Misma seed + mismas decisiones = mismos cambios (determinismo)', () => {
 
   for (let i = 0; i < 10; i++) {
     const target = new Date(pA.developmentState.lastProcessedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    PD.recordMatchExposure(pA, { date: target, minutes: 20, competition: 'league', division: '1ª' });
-    PD.recordMatchExposure(pB, { date: target, minutes: 20, competition: 'league', division: '1ª' });
+    PD.recordMatchExposure(pA, { date: target, minutes: 20, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage' }, CONFIG_BASE);
+    PD.recordMatchExposure(pB, { date: target, minutes: 20, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage' }, CONFIG_BASE);
     PD.processPlayerToDate(pA, target, CONFIG_BASE, { facilityLevel: 12 });
     PD.processPlayerToDate(pB, target, CONFIG_BASE, { facilityLevel: 12 });
   }
@@ -228,7 +228,7 @@ function seasonsOfGrowth(overrides, seasons = 3) {
   PD.ensureDevelopmentState(p, CONFIG_BASE, NOW);
   for (let week = 0; week < seasons * 34; week++) {
     const target = new Date(p.developmentState.lastProcessedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-    PD.recordMatchExposure(p, { date: target, minutes: 25, competition: 'league', division: '1ª' });
+    PD.recordMatchExposure(p, { date: target, minutes: 25, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage' }, CONFIG_BASE);
     PD.processPlayerToDate(p, target, CONFIG_BASE, { facilityLevel: 10 });
   }
   return PD.computeUncappedTmb(p, CONFIG_BASE);
@@ -278,7 +278,10 @@ function steadyStateExposureFactor(minutesPerWeek, division) {
   if (minutesPerWeek > 0) {
     for (let i = 1; i <= weeksToFill; i++) {
       const matchDate = new Date(NOW.getTime() + i * 7 * 24 * 60 * 60 * 1000);
-      PD.recordMatchExposure(p, { date: matchDate, minutes: minutesPerWeek, competition: 'league', division });
+      const competitionTier = division === '1ª' ? 1 : 2;
+      PD.recordMatchExposure(p, {
+        date: matchDate, minutes: minutesPerWeek, competitionDefinitionId: `fixture-league-${division}`, competitionTier, stageId: 'fixture-stage',
+      }, CONFIG_BASE);
     }
   }
   return PD.computeExposureFactor(p, tickDate, CONFIG_BASE);
@@ -339,7 +342,7 @@ function cohortCheck() {
     for (let week = 0; week < 34 * 12; week++) { // 12 temporadas
       const target = new Date(p.developmentState.lastProcessedDate.getTime() + 7 * 24 * 60 * 60 * 1000);
       const minutes = 10 + Math.round(Math.random() * 25);
-      PD.recordMatchExposure(p, { date: target, minutes, competition: 'league', division: '1ª' });
+      PD.recordMatchExposure(p, { date: target, minutes, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage' }, CONFIG_BASE);
       PD.processPlayerToDate(p, target, CONFIG_BASE, { facilityLevel: 10 });
     }
     results.push(PD.computeTmbRating(p, CONFIG_BASE));

@@ -74,10 +74,10 @@ async function main(mode) {
   // el importe como en la negociación de un traspaso definitivo (donde el
   // importe lo recibe el VENDEDOR).
   const fixture = await page.evaluate(() => {
-    const { state } = window.BasketManagerGame;
+    const { state, getUserTeam } = window.BasketManagerGame;
     const isoDate = window.BasketManager.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
-    const team = state.leagues[state.division].teams.find((t) => t.id === state.userTeamId);
-    const otherTeams = state.leagues[state.division].teams.filter((t) => t.id !== team.id);
+    const team = getUserTeam();
+    const otherTeams = state.world.registries.teams.all().filter((t) => t.id !== team.id);
     const candidates = team.roster
       .map((p) => ({ player: p, contract: state.contractRegistry.currentForPlayer(p.id, isoDate) }))
       .filter((row) => row.contract && row.contract.isActiveOn(isoDate) && row.contract.remainingSeasonKeys(window.BasketManager.seasonKeyFromStartYear(state.seasonStartYear)).length >= 1);
@@ -136,10 +136,10 @@ async function main(mode) {
 
     if (completed) {
       const afterActivation = await page.evaluate((pid) => {
-        const { state } = window.BasketManagerGame;
+        const { state, getUserTeam } = window.BasketManagerGame;
         const BM = window.BasketManager;
         const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
-        const ownerTeam = state.leagues[state.division].teams.find((t) => t.id === state.userTeamId);
+        const ownerTeam = getUserTeam();
         const player = state.playerRegistry.get(pid);
         const contract = state.contractRegistry.currentForPlayer(pid, isoDate);
         const agreement = state.loanRegistry.activeAgreementForPlayer(pid, isoDate);
@@ -181,9 +181,9 @@ async function main(mode) {
         const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
         const agreement = state.loanRegistry.activeAgreementForPlayer(pid, isoDate);
         if (!agreement) return { ok: false, reason: 'no-agreement' };
-        const ownerTeam = state.leagues[state.division].teams.find((t) => t.id === agreement.ownerClubId);
-        const borrowerTeam = state.leagues[state.division].teams.find((t) => t.id === agreement.borrowerClubId);
-        const teams = state.leagues[state.division].teams;
+        const teams = state.world.registries.teams.all();
+        const ownerTeam = teams.find((t) => t.clubId === agreement.ownerClubId);
+        const borrowerTeam = teams.find((t) => t.clubId === agreement.borrowerClubId);
         const { result } = BM.LoanService.returnLoan({
           loanRegistry: state.loanRegistry, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry,
           registrationRegistry: state.registrationRegistry, transferRegistry: state.transferRegistry, teams,

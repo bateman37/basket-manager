@@ -34,6 +34,17 @@ async function pickTeam(page, teamDataId) {
   await page.waitForSelector('#gm-nav .gm-nav__btn[data-screen="home"]', { timeout: 20000 });
 }
 
+// DEUDA CONOCIDA (REPO-HARDEN-1, ver informe de esta sesión): esta función
+// sigue usando `simulateNextRound`/`simulateBackgroundRound`/
+// `drainBackgroundBrackets`/`getLeague`/`getBrackets`/`buildCpuOnlyResolver`
+// y `state.division` — TODOS retirados de `window.BasketManagerGame` desde
+// WORLD-CALENDAR-1 (ver `src/ui/game.js`, comentario junto a
+// `global.BasketManagerGame = {...}`). Migrarla a
+// `advanceWorldUntilNextUserStop()`/`peekNextUserMatchDescriptor()` es un
+// cambio de fondo (nuevo modelo de cursor único, no de bloques por
+// división) fuera del presupuesto de saneamiento de REPO-HARDEN-1 —
+// aplazado explícitamente, no ejecutado en esta sesión.
+//
 // Avanza la temporada REGULAR + Copa/playoffs de AMBAS divisiones hasta que
 // quede lista para cerrar. Usa el MISMO motor de producción que ya resuelve
 // la división de fondo de golpe (`simulateBackgroundRound`/
@@ -188,14 +199,12 @@ async function main(mode) {
     const userTeam = window.BasketManagerGame.getUserTeam();
     if (!state.academyRegistry) return { ok: false };
     const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
-    const seasonKey = state.leagues && state.division ? null : null;
     const cycle = { id: `verify-fixture:${isoDate}` };
     const seasonKeyReal = BM.seasonKeyFromStartYear(state.seasonStartYear);
     const result = BM.AcademyService.runAnnualIntake({
       academyRegistry: state.academyRegistry, playerRegistry: state.playerRegistry, team: userTeam, cycle,
       date: isoDate, seasonKey: seasonKeyReal, config: BM.CONFIG_BASE, careerSeed: 'verify-cycle1-playwright',
     });
-    void seasonKey;
     return { ok: true, created: result.created.length, rosterHasNew: result.created.some(({ player }) => userTeam.roster.some((p) => p.id === player.id)) };
   });
   summarize('Fixture: intake real de academia para el club del usuario', academyFixture.ok && academyFixture.created >= 0);
@@ -240,7 +249,7 @@ async function main(mode) {
     const record = BM.RetirementService.commitRetirement({
       annualCycleRegistry: state.annualCycleRegistry, academyRegistry: state.academyRegistry, playerRegistry: state.playerRegistry,
       contractRegistry: state.contractRegistry, registrationRegistry: state.registrationRegistry, marketRegistry: state.marketRegistry,
-      loanRegistry: state.loanRegistry, teams: [...state.leagues['1ª'].teams, ...state.leagues['2ª'].teams],
+      loanRegistry: state.loanRegistry, teams: state.world.registries.teams.all(),
       announcement, date: announcement.effectiveDate, seasonKey: BM.seasonKeyFromStartYear(state.seasonStartYear), lineup: state.lineup, cycleId: cycle.id,
     });
     return {

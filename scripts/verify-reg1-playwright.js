@@ -183,7 +183,8 @@ async function main(mode) {
     const team = getUserTeam();
     const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
     const seasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear);
-    const competitionId = BM.competitionIdFromLegacyDivision(team.division);
+    const competitionId = BM.CompetitionContextService
+      .resolveDomesticCompetitionId(state.world.registries, team.id, { seasonKey, operation: 'verify-reg1' });
     const resolved = BM.resolveRules({
       domain: 'registration', competitionId, seasonKey, date: isoDate, phaseId: 'league', operation: 'bootstrap',
     });

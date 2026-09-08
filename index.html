@@ -398,7 +398,11 @@
   <script src="src/core/CpuLineup.js"></script>
   <script src="src/core/SeasonGoals.js"></script>
   <script src="src/core/Recovery.js"></script>
-  <script src="src/core/Calendar.js"></script>
+  <!-- src/core/Calendar.js YA NO se carga aquí (REPO-HARDEN-1): sin ningún
+       caller real en index.html/game.js desde WORLD-CALENDAR-1 (auditoría
+       estática confirmada, DESIGN.md 10.21.7). El archivo se conserva en
+       disco — ~20 scripts/*.js siguen usándolo vía require() directo, sin
+       relación con este script tag del navegador. -->
   <!-- DESIGN.md 7.12 (Sistema táctico, TAC-1): Tactics.js debe cargarse
        antes que MatchEngine.js — en el navegador, MatchEngine.js lee
        planPnrPossession() de global.BasketManager, que este script rellena. -->

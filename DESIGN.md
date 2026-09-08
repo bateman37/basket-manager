@@ -10600,6 +10600,20 @@ API antigua. Su retirada definitiva queda para una sesión futura que
 pueda migrar esos ~20 scripts (y el test que los verifica) como
 propio objeto de trabajo, no como efecto colateral de otra entrega.
 
+**Actualización (`REPO-HARDEN-1`, saneamiento técnico posterior a esta
+entrega)**: el `<script src="src/core/Calendar.js">` SÍ se quitó de
+`index.html` — auditoría estática confirmó (de nuevo) cero callers reales
+del global `Calendar`/`BM.Calendar` en `index.html`/`game.js`/el resto de
+`src/`, así que cargarlo en el navegador era puro peso muerto. El
+ARCHIVO `src/core/Calendar.js` sigue en disco sin cambios (siguen
+requiriéndolo directamente los ~20 `scripts/*.js` históricos de arriba,
+ajenos al `<script>` del navegador). `scripts/test-world-calendar1.js`
+(comprobación "`Calendar.js` sigue existiendo como shim standalone")
+sigue en verde porque solo comprueba que el TEXTO `src/core/Calendar.js`
+aparece en `index.html` — ahora en el comentario que documenta esta
+decisión, no en un `<script>` — sin verificar que sea un tag de carga;
+no se tocó ese test.
+
 #### 10.21.8 Verificación (resultados EXACTOS de esta sesión)
 
 - `scripts/test-world-cleanup1.js` (nuevo, batería dirigida mínima —

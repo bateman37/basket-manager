@@ -49,9 +49,9 @@ async function marketTab(page, label) {
 // llegar a un AIP vivo, que es el punto de partida real de TRANSFER-1).
 async function buildLiveAgreementForPlayer(page, playerId) {
   return page.evaluate((pid) => {
-    const { state } = window.BasketManagerGame;
+    const { state, getUserTeam } = window.BasketManagerGame;
     const BM = window.BasketManager;
-    const team = state.leagues[state.division].teams.find((t) => t.id === state.userTeamId);
+    const team = getUserTeam();
     const player = state.playerRegistry.get(pid);
     const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
     const seasonKey = BM.seasonKeyFromStartYear(state.seasonStartYear || new Date().getFullYear());
@@ -156,9 +156,9 @@ async function main(mode) {
       await formalizeBtn.click();
       await page.waitForTimeout(250);
       const afterFormalize2 = await page.evaluate((pid) => {
-        const { state } = window.BasketManagerGame;
+        const { state, getUserTeam } = window.BasketManagerGame;
         const BM = window.BasketManager;
-        const team = state.leagues[state.division].teams.find((t) => t.id === state.userTeamId);
+        const team = getUserTeam();
         const player = state.playerRegistry.get(pid);
         const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
         return {
@@ -201,9 +201,9 @@ async function main(mode) {
   //    traspaso completo mueve al jugador atómicamente.
   // -------------------------------------------------------------------
   const contractedTargetInfo = await page.evaluate(() => {
-    const { state } = window.BasketManagerGame;
-    const team = state.leagues[state.division].teams.find((t) => t.id === state.userTeamId);
-    const otherTeam = state.leagues[state.division].teams.find((t) => t.id !== team.id && state.contractRegistry.forClub(t.id).length > 0);
+    const { state, getUserTeam } = window.BasketManagerGame;
+    const team = getUserTeam();
+    const otherTeam = state.world.registries.teams.all().find((t) => t.id !== team.id && state.contractRegistry.forClub(t.id).length > 0);
     if (!otherTeam) return null;
     const originContract = state.contractRegistry.forClub(otherTeam.id)[0];
     const player = state.playerRegistry.get(originContract.playerId);
@@ -254,10 +254,10 @@ async function main(mode) {
       summarize('La negociación club-club converge y el traspaso se formaliza', completed);
       if (completed) {
         const afterTransfer = await page.evaluate((info) => {
-          const { state } = window.BasketManagerGame;
+          const { state, getUserTeam } = window.BasketManagerGame;
           const BM = window.BasketManager;
-          const originTeam = state.leagues[state.division].teams.find((t) => t.id === info.originTeamId) || Object.values(state.leagues).filter(Boolean).flatMap((l) => l.teams).find((t) => t.id === info.originTeamId);
-          const destinationTeam = state.leagues[state.division].teams.find((t) => t.id === state.userTeamId);
+          const originTeam = state.world.registries.teams.get(info.originTeamId);
+          const destinationTeam = getUserTeam();
           const player = state.playerRegistry.get(info.playerId);
           return {
             leftOrigin: originTeam ? !originTeam.roster.find((p) => p.id === info.playerId) : null,

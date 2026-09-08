@@ -1,4 +1,4 @@
-# Prueba manual — cierre de World Architecture (WORLD-HARDEN-1)
+# Prueba manual — cierre de World Architecture (hasta WORLD-CLEANUP-1) + REPO-HARDEN-1
 
 Checklist para Dennis. Es documental: nada aquí se ha ejecutado por esta
 sesión (no hay Playwright ni navegador en este entorno) — es la guía para
@@ -6,11 +6,17 @@ la prueba manual amplia antes de dar por buena la entrega. No expone
 ningún botón técnico ni fingerprint al jugador; solo describe qué probar
 y qué anotar si algo falla.
 
-Recuerda: esta entrega quedó **parcial** (ver `DESIGN.md` sección 10.19.2
-y `CHANGELOG.md`) — hay deuda pendiente explícita que NO afecta a la
-partida española observable, pero sí a limpieza interna. La prueba
-manual de abajo se centra en confirmar que la partida española sigue
-funcionando exactamente igual que antes.
+World Architecture se declaró **estructuralmente cerrada** con
+`WORLD-CLEANUP-1` (DESIGN.md 10.21): ningún dominio productivo decide ya
+por `Team.division`/división legacy/mapas fijos de UI — la interfaz
+muestra siempre el nombre real de la competición, nunca "1ª"/"2ª"
+división. La deuda estructural que sobrevive, documentada y no oculta,
+es la retirada física del ARCHIVO `src/core/Calendar.js` — sigue
+requerido por ~20 `scripts/*.js` históricos, así que se conserva en
+disco; `REPO-HARDEN-1` solo confirmó que no tiene callers productivos
+reales y quitó su `<script>` (carga en el navegador) de `index.html`
+(ver paso 8 más abajo) — y la validación funcional manual completa de
+abajo, que sigue pendiente de Dennis.
 
 ## 1. Crear una carrera nueva
 
@@ -66,12 +72,16 @@ funcionando exactamente igual que antes.
 
 ## 6. Ficha e histórico antes/después del cambio
 
-- Abrir la ficha de un jugador ANTES de cerrar una temporada — anotar su
-  división/competición mostrada.
+- Abrir la ficha de un jugador ANTES de cerrar una temporada — anotar el
+  nombre de la competición mostrada (nunca debería aparecer "1ª"/"2ª"
+  división como tal, `Team.division` está retirado del motor).
 - Cerrar la temporada (paso 4).
 - Reabrir la MISMA ficha — confirmar que el histórico de temporada
-  cerrada muestra la división/club correctos de la temporada que
-  terminó (no la nueva), y que la temporada nueva ya aparece activa.
+  cerrada muestra el club/competición correctos de la temporada que
+  terminó (no la nueva), y que la temporada nueva ya aparece activa. Si
+  el jugador jugó Liga + Copa esa temporada, confirmar que la ficha
+  muestra AMBOS bloques de estadísticas por competición sin duplicar el
+  total.
 
 ## 7. Repetir en móvil
 
@@ -79,6 +89,16 @@ funcionando exactamente igual que antes.
   una ventana estrecha o un móvil real.
 - Anotar cualquier elemento cortado, botón inalcanzable o tabla que
   desborde la pantalla.
+
+## 8. Modo prueba (verificación técnica, no de diseño de juego)
+
+- Abrir `index.html` → botón "Modo prueba" (la otra entrada de la
+  landing, no "Empezar temporada").
+- Confirmar que arranca sin errores en la consola del navegador — esto
+  confirma que quitar el `<script src="src/core/Calendar.js">` de
+  `index.html` (REPO-HARDEN-1, sin callers reales desde
+  WORLD-CALENDAR-1) no rompe nada: el archivo se conserva en disco, solo
+  se dejó de cargar en el navegador.
 
 ## Cómo anotar una incidencia
 
