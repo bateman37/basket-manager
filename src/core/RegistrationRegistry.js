@@ -435,6 +435,36 @@
       return { valid: errors.length === 0, errors, warnings };
     }
 
+    // `snapshot()` (arriba) es deliberadamente un RESUMEN diagnóstico (solo
+    // contadores) — nunca un contrato de persistencia (WORLD-HARDEN-1,
+    // confirmado por SAVE-LOAD-1). `exportState()`/`restoreState()` son el
+    // contrato COMPLETO y sin pérdida: cada colección primaria vía
+    // `.toJSON()`/reconstrucción por constructor — los índices secundarios
+    // (`_licensesByPlayer`, `_registrationsByScope`...) son DERIVADOS, se
+    // reconstruyen solos al volver a llamar a cada `registerX()`.
+    exportState() {
+      return {
+        licenses: this.allLicenses().map((x) => x.toJSON()),
+        registrations: this.allRegistrations().map((x) => x.toJSON()),
+        linkAgreements: this.allLinkAgreements().map((x) => x.toJSON()),
+        matchActs: this.allMatchActs().map((x) => x.toJSON()),
+        profiles: this.allProfiles().map((x) => x.toJSON()),
+      };
+    }
+
+    // `entities`: `{FederationLicense, CompetitionRegistration,
+    // ClubLinkAgreement, MatchActSnapshot, PlayerRegulatoryProfile}` — el
+    // llamador (`CareerHydrationService`) aporta los constructores
+    // EXPLÍCITOS, este registro no importa `src/entities/Registration.js`
+    // para no ampliar su huella de dependencias existente.
+    restoreState(state, entities) {
+      (state.licenses || []).forEach((j) => this.registerLicense(new entities.FederationLicense(j)));
+      (state.registrations || []).forEach((j) => this.registerRegistration(new entities.CompetitionRegistration(j)));
+      (state.linkAgreements || []).forEach((j) => this.registerLinkAgreement(new entities.ClubLinkAgreement(j)));
+      (state.matchActs || []).forEach((j) => this.registerMatchAct(new entities.MatchActSnapshot(j)));
+      (state.profiles || []).forEach((j) => this.registerProfile(new entities.PlayerRegulatoryProfile(j)));
+    }
+
     snapshot() {
       return {
         licenses: this.allLicenses().length,

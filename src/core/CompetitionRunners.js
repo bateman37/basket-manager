@@ -353,19 +353,19 @@
       this._recordHeadToHead(awayId, homeId, awayScore, homeScore);
     }
 
-    _advanceRoundPointer() {
+    _advanceRoundPointer(silent = false) {
       while (this._currentRoundPointer <= this.totalRounds) {
         const roundMatches = this.matches.filter((m) => m.round === this._currentRoundPointer);
         if (roundMatches.length === 0 || !roundMatches.every((m) => m.status === 'played')) break;
         if (!this._firedRoundCompleted.has(this._currentRoundPointer)) {
           this._firedRoundCompleted.add(this._currentRoundPointer);
-          if (this.onRoundCompleted) this.onRoundCompleted(this._currentRoundPointer);
+          if (!silent && this.onRoundCompleted) this.onRoundCompleted(this._currentRoundPointer);
         }
         this._currentRoundPointer += 1;
       }
       if (this.isComplete && !this._stageCompletedFired) {
         this._stageCompletedFired = true;
-        if (this.onStageCompleted) this.onStageCompleted();
+        if (!silent && this.onStageCompleted) this.onStageCompleted();
       }
     }
 
@@ -373,6 +373,15 @@
     // resolución rechazada) e invariante 18 (consultar no muta): esta es la
     // ÚNICA función que muta el runner además de los helpers internos que
     // llama.
+    //
+    // SAVE-LOAD-1: `options.silent` (junto con `options.matchEngineOptions.
+    // precomputedResult`, ya soportado por `simulateMatch`/`MatchEngine`)
+    // permite REAPLICAR un resultado ya conocido durante la hidratación de
+    // una carrera guardada, sin consumir RNG (precomputedResult corta antes
+    // de simular) y sin repetir los callbacks `onRoundCompleted`/
+    // `onStageCompleted` (que ya se dispararon la primera vez y cuyos
+    // efectos — activación de pathway, noticias — ya están en el estado
+    // durable restaurado aparte). Nunca usado en una partida en curso.
     resolveMatch(matchId, options = {}) {
       const descriptor = this._matchesById.get(matchId);
       if (!descriptor) throw new Error(`RoundRobinStageRunner.resolveMatch: partido desconocido "${matchId}".`);
@@ -383,8 +392,18 @@
       descriptor.status = 'played';
       descriptor.result = result;
       this._recordResult(descriptor.homeParticipantId, descriptor.awayParticipantId, result.finalScore.home, result.finalScore.away);
-      this._advanceRoundPointer();
+      this._advanceRoundPointer(!!options.silent);
       return descriptor;
+    }
+
+    // SAVE-LOAD-1: orden de reproducción para hidratación — para round-robin
+    // el orden es irrelevante (aritmética conmutativa, el puntero de ronda
+    // se recalcula solo cuando TODOS los partidos de esa ronda están
+    // jugados), pero se expone en orden de creación por estabilidad.
+    listPlayedMatchesInReplayOrder() {
+      return this.matches
+        .filter((m) => m.status === 'played')
+        .map((m) => ({ id: m.id, result: m.result }));
     }
 
     resolveMatchesBefore(beforeDateTime, options) {
@@ -512,7 +531,7 @@
 
     isCurrentRoundComplete() { return this.currentRound.every((s) => this._isSeriesDecided(s)); }
 
-    _advanceIfPossible() {
+    _advanceIfPossible(silent = false) {
       if (!this.isCurrentRoundComplete()) return;
       if (this.rounds.length >= this.roundPatterns.length) return;
       const winners = this.currentRound.map((s) => this._seriesWinner(s));
@@ -521,7 +540,7 @@
       const nextRound = this._buildRound(entryPairs, this.rounds.length);
       this.rounds.push(nextRound);
       nextRound.forEach((series) => this._ensureNextGameDescriptor(series));
-      if (this.onRoundAdvanced) this.onRoundAdvanced(this.rounds.length - 1);
+      if (!silent && this.onRoundAdvanced) this.onRoundAdvanced(this.rounds.length - 1);
     }
 
     // Crea (si no existe ya) el descriptor ESTABLE del siguiente partido
@@ -625,6 +644,14 @@
 
     getPendingMatches() { return this.listPendingMatches(); }
 
+    // SAVE-LOAD-1: `options.silent` (junto con `options.matchEngineOptions.
+    // precomputedResult`) permite REAPLICAR un resultado ya conocido durante
+    // la hidratación de una carrera guardada — mismo criterio que
+    // `RoundRobinStageRunner.resolveMatch()`: sin RNG, sin repetir
+    // `onSeriesDecided`/`onRoundAdvanced`/`onStageCompleted`. El ORDEN de
+    // reproducción sí importa aquí (una serie de la ronda N+1 no existe
+    // hasta que la ronda N está decidida) — usa siempre
+    // `listPlayedMatchesInReplayOrder()`.
     resolveMatch(matchId, options = {}) {
       let target = null;
       let targetSeries = null;
@@ -637,23 +664,41 @@
       const homeTeam = this.resolveParticipant(target.homeParticipantId);
       const awayTeam = this.resolveParticipant(target.awayParticipantId);
       const result = simulateMatch(homeTeam, awayTeam, options.matchEngineConfig, options.matchEngineOptions);
+      const silent = !!options.silent;
       target.status = 'played';
       target.result = result;
       const homeWon = result.finalScore.home > result.finalScore.away;
       const homeSide = targetSeries.pattern[target.gameNumber - 1];
       const winnerSide = homeWon === (homeSide === 'better') ? 'better' : 'worse';
       targetSeries.wins[winnerSide] += 1;
-      if (this._isSeriesDecided(targetSeries) && this.onSeriesDecided) this.onSeriesDecided(targetSeries);
+      if (this._isSeriesDecided(targetSeries) && !silent && this.onSeriesDecided) this.onSeriesDecided(targetSeries);
       // WORLD-CALENDAR-1: al resolver un partido de serie se materializa
       // AQUÍ el siguiente de ESA serie si aún continúa — así consultar la
       // cola después es una lectura pura (invariante 11).
       this._ensureNextGameDescriptor(targetSeries);
-      this._advanceIfPossible();
+      this._advanceIfPossible(silent);
       if (this.isComplete && !this._stageCompletedFired) {
         this._stageCompletedFired = true;
-        if (this.onStageCompleted) this.onStageCompleted();
+        if (!silent && this.onStageCompleted) this.onStageCompleted();
       }
       return target;
+    }
+
+    // SAVE-LOAD-1: orden de reproducción ESTABLE y VÁLIDO para hidratación —
+    // ronda ascendente, luego serie, luego partido de la serie (una ronda
+    // posterior nunca aparece antes que todos los partidos ya jugados de la
+    // anterior, igual que ocurrió en la partida real).
+    listPlayedMatchesInReplayOrder() {
+      const games = [];
+      this.rounds.forEach((round) => {
+        round.forEach((series) => {
+          series.games.filter(Boolean).forEach((g) => {
+            if (g.status === 'played') games.push({ id: g.id, result: g.result, roundIndex: series.roundIndex, seriesIndexInRound: series.seriesIndexInRound, gameNumber: g.gameNumber });
+          });
+        });
+      });
+      games.sort((a, b) => (a.roundIndex - b.roundIndex) || (a.seriesIndexInRound - b.seriesIndexInRound) || (a.gameNumber - b.gameNumber));
+      return games.map((g) => ({ id: g.id, result: g.result }));
     }
 
     // Resuelve el siguiente partido pendiente de TODO el bracket —

@@ -19,7 +19,13 @@
     <h1>Basket Manager</h1>
     <p>Elige un club real de ACB o Primera FEB y juega la temporada, o entra en el modo de pruebas técnicas del motor.</p>
     <div class="gm-landing__actions">
+      <!-- SAVE-LOAD-1: ocultos por defecto — un script al pie de la página
+           los muestra solo si IndexedDB confirma un autoguardado/alguna
+           ranura guardada real (nunca se anuncia persistencia que no
+           existe). -->
+      <button id="gm-continue-btn" class="gm-landing__btn gm-landing__btn--primary" type="button" style="display:none;">Continuar</button>
       <button id="gm-goto-season-btn" class="gm-landing__btn gm-landing__btn--primary" type="button">Empezar temporada</button>
+      <button id="gm-load-career-btn" class="gm-landing__btn" type="button" style="display:none;">Cargar partida</button>
       <button id="gm-goto-test-btn" class="gm-landing__btn" type="button">Modo prueba</button>
     </div>
   </div>
@@ -52,6 +58,7 @@
       <button class="gm-nav__btn" data-screen="competitions" type="button">Competiciones</button>
       <button class="gm-nav__btn" data-screen="stats" type="button">Estadísticas</button>
       <button class="gm-nav__btn" data-screen="match" type="button">Partido</button>
+      <button class="gm-nav__btn" data-screen="save-load" type="button">Partida</button>
     </nav>
 
     <section id="gm-screen-team-select" class="gm-screen is-active">
@@ -149,6 +156,14 @@
 
     <section id="gm-screen-match" class="gm-screen">
       <div id="gm-match"></div>
+    </section>
+
+    <!-- SAVE-LOAD-1: guardar/cargar/sobrescribir/eliminar las 4 ranuras
+         (3 manuales + autoguardado). Misma pantalla que "Cargar partida"
+         desde la landing (sección "sin carrera activa" del render). -->
+    <section id="gm-screen-save-load" class="gm-screen">
+      <h2>Partida</h2>
+      <div id="gm-save-load"></div>
     </section>
 
     <!-- LIFE-4 (DESIGN.md 9.15, sección 27): ficha universal de jugador —
@@ -634,11 +649,21 @@
        Ambos son PUROS, sin literales de país. -->
   <script src="src/core/ContentPackLifecycleService.js"></script>
   <script src="src/core/CareerParticipantFactory.js"></script>
-  <!-- WORLD-HARDEN-1: sonda de persistibilidad PURA — no implementa
-       save/load, no la llama ninguna pantalla todavía; se carga para que
-       `scripts/test-world-harden1.js` y una futura entrega de persistencia
-       la encuentren en el mismo `BasketManager` global que el resto. -->
+  <!-- WORLD-HARDEN-1: sonda de persistibilidad PURA, ahora el proyector
+       canónico REAL del guardado (SAVE-LOAD-1) — ver
+       `docs/architecture/persistence-boundary.md`. -->
   <script src="src/core/CareerPersistenceBoundary.js"></script>
+  <!-- SAVE-LOAD-1: hidratador de una carrera guardada — depende de TODAS
+       las entidades/registries/servicios ya cargados arriba (los
+       reconstruye uno a uno desde el envelope) y de
+       `CareerPersistenceBoundary.js` (fingerprint). Carga ANTES que
+       `data/world/*.js` porque no depende de ningún paquete concreto —
+       resuelve los manifests exactos que recibe como dependencia explícita
+       en tiempo de llamada, nunca a nivel de módulo. -->
+  <script src="src/core/CareerHydrationService.js"></script>
+  <!-- SAVE-LOAD-1: único punto que toca IndexedDB — sin dependencias de
+       ningún otro módulo del juego. -->
+  <script src="src/storage/IndexedDbCareerSaveRepository.js"></script>
 
   <script src="data/world/world-core-2026.1.js"></script>
   <script src="data/world/spain-2026.1.js"></script>
@@ -654,14 +679,41 @@
     // construir equipos reales si nunca se visita esa pantalla.
     let gameInitialized = false;
 
-    document.getElementById('gm-goto-season-btn').addEventListener('click', () => {
+    function showGameShell() {
       document.getElementById('gm-landing').style.display = 'none';
       document.getElementById('gm-test-mode-section').style.display = 'none';
       document.getElementById('gm-app').style.display = 'block';
       if (!gameInitialized) {
-        window.BasketManagerGame.init();
+        // SAVE-LOAD-1: la carcasa de la interfaz (nav, botón de volver,
+        // delegación de fichas de jugador) debe quedar lista tanto si se
+        // entra por "Empezar temporada" (pantalla de configuración) como
+        // por "Continuar"/"Cargar partida" (van directas a Home) — ambos
+        // caminos llaman a `ensureUiHandlersWired()` de forma idempotente.
         gameInitialized = true;
       }
+    }
+
+    document.getElementById('gm-goto-season-btn').addEventListener('click', () => {
+      showGameShell();
+      window.BasketManagerGame.init();
+    });
+
+    // SAVE-LOAD-1: "Continuar" carga directamente el autoguardado más
+    // reciente; "Cargar partida" abre la pantalla de ranuras (misma que la
+    // de dentro de la carrera, "Partida" en el menú) para elegir cuál.
+    document.getElementById('gm-continue-btn').addEventListener('click', () => {
+      showGameShell();
+      window.BasketManagerGame.ensureUiHandlersWired();
+      window.BasketManagerGame.loadCareerFromSlot('autosave').catch((error) => {
+        window.alert(`No se ha podido continuar la partida: ${error.message}`);
+        window.BasketManagerGame.goToScreen('team-select');
+      });
+    });
+
+    document.getElementById('gm-load-career-btn').addEventListener('click', () => {
+      showGameShell();
+      window.BasketManagerGame.ensureUiHandlersWired();
+      window.BasketManagerGame.goToScreen('save-load');
     });
 
     document.getElementById('gm-goto-test-btn').addEventListener('click', () => {
@@ -669,6 +721,17 @@
       document.getElementById('gm-app').style.display = 'none';
       document.getElementById('gm-test-mode-section').style.display = 'block';
     });
+
+    // SAVE-LOAD-1: comprobación real contra IndexedDB — nunca se anuncia
+    // "Continuar"/"Cargar partida" si no hay ninguna ranura guardada de
+    // verdad (una partida incompatible/corrupta SÍ cuenta como "hay algo
+    // que cargar": la pantalla de ranuras la mostrará con su error, en vez
+    // de ocultarla en silencio).
+    window.BasketManagerGame.listCareerSaveSlots().then((slots) => {
+      const autosave = slots.find((s) => s.slotId === 'autosave');
+      if (autosave && autosave.record) document.getElementById('gm-continue-btn').style.display = '';
+      if (slots.some((s) => s.record)) document.getElementById('gm-load-career-btn').style.display = '';
+    }).catch(() => { /* IndexedDB no disponible en este navegador — la landing sigue funcionando sin persistencia. */ });
   </script>
   <script>
     // Prueba manual, sin interfaz definitiva: solo comprueba que los datos

@@ -445,6 +445,49 @@
       return { valid: errors.length === 0, errors, warnings };
     }
 
+    // Contrato COMPLETO sin pérdida (SAVE-LOAD-1) — `snapshot()` de abajo
+    // sigue siendo un resumen diagnóstico de solo contadores (WORLD-HARDEN-1).
+    // `budgetReservations`/`scheduledEvents` ya son objetos planos (nunca
+    // instancias con comportamiento, ver constructor) — se serializan tal
+    // cual; el resto son entidades reales vía `.toJSON()`.
+    exportState() {
+      return {
+        threads: [...this._threads.values()].map((x) => x.toJSON()),
+        offers: [...this._offers.values()].map((x) => x.toJSON()),
+        agreements: [...this._agreements.values()].map((x) => x.toJSON()),
+        rightsCases: [...this._rightsCases.values()].map((x) => x.toJSON()),
+        returnRightsCases: [...this._returnRightsCases.values()].map((x) => x.toJSON()),
+        debtChallenges: [...this._debtChallenges.values()].map((x) => x.toJSON()),
+        compensationClaims: [...this._compensationClaims.values()].map((x) => x.toJSON()),
+        budgetReservations: [...this._budgetReservations.values()].map((r) => ({ ...r })),
+        scheduledEvents: [...this._scheduledEvents.values()].map((e) => ({ ...e })),
+      };
+    }
+
+    // `entities`: `{NegotiationThread, ContractOffer, AgreementInPrinciple,
+    // RightOfFirstRefusalCase, ReturnRightsCase, DebtChallenge,
+    // PotentialCompensationClaim}` — orden de restauración = orden de
+    // creación real (un hilo antes que su oferta, una oferta antes que el
+    // acuerdo que la acepta, etc.), igual que el flujo de negociación real.
+    restoreState(state, entities) {
+      (state.threads || []).forEach((j) => this.registerThread(new entities.NegotiationThread(j)));
+      (state.offers || []).forEach((j) => this.registerOffer(new entities.ContractOffer(j)));
+      (state.agreements || []).forEach((j) => this.registerAgreement(new entities.AgreementInPrinciple(j)));
+      (state.rightsCases || []).forEach((j) => this.registerRightsCase(new entities.RightOfFirstRefusalCase(j)));
+      (state.returnRightsCases || []).forEach((j) => this.registerReturnRightsCase(new entities.ReturnRightsCase(j)));
+      (state.debtChallenges || []).forEach((j) => this.registerDebtChallenge(new entities.DebtChallenge(j)));
+      (state.compensationClaims || []).forEach((j) => this.registerCompensationClaim(new entities.PotentialCompensationClaim(j)));
+      (state.budgetReservations || []).forEach((r) => {
+        this._budgetReservations.set(r.id, { ...r });
+        if (r.groupId) {
+          const ids = this._budgetReservationGroups.get(r.groupId) || [];
+          ids.push(r.id);
+          this._budgetReservationGroups.set(r.groupId, ids);
+        }
+      });
+      (state.scheduledEvents || []).forEach((e) => this._scheduledEvents.set(e.id, { ...e }));
+    }
+
     snapshot() {
       return {
         threads: this._threads.size,

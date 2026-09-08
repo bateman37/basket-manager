@@ -245,7 +245,17 @@
     // sus Entries de 'edition-start' ya presentes) — sección 8.1: "inicializar
     // una edición desde su formato y Entries ya registrados". Construye un
     // runner por cada Stage 'active' de la edición cuyo runnerType conozca.
-    initializeEdition(editionId) {
+    //
+    // SAVE-LOAD-1: `options.includeStatuses` (por defecto `['active']`, el
+    // comportamiento de siempre) permite ampliar el filtro a `'completed'`
+    // durante la HIDRATACIÓN de una carrera guardada — una fase ya
+    // terminada (ej. Liga regular con un playoff posterior todavía activo)
+    // sigue necesitando su runner vivo para poder reaplicar sus partidos
+    // jugados y exponer su clasificación/histórico. En una carrera EN VIVO
+    // esto nunca hace falta (el runner de una fase completada ya sigue
+    // vivo en `runtimeRegistry` desde que se construyó la primera vez).
+    initializeEdition(editionId, options = {}) {
+      const includeStatuses = options.includeStatuses || ['active'];
       const edition = this.world.registries.competitionEditions.require(editionId);
       if (!edition.formatBindingId) {
         throw new Error(`CompetitionEngine.initializeEdition: la edición "${editionId}" no tiene "formatBindingId" congelado.`);
@@ -263,7 +273,7 @@
         this._simulationService.validateCoverageForEdition(edition, participantIds);
       }
       this.world.registries.competitionStages.forEdition(edition.id)
-        .filter((stage) => stage.status === 'active' && !this.runtimeRegistry.hasRunner(stage.id))
+        .filter((stage) => includeStatuses.indexOf(stage.status) !== -1 && !this.runtimeRegistry.hasRunner(stage.id))
         .forEach((stage) => {
           const template = format.getStageTemplate(this._stageKeyFromId(stage.id, edition));
           this._buildRunnerForStage(edition, format, template, stage);

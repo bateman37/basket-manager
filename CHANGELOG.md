@@ -6,6 +6,18 @@ bajo `docs/epics/`, o en `docs/history/` para sesiones sin Epic
 identificable. A partir de esta migración, una entrada nueva es un resumen
 corto con enlace al detalle — no un informe completo pegado aquí.
 
+## 2026-09-08 — `SAVE-LOAD-1`: guardado y carga reales de una carrera
+
+Primera persistencia real de partidas: IndexedDB (3 ranuras manuales +
+autoguardado), formato de guardado versionado, hidratación en dos fases
+con validación completa (fingerprint/schema/content packs/integridad)
+antes de sustituir la carrera activa, autoguardado en 3 checkpoints
+seguros, y una pantalla "Partida" (+ "Continuar"/"Cargar partida" en la
+landing). `CareerPersistenceBoundary.js` deja de ser una sonda y pasa a
+ser el proyector canónico real. Detalle completo:
+`docs/epics/SAVE-LOAD-1.md`. Checklist manual pendiente de Dennis:
+`docs/manual/SAVE_LOAD_ACCEPTANCE.md`.
+
 ## 2026-09-08 — `DOCS-CONTEXT-1`: reorganización documental
 
 Reorganiza `CLAUDE.md`/`DESIGN.md`/`CHANGELOG.md` (crecidos a monolitos

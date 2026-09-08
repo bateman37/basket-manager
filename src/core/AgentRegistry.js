@@ -217,6 +217,22 @@
       return { valid: errors.length === 0, errors, warnings };
     }
 
+    // Contrato COMPLETO sin pérdida (SAVE-LOAD-1) — `snapshot()` de arriba
+    // sigue siendo un resumen diagnóstico (WORLD-HARDEN-1).
+    exportState() {
+      return {
+        agents: this.allAgents().map((x) => x.toJSON()),
+        mandates: this.allMandates().map((x) => x.toJSON()),
+      };
+    }
+
+    // `entities`: `{Agent, RepresentationMandate}` — constructores
+    // explícitos aportados por `CareerHydrationService`.
+    restoreState(state, entities) {
+      (state.agents || []).forEach((j) => this.registerAgent(new entities.Agent(j)));
+      (state.mandates || []).forEach((j) => this.registerMandate(new entities.RepresentationMandate(j)));
+    }
+
     snapshot() {
       return { agents: this.allAgents().length, mandates: this.allMandates().length };
     }

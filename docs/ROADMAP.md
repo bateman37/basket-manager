@@ -19,12 +19,14 @@ Dennis. Cada punto enlaza a su documento de origen.
 
 ## Propuestas por estudiar (sin decisión de Dennis todavía)
 
-- **Persistencia real de partidas** (`saveCareer`/`loadCareer`,
-  SQLite/PostgreSQL/IndexedDB o similar): `CareerPersistenceBoundary.js`
-  es hoy solo una sonda de qué sería durable — WORLD-HARDEN-1 pospuso
-  explícitamente la decisión de arquitectura (`docs/architecture/
-  persistence-boundary.md`). No implementar guardado nuevo sin decisión
-  explícita.
+- ~~**Persistencia real de partidas**~~ — entregada en `SAVE-LOAD-1`
+  (IndexedDB, 3 ranuras manuales + autoguardado). Ver
+  `docs/architecture/persistence-boundary.md` y
+  `docs/epics/SAVE-LOAD-1.md`. Pendiente solo el checklist manual en
+  navegador real (`docs/manual/SAVE_LOAD_ACCEPTANCE.md`) y ampliar la
+  cobertura de prueba de `transfers`/`loans`/`annualCycle`/`academy`/
+  `nationalTeams` en el round-trip con datos reales de esos dominios (hoy
+  verificado solo por analogía de patrón).
 - **Contenido europeo real** (`EUROPE-CONTENT-1`): competición europea
   como paquete de contenido sobre el motor genérico — hoy los clubes
   "grandes" están fijados a su competición europea sin lógica de

@@ -6,38 +6,33 @@ completo de una Epic ya cerrada, ve a `docs/epics/<ID>.md`.
 
 ## Epic activa
 
-**`DOCS-CONTEXT-1`** — reorganización documental del repositorio
-(`CLAUDE.md`/`DESIGN.md`/`CHANGELOG.md` monolíticos → `docs/`), sin tocar
-código productivo.
+**Ninguna.** `SAVE-LOAD-1` (guardado y carga reales de una carrera vía
+IndexedDB) quedó completada en esta sesión — ver `docs/epics/SAVE-LOAD-1.md`
+para el resultado completo, las pruebas ejecutadas y los follow-ups
+aceptados. Rama `claude/modest-gauss-ab8bat` (reiniciada desde `main`),
+PR abierta sin fusionar — Dennis fusiona manualmente.
 
-- **Estado**: completada en esta sesión (rama `docs/docs-context-1`, PR
-  abierta sin fusionar — Dennis fusiona manualmente).
-- **Ficha completa**: `docs/epics/DOCS-CONTEXT-1.md`.
-- **Documentos imprescindibles para revisar el resultado**: este archivo,
-  `docs/STATUS.md`, `docs/reference/LEGACY_MAP.md`, `docs/epics/README.md`.
-- **Archivos autorizados en esta Epic**: `CLAUDE.md`, `DESIGN.md`,
-  `CHANGELOG.md`, `README.md`, todo bajo `docs/`, y opcionalmente
-  `scripts/check-docs-context.js`.
-- **Exclusiones**: `src/`, `data/`, `index.html`, estilos, dependencias,
-  configuración de ejecución, pruebas del juego — ninguno se tocó.
-- **Decisiones pendientes**: ninguna decisión de producto quedó abierta
-  por esta Epic — es reorganización documental, no diseño nuevo. Las
-  contradicciones detectadas se documentaron (`docs/STATUS.md`) sin
-  corregir el código subyacente, tal como pedía el encargo.
-- **Pruebas mínimas realizadas**: exclusivamente documentales — enlaces
-  internos, anclas, cobertura del mapa de migración, `git diff --check`,
-  lectura manual de los bloques migrados para confirmar que el significado
-  se conserva. **No se ejecutó ningún test/smoke/Playwright del juego.**
-- **Punto de continuación**: ninguno — la Epic terminó su alcance
-  documental completo en esta sesión.
+No selecciones ni arranques automáticamente la siguiente Epic. Cuando
+Dennis decida la siguiente funcionalidad, esta ficha se actualiza con su
+identificador, objetivo y alcance autorizado antes de tocar ningún
+archivo — usa `docs/epics/README.md` (plantilla) para crear su ficha
+inicial y `docs/ROADMAP.md` para ver las opciones ya documentadas como
+pendientes de decisión.
 
-## Siguiente Epic
+## Punto de continuación de SAVE-LOAD-1 (si una sesión futura retoma algo)
 
-**No hay ninguna Epic activa confirmada tras `DOCS-CONTEXT-1`.** No la
-selecciones ni la arranques automáticamente. Cuando Dennis decida la
-siguiente funcionalidad, esta ficha se actualiza con su identificador,
-objetivo y alcance autorizado antes de tocar ningún archivo — usa
-`docs/epics/README.md` (plantilla) para crear su ficha inicial y
-`docs/ROADMAP.md` para ver las opciones ya documentadas como pendientes de
-decisión (persistencia real, contenido europeo, transfer internacional,
-ampliaciones tácticas, deuda de scripts...).
+- **Pendiente de Dennis**: checklist manual completo en navegador real —
+  `docs/manual/SAVE_LOAD_ACCEPTANCE.md`. Ninguna sesión de Claude Code la
+  ha ejecutado (fuera de alcance: sin Playwright en esta Epic).
+- **Follow-ups no bloqueantes** (ver `docs/epics/SAVE-LOAD-1.md`, sección
+  Resultado): cobertura de prueba de `transfers`/`loans`/`annualCycle`/
+  `academy`/`nationalTeams` en el round-trip de guardado (hoy solo
+  verificado por analogía de patrón, no con datos reales de esos
+  dominios); contador de lesiones de `Medical.js` sin seedear
+  explícitamente.
+
+## Anterior Epic (histórico)
+
+`DOCS-CONTEXT-1` (reorganización documental) quedó completada y ya
+fusionada en `main` (PR #58) antes de que empezara `SAVE-LOAD-1`. Ver
+`docs/epics/DOCS-CONTEXT-1.md`.

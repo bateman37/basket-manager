@@ -37,7 +37,7 @@ dividen físicamente (`src/ui/game.js`, `src/core/Tactics.js`,
 | Selecciones nacionales | `NationalTeamRegistry.js` (si existe), `NationalTeamEligibilityService.js` | `docs/architecture/national-teams.md` |
 | Configuración de carrera | `CareerSetupService.js` (+ `src/entities/CareerSetup.js`) | `docs/architecture/career-setup-and-navigation.md` |
 | Navegación mundial | `WorldNavigationService.js` | `docs/architecture/career-setup-and-navigation.md` |
-| Frontera de persistencia (sonda) | `CareerPersistenceBoundary.js` | `docs/architecture/persistence-boundary.md` |
+| Guardado/carga reales de una carrera | `CareerPersistenceBoundary.js` (proyección canónica), `CareerHydrationService.js` (hidratación en dos fases) | `docs/architecture/persistence-boundary.md` |
 
 ## Entidades (`src/entities/`)
 
@@ -51,6 +51,12 @@ dividen físicamente (`src/ui/game.js`, `src/core/Tactics.js`,
 
 `game.js` — ver `docs/code/game-ui.md`. `game.css` (estilos, sin lógica).
 `TacticsHelp.js` (ayuda contextual, 97 entradas — ver `docs/design/tactics/roadmap.md` §7.12.36).
+
+## Persistencia (`src/storage/`)
+
+`IndexedDbCareerSaveRepository.js` — único punto que toca IndexedDB
+(base `basket-manager`, store `career-saves`). Ver
+`docs/architecture/persistence-boundary.md`.
 
 ## Utilidades (`src/utils/`)
 

@@ -54,6 +54,15 @@
     return `${prefix}-${eventIdCounter}`;
   }
 
+  // SAVE-LOAD-1: el contador es un cierre de módulo (nunca persistido) —
+  // tras hidratar una carrera con `newsLog`/`medicalAgendaLog` restaurados,
+  // el contador debe arrancar POR ENCIMA del mayor sufijo numérico ya usado
+  // en esos logs para no reutilizar un id (`news-result-1` ya existente).
+  // Nunca reduce el contador (solo eleva su suelo).
+  function ensureEventIdCounterAtLeast(floor) {
+    if (Number.isFinite(floor) && floor > eventIdCounter) eventIdCounter = floor;
+  }
+
   // Constructor único — asegura que TODO evento (Agenda o Noticias) tiene
   // exactamente el mismo shape, con los campos no aplicables a `null`
   // (nunca `undefined`, para no obligar a comprobar dos formas de "vacío").
@@ -667,6 +676,7 @@
     buildPersonalBestNewsEvent,
     buildMarketAgendaEvent,
     buildMarketNewsEvent,
+    ensureEventIdCounterAtLeast,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

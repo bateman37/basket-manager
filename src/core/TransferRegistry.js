@@ -443,6 +443,37 @@
       return { valid: errors.length === 0, errors, warnings };
     }
 
+    // Contrato COMPLETO sin pérdida (SAVE-LOAD-1) — `snapshot()` de abajo
+    // sigue siendo un resumen diagnóstico de solo contadores (WORLD-HARDEN-1).
+    exportState() {
+      return {
+        cases: [...this._cases.values()].map((x) => x.toJSON()),
+        clubOffers: [...this._clubOffers.values()].map((x) => x.toJSON()),
+        transferAgreements: [...this._transferAgreements.values()].map((x) => x.toJSON()),
+        releaseClauseExercises: [...this._releaseClauseExercises.values()].map((x) => x.toJSON()),
+        terminationRecords: [...this._terminationRecords.values()].map((x) => x.toJSON()),
+        obligations: [...this._obligations.values()].map((x) => x.toJSON()),
+        transactionRecords: [...this._transactionRecords.values()].map((x) => x.toJSON()),
+        scheduledEvents: [...this._scheduledEvents.values()].map((e) => ({ ...e })),
+      };
+    }
+
+    // `entities`: `{TransferCase, ClubTransferOffer, TransferAgreement,
+    // ReleaseClauseExercise, ContractTerminationRecord, FinancialObligation,
+    // TransactionRecord}` — orden = orden de creación real del expediente.
+    // `registerTransactionRecord()` ya reconstruye `_completedByTransactionId`
+    // por su cuenta (índice de idempotencia derivado, nunca serializado).
+    restoreState(state, entities) {
+      (state.cases || []).forEach((j) => this.registerCase(new entities.TransferCase(j)));
+      (state.clubOffers || []).forEach((j) => this.registerClubOffer(new entities.ClubTransferOffer(j)));
+      (state.transferAgreements || []).forEach((j) => this.registerTransferAgreement(new entities.TransferAgreement(j)));
+      (state.releaseClauseExercises || []).forEach((j) => this.registerReleaseClauseExercise(new entities.ReleaseClauseExercise(j)));
+      (state.terminationRecords || []).forEach((j) => this.registerTerminationRecord(new entities.ContractTerminationRecord(j)));
+      (state.obligations || []).forEach((j) => this.registerObligation(new entities.FinancialObligation(j)));
+      (state.transactionRecords || []).forEach((j) => this.registerTransactionRecord(new entities.TransactionRecord(j)));
+      (state.scheduledEvents || []).forEach((e) => this._scheduledEvents.set(e.id, { ...e }));
+    }
+
     snapshot() {
       return {
         cases: this._cases.size,

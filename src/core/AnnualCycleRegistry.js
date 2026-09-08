@@ -567,6 +567,51 @@
         })),
       };
     }
+
+    // Contrato COMPLETO sin pérdida (SAVE-LOAD-1) — `snapshot()` de arriba
+    // sigue siendo un resumen diagnóstico (WORLD-HARDEN-1, campos reducidos
+    // como `phase`/`gaps.length` en vez del objeto real).
+    exportState() {
+      return {
+        cycles: this.allCycles().map((x) => x.toJSON()),
+        clubCases: this.allClubCases().map((x) => x.toJSON()),
+        plans: this.allPlans().map((x) => x.toJSON()),
+        renewals: this.allRenewalCases().map((x) => x.toJSON()),
+        optionDecisions: this.allOptionDecisions().map((x) => x.toJSON()),
+        retirementProfiles: this.allRetirementProfiles().map((x) => x.toJSON()),
+        retirementAnnouncements: this.allRetirementAnnouncements().map((x) => x.toJSON()),
+        retirementRecords: this.allRetirementRecords().map((x) => x.toJSON()),
+        clearingRounds: this.allClearingRounds().map((x) => x.toJSON()),
+        clearingDecisions: this.allClearingDecisions().map((x) => x.toJSON()),
+        legalityReports: this.allLegalityReports().map((x) => x.toJSON()),
+        emergencyActions: this.allEmergencyActions().map((x) => x.toJSON()),
+        expiryRecords: this.allExpiryRecords().map((x) => x.toJSON()),
+        pathwayExits: this.allPathwayExits().map((x) => x.toJSON()),
+      };
+    }
+
+    // `entities`: `{AnnualRosterCycle, ClubCycleCase, ClubSquadPlan,
+    // RenewalCase, ContractOptionDecision, RetirementProfile,
+    // RetirementAnnouncement, RetirementRecord, ClearingRound,
+    // ClearingDecision, RosterLegalityReport, EmergencyRosterAction,
+    // ContractExpiryRecord, ProfessionalPathwayExitRecord}` — orden = orden
+    // de creación real del ciclo anual.
+    restoreState(state, entities) {
+      (state.cycles || []).forEach((j) => this.registerCycle(new entities.AnnualRosterCycle(j)));
+      (state.clubCases || []).forEach((j) => this.registerClubCase(new entities.ClubCycleCase(j)));
+      (state.plans || []).forEach((j) => this.registerPlan(new entities.ClubSquadPlan(j)));
+      (state.renewals || []).forEach((j) => this.registerRenewalCase(new entities.RenewalCase(j)));
+      (state.optionDecisions || []).forEach((j) => this.registerOptionDecision(new entities.ContractOptionDecision(j)));
+      (state.retirementProfiles || []).forEach((j) => this.registerRetirementProfile(new entities.RetirementProfile(j)));
+      (state.retirementAnnouncements || []).forEach((j) => this.registerRetirementAnnouncement(new entities.RetirementAnnouncement(j)));
+      (state.retirementRecords || []).forEach((j) => this.registerRetirementRecord(new entities.RetirementRecord(j)));
+      (state.clearingRounds || []).forEach((j) => this.registerClearingRound(new entities.ClearingRound(j)));
+      (state.clearingDecisions || []).forEach((j) => this.registerClearingDecision(new entities.ClearingDecision(j)));
+      (state.legalityReports || []).forEach((j) => this.registerLegalityReport(new entities.RosterLegalityReport(j)));
+      (state.emergencyActions || []).forEach((j) => this.registerEmergencyAction(new entities.EmergencyRosterAction(j)));
+      (state.expiryRecords || []).forEach((j) => this.registerExpiryRecord(new entities.ContractExpiryRecord(j)));
+      (state.pathwayExits || []).forEach((j) => this.registerPathwayExit(new entities.ProfessionalPathwayExitRecord(j)));
+    }
   }
 
   const exportsObj = { AnnualCycleRegistry };

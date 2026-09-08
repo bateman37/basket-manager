@@ -250,13 +250,27 @@
     }
 
     // Snapshot MÍNIMO (como `PlayerRegistry.snapshot()`): NO es un sistema
-    // de guardado (eso es HARDEN-1).
+    // de guardado (eso es SAVE-LOAD-1 — ver `exportState()`/`restoreState()`
+    // debajo, el contrato COMPLETO sin pérdida vía `Contract.toJSON()`).
     snapshot() {
       return this.all().map((contract) => ({
         id: contract.id, playerId: contract.playerId, clubId: contract.clubId,
         startDate: contract.startDate, endDate: contract.endDate,
       }));
     }
+
+    exportState() {
+      return byId(this.all().map((c) => c.toJSON()));
+    }
+
+    // `Contract`: constructor explícito aportado por `CareerHydrationService`.
+    restoreState(state, Contract) {
+      (state || []).forEach((j) => this.register(new Contract(j)));
+    }
+  }
+
+  function byId(list) {
+    return [...list].sort((a, b) => (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0)));
   }
 
   function pushIndex(map, key, value) {
