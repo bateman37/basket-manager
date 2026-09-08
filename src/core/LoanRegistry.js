@@ -368,6 +368,8 @@
       return { valid: errors.length === 0, errors, warnings };
     }
 
+    // Ya lossless (a diferencia de otros `snapshot()` de la EPIC anterior) —
+    // SAVE-LOAD-1 lo reutiliza directamente como `exportState()`.
     snapshot() {
       return {
         cases: this.allCases().map((c) => c.toJSON()),
@@ -377,6 +379,19 @@
         optionExercises: [...this._optionExercises.values()].map((e) => e.toJSON()),
         scheduledEvents: this.allScheduledEvents(),
       };
+    }
+
+    exportState() { return this.snapshot(); }
+
+    // `entities`: `{LoanCase, LoanProposal, LoanPartyConsent, LoanAgreement,
+    // PurchaseOptionExercise}`.
+    restoreState(state, entities) {
+      (state.cases || []).forEach((j) => this.registerCase(new entities.LoanCase(j)));
+      (state.proposals || []).forEach((j) => this.registerProposal(new entities.LoanProposal(j)));
+      (state.consents || []).forEach((j) => this.registerConsent(new entities.LoanPartyConsent(j)));
+      (state.agreements || []).forEach((j) => this.registerAgreement(new entities.LoanAgreement(j)));
+      (state.optionExercises || []).forEach((j) => this.registerOptionExercise(new entities.PurchaseOptionExercise(j)));
+      (state.scheduledEvents || []).forEach((e) => this._scheduledEvents.set(e.id, { ...e }));
     }
   }
 

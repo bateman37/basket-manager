@@ -26,6 +26,7 @@ rg -n "function startCareerFromSetup" src/ui/game.js
 | Pantalla Mercado — Cesiones | `renderMarketLoansTab(team)` | `LoanService`, `LoanExecutionService`, `state.loanRegistry` | `docs/design/loans.md` |
 | Planificación táctica y familiaridad | (ver `docs/code/tactics.md`) | `BM.Tactics`, `GamePlan`, `TacticalProfile` | `docs/design/tactics/` |
 | Convocatoria y elegibilidad de partido | `getConvocatedPlayers`, `buildEligiblePoolForMatch` | `EligibilityService`, `SquadEligibilityService.selectLegalSquad` | `docs/design/registration-eligibility.md` |
+| Guardar/cargar/sobrescribir/eliminar partida (pantalla "Partida" + landing) | `renderSaveLoadScreen()`, `saveCareerToSlot()`, `loadCareerFromSlot()`, `autoSaveCareer()` | `BM.CareerPersistenceBoundary`, `BM.CareerHydrationService`, `BM.IndexedDbCareerSaveRepository` | `docs/architecture/persistence-boundary.md` |
 
 ## Patrones estructurales que cualquier cambio debe respetar
 
@@ -45,6 +46,11 @@ rg -n "function startCareerFromSetup" src/ui/game.js
   `ContractRegistry`/`RegistrationRegistry`/`Team.roster`/
   `player.teamId` — siempre a través del `*Service`/`*ExecutionService`
   correspondiente.
+- **`resetCareerState()`** (SAVE-LOAD-1) es el ÚNICO punto que limpia
+  `state.*` de una carrera anterior — lo usan tanto "Volver a selección
+  de equipo" como `loadCareerFromSlot()` antes de sustituir por la
+  carrera hidratada. Ninguna carga/reinicio nuevo debe reimplementar este
+  reseteo a mano.
 
 ## Ejemplos de búsqueda útiles
 

@@ -1141,3 +1141,29 @@
   }
   .contract-facts { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   SAVE-LOAD-1 — pantalla "Partida" (guardar/cargar/sobrescribir/eliminar) y
+   botones nuevos de la landing ("Continuar"/"Cargar partida"). Reutiliza
+   gm-card/gm-btn/gm-muted/gm-badge ya existentes.
+   ========================================================================== */
+.gm-save-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.gm-save-slot__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.gm-btn--danger { border-color: var(--loss); color: var(--loss); }
+.gm-btn--danger:hover { background: var(--loss); color: var(--white-line); }
+.gm-error { color: var(--loss); font-size: 13px; }
+.gm-hint { color: var(--ink-soft); font-size: 12px; font-style: italic; }
+
+@media (max-width: 640px) {
+  .gm-save-slots { grid-template-columns: 1fr; }
+  .gm-landing__actions { flex-direction: column; }
+}

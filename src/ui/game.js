@@ -42,6 +42,10 @@
     careerSetupCatalog: null,
     careerSetupDraft: null,
     careerSetupSnapshot: null,
+    // SAVE-LOAD-1: motivo del último autoguardado fallido (`null` si el
+    // último intento fue bien o todavía no se ha intentado ninguno) — se
+    // muestra de forma discreta en la pantalla "Partida", nunca bloquea.
+    lastAutosaveError: null,
     // Estado de navegación del navegador Mundo — SOLO ids canónicos, nunca
     // nombres visibles ni `division` (sección 6 del prompt).
     worldView: {
@@ -890,8 +894,15 @@
   // elegir a mano un método de `Calendar.js`: ese `Calendar` ya no
   // participa en la ruta productiva. Un calendario/fase desconocido FALLA
   // de forma descriptiva; nunca hereda el perfil de otra competición.
-  function buildCompetitionDateResolverProvider() {
-    return state.scheduleService.buildDateResolverProvider({
+  // SAVE-LOAD-1: acepta un `scheduleService` explícito opcional (por
+  // defecto `state.scheduleService`) — `CareerHydrationService.hydrate()`
+  // necesita construir el `dateResolverProvider` ANTES de que exista
+  // `state.scheduleService` (todavía no hay carrera activa que sustituir),
+  // así que reutiliza esta misma función pasándole el suyo propio, en vez
+  // de duplicar esta lógica.
+  function buildCompetitionDateResolverProvider(scheduleService) {
+    const svc = scheduleService || state.scheduleService;
+    return svc.buildDateResolverProvider({
       // El año de inicio de temporada llega de la CARRERA (nunca del reloj
       // del ordenador): se deriva de la `seasonKey` congelada en la propia
       // Edition, así que una Edition de una temporada anterior sigue
@@ -1337,6 +1348,9 @@
       kind: 'area', areaId: BM.WORLD_CORE_AREA_IDS.WORLD, competitionDefinitionId: null, editionId: null,
     };
 
+    // SAVE-LOAD-1 (checkpoint 1/3): autoguardado tras completar el
+    // bootstrap de una carrera nueva — fire-and-forget, nunca bloquea.
+    autoSaveCareer();
     goToScreen('home');
   }
 
@@ -3062,6 +3076,10 @@
     state.agendaAnchorDate = null;
     state.seasonCloseSummary = summary;
 
+    // SAVE-LOAD-1 (checkpoint 3/3): autoguardado tras el cierre/preparación
+    // de temporada — el runtime ya está en una frontera estable (nuevo
+    // ciclo/ediciones registrados, ningún partido pendiente de commit).
+    autoSaveCareer();
     goToScreen('home');
   }
 
@@ -9431,6 +9449,7 @@
   // ---------------------------------------------------------------------
   const SCREENS = [
     'team-select', 'home', 'world', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'save-load',
     'player-profile',
   ];
 
@@ -9474,14 +9493,18 @@
       }
       renderMatchScreen();
     }
+    if (screen === 'save-load') renderSaveLoadScreen();
     if (screen === 'player-profile') renderPlayerProfileScreen();
   }
 
-  function init() {
-    byId('gm-nav').querySelectorAll('.gm-nav__btn').forEach((btn) => {
-      btn.addEventListener('click', () => goToScreen(btn.dataset.screen));
-    });
-    byId('gm-back-to-team-select').addEventListener('click', () => {
+  // SAVE-LOAD-1 (sección 6 del prompt: "extrae, si hace falta, un
+  // resetCareerState() reutilizable"): extraído tal cual del botón "Volver
+  // a selección de equipo" — sin cambios de comportamiento. Reutilizado
+  // también ANTES de hidratar una carrera guardada (`loadCareerFromSlot()`)
+  // para que una carga nunca mezcle registros de la sesión anterior con
+  // los del guardado.
+  function resetCareerState() {
+    {
       // WORLD-CALENDAR-1 (DESIGN.md 10.14): mismo criterio que el resto de
       // agregados por carrera — el calendario mundial, su coordinador y el
       // servicio de schedules pertenecen a UNA partida y nunca sobreviven a
@@ -9558,6 +9581,32 @@
       state.worldView = {
         kind: 'area', areaId: null, competitionDefinitionId: null, editionId: null,
       };
+      // SAVE-LOAD-1: los logs/estado de interfaz no reconstruibles y la
+      // alineación en curso tampoco deben sobrevivir a "Volver a selección
+      // de equipo" — mismo criterio que el resto de este bloque.
+      state.newsLog = [];
+      state.medicalAgendaLog = [];
+      state.marketAgendaLog = [];
+      state.lineup = null;
+      state.lastAutosaveError = null;
+    }
+  }
+
+  let uiHandlersWired = false;
+  // SAVE-LOAD-1: separado de `init()` para poder inicializar la "carcasa"
+  // de la interfaz (nav, botón de volver, delegación de fichas de
+  // jugador) sin renderizar TAMBIÉN la pantalla de configuración de
+  // carrera — "Continuar"/"Cargar partida" desde la landing necesitan la
+  // carcasa lista pero van directas a `Home` con la carrera ya hidratada,
+  // nunca pasan por la pantalla de selección de equipo. Idempotente.
+  function ensureUiHandlersWired() {
+    if (uiHandlersWired) return;
+    uiHandlersWired = true;
+    byId('gm-nav').querySelectorAll('.gm-nav__btn').forEach((btn) => {
+      btn.addEventListener('click', () => goToScreen(btn.dataset.screen));
+    });
+    byId('gm-back-to-team-select').addEventListener('click', () => {
+      resetCareerState();
       goToScreen('team-select');
     });
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado
@@ -9574,6 +9623,10 @@
       event.stopPropagation();
       openPlayerProfile(link.dataset.playerLinkId, { returnScreen: state.screen });
     });
+  }
+
+  function init() {
+    ensureUiHandlersWired();
     renderCareerSetupScreen();
   }
 
@@ -9749,6 +9802,10 @@
       if (isFullyRevealed) {
         state.matchReveal = null;
         state.pendingUserMatch = null;
+        // SAVE-LOAD-1 (checkpoint 2/3): autoguardado tras confirmar el
+        // partido del usuario ya resuelto y revelado por completo (modo
+        // 'replay').
+        autoSaveCareer();
         goToScreen('home');
         return;
       }
@@ -9828,6 +9885,9 @@
       if (isFinished) {
         state.matchReveal = null;
         state.pendingUserMatch = null;
+        // SAVE-LOAD-1 (checkpoint 2/3): autoguardado tras confirmar el
+        // partido del usuario ya resuelto (modo 'live', motor pausable).
+        autoSaveCareer();
         goToScreen('home');
         return;
       }
@@ -9985,8 +10045,360 @@
       </table>`;
   }
 
+  // =========================================================================
+  // SAVE-LOAD-1 (persistencia real de partidas) — orquestación de la capa
+  // UI: decide CUÁNDO guardar/cargar y ensambla el runtime/metadata que
+  // `CareerPersistenceBoundary`/`CareerHydrationService` necesitan de forma
+  // EXPLÍCITA. Nunca contiene serialización profunda, validación de
+  // fingerprint/schema ni acceso directo a IndexedDB (eso vive en
+  // `CareerPersistenceBoundary.js`/`CareerHydrationService.js`/
+  // `src/storage/IndexedDbCareerSaveRepository.js`).
+  // =========================================================================
+
+  const SAVE_FORMAT = 'basket-manager-career-save';
+  const SAVE_SCHEMA_VERSION = 1;
+  const AUTOSAVE_SLOT_ID = 'autosave';
+
+  // Runtime EXPLÍCITO para `CareerPersistenceBoundary.project()`/
+  // `canSave()` — mismas dependencias que ya usa `buildWorldCalendarCoordinator()`
+  // (`state.*`), nunca leídas por el boundary/hidratador por su cuenta.
+  function buildCareerSaveRuntime() {
+    return {
+      careerSetupSnapshot: state.careerSetupSnapshot,
+      world: state.world,
+      calendar: state.calendar,
+      registries: {
+        playerRegistry: state.playerRegistry,
+        contractRegistry: state.contractRegistry,
+        registrationRegistry: state.registrationRegistry,
+        agentRegistry: state.agentRegistry,
+        marketRegistry: state.marketRegistry,
+        transferRegistry: state.transferRegistry,
+        loanRegistry: state.loanRegistry,
+        annualCycleRegistry: state.annualCycleRegistry,
+        academyRegistry: state.academyRegistry,
+        nationalTeamRegistry: state.nationalTeamRegistry,
+      },
+      installedContentPacks: state.installedContentPacks,
+      competitionEngine: state.competitionEngine,
+      uiState: {
+        newsLog: state.newsLog,
+        medicalAgendaLog: state.medicalAgendaLog,
+        marketAgendaLog: state.marketAgendaLog,
+        lineup: state.lineup,
+        negotiationSequences: {
+          transferNegotiationOfferSequence: state.transferNegotiationOfferSequence,
+          loanNegotiationAttemptSequence: state.loanNegotiationAttemptSequence,
+        },
+      },
+      // Sección 7 del prompt: "no permitas guardar mientras exista
+      // resolución/revelado activo de un partido" — `state.matchReveal` es
+      // el estado compartido de revelado tanto en modo 'live' como
+      // 'replay' (ver renderMatchScreen); no nulo == partido en pantalla
+      // sin confirmar todavía.
+      activeMatchInProgress: !!state.matchReveal,
+    };
+  }
+
+  function describeCareerSaveMetadata(saveKind) {
+    const userTeam = getUserTeam();
+    return {
+      careerId: state.world ? state.world.id : null,
+      userTeamId: state.userTeamId,
+      userClubId: state.userClubId,
+      teamName: userTeam ? userTeam.fullName : null,
+      clubName: userTeam && userTeam.club ? userTeam.club.name : null,
+      seasonKey: state.calendar ? state.calendar.currentSeasonKey : null,
+      gameDate: state.calendar ? state.calendar.currentLocalDate : null,
+      saveKind: saveKind || 'manual',
+    };
+  }
+
+  // Guarda en una ranura — nunca lanza síncronamente (los llamadores
+  // fire-and-forget de autoguardado dependen de eso): cualquier fallo llega
+  // por rechazo de la promesa devuelta.
+  function saveCareerToSlot(slotId, saveKind) {
+    if (!state.world || !state.calendar) return Promise.reject(new Error('No hay ninguna carrera activa que guardar.'));
+    const runtime = buildCareerSaveRuntime();
+    const blockers = BM.CareerPersistenceBoundary.describeSaveBlockers(runtime);
+    if (blockers.length) return Promise.reject(new Error(blockers.join(' ')));
+    return BM.IndexedDbCareerSaveRepository.readSlot(slotId).then((existing) => {
+      const innerEnvelope = BM.CareerPersistenceBoundary.project(runtime, { snapshotAtGameDate: state.calendar.currentLocalDate });
+      const withoutFingerprint = {
+        format: SAVE_FORMAT,
+        schemaVersion: SAVE_SCHEMA_VERSION,
+        slotId,
+        revision: existing && existing.envelope && Number.isFinite(existing.envelope.revision) ? existing.envelope.revision + 1 : 1,
+        savedAtUtc: new Date().toISOString(),
+        metadata: describeCareerSaveMetadata(saveKind),
+        contentPacks: innerEnvelope.world.installedContentPacks.map((p) => ({ id: p.id, version: p.version })),
+        payload: innerEnvelope,
+      };
+      const envelope = { ...withoutFingerprint, fingerprint: BM.CareerPersistenceBoundary.computeFingerprint(withoutFingerprint) };
+      return BM.IndexedDbCareerSaveRepository.writeSlot(slotId, envelope);
+    });
+  }
+
+  // Autoguardado en los checkpoints seguros (sección 7 del prompt): fin del
+  // bootstrap de una carrera nueva, partido del usuario confirmado, cierre
+  // de temporada. Nunca bloquea la UI ni lanza — un fallo se registra
+  // (consola + `state.lastAutosaveError`, mostrado de forma discreta por
+  // `renderSaveLoadScreen()`) y la partida sigue jugándose con normalidad.
+  function autoSaveCareer() {
+    if (!state.world) return;
+    saveCareerToSlot(AUTOSAVE_SLOT_ID, 'autosave').then(() => {
+      state.lastAutosaveError = null;
+    }).catch((error) => {
+      console.warn('[SAVE-LOAD-1] Autoguardado no completado:', error.message);
+      state.lastAutosaveError = error.message;
+    });
+  }
+
+  function listCareerSaveSlots() {
+    return BM.IndexedDbCareerSaveRepository.listSlots();
+  }
+
+  function deleteCareerSaveSlot(slotId) {
+    return BM.IndexedDbCareerSaveRepository.deleteSlot(slotId);
+  }
+
+  // Carga en DOS fases (sección 6 del prompt): 1) `CareerHydrationService.
+  // hydrate()` reconstruye y valida TODO en un runtime aislado, sin tocar
+  // `state`; 2) solo si tiene éxito, se sustituye `state.*` de una sola vez
+  // (síncrono — el propio bucle de eventos de JS lo hace atómico). Un
+  // fallo en la fase 1 nunca deja la carrera activa a medias:
+  // `resetCareerState()` solo se llama DESPUÉS de que `hydrate()` ya
+  // devolvió con éxito.
+  function loadCareerFromSlot(slotId) {
+    return BM.IndexedDbCareerSaveRepository.readSlot(slotId).then((record) => {
+      if (!record) throw new Error(`No hay ninguna partida guardada en la ranura "${slotId}".`);
+      const hydrated = BM.CareerHydrationService.hydrate(record.envelope, {
+        availableContentPacks: BM.listAvailableContentPacks(),
+        buildDateResolverProvider: (scheduleService) => buildCompetitionDateResolverProvider(scheduleService),
+      });
+
+      // --- Fase 2: sustitución atómica de la carrera activa --------------
+      resetCareerState();
+      state.world = hydrated.world;
+      state.calendar = hydrated.calendar;
+      state.playerRegistry = hydrated.playerRegistry;
+      state.contractRegistry = hydrated.contractRegistry;
+      state.registrationRegistry = hydrated.registrationRegistry;
+      state.agentRegistry = hydrated.agentRegistry;
+      state.marketRegistry = hydrated.marketRegistry;
+      state.transferRegistry = hydrated.transferRegistry;
+      state.loanRegistry = hydrated.loanRegistry;
+      state.annualCycleRegistry = hydrated.annualCycleRegistry;
+      state.academyRegistry = hydrated.academyRegistry;
+      state.nationalTeamRegistry = hydrated.nationalTeamRegistry;
+      state.competitionEngine = hydrated.competitionEngine;
+      state.competitionSimulationService = hydrated.competitionSimulationService;
+      state.scheduleService = hydrated.scheduleService;
+      state.contentPackLifecycle = hydrated.contentPackLifecycle;
+      state.installedContentPacks = hydrated.installedContentPackManifests;
+      state.careerSetupSnapshot = hydrated.careerSetupSnapshot;
+      state.careerSetupDraft = null;
+      state.userTeamId = hydrated.userTeamId;
+      state.userClubId = hydrated.userClubId;
+      state.seasonStartYear = hydrated.seasonStartYear;
+      state.newsLog = hydrated.uiState.newsLog;
+      state.medicalAgendaLog = hydrated.uiState.medicalAgendaLog;
+      state.marketAgendaLog = hydrated.uiState.marketAgendaLog;
+      state.lineup = hydrated.uiState.lineup || {
+        squadIds: [], entries: buildEmptyLineupEntries(), fixedSegments: [], segmentDraft: null, garbageTime: { enabled: false },
+      };
+      state.transferNegotiationOfferSequence = (hydrated.uiState.negotiationSequences && hydrated.uiState.negotiationSequences.transferNegotiationOfferSequence) || {};
+      state.loanNegotiationAttemptSequence = (hydrated.uiState.negotiationSequences && hydrated.uiState.negotiationSequences.loanNegotiationAttemptSequence) || {};
+      state.pendingStop = null;
+      state.seasonCloseSummary = null;
+      state.lastRoundMatches = null;
+      state.pendingUserMatch = null;
+      state.matchReveal = null;
+      state.lastAutosaveError = null;
+      state.worldView = { kind: 'area', areaId: BM.WORLD_CORE_AREA_IDS.WORLD, competitionDefinitionId: null, editionId: null };
+
+      // Re-adjunta por IDENTIDAD (nunca copia) y reconstruye los servicios/
+      // coordinadores derivados — mismo patrón EXACTO que el tramo final de
+      // `startCareerFromSetup()` (nunca su bootstrap/seed, solo esta
+      // "conexión a la sesión en vivo").
+      state.world.attachDomainRegistries({
+        playerRegistry: state.playerRegistry,
+        contractRegistry: state.contractRegistry,
+        registrationRegistry: state.registrationRegistry,
+        agentRegistry: state.agentRegistry,
+        marketRegistry: state.marketRegistry,
+        transferRegistry: state.transferRegistry,
+        loanRegistry: state.loanRegistry,
+        annualCycleRegistry: state.annualCycleRegistry,
+        academyRegistry: state.academyRegistry,
+        nationalTeamRegistry: state.nationalTeamRegistry,
+      });
+      state.world.setCalendar(state.calendar);
+      state.pathwayService = new BM.CompetitionPathwayService({
+        world: state.world,
+        competitionEngine: state.competitionEngine,
+        now: () => ({ instant: state.calendar.currentInstant, timeZoneId: state.calendar.defaultTimeZoneId }),
+        resolveEditionBindings: (competitionId, world) => state.contentPackLifecycle.resolveEditionBindings(
+          state.installedContentPacks, competitionId, world,
+        ),
+      });
+      state.competitionEngine.setFactHandler((fact) => state.pathwayService.handleEngineFact(fact));
+      state.calendarCoordinator = buildWorldCalendarCoordinator();
+      // Sincroniza las fuentes reales SOBRE los pendientes ya sembrados por
+      // `CareerHydrationService` (`calendar.restorePendingItems()`) — un
+      // item `awaiting-user`/`failed` ya existente conserva su estado
+      // (`WorldCalendar.syncSource()`), nunca se resetea a 'scheduled'.
+      state.calendarCoordinator.sync();
+      refreshActiveCompetitionIdsForUser();
+      ensureUiHandlersWired();
+      // Requisito 12 de la sección 6 del prompt: "mostrar Home en la misma
+      // fecha de juego, sin ejecutar automáticamente ningún comando de
+      // simulación".
+      goToScreen('home');
+    });
+  }
+
+  const SAVE_SLOT_LABELS = {
+    'manual-1': 'Ranura manual 1', 'manual-2': 'Ranura manual 2', 'manual-3': 'Ranura manual 3', autosave: 'Autoguardado',
+  };
+
+  function formatSaveTimestamp(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString('es-ES', {
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      });
+    } catch (e) { return iso; }
+  }
+
+  // Comprobación LIGERA de si una ranura se puede cargar sin de verdad
+  // hidratar la carrera completa (eso solo se hace al pulsar "Cargar") —
+  // formato/fingerprint (barato) + compatibilidad de content packs contra
+  // el catálogo real (sección 8 del prompt: "si sólo hay partidas
+  // incompatibles o corruptas, no las cargues silenciosamente: muéstralas
+  // con su estado/error útil").
+  function describeSlotHealth(envelope) {
+    try {
+      BM.CareerHydrationService.verifyEnvelopeIntegrity(envelope);
+    } catch (error) {
+      return { ok: false, reason: error.message };
+    }
+    const available = new Map(BM.listAvailableContentPacks().map((m) => [m.id, m.version]));
+    const incompatible = (envelope.contentPacks || []).find((p) => available.get(p.id) !== p.version);
+    if (incompatible) {
+      return {
+        ok: false,
+        reason: available.has(incompatible.id)
+          ? `Content pack "${incompatible.id}" guardado en versión ${incompatible.version}, esta versión del juego tiene ${available.get(incompatible.id)}.`
+          : `Content pack "${incompatible.id}" ya no está disponible en esta versión del juego.`,
+      };
+    }
+    return { ok: true, reason: null };
+  }
+
+  function renderSaveSlotCardHtml(slotId, record) {
+    const label = SAVE_SLOT_LABELS[slotId];
+    const isAutosave = slotId === AUTOSAVE_SLOT_ID;
+    const hasActiveCareer = !!state.world;
+    const saveBlockers = hasActiveCareer ? BM.CareerPersistenceBoundary.describeSaveBlockers(buildCareerSaveRuntime()) : [];
+    if (!record) {
+      const canSaveHere = hasActiveCareer && !isAutosave && !saveBlockers.length;
+      return `
+        <div class="gm-card gm-save-slot">
+          <h3>${label}</h3>
+          <p class="gm-muted">Ranura vacía.</p>
+          ${!isAutosave && hasActiveCareer ? `<button class="gm-btn gm-btn--small" data-save-slot="${slotId}" ${canSaveHere ? '' : 'disabled'}>Guardar aquí</button>` : ''}
+          ${!isAutosave && hasActiveCareer && saveBlockers.length ? `<p class="gm-hint">${saveBlockers.join(' ')}</p>` : ''}
+        </div>`;
+    }
+    const health = describeSlotHealth(record.envelope);
+    const meta = record.envelope.metadata || {};
+    const canOverwrite = hasActiveCareer && !isAutosave && !saveBlockers.length;
+    return `
+      <div class="gm-card gm-save-slot">
+        <h3>${label}${isAutosave ? ' <span class="gm-badge">automático</span>' : ''}</h3>
+        ${health.ok ? `
+          <p><strong>${meta.clubName || meta.teamName || '(club desconocido)'}</strong></p>
+          <p class="gm-muted">Temporada ${meta.seasonKey || '—'} · fecha de juego ${meta.gameDate || '—'}</p>
+          <p class="gm-muted">Guardado el ${formatSaveTimestamp(record.envelope.savedAtUtc)}</p>
+        ` : `<p class="gm-error">Partida no cargable: ${health.reason}</p>`}
+        <div class="gm-save-slot__actions">
+          <button class="gm-btn gm-btn--primary gm-btn--small" data-load-slot="${slotId}" ${health.ok ? '' : 'disabled'}>Cargar</button>
+          ${!isAutosave && hasActiveCareer ? `<button class="gm-btn gm-btn--small" data-save-slot="${slotId}" ${canOverwrite ? '' : 'disabled'}>Sobrescribir</button>` : ''}
+          <button class="gm-btn gm-btn--small gm-btn--danger" data-delete-slot="${slotId}">Eliminar</button>
+        </div>
+        ${!isAutosave && hasActiveCareer && saveBlockers.length ? `<p class="gm-hint">${saveBlockers.join(' ')}</p>` : ''}
+      </div>`;
+  }
+
+  // SAVE-LOAD-1 (sección 8 del prompt): sección/pantalla compacta de
+  // "Partida" — ver las 4 ranuras, guardar en una manual, cargar,
+  // sobrescribir y eliminar (ambas últimas con confirmación), autoguardado
+  // claramente distinguido. Funciona TANTO dentro de una carrera activa
+  // (menú "Partida") COMO desde la landing sin ninguna carrera todavía
+  // ("Cargar partida") — las acciones de guardar se ocultan solas cuando
+  // `state.world` es `null`.
+  function renderSaveLoadScreen() {
+    const container = byId('gm-save-load');
+    if (!container) return;
+    container.innerHTML = '<p class="gm-muted">Consultando partidas guardadas…</p>';
+    BM.listCareerSaveSlots().then((slots) => {
+      const bySlotId = new Map(slots.map((s) => [s.slotId, s.record]));
+      const autosaveError = state.lastAutosaveError
+        ? `<p class="gm-error">El último autoguardado no se completó: ${state.lastAutosaveError}</p>` : '';
+      container.innerHTML = `
+        ${autosaveError}
+        ${!state.world ? '<p class="gm-muted">No hay ninguna carrera abierta — solo puedes cargar o eliminar ranuras existentes.</p>' : ''}
+        <div class="gm-save-slots">
+          ${['manual-1', 'manual-2', 'manual-3', AUTOSAVE_SLOT_ID].map((slotId) => renderSaveSlotCardHtml(slotId, bySlotId.get(slotId))).join('')}
+        </div>
+      `;
+
+      container.querySelectorAll('[data-save-slot]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const slotId = btn.dataset.saveSlot;
+          const record = bySlotId.get(slotId);
+          if (record && !window.confirm(`¿Sobrescribir "${SAVE_SLOT_LABELS[slotId]}" con la partida actual?`)) return;
+          saveCareerToSlot(slotId, 'manual').then(() => renderSaveLoadScreen()).catch((error) => {
+            window.alert(`No se ha podido guardar: ${error.message}`);
+          });
+        });
+      });
+      container.querySelectorAll('[data-load-slot]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const slotId = btn.dataset.loadSlot;
+          if (!window.confirm('Cargar esta partida sustituye la carrera actualmente abierta (si hay alguna). ¿Continuar?')) return;
+          loadCareerFromSlot(slotId).catch((error) => {
+            window.alert(`No se ha podido cargar la partida: ${error.message}`);
+            renderSaveLoadScreen();
+          });
+        });
+      });
+      container.querySelectorAll('[data-delete-slot]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const slotId = btn.dataset.deleteSlot;
+          if (!window.confirm(`¿Eliminar "${SAVE_SLOT_LABELS[slotId]}"? Esta acción no se puede deshacer.`)) return;
+          deleteCareerSaveSlot(slotId).then(() => renderSaveLoadScreen()).catch((error) => {
+            window.alert(`No se ha podido eliminar: ${error.message}`);
+          });
+        });
+      });
+    }).catch((error) => {
+      container.innerHTML = `<p class="gm-error">No se ha podido acceder al almacenamiento local: ${error.message}</p>`;
+    });
+  }
+
   global.BasketManagerGame = {
     state, init, goToScreen, getUserTeam, startCareerFromSetup,
+    // SAVE-LOAD-1: API mínima de persistencia consumida desde el script
+    // inline de `index.html` (landing) y desde `renderSaveLoadScreen()`.
+    ensureUiHandlersWired,
+    saveCareerToSlot,
+    loadCareerFromSlot,
+    listCareerSaveSlots,
+    deleteCareerSaveSlot,
+    canSaveCareerNow: () => BM.CareerPersistenceBoundary.canSave(buildCareerSaveRuntime()),
+    describeSaveBlockers: () => BM.CareerPersistenceBoundary.describeSaveBlockers(buildCareerSaveRuntime()),
     // WORLD-CALENDAR-1 (DESIGN.md 10.14): `simulateNextRound`,
     // `simulateBackgroundRound`, `drainBackgroundBrackets` y
     // `buildCpuOnlyResolver` han DESAPARECIDO — no había forma de

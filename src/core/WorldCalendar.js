@@ -375,6 +375,40 @@
       };
     }
 
+    // SAVE-LOAD-1: siembra `_itemsById` directamente desde items YA
+    // serializados (`WorldCalendarItem.toJSON()`) — nunca vía `syncSource()`
+    // (que crearía todo como 'scheduled' por defecto, perdiendo un item
+    // `awaiting-user`/`failed` que ninguna fuente puede "re-declarar" con su
+    // estado exacto). Debe llamarse ANTES de que el coordinador vuelva a
+    // sincronizar las fuentes reales — un `syncSource()` posterior conserva
+    // el estado/motivo de fallo de un item ya existente (ver `syncSource`)
+    // y solo refresca instante/metadatos, así que el orden es seguro.
+    restorePendingItems(itemsJSON) {
+      (itemsJSON || []).forEach((json) => {
+        const item = new WorldCalendarItem({
+          sourceType: json.sourceType,
+          sourceId: json.sourceId,
+          id: json.id,
+          status: json.status,
+          moment: json.momentPrecision === 'instant'
+            ? { precision: 'instant', instant: json.instant, timeZoneId: json.timeZoneId }
+            : { precision: 'date', localDate: json.localDate, timeZoneId: json.timeZoneId },
+          attentionScope: json.attentionScope,
+          metadata: json.metadata,
+          failureReason: json.failureReason,
+        });
+        this._itemsById.set(item.id, item);
+      });
+    }
+
+    // SAVE-LOAD-1: restaura el ledger acotado de items ya resueltos (solo
+    // Agenda/diagnóstico, nunca autoridad) — entradas ya planas
+    // (`WorldCalendarItem.toJSON()`), nunca reconstruidas como instancias.
+    restoreLedger(entries) {
+      this._ledger = (entries || []).map((entry) => ({ ...entry }));
+      if (this._ledger.length > this._ledgerMax) this._ledger.splice(0, this._ledger.length - this._ledgerMax);
+    }
+
     // --- Puentes legacy ---------------------------------------------------
     // La autoridad interna es `currentInstant`; estos getters existen solo
     // para los call-sites históricos que esperan un `Date` (interfaz,

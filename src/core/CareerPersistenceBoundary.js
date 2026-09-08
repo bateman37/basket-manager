@@ -120,14 +120,35 @@
         rebuildStrategy: 'Vacío en la partida española por defecto (NATIONAL-TEAMS-1) — proyectado igual que cualquier otra colección durable, nunca omitido.',
       },
       // -----------------------------------------------------------------
+      // SAVE-LOAD-1 — colecciones que WORLD-HARDEN-1 dejó fuera de la
+      // sonda (auditoría de la sección 5 del prompt de SAVE-LOAD-1): el
+      // estado institucional/táctico/de entrenamiento de cada `Team`
+      // (`worldRegistries.teamIds` solo daba el id, nunca el contenido) y
+      // el progreso REAL de cada runner de competición (partidos ya
+      // jugados con su resultado — `runtimeSnapshots` de WORLD-HARDEN-1
+      // solo daba `{stageId, status, completed}`, insuficiente para
+      // reanudar sin volver a simular). Ambas son DURABLE, no derivadas:
+      // un resultado de partido no es reconstruible sin RNG.
+      // -----------------------------------------------------------------
+      {
+        key: 'teams', owner: 'Team (WorldRegistries.teams)', classification: 'durable',
+        identityKeys: ['id'], dependsOn: ['worldRegistries'],
+        rebuildStrategy: 'Un `Team` por id vía `Team.toJSON()` SIN `roster` (la plantilla real la aporta el `Squad` ya persistido en `worldRegistries.squads` + `PlayerRegistry`, nunca una segunda copia) — captura tacticalProfile/trainingPlan/trainingState/reputation deportiva/historia/rivalidades/staff médico de los 36 equipos, no solo del club del usuario.',
+      },
+      {
+        key: 'competitionRuntime', owner: 'CompetitionEngine (runners vivos)', classification: 'durable',
+        identityKeys: ['stageId'], dependsOn: ['worldRegistries'],
+        rebuildStrategy: 'Por cada stage con runner activo: lista de partidos YA jugados `{id, result}` en orden de reproducción válido (`runner.listPlayedMatchesInReplayOrder()`). `CareerHydrationService` reconstruye el runner con `CompetitionEngine.initializeEdition()` (mismo código que una carrera nueva, determinista desde Entries ya restauradas) y reaplica cada resultado con `resolveMatch(id, {silent:true, matchEngineOptions:{precomputedResult}})` — sin RNG, sin repetir los callbacks de pathway/noticias (esos efectos ya están en el resto del estado durable).',
+      },
+      {
+        key: 'uiState', owner: 'src/ui/game.js (state.newsLog/medicalAgendaLog/marketAgendaLog/lineup/negotiation sequences)', classification: 'durable',
+        identityKeys: [], dependsOn: [],
+        rebuildStrategy: 'No reconstruible desde otro estado ya vivo (mismo motivo documentado en el propio código de `game.js`) — se persiste tal cual. Los contadores de id de `Events.js`/`Medical.js` son cierres de módulo NO persistidos: `CareerHydrationService` eleva el suelo de `Events.ensureEventIdCounterAtLeast()` al mayor sufijo ya usado en los logs restaurados para no reutilizar un id.',
+      },
+      // -----------------------------------------------------------------
       // DERIVADO — se recalcula desde lo durable, nunca es una segunda
       // copia que haya que persistir aparte.
       // -----------------------------------------------------------------
-      {
-        key: 'runtimeCompetitiveState', owner: 'CompetitionEngine (runners)', classification: 'derived',
-        identityKeys: [], dependsOn: ['worldRegistries'],
-        rebuildStrategy: 'Los runners (`RoundRobinStageRunner`/`BracketStageRunner`) se REconstruyen desde `CompetitionEdition`/`CompetitionStage`/`CompetitionEntry` YA persistidos + los partidos ya resueltos (`CompetitionEngine.initializeEdition()`) — nunca se serializa el runner vivo, solo su progreso vía `runtimeSnapshots`.',
-      },
       {
         key: 'uiFocusAndViewState', owner: 'src/ui/game.js state.*', classification: 'ephemeral',
         identityKeys: [], dependsOn: [], rebuildStrategy: 'Se recalcula al re-renderizar la pantalla activa; no tiene significado fuera de una sesión de navegador.',
@@ -202,11 +223,71 @@
   function projectCalendar(runtime) {
     if (!runtime.calendar) return null;
     const calendar = runtime.calendar;
+    const snapshot = calendar.snapshot();
     return {
       id: calendar.id,
       defaultTimeZoneId: calendar.defaultTimeZoneId,
       currentInstant: calendar.currentInstant,
       seasons: byStableId([...calendar.seasons], 'seasonKey'),
+      // SAVE-LOAD-1: WORLD-HARDEN-1 descartaba deliberadamente los
+      // pendientes y el ledger (sonda, no guardado real) — un item
+      // `awaiting-user`/`failed` no es re-derivable resincronizando sus
+      // fuentes (`syncSource()` solo conserva ese estado para un item que
+      // YA exista en el índice), así que es DURABLE, no derivado.
+      pendingItems: byStableId(snapshot.pendingItems, 'id'),
+      ledger: [...(calendar.ledger || [])],
+    };
+  }
+
+  // SAVE-LOAD-1 — Team institucional/táctico/de entrenamiento, SIN roster
+  // embebido (la plantilla real viene del `Squad` ya persistido en
+  // `worldRegistries.squads` + `PlayerRegistry`, invariante "un Player se
+  // proyecta UNA vez").
+  function projectTeams(runtime) {
+    if (!runtime.world) return null;
+    const teams = runtime.world.registries.teams.all().map((team) => {
+      const json = team.toJSON();
+      delete json.roster;
+      return json;
+    });
+    return byStableId(teams, 'id');
+  }
+
+  // SAVE-LOAD-1 — progreso REAL de cada runner de competición vivo: solo
+  // los partidos YA jugados con su resultado ya calculado (nunca los
+  // pendientes, que se recrean deterministamente al reconstruir el runner
+  // desde las Entries ya persistidas) — ver `rebuildStrategy` en el
+  // inventario.
+  function projectCompetitionRuntime(runtime) {
+    if (!runtime.world || !runtime.competitionEngine) return null;
+    const stages = runtime.world.registries.competitionStages.all()
+      .map((stage) => ({ stage, runner: runtime.competitionEngine.getRunner(stage.id) }))
+      .filter(({ runner }) => !!runner)
+      .map(({ stage, runner }) => ({
+        stageId: stage.id,
+        playedMatches: runner.listPlayedMatchesInReplayOrder(),
+      }));
+    return byStableId(stages, 'stageId');
+  }
+
+  // SAVE-LOAD-1 — logs de interfaz que el propio `game.js` documenta como
+  // NO reconstruibles desde otro estado ya vivo (noticias/agenda médica/
+  // agenda de mercado) más la alineación en curso del usuario y los
+  // contadores de negociación (sección 5 del prompt: "decisiones
+  // deportivas mutables"). `runtime.uiState` lo aporta `game.js` de forma
+  // EXPLÍCITA (este módulo sigue sin leer `state`/DOM directamente).
+  function projectUiState(runtime) {
+    if (!runtime.uiState) return null;
+    const ui = runtime.uiState;
+    return {
+      newsLog: [...(ui.newsLog || [])],
+      medicalAgendaLog: [...(ui.medicalAgendaLog || [])],
+      marketAgendaLog: [...(ui.marketAgendaLog || [])],
+      lineup: ui.lineup || null,
+      negotiationSequences: {
+        transferNegotiationOfferSequence: { ...(ui.negotiationSequences && ui.negotiationSequences.transferNegotiationOfferSequence) },
+        loanNegotiationAttemptSequence: { ...(ui.negotiationSequences && ui.negotiationSequences.loanNegotiationAttemptSequence) },
+      },
     };
   }
 
@@ -240,14 +321,20 @@
     return byStableId(players, 'id');
   }
 
-  // Proyectores GENÉRICOS para el resto de registros de dominio — todos
-  // exponen su propio `.snapshot()` PLANO (fuente canónica de qué campos
-  // son durables en cada dominio, ver CONTRACT-1/REG-1/MARKET-1/
-  // TRANSFER-1/LOAN-1/CYCLE-1/NATIONAL-TEAMS-1) — este módulo solo llama a
-  // ese método y ordena sus arrays por id estable donde aplica.
+  // Proyectores GENÉRICOS para el resto de registros de dominio.
+  // SAVE-LOAD-1 (auditoría de la sección 5 del prompt): el `snapshot()`
+  // original de varios de estos registros (Contract/Registration/Agent/
+  // Market/Transfer/AnnualCycle/Academy) es deliberadamente un RESUMEN
+  // diagnóstico (contadores o campos reducidos) — nunca un contrato de
+  // persistencia (confirmado contra el propio código, no solo el
+  // comentario). Cada uno expone ahora `exportState()`, el contrato
+  // COMPLETO y sin pérdida (mismo criterio que ya tenían Loan/
+  // NationalTeam, que reexportan `snapshot()` tal cual). Este módulo solo
+  // llama a `exportState()` y ordena sus arrays por id estable donde
+  // aplica — nunca reinventa qué campos son durables.
   function projectViaSnapshot(registry) {
     if (!registry) return null;
-    const raw = registry.snapshot();
+    const raw = registry.exportState();
     if (Array.isArray(raw)) return byStableId(raw, 'id');
     if (raw && typeof raw === 'object') {
       const sorted = {};
@@ -279,6 +366,9 @@
       annualCycle: () => projectViaSnapshot(regs.annualCycleRegistry),
       academy: () => projectViaSnapshot(regs.academyRegistry),
       nationalTeams: () => projectViaSnapshot(regs.nationalTeamRegistry),
+      teams: () => projectTeams(runtime),
+      competitionRuntime: () => projectCompetitionRuntime(runtime),
+      uiState: () => projectUiState(runtime),
     };
   }
 
@@ -334,6 +424,24 @@
     return fnv1a(canonicalStringify(envelopeWithoutFingerprint));
   }
 
+  // SAVE-LOAD-1 (sección 7 del prompt): "no permitas guardar mientras exista
+  // resolución/revelado activo de un partido". Predicado PURO — el
+  // llamador (`game.js`) aporta `runtime.activeMatchInProgress` explícito
+  // (nunca se infiere leyendo `state` aquí dentro); devuelve motivos
+  // legibles en vez de un booleano solo, para poder explicarle al usuario
+  // por qué el botón de guardar está desactivado en ese momento.
+  function describeSaveBlockers(runtime) {
+    const reasons = [];
+    if (runtime && runtime.activeMatchInProgress) {
+      reasons.push('Hay un partido en curso o con el resultado revelándose — termina o cierra el partido antes de guardar.');
+    }
+    return reasons;
+  }
+
+  function canSave(runtime) {
+    return describeSaveBlockers(runtime).length === 0;
+  }
+
   function project(runtime, options = {}) {
     requireDep(runtime, 'runtime');
     const snapshotAtGameDate = requireDep(options.snapshotAtGameDate, 'snapshotAtGameDate');
@@ -374,6 +482,9 @@
         annualCycle: collections.annualCycle,
         academy: collections.academy,
         nationalTeams: collections.nationalTeams,
+        teams: collections.teams,
+        competitionRuntime: collections.competitionRuntime,
+        uiState: collections.uiState,
       },
       runtimeSnapshots: buildRuntimeSnapshots(runtime),
       inventory: inv,
@@ -388,7 +499,20 @@
   }
 
   const exportsObj = {
-    CareerPersistenceBoundary: { inventory, inventoryByKey, project },
+    CareerPersistenceBoundary: {
+      inventory,
+      inventoryByKey,
+      project,
+      canSave,
+      describeSaveBlockers,
+      // SAVE-LOAD-1: expuestos para que el repositorio de guardado pueda
+      // verificar el fingerprint de un envelope leído de IndexedDB SIN
+      // reconstruir ninguna carrera (detecta corrupción/manipulación antes
+      // de gastar tiempo en hidratar) — misma función, nunca una segunda
+      // implementación de canonicalización.
+      canonicalStringify,
+      computeFingerprint,
+    },
   };
 
   if (typeof module !== 'undefined' && module.exports) {

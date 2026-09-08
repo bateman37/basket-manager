@@ -284,6 +284,8 @@
       };
     }
 
+    // Ya lossless — SAVE-LOAD-1 lo reutiliza directamente como
+    // `exportState()`.
     snapshot() {
       return {
         decisions: this.allDecisions().map((d) => d.toJSON()),
@@ -292,6 +294,20 @@
         callUps: this.allCallUps().map((c) => c.toJSON()),
         appearances: this.allAppearances().map((a) => a.toJSON()),
       };
+    }
+
+    exportState() { return this.snapshot(); }
+
+    // `entities`: `{NationalStatusDecision, NationalTeamWindow,
+    // NationalTeamSelection, NationalTeamCallUp,
+    // NationalTeamAppearanceReceipt}` — vacío en la partida española hoy,
+    // pero proyectado/restaurado igual que cualquier otra colección durable.
+    restoreState(state, entities) {
+      (state.decisions || []).forEach((j) => this.registerDecision(new entities.NationalStatusDecision(j)));
+      (state.windows || []).forEach((j) => this.registerWindow(new entities.NationalTeamWindow(j)));
+      (state.selections || []).forEach((j) => this.registerSelection(new entities.NationalTeamSelection(j)));
+      (state.callUps || []).forEach((j) => this.registerCallUp(new entities.NationalTeamCallUp(j)));
+      (state.appearances || []).forEach((j) => this.registerAppearanceReceipt(new entities.NationalTeamAppearanceReceipt(j)));
     }
   }
 

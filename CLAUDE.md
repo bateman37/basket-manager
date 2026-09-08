@@ -22,13 +22,16 @@ estén ya documentadas como vigentes — proponlas y espera confirmación.**
   sin pasos de compilación.
 - Node.js solo para scripts de utilidad (datos, pruebas), no para servir
   el juego.
-- **Persistencia real de partidas: NO IMPLEMENTADA todavía.** El estado
-  vive en memoria durante la sesión de juego; no hay `localStorage`,
-  `saveCareer()`/`loadCareer()` ni lectura/escritura de `saves/` en
-  producción. `CareerPersistenceBoundary.js` es una SONDA de qué sería
-  durable (no un guardado real) — ver `docs/architecture/
-  persistence-boundary.md` y `docs/ROADMAP.md`. No implementes guardado
-  nuevo sin decisión explícita de Dennis.
+- **Persistencia real de partidas: implementada (SAVE-LOAD-1)** vía
+  IndexedDB (3 ranuras manuales + autoguardado) — nunca `localStorage`
+  para el payload principal, nunca `saves/` (reservado, sin uso real).
+  `CareerPersistenceBoundary.js` es el proyector canónico REAL (dejó de
+  ser una sonda); `CareerHydrationService.js` hidrata en dos fases;
+  `src/storage/IndexedDbCareerSaveRepository.js` es el único punto que
+  toca IndexedDB. Contrato completo: `docs/architecture/
+  persistence-boundary.md`. No reinterpretes estas decisiones (formato de
+  guardado, orden de reconstrucción, reproducción silenciosa de
+  partidos ya jugados) sin comentarlo antes.
 
 ## 3. Estructura de carpetas
 
@@ -145,5 +148,8 @@ estado real de Git antes de repetir trabajo ya hecho.
   game-ui-decisions.md` (datos reales en selección de equipo, instancias
   reales de `Player`/`Team`, `dataSource` fuera del constructor, modelo
   de revelado de partido) sin comentarlo antes.
-- No implementar guardado real de partidas (`saveCareer`/`loadCareer`) ni
-  tocar `saves/` sin decisión explícita — ver `docs/ROADMAP.md`.
+- No reinterpretar la arquitectura de guardado de SAVE-LOAD-1 (formato de
+  envelope, orden de reconstrucción por dependencias, reproducción
+  silenciosa de partidos ya jugados sin RNG/callbacks) sin comentarlo
+  antes — ver `docs/architecture/persistence-boundary.md`. `saves/` sigue
+  sin uso real (la persistencia vive en IndexedDB).

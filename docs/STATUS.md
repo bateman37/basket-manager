@@ -1,9 +1,11 @@
 # STATUS — Estado actual del proyecto
 
 Fotografía del presente, no un resumen de sesiones. Fecha y commit
-contrastados: **2026-09-08**, `origin/main` en `83b85d1` (PR #57,
-`REPO-HARDEN-1`, fusionada). Si `origin/main` ha avanzado desde entonces,
-esta foto puede estar desactualizada — compruébalo antes de asumirla.
+contrastados: **2026-09-08**, `origin/main` en `a36a9ac` (PR #58,
+`DOCS-CONTEXT-1`, fusionada) + `SAVE-LOAD-1` completada en rama
+`claude/modest-gauss-ab8bat` (sin fusionar todavía). Si `origin/main` ha
+avanzado desde entonces, esta foto puede estar desactualizada —
+compruébalo antes de asumirla.
 
 ## Arquitectura y contenido realmente disponibles
 
@@ -27,27 +29,38 @@ esta foto puede estar desactualizada — compruébalo antes de asumirla.
   clubes/equipos reales (ACB + Primera FEB), jugadores reales con
   `padRosterToMinimum()` completando huecos con `dataSource:
   'fictional-fallback'` marcado en interfaz.
+- **Implementado (SAVE-LOAD-1)**: guardado y carga reales de una carrera
+  vía IndexedDB — 3 ranuras manuales + autoguardado, formato versionado
+  (`basket-manager-career-save`, schemaVersion 1), hidratación en dos
+  fases con validación completa (fingerprint/schema/content packs/
+  integridad de registries) antes de sustituir la carrera activa. Ver
+  `docs/architecture/persistence-boundary.md` y `docs/epics/SAVE-LOAD-1.md`.
 - **Diseñado pero NO implementado**: competición europea real, Supercopa,
   transfer internacional/Letter of Clearance (EUROPE-1, sin fecha),
   cuerpo técnico como entidad propia, categorías inferiores reales/club
-  filial, persistencia real de partidas.
+  filial.
 
 ## Últimas entregas relevantes
 
-REPO-HARDEN-1 (saneamiento técnico) → WORLD-CLEANUP-1 (retirada final de
-`Team.division`/proyecciones legacy) → WORLD-CONTEXT-1 (contexto
-competitivo explícito) → WORLD-HARDEN-1 parcial → WORLD-UI-1 →
-NATIONAL-TEAMS-1 → WORLD-SIM-1 → PATHWAYS-1 → WORLD-CALENDAR-1 →
-COMP-CORE-1 → CLUB-CORE-1 → WORLD-CORE-1. Detalle completo en
-`docs/epics/`.
+SAVE-LOAD-1 (persistencia real de partidas) → REPO-HARDEN-1 (saneamiento
+técnico) → WORLD-CLEANUP-1 (retirada final de `Team.division`/
+proyecciones legacy) → WORLD-CONTEXT-1 (contexto competitivo explícito) →
+WORLD-HARDEN-1 parcial → WORLD-UI-1 → NATIONAL-TEAMS-1 → WORLD-SIM-1 →
+PATHWAYS-1 → WORLD-CALENDAR-1 → COMP-CORE-1 → CLUB-CORE-1 → WORLD-CORE-1.
+Detalle completo en `docs/epics/`.
 
 ## Limitaciones activas (deuda conocida, no oculta)
 
-1. **Persistencia real de partidas: no implementada.** `localStorage` NO
-   se usa en producción pese a lo que decía la documentación antigua;
-   `CareerPersistenceBoundary.js` es una sonda de qué sería durable, no
-   un guardado real (`saveCareer`/`loadCareer` no existen). Ver
-   `docs/architecture/persistence-boundary.md` y `docs/ROADMAP.md`.
+1. **Persistencia real de partidas: implementada, checklist manual
+   pendiente.** SAVE-LOAD-1 entregó guardado/carga reales (ver arriba);
+   la única deuda activa es que **ninguna sesión de Claude Code ha
+   ejecutado el checklist manual en navegador real**
+   (`docs/manual/SAVE_LOAD_ACCEPTANCE.md`, pendiente de Dennis), y que
+   `transfers`/`loans`/`annualCycle`/`academy`/`nationalTeams` en el
+   round-trip de guardado solo están verificados por analogía de patrón
+   (mismo `exportState()`/`restoreState()` que contratos/inscripciones/
+   mercado, ya probados), no con datos reales de esos dominios en el
+   fixture de `scripts/test-save-load1.js`.
 2. **`FORMATION_QUOTA_INFEASIBLE` flaky sin resolver.** REPO-HARDEN-1 no
    pudo reproducirlo: la reproducción estaba bloqueada por un `TypeError`
    previo de `competitionIdFromLegacyDivision` en `smoke-reg1.js`/
@@ -116,9 +129,12 @@ Epic es solo documental):
 
 - Checklist manual completa de `docs/manual/WORLD_ARCHITECTURE_ACCEPTANCE.md`
   (navegador real, Dennis).
+- Checklist manual completa de `docs/manual/SAVE_LOAD_ACCEPTANCE.md`
+  (SAVE-LOAD-1, navegador real, Dennis) — guardar/cargar/sobrescribir/
+  eliminar, "Continuar", anchura móvil.
 - Cualquier verificación con Playwright/smokes/auditoría de temporadas —
-  no se ejecutó ninguna en esta Epic documental (fuera de alcance,
-  DOCS-CONTEXT-1 es solo documentación).
+  no se ejecutó ninguna en SAVE-LOAD-1/DOCS-CONTEXT-1 (fuera de alcance
+  explícito de ambas).
 
 ## Enlaces al detalle
 

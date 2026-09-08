@@ -232,6 +232,21 @@
         })),
       };
     }
+
+    // Contrato COMPLETO sin pérdida (SAVE-LOAD-1) — `snapshot()` de arriba
+    // sigue siendo un resumen diagnóstico (WORLD-HARDEN-1).
+    exportState() {
+      return {
+        memberships: this.allMemberships().map((x) => x.toJSON()),
+        decisions: this.allDecisions().map((x) => x.toJSON()),
+      };
+    }
+
+    // `entities`: `{AcademyMembership, AcademyDecision}`.
+    restoreState(state, entities) {
+      (state.memberships || []).forEach((j) => this.registerMembership(new entities.AcademyMembership(j)));
+      (state.decisions || []).forEach((j) => this.registerDecision(new entities.AcademyDecision(j)));
+    }
   }
 
   const exportsObj = { AcademyRegistry };
