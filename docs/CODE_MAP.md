@@ -19,6 +19,7 @@ dividen físicamente (`src/ui/game.js`, `src/core/Tactics.js`,
 | Lesiones y estado médico | `Medical.js` | `docs/design/injuries-recovery.md` |
 | Calendario de temporada española (legacy) | `Calendar.js` (ya no cargado desde `index.html`, ver `docs/architecture/world-calendar.md`) | `docs/design/competitions-spain.md` |
 | Calendario mundial | `WorldCalendar.js`, `WorldCalendarCoordinator.js` | `docs/architecture/world-calendar.md` |
+| Avance cooperativo y cancelable de "Continuar" | `WorldCalendarCoordinator.js` (`WorldAdvanceSession`), `WorldAdvanceRunner.js` | `docs/architecture/simulation-advance.md` |
 | Liga/Copa/Playoffs/Ascenso (fachadas legacy) | `League.js`, `Bracket.js`, `Cup.js`, `Playoffs.js`, `Promotion.js` | `docs/design/competitions-spain.md`, `docs/architecture/competition-engine.md` |
 | Motor genérico de competiciones | `CompetitionRunners.js`, `CompetitionEngine.js` | `docs/architecture/competition-engine.md` |
 | Formato y calendario de competición | `CompetitionFormatCatalog.js`, `CompetitionScheduleService`/Catalog | `docs/architecture/competition-engine.md`, `docs/architecture/world-calendar.md` |

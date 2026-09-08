@@ -100,6 +100,13 @@
     // único, la MISMA instancia que `state.world.calendar`.
     calendarCoordinator: null,
     scheduleService: null,
+    // SIM-CAL-1: driver COOPERATIVO de "Continuar" (`WorldAdvanceRunner`),
+    // instancia EXPLÍCITA por carrera, construida junto a
+    // `calendarCoordinator` — nunca sobrevive a un reinicio/carga (ver
+    // `resetCareerState()`). La sesión de avance que envuelve en cada click
+    // es efímera y se descarta sola al terminar; esto solo guarda el
+    // driver reutilizable entre clicks.
+    worldAdvanceRunner: null,
     // Última parada devuelta por el coordinador (`user-match`,
     // `market-attention`, `schedule-conflict`, `season-complete`,
     // `resolution-failed`) — lo que Home presenta. Nunca una segunda
@@ -1325,6 +1332,7 @@
     // dependencias EXPLÍCITAS — nunca lee `state` por dentro.
     state.calendarCoordinator = buildWorldCalendarCoordinator();
     state.calendarCoordinator.sync();
+    state.worldAdvanceRunner = buildWorldAdvanceRunner();
 
     refreshActiveCompetitionIdsForUser();
     state.seasonCloseSummary = null;
@@ -2551,6 +2559,18 @@
     });
   }
 
+  // SIM-CAL-1: driver cooperativo del navegador sobre el MISMO coordinador —
+  // reloj técnico real (`performance.now()`) y el siguiente slice se
+  // programa con `setTimeout(fn, 0)` DESPUÉS de que el anterior termine
+  // (nunca `setInterval`, sección 6 del prompt).
+  function buildWorldAdvanceRunner() {
+    return new BM.WorldAdvanceRunner({
+      coordinator: state.calendarCoordinator,
+      scheduler: (cb) => setTimeout(cb, 0),
+      now: () => (typeof performance !== 'undefined' ? performance.now() : Date.now()),
+    });
+  }
+
   // ---------------------------------------------------------------------
   // Commit UNIFICADO de un partido calendarizado (sección 12 del prompt).
   // CPU: construye las alineaciones con el contexto REAL y resuelve el
@@ -3244,6 +3264,18 @@
       ? state.pendingStop : null;
     const failureStop = state.pendingStop && state.pendingStop.type === BM.WORLD_CALENDAR_STOP_TYPES.RESOLUTION_FAILED
       ? state.pendingStop : null;
+    // SIM-CAL-1 (sección 3 del prompt): aviso pequeño y NO de error — el
+    // mundo se detuvo en el último límite cronológico seguro a petición del
+    // usuario, "Continuar" sigue funcionando con normalidad.
+    const cancelledStop = state.pendingStop && state.pendingStop.type === BM.WORLD_CALENDAR_STOP_TYPES.USER_CANCELLED
+      ? state.pendingStop : null;
+
+    const cancelledCardHtml = cancelledStop
+      ? `
+        <div class="gm-card">
+          <p class="gm-muted">Simulación detenida en tu petición — el mundo se paró en ${formatMatchDateTime(BM.GameDateTime.toJsDate(cancelledStop.instant))}, en un punto seguro. Puedes seguir jugando con normalidad.</p>
+        </div>`
+      : '';
 
     const conflictCardHtml = conflictStop
       ? `
@@ -3329,6 +3361,7 @@
       <div class="home-grid">
         ${conflictCardHtml}
         ${failureCardHtml}
+        ${cancelledCardHtml}
         ${primaryCardHtml}
         ${seasonCloseSummaryHtml}
 
@@ -3352,7 +3385,7 @@
 
     const closeSeasonBtn = byId('gm-close-season-btn');
     if (closeSeasonBtn) {
-      closeSeasonBtn.addEventListener('click', () => closeSeasonAndPrepareNext());
+      closeSeasonBtn.addEventListener('click', () => { if (!isWorldAdvanceActive()) closeSeasonAndPrepareNext(); });
     }
 
     const playBtn = byId('gm-play-round-btn');
@@ -3362,8 +3395,11 @@
         // Copa, playoff, o simplemente dejar que el mundo complete de
         // fondo lo pendiente hasta la próxima parada o el cierre de
         // temporada). Antes había dos (`gm-play-round-btn` para la liga y
-        // `gm-play-bracket-btn` para "el bracket activo").
-        if (nextUserInfo && !getLineupValidity(team).valid) { goToScreen('lineup'); return; }
+        // `gm-play-bracket-btn` para "el bracket activo"). SIM-CAL-1
+        // (sección 8 del prompt): la validez de alineación YA NO bloquea
+        // aquí — una atención de mercado puede llegar antes del próximo
+        // partido; la alineación solo importa cuando la parada real es
+        // `user-match` (comprobado dentro de `routeWorldAdvanceTerminalStop`).
         playNextMatchWithLineup(team);
       });
     }
@@ -3987,9 +4023,10 @@
     // CPU-vs-CPU si el usuario no estaba en el primero pendiente,
     // BUG-WORLDCALENDAR-02). Ahora avanzan el MUNDO hasta la próxima
     // parada real del usuario, exactamente igual que "Continuar" en Home:
-    // un único camino de avance, gobernado por la fecha.
+    // un único camino de avance, gobernado por la fecha. SIM-CAL-1: la
+    // alineación ya no se comprueba aquí (podría llegar antes una atención
+    // de mercado) — solo cuando la parada real es `user-match`.
     const advanceBracket = () => {
-      if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
       playNextMatchWithLineup(team);
     };
 
@@ -6433,21 +6470,122 @@
   }
 
   // ---------------------------------------------------------------------
-  // WORLD-CALENDAR-1 (DESIGN.md 10.14): "Continuar" desde Home/Alineación.
-  // Avanza el mundo con el coordinador hasta la próxima parada REAL del
-  // usuario y actúa según su tipo. No queda ningún camino que resuelva
-  // "la jornada" ni que drene una eliminatoria.
+  // SIM-CAL-1: "Continuar" desde Home/Alineación/Competiciones — ÚNICO punto
+  // de entrada de la interfaz al avance cooperativo (sección 8 del prompt).
+  // Delega en `state.worldAdvanceRunner`, que reparte el MISMO algoritmo de
+  // `WorldCalendarCoordinator` (generador compartido con
+  // `advanceUntilNextUserStop()`, mantenida solo para scripts/tests) en
+  // slices que ceden el control al navegador.
+  //
+  // Corrección de encaje señalada explícitamente (sección 8 del prompt):
+  // la validez de la alineación YA NO bloquea el avance del mundo antes de
+  // saber cuál es la parada real — una atención de mercado puede llegar
+  // ANTES del siguiente partido. La alineación solo importa cuando la
+  // parada devuelta es, de hecho, `user-match`.
   // ---------------------------------------------------------------------
-  function playNextMatchWithLineup(team) {
-    if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
-    const stop = advanceWorldUntilNextUserStop();
+  // SIM-CAL-1 (sección 3/8 del prompt): overlay compacto de "Simulando
+  // mundo…" — aparece SOLO pasados 150ms (nunca parpadea en un avance
+  // corto), aunque la protección contra doble ejecución ya está activa
+  // desde el primer instante (el propio `WorldAdvanceRunner.start()`
+  // rechaza un segundo arranque, nunca depende de que el overlay exista).
+  let worldAdvanceOverlayTimer = null;
+
+  function showWorldAdvanceOverlayNow() {
+    worldAdvanceOverlayTimer = null;
+    const overlay = byId('gm-advance-overlay');
+    if (!overlay) return;
+    overlay.hidden = false;
+    const cancelBtn = byId('gm-advance-cancel-btn');
+    if (cancelBtn) cancelBtn.disabled = false;
+  }
+
+  function scheduleWorldAdvanceOverlay() {
+    worldAdvanceOverlayTimer = setTimeout(showWorldAdvanceOverlayNow, 150);
+  }
+
+  function hideWorldAdvanceOverlay() {
+    if (worldAdvanceOverlayTimer) { clearTimeout(worldAdvanceOverlayTimer); worldAdvanceOverlayTimer = null; }
+    const overlay = byId('gm-advance-overlay');
+    if (overlay) overlay.hidden = true;
+  }
+
+  // Deshabilita navegación/comandos que mutan o sustituyen la carrera
+  // mientras el mundo avanza (sección 8 del prompt) — el control de
+  // cancelación sigue operativo dentro del propio overlay.
+  function setWorldAdvanceUiBusy(active) {
+    const app = byId('gm-app');
+    if (app) app.classList.toggle('is-advancing', active);
+    const nav = byId('gm-nav');
+    if (nav) nav.querySelectorAll('.gm-nav__btn').forEach((btn) => { btn.disabled = active; });
+    const backBtn = byId('gm-back-to-team-select');
+    if (backBtn) backBtn.disabled = active;
+  }
+
+  // Etiquetas derivadas del `sourceType` YA conocido por el informe — la UI
+  // decide cómo se llama cada cosa, el informe de progreso nunca trae texto
+  // de presentación (sección 7 del prompt).
+  function worldAdvanceSourceTypeLabel(sourceType) {
+    const labels = {
+      [BM.WORLD_CALENDAR_SOURCE_TYPES.COMPETITION_MATCH]: 'Partidos',
+      [BM.WORLD_CALENDAR_SOURCE_TYPES.COMPETITION_SIMULATION]: 'Hitos de competición',
+      [BM.WORLD_CALENDAR_SOURCE_TYPES.MARKET_EVENT]: 'Eventos de mercado',
+      [BM.WORLD_CALENDAR_SOURCE_TYPES.TRANSFER_EVENT]: 'Traspasos',
+      [BM.WORLD_CALENDAR_SOURCE_TYPES.LOAN_EVENT]: 'Cesiones',
+      [BM.WORLD_CALENDAR_SOURCE_TYPES.NATIONAL_TEAM_DUTY]: 'Selecciones nacionales',
+    };
+    return labels[sourceType] || sourceType;
+  }
+
+  // Progreso REAL (sección 3 del prompt): fecha simulada + contadores
+  // exactos, nunca un porcentaje inventado (la próxima parada puede cambiar
+  // si un hito resuelto activa una fase/pathway nuevos).
+  function renderWorldAdvanceOverlay(report) {
+    const body = byId('gm-advance-overlay-body');
+    if (!body) return;
+    const otherCounts = Object.keys(report.countsBySourceType).sort()
+      .filter((sourceType) => sourceType !== BM.WORLD_CALENDAR_SOURCE_TYPES.COMPETITION_MATCH)
+      .map((sourceType) => `<p>${escapeHtml(worldAdvanceSourceTypeLabel(sourceType))}: ${report.countsBySourceType[sourceType]}</p>`)
+      .join('');
+    body.innerHTML = `
+      <p class="gm-muted">${formatMatchDateTime(BM.GameDateTime.toJsDate(report.currentInstant))}</p>
+      <p>Eventos procesados: ${report.totalResolvedItems}</p>
+      <p>Partidos: ${report.resolvedMatchCount}</p>
+      ${otherCounts}
+    `;
+  }
+
+  function isWorldAdvanceActive() {
+    return !!(state.worldAdvanceRunner && state.worldAdvanceRunner.isActive());
+  }
+
+  function routeWorldAdvanceTerminalStop(team, stop) {
+    state.pendingStop = stop;
     if (stop.type === BM.WORLD_CALENDAR_STOP_TYPES.USER_MATCH) {
+      if (!getLineupValidity(team).valid) { goToScreen('lineup'); return; }
       startUserMatchFromStop(team, stop);
       return;
     }
     // Cualquier otra parada (atención de mercado, conflicto horario, fin de
-    // temporada, fallo de resolución) la presenta Home tal cual.
+    // temporada, fallo de resolución, cancelación del usuario) la presenta
+    // Home tal cual — nunca se revela ni se arranca el partido del usuario
+    // antes de que la parada terminal esté enrutada (sección 8 del prompt).
     goToScreen('home');
+  }
+
+  function playNextMatchWithLineup(team) {
+    if (!state.worldAdvanceRunner || isWorldAdvanceActive()) return; // ignora clicks duplicados (sección 8 del prompt)
+    state.seasonCloseSummary = null;
+    scheduleWorldAdvanceOverlay();
+    setWorldAdvanceUiBusy(true);
+    const started = state.worldAdvanceRunner.start({
+      onProgress: (report) => renderWorldAdvanceOverlay(report),
+      onTerminal: (stop) => {
+        hideWorldAdvanceOverlay();
+        setWorldAdvanceUiBusy(false);
+        routeWorldAdvanceTerminalStop(team, stop);
+      },
+    });
+    if (!started) { hideWorldAdvanceOverlay(); setWorldAdvanceUiBusy(false); }
   }
 
   // Partido del usuario en su instante real: el descriptor exacto de la
@@ -9510,6 +9648,11 @@
       // servicio de schedules pertenecen a UNA partida y nunca sobreviven a
       // "Volver a selección de equipo".
       state.calendar = null;
+      // SIM-CAL-1 (sección 6 del prompt: "dispose cleanly during career
+      // reset or successful load") — ninguna carrera nueva/cargada hereda
+      // callbacks ni progreso de la anterior.
+      if (state.worldAdvanceRunner) state.worldAdvanceRunner.dispose();
+      state.worldAdvanceRunner = null;
       state.calendarCoordinator = null;
       state.scheduleService = null;
       state.pendingStop = null;
@@ -9606,9 +9749,20 @@
       btn.addEventListener('click', () => goToScreen(btn.dataset.screen));
     });
     byId('gm-back-to-team-select').addEventListener('click', () => {
+      if (isWorldAdvanceActive()) return;
       resetCareerState();
       goToScreen('team-select');
     });
+    // SIM-CAL-1 (sección 3 del prompt): "Detener tras este bloque" — pide
+    // cancelación cooperativa; el propio generador decide cuándo es seguro
+    // parar (nunca a mitad de un grupo cronológico ya bloqueado).
+    const advanceCancelBtn = byId('gm-advance-cancel-btn');
+    if (advanceCancelBtn) {
+      advanceCancelBtn.addEventListener('click', () => {
+        if (state.worldAdvanceRunner) state.worldAdvanceRunner.cancel();
+        advanceCancelBtn.disabled = true;
+      });
+    }
     // LIFE-4 (DESIGN.md 9.15, sección 27/29): un único listener delegado
     // para CUALQUIER nombre de jugador clicable de toda la app — evita
     // repetir el mismo `querySelectorAll` + `addEventListener` en cada
@@ -10097,6 +10251,12 @@
       // 'replay' (ver renderMatchScreen); no nulo == partido en pantalla
       // sin confirmar todavía.
       activeMatchInProgress: !!state.matchReveal,
+      // SIM-CAL-1 (sección 9 del prompt): mismo criterio — booleano
+      // EXPLÍCITO aportado por `game.js`, nunca inferido dentro del
+      // boundary. Cubre tanto la sesión corriendo como la cancelación
+      // todavía sin terminar de sincronizar (`isActive()` sigue `true`
+      // hasta el terminal `user-cancelled`).
+      activeCalendarAdvance: isWorldAdvanceActive(),
     };
   }
 
@@ -10170,6 +10330,12 @@
   // `resetCareerState()` solo se llama DESPUÉS de que `hydrate()` ya
   // devolvió con éxito.
   function loadCareerFromSlot(slotId) {
+    // SIM-CAL-1 (sección 9 del prompt): cargar/sustituir una carrera está
+    // indisponible mientras el mundo se está simulando — nunca se infiere
+    // desde la UI, el propio comando se niega.
+    if (isWorldAdvanceActive()) {
+      return Promise.reject(new Error('El mundo se está simulando — espera a que termine o se detenga antes de cargar otra partida.'));
+    }
     return BM.IndexedDbCareerSaveRepository.readSlot(slotId).then((record) => {
       if (!record) throw new Error(`No hay ninguna partida guardada en la ranura "${slotId}".`);
       const hydrated = BM.CareerHydrationService.hydrate(record.envelope, {
@@ -10249,6 +10415,7 @@
       // item `awaiting-user`/`failed` ya existente conserva su estado
       // (`WorldCalendar.syncSource()`), nunca se resetea a 'scheduled'.
       state.calendarCoordinator.sync();
+      state.worldAdvanceRunner = buildWorldAdvanceRunner();
       refreshActiveCompetitionIdsForUser();
       ensureUiHandlersWired();
       // Requisito 12 de la sección 6 del prompt: "mostrar Home en la misma
@@ -10314,6 +10481,10 @@
     const health = describeSlotHealth(record.envelope);
     const meta = record.envelope.metadata || {};
     const canOverwrite = hasActiveCareer && !isAutosave && !saveBlockers.length;
+    // SIM-CAL-1 (sección 9 del prompt): "cargar/sustituir es indisponible
+    // mientras el mundo avanza" — el overlay ya bloquea el click, pero el
+    // botón se deshabilita también de forma explícita/accesible.
+    const advancing = isWorldAdvanceActive();
     return `
       <div class="gm-card gm-save-slot">
         <h3>${label}${isAutosave ? ' <span class="gm-badge">automático</span>' : ''}</h3>
@@ -10323,9 +10494,9 @@
           <p class="gm-muted">Guardado el ${formatSaveTimestamp(record.envelope.savedAtUtc)}</p>
         ` : `<p class="gm-error">Partida no cargable: ${health.reason}</p>`}
         <div class="gm-save-slot__actions">
-          <button class="gm-btn gm-btn--primary gm-btn--small" data-load-slot="${slotId}" ${health.ok ? '' : 'disabled'}>Cargar</button>
+          <button class="gm-btn gm-btn--primary gm-btn--small" data-load-slot="${slotId}" ${health.ok && !advancing ? '' : 'disabled'}>Cargar</button>
           ${!isAutosave && hasActiveCareer ? `<button class="gm-btn gm-btn--small" data-save-slot="${slotId}" ${canOverwrite ? '' : 'disabled'}>Sobrescribir</button>` : ''}
-          <button class="gm-btn gm-btn--small gm-btn--danger" data-delete-slot="${slotId}">Eliminar</button>
+          <button class="gm-btn gm-btn--small gm-btn--danger" data-delete-slot="${slotId}" ${advancing ? 'disabled' : ''}>Eliminar</button>
         </div>
         ${!isAutosave && hasActiveCareer && saveBlockers.length ? `<p class="gm-hint">${saveBlockers.join(' ')}</p>` : ''}
       </div>`;
