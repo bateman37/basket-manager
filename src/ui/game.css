@@ -1167,3 +1167,48 @@
   .gm-save-slots { grid-template-columns: 1fr; }
   .gm-landing__actions { flex-direction: column; }
 }
+
+/* SIM-CAL-1: overlay compacto de avance cooperativo — cubre TODA la app
+   (nunca deja clicar nada por debajo mientras el mundo avanza) salvo su
+   propio botón de cancelación. Solo aparece pasados 150ms (game.js decide
+   cuándo mostrarlo); el bloqueo contra doble ejecución ya está activo
+   desde antes de que exista este elemento visible. */
+.gm-advance-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 16px;
+}
+.gm-advance-overlay__card {
+  background: var(--white-line);
+  border-radius: 10px;
+  padding: 20px 24px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+}
+.gm-advance-overlay__card h3 {
+  margin-top: 0;
+  font-family: var(--font-score);
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+#gm-advance-overlay-body p { margin: 4px 0; font-size: 13px; }
+.gm-advance-overlay__card .gm-btn { width: 100%; margin-top: 14px; }
+
+/* Deshabilita de forma visible (además de `disabled`) la navegación
+   mientras el mundo avanza — el overlay ya bloquea el click, esto solo
+   refuerza la señal visual bajo el overlay semitransparente. */
+.gm-root.is-advancing #gm-nav .gm-nav__btn,
+.gm-root.is-advancing .gm-topbar__back {
+  opacity: 0.5;
+}
+
+@media (max-width: 480px) {
+  .gm-advance-overlay__card { padding: 16px 18px; }
+}

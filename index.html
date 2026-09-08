@@ -37,6 +37,18 @@
        modificarlos.
        ====================================================================== -->
   <div id="gm-app" class="gm-root" style="display:none;">
+    <!-- SIM-CAL-1 (sección 3/8 del prompt): overlay compacto de avance
+         cooperativo — oculto por defecto (`hidden`), solo aparece pasados
+         150ms de una operación en curso (ver `scheduleWorldAdvanceOverlay()`
+         en game.js). `aria-live`/`aria-busy` para lectores de pantalla; el
+         único control interactivo dentro es "Detener tras este bloque". -->
+    <div id="gm-advance-overlay" class="gm-advance-overlay" role="status" aria-live="polite" aria-busy="true" hidden>
+      <div class="gm-advance-overlay__card">
+        <h3>Simulando mundo…</h3>
+        <div id="gm-advance-overlay-body"></div>
+        <button id="gm-advance-cancel-btn" class="gm-btn" type="button">Detener tras este bloque</button>
+      </div>
+    </div>
     <div class="gm-topbar">
       <span class="gm-topbar__title">🏀 Basket Manager</span>
       <button id="gm-back-to-team-select" class="gm-topbar__back" type="button">← Elegir otro club / salir</button>
@@ -620,6 +632,10 @@
   <script src="src/core/CompetitionScheduleService.js"></script>
   <script src="src/core/WorldCalendar.js"></script>
   <script src="src/core/WorldCalendarCoordinator.js"></script>
+  <!-- SIM-CAL-1: driver cooperativo de "Continuar" — reparte el MISMO
+       generador de `WorldCalendarCoordinator` en slices que ceden el
+       control al navegador, sin tocar ninguna regla de calendario. -->
+  <script src="src/core/WorldAdvanceRunner.js"></script>
 
   <!-- NATIONAL-TEAMS-1 (DESIGN.md 10.17) — selecciones, elegibilidad y
        ventanas FIBA. No instala contenido real (federaciones/selecciones/
