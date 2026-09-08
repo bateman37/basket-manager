@@ -435,6 +435,14 @@
     if (runtime && runtime.activeMatchInProgress) {
       reasons.push('Hay un partido en curso o con el resultado revelándose — termina o cierra el partido antes de guardar.');
     }
+    // SIM-CAL-1 (sección 9 del prompt): mientras una sesión de avance
+    // cooperativo está corriendo (o su cancelación todavía no ha terminado
+    // de sincronizar) ninguna proyección es un checkpoint válido — `game.js`
+    // aporta este booleano explícito, nunca se infiere aquí leyendo un
+    // runner/sesión.
+    if (runtime && runtime.activeCalendarAdvance) {
+      reasons.push('El mundo se está simulando — espera a que termine o se detenga antes de guardar.');
+    }
     return reasons;
   }
 

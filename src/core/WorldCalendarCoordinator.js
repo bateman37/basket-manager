@@ -45,6 +45,10 @@
     SCHEDULE_CONFLICT: 'schedule-conflict',
     SEASON_COMPLETE: 'season-complete',
     RESOLUTION_FAILED: 'resolution-failed',
+    // SIM-CAL-1: parada explícita de cancelación cooperativa — nunca se
+    // confunde con `resolution-failed` (aquí no ha fallado nada, el usuario
+    // ha pedido detenerse en el siguiente límite cronológico seguro).
+    USER_CANCELLED: 'user-cancelled',
   };
 
   function requireFunction(fn, label) {
@@ -448,6 +452,10 @@
       return { teamId, items };
     }
 
+    // Usado SOLO por `resolveSimultaneousAfterUserCommit()` (fuera del
+    // generador de avance: ese commit ya ocurre síncronamente justo después
+    // de que el usuario confirma su propio partido, un grupo pequeño que
+    // nunca necesita ceder el control cooperativo).
     _resolveGroupAutomatically(group) {
       for (let i = 0; i < group.length; i++) {
         const item = group[i];
@@ -470,12 +478,35 @@
       return null;
     }
 
-    // ---------------------------------------------------------------------
-    // Semántica exacta de "Continuar" (sección 11 del prompt).
-    // ---------------------------------------------------------------------
-    advanceUntilNextUserStop() {
+    // =====================================================================
+    // SIM-CAL-1 — primitiva ÚNICA, resumible y cooperativa de avance.
+    //
+    // `_advanceGenerator(session)` contiene EXACTAMENTE la misma semántica
+    // que la antigua `advanceUntilNextUserStop()` síncrona (sección 11 del
+    // prompt original de WORLD-CALENDAR-1): mismo orden de `sync()`, mismo
+    // criterio de grupo/parada, misma resolución automática estable por id.
+    // Lo único que añade son puntos `yield` — entre cada item automático
+    // resuelto, y una comprobación de cancelación cooperativa al principio
+    // de cada iteración (justo después de `sync()`, es decir DESPUÉS de
+    // sincronizar el grupo recién resuelto y ANTES de bloquear uno nuevo:
+    // "finish that locked group... synchronize... return a clean cancelled
+    // result before starting another group", sección 5 del prompt SIM-CAL-1).
+    //
+    // El driver SÍNCRONO (`advanceUntilNextUserStop()`, mantenido para
+    // scripts/tests) y el RUNNER cooperativo del navegador
+    // (`WorldAdvanceRunner`) consumen el MISMO generador — nunca hay dos
+    // algoritmos de calendario independientes.
+    // =====================================================================
+    * _advanceGenerator(session) {
       for (let iteration = 0; iteration < this.maxIterations; iteration++) {
         this.sync();
+        // Límite de cancelación cooperativa: solo aquí, nunca a mitad de un
+        // grupo automático ya bloqueado (sección 5, "Cancelación segura").
+        if (session && session._cancelRequested) {
+          return {
+            type: STOP_TYPES.USER_CANCELLED, instant: this.calendar.currentInstant, iterations: iteration,
+          };
+        }
         const group = this.calendar.earliestPendingGroup();
         if (!group.length) {
           return {
@@ -487,10 +518,33 @@
 
         if (!userItems.length) {
           // Grupo enteramente automático: se avanza el reloj a su instante
-          // y se resuelve en orden estable por id.
+          // y se resuelve en orden estable por id, cediendo el control
+          // (`yield`) entre cada item para que el runner cooperativo pueda
+          // repintar sin alterar el orden ni el resultado.
           this._advanceClockTo(instant);
-          const failure = this._resolveGroupAutomatically(group);
-          if (failure) return { ...failure, iterations: iteration };
+          for (let i = 0; i < group.length; i++) {
+            const item = group[i];
+            const source = this._sources.get(item.sourceType);
+            try {
+              source.resolveItem(item);
+            } catch (err) {
+              // Invariante 17: el item queda `failed`, sigue en la cola y
+              // el cursor NO se adelanta por encima de él.
+              this.calendar.markFailed(item.id, err.message);
+              return {
+                type: STOP_TYPES.RESOLUTION_FAILED,
+                instant: item.orderingInstant,
+                items: [item.toJSON()],
+                error: err.message,
+                iterations: iteration,
+              };
+            }
+            this.calendar.markCompleted(item.id);
+            yield {
+              kind: 'item-resolved', sourceType: item.sourceType, sourceId: item.sourceId, instant,
+            };
+          }
+          yield { kind: 'group-completed', instant, size: group.length };
           continue;
         }
 
@@ -541,6 +595,27 @@
       );
     }
 
+    // Sesión ephemeral resumible (sección 5 del prompt SIM-CAL-1) — nunca
+    // durable, nunca se escribe en un guardado. `options.now` es el reloj
+    // técnico monotónico inyectado (diagnóstico only, jamás decide fechas de
+    // dominio).
+    createAdvanceSession(options) {
+      return new WorldAdvanceSession(this, options);
+    }
+
+    // ---------------------------------------------------------------------
+    // Semántica exacta de "Continuar" (sección 11 del prompt WORLD-CALENDAR-1).
+    // Driver SÍNCRONO sobre la MISMA primitiva — crea una sesión efímera sin
+    // cancelación posible y la agota de un tirón. Mantenido para scripts,
+    // pruebas Node y compatibilidad (sección 5 del prompt SIM-CAL-1).
+    // ---------------------------------------------------------------------
+    advanceUntilNextUserStop() {
+      const session = this.createAdvanceSession();
+      const { terminal } = session.runSteps(Infinity);
+      session.dispose();
+      return terminal;
+    }
+
     // Tras el COMMIT del partido del usuario: se resuelven los CPU-vs-CPU
     // del MISMO instante, en orden por id, sin avanzar el cursor más allá
     // de ese instante (sección 11 "Simultaneidad").
@@ -575,8 +650,120 @@
     }
   }
 
+  // =========================================================================
+  // SIM-CAL-1 — `WorldAdvanceSession`: envoltorio EFÍMERO alrededor de
+  // `WorldCalendarCoordinator._advanceGenerator()`. No es estado durable de
+  // carrera (nunca se proyecta en un guardado, sección 5 del prompt): solo
+  // vive mientras dura UNA operación de "Continuar". Responsabilidades:
+  //   - pedir cancelación cooperativa (`requestCancel()`);
+  //   - avanzar un número acotado de pasos del generador (`runSteps(n)`),
+  //     para que el runner cooperativo del navegador reparta el trabajo en
+  //     slices con presupuesto de tiempo;
+  //   - exponer un informe de progreso PLANO y serializable (sección 7 del
+  //     prompt: solo hechos ya conocidos por el runner, nunca instancias de
+  //     dominio/DOM).
+  // =========================================================================
+  const SESSION_STATUS = {
+    RUNNING: 'running',
+    CANCEL_REQUESTED: 'cancel-requested',
+    STOPPED: 'stopped',
+    CANCELLED: 'cancelled',
+    FAILED: 'failed',
+  };
+
+  class WorldAdvanceSession {
+    constructor(coordinator, { now } = {}) {
+      if (!coordinator) throw new Error('WorldAdvanceSession: falta "coordinator" explícito.');
+      this._coordinator = coordinator;
+      this._now = typeof now === 'function' ? now : () => Date.now();
+      this._startedAtTechnical = this._now();
+      this._cancelRequested = false;
+      this._terminal = null;
+      this._gen = coordinator._advanceGenerator(this);
+      this._progress = {
+        startInstant: coordinator.calendar.currentInstant,
+        currentInstant: coordinator.calendar.currentInstant,
+        completedGroups: 0,
+        totalResolvedItems: 0,
+        countsBySourceType: {},
+        resolvedMatchCount: 0,
+        lastResolved: null,
+        status: SESSION_STATUS.RUNNING,
+        finalStopType: null,
+      };
+    }
+
+    get isTerminal() { return this._terminal !== null; }
+
+    // Idempotente — un segundo click en "Detener" no hace nada nuevo. Nunca
+    // interrumpe un grupo ya bloqueado (ver el punto de comprobación único
+    // en `_advanceGenerator`), así que no hace falta distinguir "a mitad de
+    // item" aquí: el propio generador decide cuándo es seguro parar.
+    requestCancel() {
+      if (this._terminal) return;
+      this._cancelRequested = true;
+      if (this._progress.status === SESSION_STATUS.RUNNING) {
+        this._progress.status = SESSION_STATUS.CANCEL_REQUESTED;
+      }
+    }
+
+    // Avanza como máximo `maxSteps` pasos del generador (cada `yield` o el
+    // `return` final cuentan como un paso) — el runner cooperativo del
+    // navegador pasa un número pequeño por slice; el driver síncrono pasa
+    // `Infinity` para agotar la operación de un tirón.
+    runSteps(maxSteps) {
+      if (this._terminal) return { done: true, terminal: this._terminal };
+      let steps = 0;
+      while (steps < maxSteps) {
+        const { done, value } = this._gen.next();
+        steps += 1;
+        if (done) {
+          this._terminal = value;
+          this._progress.currentInstant = value.instant;
+          this._progress.finalStopType = value.type;
+          this._progress.status = value.type === STOP_TYPES.USER_CANCELLED
+            ? SESSION_STATUS.CANCELLED
+            : value.type === STOP_TYPES.RESOLUTION_FAILED ? SESSION_STATUS.FAILED : SESSION_STATUS.STOPPED;
+          return { done: true, terminal: value };
+        }
+        this._applyProgressDelta(value);
+      }
+      return { done: false, terminal: null };
+    }
+
+    // Informe PLANO (sección 7 del prompt): solo hechos ya conocidos, JSON
+    // seguro, nunca `Team`/`Player`/instancias del runner/DOM.
+    getProgressReport() {
+      return {
+        ...this._progress,
+        countsBySourceType: { ...this._progress.countsBySourceType },
+        elapsedTechnicalMs: this._now() - this._startedAtTechnical,
+      };
+    }
+
+    _applyProgressDelta(delta) {
+      this._progress.currentInstant = delta.instant;
+      if (delta.kind === 'item-resolved') {
+        this._progress.totalResolvedItems += 1;
+        this._progress.countsBySourceType[delta.sourceType] = (this._progress.countsBySourceType[delta.sourceType] || 0) + 1;
+        if (delta.sourceType === SOURCE_TYPES.COMPETITION_MATCH) this._progress.resolvedMatchCount += 1;
+        this._progress.lastResolved = { sourceType: delta.sourceType, sourceId: delta.sourceId };
+      } else if (delta.kind === 'group-completed') {
+        this._progress.completedGroups += 1;
+      }
+    }
+
+    // Descarta los internos de la sesión (sección 5: "discard all session
+    // internals at a terminal boundary") — nunca se reutiliza tras esto.
+    dispose() {
+      this._gen = null;
+      this._coordinator = null;
+    }
+  }
+
   const exportsObj = {
     WorldCalendarCoordinator,
+    WorldAdvanceSession,
     WORLD_CALENDAR_SOURCE_TYPES: SOURCE_TYPES,
     WORLD_CALENDAR_STOP_TYPES: STOP_TYPES,
     createCompetitionMatchSource,
