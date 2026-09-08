@@ -286,7 +286,9 @@ check('Position focus solo mueve la posición target (residual) + no toca TMB/PA
   for (let w = 0; w < 20; w++) {
     date = new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000);
     Training.registerTeamMatchDate(team, date);
-    PD.recordMatchExposure(player, { date, minutes: 30, competition: 'league', division: '1ª', positionMinutes: { Escolta: 30 } });
+    PD.recordMatchExposure(player, {
+      date, minutes: 30, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage', positionMinutes: { Escolta: 30 },
+    }, CONFIG_BASE);
     Training.prepareTeamForMatch(team, date, CONFIG_BASE, CALENDAR_CTX);
   }
   assert.ok(player.positions.Escolta >= 9, 'Escolta debería haber progresado o mantenerse');
@@ -331,7 +333,9 @@ check('Minutos reales en el target aceleran el aprendizaje frente a sin minutos'
   let date = new Date(SEASON_START);
   for (let w = 0; w < 10; w++) {
     date = new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000);
-    PD.recordMatchExposure(withMinutesPlayer, { date, minutes: 30, competition: 'league', division: '1ª', positionMinutes: { Escolta: 30 } });
+    PD.recordMatchExposure(withMinutesPlayer, {
+      date, minutes: 30, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage', positionMinutes: { Escolta: 30 },
+    }, CONFIG_BASE);
     Training.prepareTeamForMatch(teamA, date, CONFIG_BASE, CALENDAR_CTX);
     Training.prepareTeamForMatch(teamB, date, CONFIG_BASE, CALENDAR_CTX);
   }
@@ -345,7 +349,9 @@ check('No se infieren position minutes desde nominalPosition (solo matchExposure
   // Ningún matchExposure registrado con positionMinutes.Base — aunque nominalPosition sea Escolta y el
   // jugador tenga historial de minutos jugados EN Escolta, el rep factor de "Base" debe ser el suelo (0
   // minutos reales), no inferido de otra posición.
-  PD.recordMatchExposure(player, { date: SEASON_START, minutes: 30, competition: 'league', division: '1ª', positionMinutes: { Escolta: 30 } });
+  PD.recordMatchExposure(player, {
+    date: SEASON_START, minutes: 30, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage', positionMinutes: { Escolta: 30 },
+  }, CONFIG_BASE);
   const tickDate = new Date(SEASON_START.getTime() + 7 * 24 * 60 * 60 * 1000);
   const repFactor = Training.computeMatchRepFactor(0, CONFIG_BASE);
   const floor = CONFIG_BASE.training.position.matchRep.floor;
@@ -435,7 +441,7 @@ check('PA (Potential) sigue limitando el crecimiento con intensidad High + foco 
   for (let w = 0; w < 80; w++) {
     date = new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000);
     Training.registerTeamMatchDate(team, date);
-    PD.recordMatchExposure(player, { date, minutes: 25, competition: 'league', division: '1ª' });
+    PD.recordMatchExposure(player, { date, minutes: 25, competitionDefinitionId: 'fixture-league', competitionTier: 1, stageId: 'fixture-stage' }, CONFIG_BASE);
     Training.prepareTeamForMatch(team, date, CONFIG_BASE, CALENDAR_CTX);
     const uncapped = PD.computeUncappedTmb(player, CONFIG_BASE);
     assert.ok(uncapped <= player.hidden.potential + 1e-6, `semana ${w}: uncapped=${uncapped} > PA=${player.hidden.potential}`);

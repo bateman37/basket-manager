@@ -1614,16 +1614,29 @@ duplicadas con el resto de este archivo:
   siguen siendo los DOS únicos sitios permitidos, sin cambios de esa regla.
 - **`src/core/SpainLegacyCompetitionRuntime.js` retirado de `src/core`**
   — vive en `scripts/fixtures/legacy/`, sin ningún call-site en `src/`.
-  `src/core/Calendar.js` SIGUE en su sitio, deliberadamente NO retirado
-  (~20 scripts todavía lo `require()` directamente; su migración es
-  trabajo propio de una futura sesión, no un efecto colateral de esta) —
-  no reinterpretar su presencia como deuda de esta entrega sin releer
-  DESIGN.md 10.21.7 primero.
+  `src/core/Calendar.js` SIGUE en su sitio como ARCHIVO (~20 scripts
+  todavía lo `require()` directamente; migrarlos es trabajo propio de una
+  futura sesión, no un efecto colateral de otra) — pero su `<script>` ya
+  NO se carga en `index.html` (REPO-HARDEN-1, DESIGN.md 10.21.7
+  addendum): confirmado sin callers reales del global `Calendar` en el
+  navegador. No reintroducir ese `<script>` sin confirmar antes que algo
+  del navegador lo necesita de verdad.
 - `RegistrationRegistry.registrationsForClub()`/`cumulativeCountForClub()`
   → `...ForTeam()`; `RetirementAnnouncement.clubIdAtAnnouncement` →
   `teamIdAtAnnouncement`; `ContractSeeder`/`RegistrationSeeder.
   seedFingerprint()` llaman `teamId` a su segundo componente — mismo
   valor/orden de hash, nunca regenerado.
+- **`scripts/verify-*-playwright.js` (REPO-HARDEN-1)**: dentro de
+  `page.evaluate()`, el equipo del usuario se resuelve SIEMPRE con
+  `window.BasketManagerGame.getUserTeam()` (expuesto igual que `state`);
+  un equipo cualquiera por id, con
+  `state.world.registries.teams.get(id)`/`.all()`; una competición
+  doméstica, con `BM.CompetitionContextService.resolveDomesticCompetitionId(
+  state.world.registries, team.id, {seasonKey, operation})`. Nunca
+  `state.leagues[state.division]`/`team.division`/
+  `competitionIdFromLegacyDivision()` — ninguno de los tres existe ya
+  (retirados en WORLD-CALENDAR-1/WORLD-CLEANUP-1); reaparecían en cinco
+  verificadores hasta esta sesión.
 - `DESIGN.md`, `CLAUDE.md` y `CHANGELOG.md` se actualizan en la misma PR
   cuando cambie la forma de exposición/histórico/Stage o la validación de
   Career Setup.

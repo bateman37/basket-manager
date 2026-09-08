@@ -127,9 +127,9 @@ async function main(mode) {
   //    depender del muestreo determinista concreto de esta semilla real.
   // -------------------------------------------------------------------
   const injected = await page.evaluate(() => {
-    const { state, goToScreen } = window.BasketManagerGame;
+    const { state, goToScreen, getUserTeam } = window.BasketManagerGame;
     const BM = window.BasketManager;
-    const team = state.leagues[state.division].teams.find((t) => t.id === state.userTeamId) || null;
+    const team = getUserTeam();
     const thread = state.marketRegistry.allThreads()[0];
     if (!thread) return { ok: false, reason: 'no-thread' };
     const player = state.playerRegistry.get(thread.playerId);
@@ -289,9 +289,9 @@ async function main(mode) {
   // 12. Fixture ACB de tanteo: deadline/componentes visibles y decisión.
   // -------------------------------------------------------------------
   const rightsFixture = await page.evaluate(() => {
-    const { state, goToScreen } = window.BasketManagerGame;
+    const { state, goToScreen, getUserTeam } = window.BasketManagerGame;
     const BM = window.BasketManager;
-    const team = state.leagues['1ª'].teams.find((t) => t.id === state.userTeamId);
+    const team = getUserTeam();
     const player = team.roster[3];
     const isoDate = BM.LocalDate.fromJsDate(state.calendar.currentGameDateTime);
     const marketContext = BM.MarketService.resolveMarketContext({ domesticCompetitionId: 'acb', seasonKey: state.calendar.currentSeasonKey, date: isoDate });
