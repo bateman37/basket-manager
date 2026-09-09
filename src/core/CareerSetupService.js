@@ -424,5 +424,6 @@
   } else {
     global.BasketManager = global.BasketManager || {};
     Object.assign(global.BasketManager, exportsObj);
+    global.BasketManager.CareerSetupService = exportsObj;
   }
 })(typeof window !== 'undefined' ? window : globalThis);

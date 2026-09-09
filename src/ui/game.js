@@ -698,6 +698,15 @@
     return `${seasonStartYear}-${String(anchor.month).padStart(2, '0')}-${String(anchor.day).padStart(2, '0')}`;
   }
 
+  // Semilla determinista de carrera — equipo + temporada, nunca reloj/azar
+  // (invariante 7). Debe existir ANTES de que `validateDraft()` pueda
+  // habilitar "Comenzar carrera": se deriva en cuanto hay club elegido,
+  // nunca solo dentro del handler de arranque (que quedaría deshabilitado
+  // mientras falte, sección "Blocker 2" del hotfix BUG-CAREER-SETUP-BLANK).
+  function deriveCareerSeed(controlledTeamId, seasonStartYear) {
+    return `${controlledTeamId}|${seasonStartYear}`;
+  }
+
   // Construye catálogo (memoizado) + borrador por defecto la primera vez
   // que se visita la pantalla — invariante 5: nunca construye Team/Player,
   // nunca consume RNG. Volver a esta pantalla conserva el borrador en
@@ -756,6 +765,7 @@
         draft.seasonKey = season.seasonKey;
         draft.seasonStartYear = season.seasonStartYear;
         draft.createdAtGameDate = seasonAnchorIsoDate(season.seasonStartYear);
+        if (draft.controlledTeamId) draft.careerSeed = deriveCareerSeed(draft.controlledTeamId, draft.seasonStartYear);
         renderCareerSetupScreen();
       });
     });
@@ -839,6 +849,7 @@
       card.addEventListener('click', () => {
         draft.controlledClubId = card.dataset.clubId;
         draft.controlledTeamId = card.dataset.teamId;
+        draft.careerSeed = deriveCareerSeed(draft.controlledTeamId, draft.seasonStartYear);
         renderCareerSetupScreen();
       });
     });
@@ -884,7 +895,7 @@
     if (startBtn && !startBtn.disabled) {
       startBtn.addEventListener('click', () => {
         const draft = state.careerSetupDraft;
-        draft.careerSeed = draft.careerSeed || `${draft.controlledTeamId}|${draft.seasonStartYear}`;
+        draft.careerSeed = draft.careerSeed || deriveCareerSeed(draft.controlledTeamId, draft.seasonStartYear);
         draft.createdAtGameDate = draft.createdAtGameDate || seasonAnchorIsoDate(draft.seasonStartYear);
         const snapshot = BM.CareerSetupService.buildSnapshot(
           state.careerSetupCatalog, careerSetupManifestsById(), draft,

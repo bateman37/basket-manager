@@ -198,5 +198,6 @@
   } else {
     global.BasketManager = global.BasketManager || {};
     Object.assign(global.BasketManager, exportsObj);
+    global.BasketManager.CompetitionCatalog = exportsObj;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
