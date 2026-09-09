@@ -1,13 +1,12 @@
 # STATUS — Estado actual del proyecto
 
 Fotografía del presente, no un resumen de sesiones. Fecha y commit
-contrastados: **2026-09-08**, `origin/main` en `1814fe4` (PR #59,
-`SAVE-LOAD-1`, ya FUSIONADA — corrige la foto anterior, que la daba por
-"sin fusionar todavía") + `SIM-CAL-1` (avance cooperativo y cancelable de
-"Continuar") completada en rama `claude/modest-gauss-ab8bat` (reiniciada
-desde `main`, sin fusionar todavía). Si `origin/main` ha avanzado desde
-entonces, esta foto puede estar desactualizada — compruébalo antes de
-asumirla.
+contrastados: **2026-09-09**, `origin/main` en `1814fe4` (PR #59,
+`SAVE-LOAD-1`, ya FUSIONADA) + `SIM-CAL-1` (avance cooperativo y cancelable
+de "Continuar") + `SQUAD-BUDGET-1` (presupuesto salarial de plantilla),
+ambas completadas en rama `claude/modest-gauss-ab8bat` (reiniciada desde
+`main`, sin fusionar todavía). Si `origin/main` ha avanzado desde entonces,
+esta foto puede estar desactualizada — compruébalo antes de asumirla.
 
 ## Arquitectura y contenido realmente disponibles
 
@@ -45,6 +44,21 @@ asumirla.
   contra clicks duplicados. `advanceUntilNextUserStop()` síncrona se
   mantiene sin cambios para scripts/Node. Ver
   `docs/architecture/simulation-advance.md` y `docs/epics/SIM-CAL-1.md`.
+- **Implementado (SQUAD-BUDGET-1)**: presupuesto salarial de plantilla
+  canónico y durable por `clubId+seasonKey+currency`
+  (`SquadBudgetRegistry`/`SquadBudgetService`), congelado por temporada y
+  revisable solo de forma explícita/auditable. Mercado
+  (`MarketService.computeSquadCostPlan()`) y ciclo anual/planificación CPU
+  (`AnnualCycleService.freezeSnapshot()`/`CpuRosterPlanner.
+  computeCycleBudget()`) consumen ya el mismo límite canónico en vez de
+  fórmulas independientes; una oferta multi-temporada se bloquea
+  ATÓMICAMENTE con detalle estructurado de déficit cuando excede el
+  disponible. Pantalla **Finanzas** nueva, solo lectura. Persistencia:
+  colección durable `squadBudget`, `schemaVersion` 1→2 con migración real.
+  Ver `docs/architecture/squad-budget.md` y `docs/epics/SQUAD-BUDGET-1.md`
+  — pendiente explícito: peticiones jugables de ampliación de presupuesto
+  y el resto de la economía real del club (caja/ingresos/gastos), no
+  diseñados en esta entrega.
 - **Diseñado pero NO implementado**: competición europea real, Supercopa,
   transfer internacional/Letter of Clearance (EUROPE-1, sin fecha),
   cuerpo técnico como entidad propia, categorías inferiores reales/club
@@ -52,7 +66,8 @@ asumirla.
 
 ## Últimas entregas relevantes
 
-SIM-CAL-1 (avance cooperativo y cancelable de "Continuar") → SAVE-LOAD-1
+SQUAD-BUDGET-1 (presupuesto salarial de plantilla) → SIM-CAL-1 (avance
+cooperativo y cancelable de "Continuar") → SAVE-LOAD-1
 (persistencia real de partidas) → REPO-HARDEN-1 (saneamiento
 técnico) → WORLD-CLEANUP-1 (retirada final de `Team.division`/
 proyecciones legacy) → WORLD-CONTEXT-1 (contexto competitivo explícito) →
@@ -153,6 +168,10 @@ Epic es solo documental):
   (SIM-CAL-1, navegador real, Dennis) — overlay, cancelación, reanudación
   sin duplicados, gating de mercado/alineación, guardado bloqueado durante
   el avance, anchura móvil.
+- Checklist manual completa de `docs/manual/SQUAD_BUDGET_ACCEPTANCE.md`
+  (SQUAD-BUDGET-1, navegador real, Dennis) — pantalla Finanzas, bloqueo de
+  oferta por presupuesto, reparto de cesión, apertura de temporada nueva,
+  guardado/carga, anchura móvil.
 - Cualquier verificación con Playwright/smokes/auditoría de temporadas —
   no se ejecutó ninguna en SIM-CAL-1/SAVE-LOAD-1/DOCS-CONTEXT-1 (fuera de
   alcance explícito de las tres).

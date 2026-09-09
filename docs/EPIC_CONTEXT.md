@@ -6,13 +6,11 @@ completo de una Epic ya cerrada, ve a `docs/epics/<ID>.md`.
 
 ## Epic activa
 
-**Ninguna.** `SIM-CAL-1` (avance cooperativo y cancelable de "Continuar")
-quedó completada en esta sesión — ver `docs/epics/SIM-CAL-1.md` para el
+**Ninguna.** `SQUAD-BUDGET-1` (presupuesto salarial de plantilla) quedó
+completada en esta sesión — ver `docs/epics/SQUAD-BUDGET-1.md` para el
 resultado completo, las pruebas ejecutadas y los follow-ups aceptados.
-Rama `claude/modest-gauss-ab8bat` (reiniciada desde `main`, ya que el PR
-anterior de esta misma rama —`SAVE-LOAD-1`, PR #59— se fusionó antes de
-empezar esta sesión), PR abierta sin fusionar — Dennis fusiona
-manualmente.
+Rama `claude/modest-gauss-ab8bat`, PR abierta sin fusionar — Dennis
+fusiona manualmente.
 
 No selecciones ni arranques automáticamente la siguiente Epic. Cuando
 Dennis decida la siguiente funcionalidad, esta ficha se actualiza con su
@@ -21,7 +19,19 @@ archivo — usa `docs/epics/README.md` (plantilla) para crear su ficha
 inicial y `docs/ROADMAP.md` para ver las opciones ya documentadas como
 pendientes de decisión.
 
-## Punto de continuación de SIM-CAL-1 (si una sesión futura retoma algo)
+## Punto de continuación de SQUAD-BUDGET-1 (si una sesión futura retoma algo)
+
+- **Pendiente de Dennis**: checklist manual completo en navegador real —
+  `docs/manual/SQUAD_BUDGET_ACCEPTANCE.md`. Ninguna sesión de Claude Code
+  la ha ejecutado (fuera de alcance: sin Playwright en esta Epic).
+- **Follow-up requerido, no oculto** (ver `docs/epics/SQUAD-BUDGET-1.md`,
+  sección "Deuda aplazada"): peticiones jugables de ampliación de
+  presupuesto a la junta, mandato/antigüedad del manager, confianza de
+  junta dinámica y margen financiero real desde la economía completa del
+  club — nada de esto está diseñado todavía, solo declarado como
+  dependencia explícita de la próxima entrega de economía/junta.
+
+## Punto de continuación de SIM-CAL-1 (anterior en esta misma rama, sin fusionar todavía)
 
 - **Pendiente de Dennis**: checklist manual completo en navegador real —
   `docs/manual/SIM_CAL_ACCEPTANCE.md`. Ninguna sesión de Claude Code la

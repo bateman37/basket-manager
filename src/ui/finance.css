@@ -1,0 +1,45 @@
+/* src/ui/finance.css — SQUAD-BUDGET-1
+   Estilos específicos de la pantalla Finanzas — hoja dedicada para no
+   hacer crecer game.css con reglas de un solo dominio (CLAUDE.md §7).
+   Reutiliza las variables de color/tipografía ya definidas en game.css
+   (se carga después de él). */
+
+.gm-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+
+.gm-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.gm-stat__label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+.gm-stat__value {
+  font-family: var(--font-score);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gm-stat--warn .gm-stat__value { color: var(--loss); }
+
+.gm-card--warn {
+  border-color: var(--brick-dark);
+  background: rgba(184, 69, 31, 0.08);
+}
+
+.gm-badge--info { background: var(--court-bg-alt); color: var(--ink); border: 1px solid var(--line); }
+
+@media (max-width: 640px) {
+  .gm-stats-row { gap: 10px 16px; }
+  .gm-stat { min-width: 45%; }
+}

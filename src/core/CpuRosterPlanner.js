@@ -74,6 +74,11 @@
     const {
       teams, playerRegistry, contractRegistry, registrationRegistry, academyRegistry, annualCycleRegistry,
       loanRegistry, date, seasonKey, config, cycle, competitionIdForTeam,
+      // SQUAD-BUDGET-1: registro CANÓNICO opcional — cuando se aporta, cada
+      // fila de club lleva también el límite YA congelado por el ciclo
+      // anual (`ensureOpeningAllocation()` en `AnnualCycleService.
+      // freezeSnapshot()`), nunca recalculado aquí.
+      squadBudgetRegistry,
     } = params;
     const iso = toIso(date);
     const clubs = [...(teams || [])]
@@ -118,6 +123,15 @@
             ? clubCase.openingPayrollReference.amountMinor : null,
           committedMinor: contractRegistry
             ? ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, seasonKey).amountMinor : 0,
+          // SQUAD-BUDGET-1: límite CANÓNICO ya congelado para esta
+          // temporada+club, si existe — `null` cuando no hay registro o
+          // todavía no se congeló ninguna asignación (fallback a la
+          // fórmula de compatibilidad en `computeCycleBudget()`).
+          canonicalBudgetLimitMinor: squadBudgetRegistry
+            ? (() => {
+              const allocation = squadBudgetRegistry.effectiveAllocationFor(team.clubId, seasonKey, 'EUR', iso);
+              return allocation ? allocation.amountMinor : null;
+            })() : null,
         };
       });
 
@@ -189,15 +203,32 @@
       clubSnapshot, team, marketRegistry, seasonKey,
     } = params;
     const cfg = CC().BUDGET;
-    const financial = (team && team.reputation && team.reputation.financial !== undefined) ? team.reputation.financial : 50;
-    const multiplier = cfg.openingPayrollMultiplierMin
-      + (financial / 100) * (cfg.openingPayrollMultiplierMax - cfg.openingPayrollMultiplierMin);
-    const base = Math.max(
-      clubSnapshot.openingPayrollReferenceMinor !== null && clubSnapshot.openingPayrollReferenceMinor !== undefined
-        ? clubSnapshot.openingPayrollReferenceMinor : 0,
-      cfg.floorMinor,
-    );
-    const limitMinor = Math.round(base * multiplier);
+    // SQUAD-BUDGET-1: si `buildSnapshot()` aportó un límite CANÓNICO ya
+    // congelado (`ensureOpeningAllocation()` de `AnnualCycleService.
+    // freezeSnapshot()`), ese GANA — nunca se recalcula en directo. Sin él
+    // (registro no aportado, o todavía sin asignación para esta
+    // temporada+club), se conserva EXACTAMENTE la fórmula de compatibilidad
+    // que ya existía antes de esta entrega.
+    let limitMinor;
+    let policyVersion;
+    let basedOn;
+    if (clubSnapshot.canonicalBudgetLimitMinor !== null && clubSnapshot.canonicalBudgetLimitMinor !== undefined) {
+      limitMinor = clubSnapshot.canonicalBudgetLimitMinor;
+      policyVersion = 'canonical-squad-budget-v1';
+      basedOn = 'canonical-squad-budget-allocation';
+    } else {
+      const financial = (team && team.reputation && team.reputation.financial !== undefined) ? team.reputation.financial : 50;
+      const multiplier = cfg.openingPayrollMultiplierMin
+        + (financial / 100) * (cfg.openingPayrollMultiplierMax - cfg.openingPayrollMultiplierMin);
+      const base = Math.max(
+        clubSnapshot.openingPayrollReferenceMinor !== null && clubSnapshot.openingPayrollReferenceMinor !== undefined
+          ? clubSnapshot.openingPayrollReferenceMinor : 0,
+        cfg.floorMinor,
+      );
+      limitMinor = Math.round(base * multiplier);
+      policyVersion = cfg.policyVersion;
+      basedOn = 'frozen-opening-payroll-reference';
+    }
     const reservedMinor = marketRegistry ? marketRegistry.reservedTotalForClubSeason(clubSnapshot.clubId, seasonKey) : 0;
     const committedMinor = clubSnapshot.committedMinor || 0;
     return {
@@ -206,8 +237,8 @@
       reservedMinor,
       availableMinor: Math.max(0, limitMinor - committedMinor - reservedMinor),
       currency: 'EUR',
-      policyVersion: cfg.policyVersion,
-      basedOn: 'frozen-opening-payroll-reference',
+      policyVersion,
+      basedOn,
     };
   }
 

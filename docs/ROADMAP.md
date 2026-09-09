@@ -11,6 +11,16 @@ Dennis. Cada punto enlaza a su documento de origen.
   (`docs/design/club-team.md`/`docs/design/competitions-spain.md`,
   DESIGN §3.4.3) e implementación — `financialGoal`/`multiYearPlan` de la
   Junta siguen SIN fórmula de cálculo, pendiente de sesión de diseño.
+- ~~**Presupuesto salarial de plantilla**~~ — entregado en
+  `SQUAD-BUDGET-1` (`docs/architecture/squad-budget.md`). Queda como
+  entrega siguiente REQUERIDA, explícitamente no diseñada todavía:
+  peticiones jugables de ampliación de presupuesto a la junta, mandato/
+  antigüedad del manager, confianza de junta dinámica y comparación
+  rendimiento-vs-expectativa, margen financiero real desde la economía
+  completa del club (caja/ingresos/gastos), aprobación parcial/cooldowns/
+  personalidad de junta, y presupuesto de operaciones/traspasos separado
+  del salarial. Ver `docs/epics/SQUAD-BUDGET-1.md`, sección "Deuda
+  aplazada".
 - **Roles tácticos, Pick&Roll, tiempos muertos y falta táctica**: diseño
   cerrado en `docs/design/tactics/`, implementación repartida en TAC-1 a
   TAC-7 (`docs/epics/TACTICS-EPIC.md`) — los "nuevos pendientes" señalados

@@ -156,6 +156,11 @@
     agentRegistry: null,
     marketRegistry: null,
     marketBootstrapWarnings: [],
+    // SQUAD-BUDGET-1: registro CANÓNICO del presupuesto salarial de
+    // plantilla — instancia EXPLÍCITA por carrera (nunca un singleton),
+    // creada en `bootstrapSquadBudgetForNewCareer()` y limpiada al volver a
+    // selección de equipo, mismo criterio que el resto de registries.
+    squadBudgetRegistry: null,
     // Agenda de mercado (respuestas de interés, expiración de ofertas, fin
     // de autorización, ventanas de derechos, decisión de igualar...) — no
     // es reconstruible desde otro estado ya vivo (a diferencia de un
@@ -1290,6 +1295,11 @@
     // contrato/inscripción, pero reutiliza `state.playerRegistry` ya
     // completo de los 36 clubes.
     bootstrapMarketForNewCareer();
+    // SQUAD-BUDGET-1: se ejecuta DESPUÉS de contratos/mercado — congela la
+    // asignación salarial de APERTURA de los 36 clubes a partir de la
+    // nómina garantizada ya comprometida (nunca recalculada en directo
+    // después de esto).
+    bootstrapSquadBudgetForNewCareer();
     // CYCLE-1 (DESIGN.md 9.22, sección 29 del prompt): se ejecuta AL FINAL
     // del arranque — el ciclo anual orquesta contratos, inscripciones,
     // mercado, traspasos y cesiones, así que necesita los cinco registros
@@ -1509,6 +1519,43 @@
     ];
   }
 
+  // ---------------------------------------------------------------------
+  // SQUAD-BUDGET-1 — presupuesto salarial de plantilla: registro CANÓNICO
+  // por carrera + asignación de APERTURA para los 36 clubes (no solo el del
+  // usuario), congelada UNA vez a partir de la política de compatibilidad
+  // ya existente (`SquadBudgetService.computeMarketCompatibilityAmount()`,
+  // misma fórmula que usaba `MarketService.computeInternalBudgetLimit()`
+  // antes de esta entrega). Se ejecuta DESPUÉS de contratos/mercado — la
+  // fórmula parte de la nómina garantizada ya comprometida.
+  // ---------------------------------------------------------------------
+  function bootstrapSquadBudgetForNewCareer() {
+    const { SquadBudgetRegistry, SquadBudgetService } = BM;
+    state.squadBudgetRegistry = new SquadBudgetRegistry();
+    const isoDate = currentGameIsoDate();
+    const seasonKey = buildCareerSeasonKey();
+    getAllTeams().forEach((team) => {
+      const compat = SquadBudgetService.computeMarketCompatibilityAmount({
+        team, contractRegistry: state.contractRegistry, seasonKey,
+      });
+      SquadBudgetService.ensureOpeningAllocation({
+        registry: state.squadBudgetRegistry,
+        clubId: team.clubId,
+        seasonKey,
+        currency: compat.currency,
+        effectiveDate: isoDate,
+        amountMinor: compat.amountMinor,
+        policyVersion: compat.policyVersion,
+        basisAmountMinor: compat.basisAmountMinor,
+        multiplier: compat.multiplier,
+        revisionKind: 'opening-allocation',
+        decisionAuthority: 'board-system-seed',
+        calculatedAtGameDate: isoDate,
+        note: `Apertura de carrera para ${seasonKey}: estimación de compatibilidad a partir de la nómina `
+          + 'garantizada ya comprometida.',
+      });
+    });
+  }
+
   // =====================================================================
   // CYCLE-1 (DESIGN.md 9.22) — registros del ciclo anual y ciclo de vida
   // =====================================================================
@@ -1578,6 +1625,11 @@
       operationalContext: currentTransferOperationalContext(),
       classificationCache: state.registrationClassificationCache,
       retirementService: BM.RetirementService,
+      // SQUAD-BUDGET-1: registro CANÓNICO — el ciclo lo usa para congelar la
+      // asignación de apertura de la temporada que se abre
+      // (`freezeSnapshot()`) y para leer el límite ya congelado en vez de
+      // recalcularlo (planificación CPU, decisiones de opción contractual).
+      squadBudgetRegistry: state.squadBudgetRegistry,
       ...(extra || {}),
     };
   }
@@ -7838,6 +7890,30 @@
     wireCycleScreenActions(container, team);
   }
 
+  // ---------------------------------------------------------------------
+  // SQUAD-BUDGET-1 — pantalla Finanzas: solo lectura, lógica de lectura y
+  // renderizado vive en `src/ui/FinanceScreen.js` (módulo enfocado); este
+  // wrapper solo resuelve las dependencias explícitas del estado actual y
+  // delega — game.js no acumula lógica de dominio de presupuesto.
+  // ---------------------------------------------------------------------
+  function renderFinanceScreen() {
+    const container = byId('gm-finance');
+    if (!container) return;
+    const team = getUserTeam();
+    if (!team || !state.squadBudgetRegistry) { container.innerHTML = ''; return; }
+    BM.FinanceScreen.render(container, {
+      team,
+      seasonKey: buildCareerSeasonKey(),
+      isoDate: currentGameIsoDate(),
+      squadBudgetRegistry: state.squadBudgetRegistry,
+      contractRegistry: state.contractRegistry,
+      marketRegistry: state.marketRegistry,
+      loanRegistry: state.loanRegistry,
+      playerRegistry: state.playerRegistry,
+      escapeHtml,
+    });
+  }
+
   function wireCycleScreenActions(container, team) {
     container.querySelectorAll('.cycle-renew-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -8977,6 +9053,7 @@
         const draft = buildMarketOfferDraft(team, player, formData, isoDate);
         const validation = BM.MarketService.validateOfferBeforeSend({
           draft, team, player, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, marketRegistry: state.marketRegistry, seasonKey: buildCareerSeasonKey(), date: isoDate, marketContext,
+          squadBudgetRegistry: state.squadBudgetRegistry,
         });
         if (!validation.valid) {
           errorEl.textContent = validation.errors.join(' · ');
@@ -8990,6 +9067,7 @@
         const commonOfferParams = {
           marketRegistry: state.marketRegistry, thread, draft, offeredBy: 'club', rolePromise: { role: formData.role }, date: isoDate, careerSeed,
           marketContext, team, player, playerRegistry: state.playerRegistry, contractRegistry: state.contractRegistry, seasonKey: buildCareerSeasonKey(),
+          squadBudgetRegistry: state.squadBudgetRegistry,
         };
         if (form.dataset.mode === 'counter') {
           const liveOffer = state.marketRegistry.liveOfferForThread(threadId, isoDate);
@@ -9586,7 +9664,7 @@
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
   const SCREENS = [
-    'team-select', 'home', 'world', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'team-select', 'home', 'world', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'finance', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
     'save-load',
     'player-profile',
   ];
@@ -9612,6 +9690,7 @@
     if (screen === 'registrations') renderRegistrationsScreen();
     if (screen === 'market') renderMarketScreen();
     if (screen === 'cycle') renderCycleScreen();
+    if (screen === 'finance') renderFinanceScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();
@@ -9690,6 +9769,10 @@
       state.marketRegistry = null;
       state.marketBootstrapWarnings = [];
       state.marketAgendaLog = [];
+      // SQUAD-BUDGET-1: mismo criterio — el presupuesto salarial de
+      // plantilla pertenece a UNA partida, nunca sobrevive a "Volver a
+      // selección de equipo".
+      state.squadBudgetRegistry = null;
       // TRANSFER-1 (DESIGN.md 9.20): mismo criterio — expedientes/
       // ofertas club-club/obligaciones/TransactionRecords pertenecen a
       // UNA partida, nunca sobreviven a "Volver a selección de equipo".
@@ -10210,7 +10293,13 @@
   // =========================================================================
 
   const SAVE_FORMAT = 'basket-manager-career-save';
-  const SAVE_SCHEMA_VERSION = 1;
+  // SQUAD-BUDGET-1: schemaVersion 2 añade la colección durable
+  // `squadBudget` (ver `CareerPersistenceBoundary.inventory()`). Un
+  // guardado v1 sigue siendo LEGIBLE — `CareerHydrationService` migra
+  // construyendo asignaciones de apertura de compatibilidad (nunca falla ni
+  // deja el guardado antiguo inservible) y una partida cargada así, al
+  // volver a guardarse, ya escribe v2.
+  const SAVE_SCHEMA_VERSION = 2;
   const AUTOSAVE_SLOT_ID = 'autosave';
 
   // Runtime EXPLÍCITO para `CareerPersistenceBoundary.project()`/
@@ -10232,6 +10321,7 @@
         annualCycleRegistry: state.annualCycleRegistry,
         academyRegistry: state.academyRegistry,
         nationalTeamRegistry: state.nationalTeamRegistry,
+        squadBudgetRegistry: state.squadBudgetRegistry,
       },
       installedContentPacks: state.installedContentPacks,
       competitionEngine: state.competitionEngine,
@@ -10357,6 +10447,7 @@
       state.annualCycleRegistry = hydrated.annualCycleRegistry;
       state.academyRegistry = hydrated.academyRegistry;
       state.nationalTeamRegistry = hydrated.nationalTeamRegistry;
+      state.squadBudgetRegistry = hydrated.squadBudgetRegistry;
       state.competitionEngine = hydrated.competitionEngine;
       state.competitionSimulationService = hydrated.competitionSimulationService;
       state.scheduleService = hydrated.scheduleService;
