@@ -1183,6 +1183,10 @@
   background: rgba(0, 0, 0, 0.55);
   padding: 16px;
 }
+/* Preserva el estado nativo `hidden` frente al `display: flex` de arriba. */
+.gm-advance-overlay[hidden] {
+  display: none;
+}
 .gm-advance-overlay__card {
   background: var(--white-line);
   border-radius: 10px;
