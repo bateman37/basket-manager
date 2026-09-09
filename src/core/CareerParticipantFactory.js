@@ -89,5 +89,6 @@
   } else {
     global.BasketManager = global.BasketManager || {};
     Object.assign(global.BasketManager, exportsObj);
+    global.BasketManager.CareerParticipantFactory = exportsObj;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
