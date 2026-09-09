@@ -60,6 +60,9 @@
   const { AnnualCycleRegistry } = dep('./AnnualCycleRegistry.js');
   const { AcademyRegistry } = dep('./AcademyRegistry.js');
   const { NationalTeamRegistry } = dep('./NationalTeamRegistry.js');
+  const SquadBudgetEntities = dep('../entities/SquadBudget.js');
+  const { SquadBudgetRegistry } = dep('./SquadBudgetRegistry.js');
+  const { SquadBudgetService } = dep('./SquadBudgetService.js');
   const { ContentPackLifecycleService } = dep('./ContentPackLifecycleService.js');
   const { CompetitionEngine } = dep('./CompetitionEngine.js');
   const { CompetitionSimulationService } = dep('./CompetitionSimulationService.js');
@@ -68,7 +71,12 @@
   const Events = dep('./Events.js');
   const { CareerPersistenceBoundary } = dep('./CareerPersistenceBoundary.js');
 
-  const SUPPORTED_SCHEMA_VERSION = 1;
+  // SQUAD-BUDGET-1: v2 añade la colección durable `squadBudget`. v1 sigue
+  // siendo una versión de guardado LEGIBLE (ver `MIGRATABLE_SCHEMA_VERSIONS`
+  // más abajo) — un guardado anterior a esta entrega nunca se vuelve
+  // inservible en silencio.
+  const SUPPORTED_SCHEMA_VERSION = 2;
+  const MIGRATABLE_SCHEMA_VERSIONS = [1];
   const SUPPORTED_FORMAT = 'basket-manager-career-save';
 
   function fail(reason, detail) {
@@ -92,11 +100,12 @@
         `schemaVersion ${envelope.schemaVersion} > ${SUPPORTED_SCHEMA_VERSION} soportado`,
       );
     }
-    if (envelope.schemaVersion < SUPPORTED_SCHEMA_VERSION) {
-      // v1 es la única versión existente — este bloque es el punto de
-      // entrada EXPLÍCITO para una migración futura (sección 4.2 del
-      // prompt: "crea un punto explícito para futuras migraciones de
-      // schema, aunque en v1 no haya ninguna migración real").
+    if (envelope.schemaVersion < SUPPORTED_SCHEMA_VERSION && !MIGRATABLE_SCHEMA_VERSIONS.includes(envelope.schemaVersion)) {
+      // Punto de entrada EXPLÍCITO para migraciones de schema (sección 4.2
+      // del prompt original de SAVE-LOAD-1) — SQUAD-BUDGET-1 registra aquí
+      // la primera migración real (v1 -> v2, ver `migrateSquadBudgetV1toV2()`
+      // más abajo). Una versión sin ruta de migración registrada sigue
+      // fallando explícito, nunca se hidrata a medias.
       fail('versión de guardado anterior sin ruta de migración registrada', `schemaVersion ${envelope.schemaVersion}`);
     }
     if (!envelope.fingerprint) fail('el guardado no lleva fingerprint');
@@ -310,9 +319,16 @@
     const nationalTeamRegistry = new NationalTeamRegistry();
     nationalTeamRegistry.restoreState(payload.collections.nationalTeams || {}, NationalTeamEntities);
 
+    // SQUAD-BUDGET-1: se crea VACÍO aquí (para poder adjuntarlo junto al
+    // resto de registros de dominio) y se rellena más abajo, una vez
+    // reconstruido el calendario — un guardado v1 (sin esta colección) se
+    // migra con la fecha/temporada REALES del calendario restaurado, nunca
+    // con una fecha inventada.
+    const squadBudgetRegistry = new SquadBudgetRegistry();
+
     world.attachDomainRegistries({
       contractRegistry, registrationRegistry, agentRegistry, marketRegistry,
-      transferRegistry, loanRegistry, annualCycleRegistry, academyRegistry, nationalTeamRegistry,
+      transferRegistry, loanRegistry, annualCycleRegistry, academyRegistry, nationalTeamRegistry, squadBudgetRegistry,
     });
 
     // --- Calendario (UN solo WorldCalendar, cursor+temporadas+pendientes) -
@@ -340,6 +356,43 @@
     // el estado de un item YA existente.
     calendar.restorePendingItems(calendarJson.pendingItems);
     calendar.restoreLedger(calendarJson.ledger);
+
+    // --- SQUAD-BUDGET-1: presupuesto salarial de plantilla -----------------
+    // v2: restauración sin pérdida desde la colección ya guardada. v1
+    // (migración, sección 8 del prompt): el fingerprint/formato/content
+    // packs YA se validaron arriba (`verifyEnvelopeIntegrity()`) antes de
+    // reconstruir ninguna entidad — aquí se construyen las asignaciones de
+    // APERTURA que faltan a partir de los contratos/reservas y la fecha de
+    // calendario YA restaurados, con la MISMA política de compatibilidad
+    // que usa el bootstrap de una carrera nueva — nunca una fórmula
+    // distinta ni una fecha inventada. Idempotente: si esta misma carrera
+    // ya se migró y se vuelve a cargar (guardado v2 con la colección ya
+    // poblada), este bloque no se ejecuta.
+    if (payload.collections.squadBudget) {
+      squadBudgetRegistry.restoreState(payload.collections.squadBudget, SquadBudgetEntities);
+    } else {
+      const seasonKey = calendar.currentSeasonKey;
+      const isoDate = calendar.currentLocalDate;
+      world.registries.teams.all().forEach((team) => {
+        const compat = SquadBudgetService.computeMarketCompatibilityAmount({ team, contractRegistry, seasonKey });
+        SquadBudgetService.ensureOpeningAllocation({
+          registry: squadBudgetRegistry,
+          clubId: team.clubId,
+          seasonKey,
+          currency: compat.currency,
+          effectiveDate: isoDate,
+          amountMinor: compat.amountMinor,
+          policyVersion: compat.policyVersion,
+          basisAmountMinor: compat.basisAmountMinor,
+          multiplier: compat.multiplier,
+          revisionKind: 'migration-backfill',
+          decisionAuthority: 'migration',
+          calculatedAtGameDate: isoDate,
+          note: `Reconstruida al migrar un guardado v1 sin presupuesto salarial — estimación de compatibilidad `
+            + `para ${seasonKey} a partir de los contratos/reservas ya restaurados.`,
+        });
+      });
+    }
 
     // --- Career setup + identidad del usuario -----------------------------
     // `userTeamId`/`userClubId` viven en `envelope.metadata` (metadato de
@@ -385,6 +438,7 @@
       annualCycleRegistry,
       academyRegistry,
       nationalTeamRegistry,
+      squadBudgetRegistry,
       competitionEngine,
       competitionSimulationService: simulationService,
       scheduleService,

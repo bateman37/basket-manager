@@ -148,15 +148,40 @@
   // hacia cero justo cuando el club necesita reponer. MARKET-1 sigue
   // calculando su propio límite cuando nadie aporta override (partida en
   // curso, negociación puntual del usuario dentro de la temporada).
+  // SQUAD-BUDGET-1: `squadBudgetRegistry` (opcional) es la fuente CANÓNICA
+  // del límite — cuando el llamador la aporta (junto con `atGameDate`) y ya
+  // existe una asignación efectiva para `team.clubId`+`seasonKey`, esa cifra
+  // GANA sobre `limitOverrideMinor` y sobre el cálculo de compatibilidad de
+  // más abajo. Sin registro (scripts/tests antiguos que no lo pasan), el
+  // comportamiento es EXACTAMENTE el de antes de esta entrega — nunca se
+  // rompe un llamador existente.
+  function resolveCanonicalLimit(params) {
+    const {
+      team, seasonKey, squadBudgetRegistry, atGameDate, currency,
+    } = params;
+    if (!squadBudgetRegistry) return null;
+    const allocation = squadBudgetRegistry.effectiveAllocationFor(team.clubId, seasonKey, currency || 'EUR', atGameDate);
+    if (!allocation) return null;
+    return {
+      amountMinor: allocation.amountMinor,
+      currency: allocation.currency,
+      policyVersion: 'canonical-squad-budget-v1',
+      allocationId: allocation.id,
+    };
+  }
+
   function computeSquadCostPlan(params) {
     const {
-      team, contractRegistry, marketRegistry, seasonKey, limitOverrideMinor,
+      team, contractRegistry, marketRegistry, seasonKey, limitOverrideMinor, squadBudgetRegistry, atGameDate,
     } = params;
     const committed = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, seasonKey);
     const reserved = marketRegistry.reservedTotalForClubSeason(team.clubId, seasonKey);
-    const limit = (limitOverrideMinor !== undefined && limitOverrideMinor !== null)
+    const canonical = resolveCanonicalLimit({
+      team, seasonKey, squadBudgetRegistry, atGameDate, currency: committed.currency,
+    });
+    const limit = canonical || ((limitOverrideMinor !== undefined && limitOverrideMinor !== null)
       ? { amountMinor: limitOverrideMinor, currency: committed.currency, policyVersion: 'cycle-frozen-opening-payroll-v1' }
-      : computeInternalBudgetLimit(team, contractRegistry, seasonKey);
+      : computeInternalBudgetLimit(team, contractRegistry, seasonKey));
     const availableMinor = Math.max(0, limit.amountMinor - committed.amountMinor - reserved);
     return {
       seasonKey,
@@ -341,6 +366,10 @@
       // CYCLE-1: límite interno congelado del ciclo anual (ver
       // computeSquadCostPlan) — opcional, nunca obligatorio para MARKET-1.
       budgetLimitMinor,
+      // SQUAD-BUDGET-1: fuente CANÓNICA opcional — cuando se aporta, GANA
+      // sobre `budgetLimitMinor` para cada temporada que tenga asignación
+      // efectiva (ver `resolveCanonicalLimit`).
+      squadBudgetRegistry,
     } = params;
     // WORLD-CONTEXT-1 (DESIGN.md 10.20): la competición doméstica del club
     // ofertante llega EXPLÍCITA — del parámetro del llamador o del contexto
@@ -360,6 +389,13 @@
       : (employment.contract ? employment.contract.coveredSeasonKeys : []);
     const costPlanBySeason = {};
     const perSeasonReservationLines = [];
+    // SQUAD-BUDGET-1 (invariante: "una oferta plurianual falla ATÓMICAMENTE
+    // si CUALQUIER temporada cubierta excede su límite"): se recorren TODAS
+    // las temporadas antes de decidir — nunca se corta en la primera que
+    // encaja, y el detalle estructurado de cada temporada que NO encaja se
+    // acumula en `shortfalls` (nunca solo un string para que la UI lo
+    // parsee).
+    const shortfalls = [];
     if (employment.contract) {
       coveredSeasonKeys.forEach((sKey) => {
         const breakdown = employment.contract.breakdownForSeason(sKey);
@@ -371,13 +407,25 @@
           return;
         }
         const costPlan = computeSquadCostPlan({
-          team, contractRegistry, marketRegistry, seasonKey: sKey, limitOverrideMinor: budgetLimitMinor,
+          team, contractRegistry, marketRegistry, seasonKey: sKey, limitOverrideMinor: budgetLimitMinor, squadBudgetRegistry, atGameDate: date,
         });
         costPlanBySeason[sKey] = costPlan;
         if (breakdown.guaranteedTotalMinor > costPlan.availableMinor) {
+          const shortfallMinor = breakdown.guaranteedTotalMinor - costPlan.availableMinor;
+          shortfalls.push({
+            seasonKey: sKey,
+            currency,
+            limitMinor: costPlan.limitMinor,
+            committedMinor: costPlan.committedMinor,
+            reservedMinor: costPlan.reservedMinor,
+            attemptedAdditionMinor: breakdown.guaranteedTotalMinor,
+            shortfallMinor,
+          });
           errors.push(
-            `La oferta de ${sKey} (${breakdown.guaranteedTotalMinor} minor) excede el disponible del límite `
-            + `interno simulado (${costPlan.availableMinor} minor) para esa temporada.`,
+            `La oferta de ${sKey} supera el presupuesto salarial disponible del club y no puede completarse `
+            + `(faltan ${shortfallMinor} minor); se necesitaría autorización de la junta para ampliar el límite. `
+            + 'Las peticiones de ampliación de presupuesto a la junta no están disponibles todavía — llegarán en '
+            + 'la próxima entrega de economía/junta.',
           );
         }
         perSeasonReservationLines.push({ seasonKey: sKey, amountMinor: breakdown.guaranteedTotalMinor, currency });
@@ -406,6 +454,9 @@
       costPlan: (seasonKey && costPlanBySeason[seasonKey]) || costPlanBySeason[coveredSeasonKeys[0]] || null,
       costPlanBySeason,
       perSeasonReservationLines,
+      // SQUAD-BUDGET-1: detalle estructurado de cada temporada que excede
+      // su presupuesto — vacío cuando `valid` es `true`.
+      shortfalls,
       requiresTransferResolution: employment.requiresTransferResolution,
     };
   }
@@ -435,7 +486,7 @@
     const {
       marketRegistry, thread, draft, offeredBy, rolePromise, conditionsPrecedent, disclosures, date, careerSeed,
       marketContext, parentOfferId, version, maxOfficialDeadline,
-      team, player, playerRegistry, contractRegistry, seasonKey, budgetLimitMinor,
+      team, player, playerRegistry, contractRegistry, seasonKey, budgetLimitMinor, squadBudgetRegistry,
     } = params;
     if (!team || !playerRegistry || !contractRegistry) {
       throw new Error(
@@ -447,7 +498,7 @@
     const iso = toIso(date);
     const resolvedSeasonKey = seasonKey || (frozenDraft.coveredSeasonKeys && frozenDraft.coveredSeasonKeys[0]);
     const validation = validateOfferBeforeSend({
-      draft: frozenDraft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey: resolvedSeasonKey, date: iso, marketContext, budgetLimitMinor,
+      draft: frozenDraft, team, player, playerRegistry, contractRegistry, marketRegistry, seasonKey: resolvedSeasonKey, date: iso, marketContext, budgetLimitMinor, squadBudgetRegistry,
       domesticCompetitionId: params.domesticCompetitionId,
     });
     if (!validation.valid) {
@@ -748,6 +799,7 @@
       resolveMarketContext,
       computeInternalBudgetLimit,
       computeSquadCostPlan,
+      resolveCanonicalLimit,
       resolveActingMandate,
       openInquiry,
       grantContactPermission,

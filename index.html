@@ -7,6 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/ui/game.css">
+  <!-- SQUAD-BUDGET-1: estilos específicos de la pantalla Finanzas (hoja
+       dedicada, ver CLAUDE.md §7 — no hacer crecer game.css). -->
+  <link rel="stylesheet" href="src/ui/finance.css">
 </head>
 <body>
 
@@ -64,6 +67,7 @@
       <button class="gm-nav__btn" data-screen="registrations" type="button">Inscripciones</button>
       <button class="gm-nav__btn" data-screen="market" type="button">Mercado</button>
       <button class="gm-nav__btn" data-screen="cycle" type="button">Planificación</button>
+      <button class="gm-nav__btn" data-screen="finance" type="button">Finanzas</button>
       <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
       <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
@@ -142,6 +146,14 @@
          solo lectura tal cual documentan CONTRACT-1/REG-1. -->
     <section id="gm-screen-cycle" class="gm-screen">
       <div id="gm-cycle"></div>
+    </section>
+
+    <!-- SQUAD-BUDGET-1 (docs/architecture/squad-budget.md): presupuesto
+         salarial de plantilla — pantalla independiente, solo lectura.
+         Nunca muestra caja/ingresos/beneficio del club, solo el límite
+         salarial deportivo ya asignado por la junta. -->
+    <section id="gm-screen-finance" class="gm-screen">
+      <div id="gm-finance"></div>
     </section>
 
     <section id="gm-screen-agenda" class="gm-screen">
@@ -537,6 +549,15 @@
   <script src="src/core/LoanService.js"></script>
   <script src="src/core/LoanCostService.js"></script>
 
+  <!-- SQUAD-BUDGET-1 (docs/architecture/squad-budget.md): presupuesto
+       salarial de plantilla — entidad + registro canónico + servicio de
+       dominio. Carga después de LoanCostService.js (lo reutiliza para el
+       reparto de coste de cesiones, nunca lo duplica) y antes del bloque
+       CYCLE-1, que congela la asignación de apertura de cada temporada. -->
+  <script src="src/entities/SquadBudget.js"></script>
+  <script src="src/core/SquadBudgetRegistry.js"></script>
+  <script src="src/core/SquadBudgetService.js"></script>
+
   <!-- CYCLE-1 (DESIGN.md 9.22): ciclo anual de plantilla — expiración y
        renovación de contratos, retirada, cantera con ciclo de vida, mercado
        de verano de la CPU, legalidad de plantilla y transición de temporada.
@@ -577,6 +598,11 @@
        Tactics.js (aunque no depende de él en tiempo de carga, solo comparte
        ids) y antes de game.js, que es quien la consume. -->
   <script src="src/ui/TacticsHelp.js"></script>
+  <!-- SQUAD-BUDGET-1: pantalla Finanzas — lectura/renderizado del
+       presupuesto salarial, módulo enfocado y separado de game.js (que solo
+       hace la navegación/ciclo de vida). Depende de SquadBudgetService.js/
+       Money.js, ya cargados arriba. -->
+  <script src="src/ui/FinanceScreen.js"></script>
   <!-- WORLD-CORE-1 (DESIGN.md, "World Architecture") — mundo canónico de la
        carrera (GameWorld), sus registros, la fábrica que instala paquetes
        de contenido y los dos paquetes reales (world-core + spain). Cargan

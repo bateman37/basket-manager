@@ -445,7 +445,10 @@ check('8. un fingerprint manipulado se rechaza ANTES de tocar ninguna entidad', 
 // ===========================================================================
 check('9. schemaVersion futura y content pack de versión distinta se rechazan explícitos', () => {
   const futureBase = wrapAsCareerSave(envelopeA, { slotId: 'manual-1', revision: 1, metadata: {} });
-  futureBase.schemaVersion = 2;
+  // SQUAD-BUDGET-1 elevó SUPPORTED_SCHEMA_VERSION a 2 (v1 -> v2 es ahora una
+  // migración real, no un rechazo) — "futura" aquí debe superar la versión
+  // soportada actual, así que se usa 3.
+  futureBase.schemaVersion = 3;
   const { fingerprint: _drop, ...futureWithoutFingerprint } = futureBase;
   const futureSchema = { ...futureWithoutFingerprint, fingerprint: CareerPersistenceBoundary.computeFingerprint(futureWithoutFingerprint) };
   assert.throws(() => hydrateFrom(futureSchema), /versión de guardado más reciente/i);

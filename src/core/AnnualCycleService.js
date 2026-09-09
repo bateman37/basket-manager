@@ -52,6 +52,7 @@
   const RightOfFirstRefusalModule = isNode ? require('./RightOfFirstRefusalService.js') : global.BasketManager;
   const MarketServiceModule = isNode ? require('./MarketService.js') : global.BasketManager;
   const PlayerDevelopmentModule = isNode ? require('./PlayerDevelopment.js') : global.BasketManager;
+  const SquadBudgetServiceModule = isNode ? require('./SquadBudgetService.js') : global.BasketManager;
 
   function LD() { return LocalDateModule.LocalDate; }
   function CareerAge() { return CareerAgeModule.CareerAge; }
@@ -67,6 +68,7 @@
   function Planner() { return CpuRosterPlannerModule.CpuRosterPlanner; }
   function Clearinghouse() { return MarketClearinghouseModule.MarketClearinghouse; }
   function LegalitySvc() { return RosterLegalityModule.RosterLegalityService; }
+  function SquadBudgetSvc() { return SquadBudgetServiceModule.SquadBudgetService; }
   function RegistrationSeeder() { return RegistrationSeederModule.RegistrationSeeder; }
   function RegSvc() { return RegistrationServiceModule.RegistrationService; }
   function RofrSvc() { return RightOfFirstRefusalModule.RightOfFirstRefusalService; }
@@ -207,7 +209,7 @@
   // --- 3.1 snapshot-frozen: expedientes de club + nómina de apertura ----
   function freezeSnapshot(params) {
     const {
-      annualCycleRegistry, cycle, teams, contractRegistry, date, targetSeasonKey,
+      annualCycleRegistry, cycle, teams, contractRegistry, date, targetSeasonKey, squadBudgetRegistry,
     } = params;
     requirePhase(cycle, 'competitions-complete');
     const iso = toIso(date);
@@ -260,9 +262,38 @@
         date: iso,
         data: { amountMinor: payroll.amountMinor, seasonKey: cycle.fromSeasonKey },
       });
+      // SQUAD-BUDGET-1: se congela AQUÍ, exactamente una vez, la asignación
+      // salarial CANÓNICA de la temporada que se ABRE (`targetSeasonKey`) a
+      // partir de la política de compatibilidad del ciclo y de la
+      // referencia de nómina de apertura recién congelada — nunca se
+      // recalcula en cada consulta posterior (`ensureOpeningAllocation()`
+      // es idempotente: una segunda llamada para el mismo club+temporada no
+      // hace nada). Sin `squadBudgetRegistry` (llamador antiguo que no lo
+      // aporta), este bloque no hace nada — comportamiento idéntico al de
+      // antes de esta entrega.
+      if (squadBudgetRegistry && targetSeasonKey) {
+        const compat = SquadBudgetSvc().computeCycleCompatibilityAmount({
+          team, openingPayrollReferenceMinor: payroll.amountMinor, currency: payroll.currency,
+        });
+        SquadBudgetSvc().ensureOpeningAllocation({
+          registry: squadBudgetRegistry,
+          clubId: team.clubId,
+          seasonKey: targetSeasonKey,
+          currency: compat.currency,
+          effectiveDate: iso,
+          amountMinor: compat.amountMinor,
+          policyVersion: compat.policyVersion,
+          basisAmountMinor: compat.basisAmountMinor,
+          multiplier: compat.multiplier,
+          revisionKind: 'season-opening-cycle-policy',
+          decisionAuthority: 'board-system-seed',
+          calculatedAtGameDate: iso,
+          note: `Apertura de ${targetSeasonKey}: estimación de compatibilidad a partir de la nómina de apertura `
+            + `congelada de ${cycle.fromSeasonKey}.`,
+        });
+      }
       created.push(clubCase);
     });
-    void targetSeasonKey;
     enterPhase(cycle, 'snapshot-frozen', iso, { clubCases: created.length });
     return { clubCases: created };
   }
@@ -317,6 +348,7 @@
   function reviewLoansAndOptions(params) {
     const {
       annualCycleRegistry, cycle, teams, contractRegistry, playerRegistry, date, targetSeasonKey, config, userClubId,
+      squadBudgetRegistry,
     } = params;
     requirePhase(cycle, 'season-history-closed');
     const iso = toIso(date);
@@ -355,13 +387,25 @@
               const addedCostMinor = decision.compensationSeasons
                 .reduce((sum, season) => sum + (season.guaranteedBaseSalaryMinor || 0), 0);
               const clubCase = annualCycleRegistry.clubCaseFor(cycle.id, team.clubId);
-              const budgetLimit = clubCase && clubCase.openingPayrollReference
-                ? clubCase.openingPayrollReference.amountMinor : 0;
               const committed = ContractSvc().guaranteedPayrollForClub(contractRegistry, team.clubId, targetSeasonKey).amountMinor;
+              // SQUAD-BUDGET-1: con registro CANÓNICO disponible, la
+              // disponibilidad usa la MISMA asignación ya congelada por
+              // `freezeSnapshot()` para `targetSeasonKey` — nunca una
+              // tercera fórmula distinta de la de `CpuRosterPlanner`. Sin
+              // registro (llamador antiguo), se conserva EXACTAMENTE el
+              // cálculo heurístico previo.
+              const canonicalAllocation = squadBudgetRegistry
+                ? squadBudgetRegistry.effectiveAllocationFor(team.clubId, targetSeasonKey, 'EUR', iso) : null;
+              const budgetAvailableMinor = canonicalAllocation
+                ? Math.max(0, canonicalAllocation.amountMinor - committed)
+                : Math.max(0, Math.round(
+                  (clubCase && clubCase.openingPayrollReference ? clubCase.openingPayrollReference.amountMinor : 0)
+                  * CC().BUDGET.openingPayrollMultiplierMin,
+                ) - committed);
               const cpuChoice = RenewalSvc().decideOptionForCpu({
                 decision,
                 qualityIndex: Math.min(1, PD().computeTmbRating(player, config) / 200),
-                budgetAvailableMinor: Math.max(0, Math.round(budgetLimit * CC().BUDGET.openingPayrollMultiplierMin) - committed),
+                budgetAvailableMinor,
                 addedSeasonCostMinor: addedCostMinor,
               });
               if (!cpuChoice.exercise) {
@@ -1012,6 +1056,7 @@
       annualCycleRegistry, academyRegistry, cycle, teams, playerRegistry, contractRegistry, registrationRegistry,
       marketRegistry, agentRegistry, transferRegistry, loanRegistry, date, targetSeasonKey, config, careerSeed,
       userClubId, lineup, calibration, operationalContext, roundIndex, includeFreeAgency, userProposals,
+      squadBudgetRegistry,
     } = params;
     const iso = toIso(date);
     const snapshot = Planner().buildSnapshot({
@@ -1027,6 +1072,7 @@
       seasonKey: targetSeasonKey,
       config,
       cycle,
+      squadBudgetRegistry,
     });
     const resolvedByCompetitionId = {};
     new Set(snapshot.clubs.map((club) => club.competitionId)).forEach((competitionId) => {

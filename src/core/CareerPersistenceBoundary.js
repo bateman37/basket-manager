@@ -120,6 +120,22 @@
         rebuildStrategy: 'Vacío en la partida española por defecto (NATIONAL-TEAMS-1) — proyectado igual que cualquier otra colección durable, nunca omitido.',
       },
       // -----------------------------------------------------------------
+      // SQUAD-BUDGET-1 — presupuesto salarial de plantilla: cadena de
+      // asignaciones/revisiones por club+temporada+moneda. DURABLE (una
+      // asignación congelada no es reconstruible sin pérdida desde el
+      // payroll actual, que puede haber cambiado desde que se congeló) —
+      // `CareerHydrationService` reconstruye por completo desde
+      // `SquadBudgetRegistry.exportState()`/`restoreState()`, y migra un
+      // guardado v1 (sin esta colección) construyendo asignaciones de
+      // apertura de compatibilidad desde los contratos/reservas/fecha ya
+      // restaurados (ver `docs/architecture/squad-budget.md`).
+      // -----------------------------------------------------------------
+      {
+        key: 'squadBudget', owner: 'SquadBudgetRegistry', classification: 'durable',
+        identityKeys: ['id'], dependsOn: ['contracts', 'worldRegistries'],
+        rebuildStrategy: 'Cadena de SquadBudgetAllocation por club+temporada+moneda vía exportState()/restoreState() — un guardado v1 sin esta colección se migra construyendo asignaciones de apertura de compatibilidad (provenance "migration-backfill-v1"), nunca recalculando en directo.',
+      },
+      // -----------------------------------------------------------------
       // SAVE-LOAD-1 — colecciones que WORLD-HARDEN-1 dejó fuera de la
       // sonda (auditoría de la sección 5 del prompt de SAVE-LOAD-1): el
       // estado institucional/táctico/de entrenamiento de cada `Team`
@@ -366,6 +382,7 @@
       annualCycle: () => projectViaSnapshot(regs.annualCycleRegistry),
       academy: () => projectViaSnapshot(regs.academyRegistry),
       nationalTeams: () => projectViaSnapshot(regs.nationalTeamRegistry),
+      squadBudget: () => projectViaSnapshot(regs.squadBudgetRegistry),
       teams: () => projectTeams(runtime),
       competitionRuntime: () => projectCompetitionRuntime(runtime),
       uiState: () => projectUiState(runtime),
@@ -490,6 +507,7 @@
         annualCycle: collections.annualCycle,
         academy: collections.academy,
         nationalTeams: collections.nationalTeams,
+        squadBudget: collections.squadBudget,
         teams: collections.teams,
         competitionRuntime: collections.competitionRuntime,
         uiState: collections.uiState,
