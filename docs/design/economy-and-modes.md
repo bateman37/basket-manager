@@ -43,18 +43,24 @@ futura.
 
 _Migrado de `DESIGN.md` (líneas 10672-10696 en el commit base `83b85d1`). Contenido preservado tal cual; ver `docs/reference/LEGACY_MAP.md` para la correspondencia completa con la numeración original._
 
-**Corrección de rol vigente (SQUAD-BUDGET-1)**: la sección 8 de arriba
-describía un único rol fusionado presidente+entrenador con autoridad total
-sobre finanzas/presupuesto — ese planteamiento queda **sustituido**. El rol
-jugable ACTUAL es un **manager deportivo completo** (táctica, plantilla,
-fichajes, cesiones, traspasos, contratos y renovaciones) que opera **dentro
-de los recursos que le asigna la junta** — el manager no es todavía el
-presidente/propietario, y "Finanzas y presupuesto" de la sección 8 significa
-hoy **consultar y ejecutar dentro del** presupuesto salarial ya asignado
-(`docs/architecture/squad-budget.md`), no fijarlo ni ampliarlo. Un futuro
-modo combinado dará al mismo usuario también las decisiones de junta/
-propiedad (fijar presupuestos, aprobar peticiones, objetivos financieros) —
-ver la corrección de la sección 11 más abajo.
+**Corrección de rol vigente (SQUAD-BUDGET-1, ampliada por
+ECONOMY-BOARD-1)**: la sección 8 de arriba describía un único rol
+fusionado presidente+entrenador con autoridad total sobre finanzas/
+presupuesto — ese planteamiento queda **sustituido**. El rol jugable
+ACTUAL es un **manager deportivo completo** (táctica, plantilla,
+fichajes, cesiones, traspasos, contratos y renovaciones) que opera
+**dentro de los recursos que le asigna la junta** — el manager no es
+todavía el presidente/propietario, y "Finanzas y presupuesto" de la
+sección 8 significa hoy **consultar, ejecutar dentro del, y PEDIR
+ampliación del** presupuesto salarial ya asignado
+(`docs/architecture/squad-budget.md`,
+`docs/architecture/board-budget-requests.md`) — nunca fijarlo
+unilateralmente ni fijar el resto del presupuesto del club (fijar
+sponsors/precios/deuda/objetivos financieros sigue siendo autoridad de
+junta, ver `docs/architecture/club-finance.md`). Un futuro modo combinado
+dará al mismo usuario también las decisiones de junta/propiedad (fijar
+presupuestos, resolver peticiones, objetivos financieros) — ver la
+corrección de la sección 11 más abajo.
 
 ## 11. Modo Manager (VIGENTE, no futuro) — corrección de SQUAD-BUDGET-1
 
@@ -67,9 +73,11 @@ construir, sobre el motor ya existente, añadiendo pantallas de junta/
 propiedad en vez de duplicar lógica — nunca al revés. Ambos modos
 compartirán la MISMA economía, calendario, persistencia y reglas; solo
 cambia la autoridad de decisión (quién puede fijar/revisar el presupuesto
-salarial, por ejemplo). Ver `docs/architecture/squad-budget.md` para la
-costura de autoridad ya dejada explícita en el presupuesto salarial
-(`decisionAuthority`).
+salarial o resolver una petición de ampliación, por ejemplo). Ver
+`docs/architecture/squad-budget.md` y `docs/architecture/
+board-budget-requests.md` para la costura de autoridad ya dejada
+explícita (`decisionAuthority: 'board-system'` para toda decisión de
+junta resuelta por el sistema, distinta de `board-manual`).
 
 ## 12. Plataforma
 

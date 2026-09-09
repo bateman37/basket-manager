@@ -36,20 +36,37 @@
   // sin UI todavía que la dispare — ver docs/architecture/squad-budget.md);
   // `migration-backfill` es la reconstruida al migrar un guardado v1 sin
   // esta colección.
+  // ECONOMY-BOARD-1: dos revisiones nuevas — `forward-board-allocation`
+  // (traslado sin crecimiento de la temporada anterior cuando el horizonte
+  // de planificación financiera necesita una temporada futura sin límite
+  // propio, sección 5.4) y `season-opening-board-review` (revisión
+  // explícita de la junta al abrir una temporada, cuando cambia el límite
+  // ya trasladado). `board-revision` ahora SÍ tiene un flujo jugable real
+  // (aprobación total/parcial de una petición de ampliación, ver
+  // `docs/architecture/board-budget-requests.md`) — antes de esta entrega
+  // era solo un mecanismo de prueba manual.
   const REVISION_KINDS = Object.freeze([
     'opening-allocation',
     'season-opening-cycle-policy',
     'board-revision',
     'migration-backfill',
+    'forward-board-allocation',
+    'season-opening-board-review',
   ]);
 
-  // Quién autorizó la cifra — nunca implica que exista ya un sistema de
-  // peticiones jugables (eso es el follow-up documentado, ver §4.3 del
-  // prompt / docs/architecture/squad-budget.md).
+  // Quién autorizó la cifra. ECONOMY-BOARD-1 añade `board-system`: una
+  // decisión de junta resuelta por el SISTEMA (traslado sin crecimiento,
+  // aprobación/rechazo automático de una petición) — deliberadamente
+  // distinta de `board-manual` (herramienta/sesión manual) y de
+  // `board-system-seed` (congelación de apertura de compatibilidad). Esta
+  // es la costura de autoridad explícita del prompt (sección 4.1): un
+  // futuro modo manager+junta solo necesita cambiar QUIÉN puede invocar el
+  // comando, nunca esta enumeración ni el cálculo.
   const DECISION_AUTHORITIES = Object.freeze([
     'board-system-seed', // compatibilidad congelada al arrancar la carrera o al abrir temporada
     'board-manual', // revisión explícita registrada por una sesión/herramienta (sin UI jugable todavía)
     'migration', // reconstruida al migrar un guardado antiguo
+    'board-system', // decisión de junta resuelta por el sistema (traslado de horizonte, resolución de petición)
   ]);
 
   function normalizeProvenance(provenance) {

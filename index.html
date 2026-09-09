@@ -68,6 +68,7 @@
       <button class="gm-nav__btn" data-screen="market" type="button">Mercado</button>
       <button class="gm-nav__btn" data-screen="cycle" type="button">Planificación</button>
       <button class="gm-nav__btn" data-screen="finance" type="button">Finanzas</button>
+      <button class="gm-nav__btn" data-screen="board" type="button">Directiva</button>
       <button class="gm-nav__btn" data-screen="agenda" type="button">Agenda</button>
       <button class="gm-nav__btn" data-screen="news" type="button">Noticias</button>
       <button class="gm-nav__btn" data-screen="calendar" type="button">Calendario</button>
@@ -154,6 +155,14 @@
          salarial deportivo ya asignado por la junta. -->
     <section id="gm-screen-finance" class="gm-screen">
       <div id="gm-finance"></div>
+    </section>
+
+    <!-- ECONOMY-BOARD-1 (docs/architecture/board-budget-requests.md):
+         manager/tenure, política de junta y confianza — pantalla
+         independiente, solo lectura salvo el enlace al formulario de
+         Finanzas. -->
+    <section id="gm-screen-board" class="gm-screen">
+      <div id="gm-board"></div>
     </section>
 
     <section id="gm-screen-agenda" class="gm-screen">
@@ -558,6 +567,25 @@
   <script src="src/core/SquadBudgetRegistry.js"></script>
   <script src="src/core/SquadBudgetService.js"></script>
 
+  <!-- ECONOMY-BOARD-1 (docs/architecture/club-finance.md +
+       board-budget-requests.md): economía real del club (plan/tesorería/
+       impagos/proyección), manager/junta (empleo/confianza/estilo fiscal)
+       y peticiones de ampliación de presupuesto. Carga después de
+       SquadBudgetService.js (ancla salarial) y de TransferRegistry/
+       Contract.js (ya cargados arriba, obligaciones/nómina reales). -->
+  <script src="src/entities/ClubFinance.js"></script>
+  <script src="src/core/ClubFinancePolicy.js"></script>
+  <script src="src/core/ClubFinanceRegistry.js"></script>
+  <script src="src/core/ClubFinanceService.js"></script>
+  <script src="src/core/FinancialCapacityService.js"></script>
+  <script src="src/entities/ManagerBoard.js"></script>
+  <script src="src/core/ManagerBoardRegistry.js"></script>
+  <script src="src/core/BoardConfidenceService.js"></script>
+  <script src="src/core/ManagerEmploymentService.js"></script>
+  <script src="src/entities/BoardBudgetRequest.js"></script>
+  <script src="src/core/BoardBudgetRequestRegistry.js"></script>
+  <script src="src/core/BoardBudgetRequestService.js"></script>
+
   <!-- CYCLE-1 (DESIGN.md 9.22): ciclo anual de plantilla — expiración y
        renovación de contratos, retirada, cantera con ciclo de vida, mercado
        de verano de la CPU, legalidad de plantilla y transición de temporada.
@@ -603,6 +631,10 @@
        hace la navegación/ciclo de vida). Depende de SquadBudgetService.js/
        Money.js, ya cargados arriba. -->
   <script src="src/ui/FinanceScreen.js"></script>
+  <!-- ECONOMY-BOARD-1: pantalla Directiva — lectura/renderizado de
+       manager/junta/confianza, módulo enfocado y separado de game.js.
+       Depende de BoardConfidenceService.js/Money.js, ya cargados arriba. -->
+  <script src="src/ui/DirectivaScreen.js"></script>
   <!-- WORLD-CORE-1 (DESIGN.md, "World Architecture") — mundo canónico de la
        carrera (GameWorld), sus registros, la fábrica que instala paquetes
        de contenido y los dos paquetes reales (world-core + spain). Cargan

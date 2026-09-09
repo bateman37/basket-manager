@@ -1,12 +1,12 @@
 # STATUS — Estado actual del proyecto
 
 Fotografía del presente, no un resumen de sesiones. Fecha y commit
-contrastados: **2026-09-09**, `origin/main` en `1814fe4` (PR #59,
-`SAVE-LOAD-1`, ya FUSIONADA) + `SIM-CAL-1` (avance cooperativo y cancelable
-de "Continuar") + `SQUAD-BUDGET-1` (presupuesto salarial de plantilla),
-ambas completadas en rama `claude/modest-gauss-ab8bat` (reiniciada desde
-`main`, sin fusionar todavía). Si `origin/main` ha avanzado desde entonces,
-esta foto puede estar desactualizada — compruébalo antes de asumirla.
+contrastados: **2026-09-09**, `origin/main` en `9c77d0e` (PR #61,
+`SQUAD-BUDGET-1`, ya FUSIONADA) + `ECONOMY-BOARD-1` (economía real del
+club, manager/junta y peticiones de ampliación de presupuesto),
+completada en rama `claude/modest-gauss-ab8bat` (reiniciada desde `main`,
+sin fusionar todavía). Si `origin/main` ha avanzado desde entonces, esta
+foto puede estar desactualizada — compruébalo antes de asumirla.
 
 ## Arquitectura y contenido realmente disponibles
 
@@ -55,10 +55,23 @@ esta foto puede estar desactualizada — compruébalo antes de asumirla.
   ATÓMICAMENTE con detalle estructurado de déficit cuando excede el
   disponible. Pantalla **Finanzas** nueva, solo lectura. Persistencia:
   colección durable `squadBudget`, `schemaVersion` 1→2 con migración real.
-  Ver `docs/architecture/squad-budget.md` y `docs/epics/SQUAD-BUDGET-1.md`
-  — pendiente explícito: peticiones jugables de ampliación de presupuesto
-  y el resto de la economía real del club (caja/ingresos/gastos), no
-  diseñados en esta entrega.
+  Ver `docs/architecture/squad-budget.md` y `docs/epics/SQUAD-BUDGET-1.md`.
+- **Implementado (ECONOMY-BOARD-1)**: economía real SIMULADA del club
+  (plan financiero anual, tesorería derivada de un ledger de postings,
+  calendario de cobros/pagos, impagos durables con reintento automático,
+  proyección a 3 temporadas, capacidad financiera dura), manager humano
+  con empleo/antigüedad y junta con confianza dinámica (3 dimensiones +
+  estilo fiscal simulado por club), y peticiones jugables de ampliación
+  de presupuesto salarial (desde Finanzas o desde una oferta de mercado
+  bloqueada, resueltas por el calendario mundial 1-3 días después con
+  aprobación total/parcial/rechazo deterministas). Nuevas pantallas
+  Directiva y Finanzas ampliada. Persistencia: `schemaVersion` 2→3 con
+  migración real de v1/v2. Ver `docs/architecture/club-finance.md`,
+  `docs/architecture/board-budget-requests.md` y
+  `docs/epics/ECONOMY-BOARD-1.md` — pendiente explícito: modo presidente/
+  propietario jugable, inyecciones de capital/deuda, sanciones por
+  impago, ticket pricing/patrocinio negociable y presupuesto de
+  operaciones/traspasos separado del salarial.
 - **Diseñado pero NO implementado**: competición europea real, Supercopa,
   transfer internacional/Letter of Clearance (EUROPE-1, sin fecha),
   cuerpo técnico como entidad propia, categorías inferiores reales/club
@@ -66,7 +79,9 @@ esta foto puede estar desactualizada — compruébalo antes de asumirla.
 
 ## Últimas entregas relevantes
 
-SQUAD-BUDGET-1 (presupuesto salarial de plantilla) → SIM-CAL-1 (avance
+ECONOMY-BOARD-1 (economía real del club + manager/junta + peticiones de
+ampliación de presupuesto) → SQUAD-BUDGET-1 (presupuesto salarial de
+plantilla) → SIM-CAL-1 (avance
 cooperativo y cancelable de "Continuar") → SAVE-LOAD-1
 (persistencia real de partidas) → REPO-HARDEN-1 (saneamiento
 técnico) → WORLD-CLEANUP-1 (retirada final de `Team.division`/
@@ -159,6 +174,12 @@ Epic es solo documental):
 
 ## Comprobaciones humanas pendientes
 
+- Checklist manual completa de `docs/manual/ECONOMY_BOARD_ACCEPTANCE.md`
+  (ECONOMY-BOARD-1, navegador real, Dennis) — pantallas Finanzas/Directiva,
+  petición de ampliación desde Finanzas y desde Mercado bloqueado, impago/
+  liquidación visibles como noticia, cierre de temporada rueda el
+  horizonte financiero, guardado/carga v3 y migración de un guardado
+  anterior, anchura móvil.
 - Checklist manual completa de `docs/manual/WORLD_ARCHITECTURE_ACCEPTANCE.md`
   (navegador real, Dennis).
 - Checklist manual completa de `docs/manual/SAVE_LOAD_ACCEPTANCE.md`

@@ -46,7 +46,12 @@
   // MARKET-1 añade 'market' — solo hechos YA OCURRIDOS y apropiados para
   // el usuario (aceptación/rechazo/expiración YA resueltos); una oferta
   // privada de otro club nunca se filtra al feed (sección 15.3).
-  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise', 'medical', 'career', 'market'];
+  // ECONOMY-BOARD-1 (sección 5.7/8.4 del prompt): 'finance' (impago nuevo/
+  // liquidado del club controlado) y 'board' (respuesta resuelta de una
+  // petición de ampliación de presupuesto) — ambas fuentes NUNCA paran
+  // "Continuar" (mismo criterio que transfer-event/loan-event), el aviso
+  // al usuario llega SOLO por esta noticia.
+  const NEWS_CATEGORIES = ['result', 'performance', 'streak', 'standings', 'competition', 'tactical', 'surprise', 'medical', 'career', 'market', 'finance', 'board'];
 
   let eventIdCounter = 0;
   function nextEventId(prefix) {
@@ -650,6 +655,66 @@
     });
   }
 
+  // ------------------------------------------------------------------
+  // ECONOMY-BOARD-1 — noticias de economía/junta. Igual que
+  // `buildMarketNewsEvent`: derivan de un hecho YA resuelto por
+  // `ClubFinanceService`/`BoardBudgetRequestService` (impago/liquidación/
+  // decisión de junta), nunca inventan un dato aquí.
+  // ------------------------------------------------------------------
+  function buildFinanceOverdueNewsEvent(params) {
+    const {
+      dateTime, team, categoryLabel, amountLabel,
+    } = params;
+    return makeEvent({
+      id: nextEventId('news-finance'),
+      type: 'news',
+      dateTime,
+      title: `Impago en ${team.fullName}: ${categoryLabel}`,
+      relatedTeam: team,
+      newsCategory: 'finance',
+      priority: 'alta',
+      body: `El club no ha podido afrontar un pago obligatorio de ${categoryLabel} (${amountLabel}) — queda registrado `
+        + 'como impago hasta que la tesorería lo permita. Mientras tanto no se puede ampliar el presupuesto salarial.',
+    });
+  }
+
+  function buildFinanceOverdueSettledNewsEvent(params) {
+    const {
+      dateTime, team, categoryLabel, amountLabel,
+    } = params;
+    return makeEvent({
+      id: nextEventId('news-finance'),
+      type: 'news',
+      dateTime,
+      title: `${team.fullName} liquida un impago pendiente`,
+      relatedTeam: team,
+      newsCategory: 'finance',
+      priority: 'media',
+      body: `${categoryLabel} (${amountLabel}) queda liquidado con la tesorería ya disponible.`,
+    });
+  }
+
+  function buildBoardRequestResolvedNewsEvent(params) {
+    const {
+      dateTime, team, outcome, explanationEs,
+    } = params;
+    const titleByOutcome = {
+      approved: `La junta aprueba la ampliación de presupuesto de ${team.fullName}`,
+      'partially-approved': `La junta aprueba parcialmente la ampliación de ${team.fullName}`,
+      rejected: `La junta rechaza la ampliación de presupuesto de ${team.fullName}`,
+    };
+    return makeEvent({
+      id: nextEventId('news-board'),
+      type: 'news',
+      dateTime,
+      title: titleByOutcome[outcome] || `Decisión de junta en ${team.fullName}`,
+      relatedTeam: team,
+      newsCategory: 'board',
+      priority: outcome === 'rejected' ? 'media' : 'alta',
+      body: explanationEs,
+    });
+  }
+
   const exportsObj = {
     EVENT_TYPES,
     RESERVED_FUTURE_EVENT_TYPES,
@@ -676,6 +741,9 @@
     buildPersonalBestNewsEvent,
     buildMarketAgendaEvent,
     buildMarketNewsEvent,
+    buildFinanceOverdueNewsEvent,
+    buildFinanceOverdueSettledNewsEvent,
+    buildBoardRequestResolvedNewsEvent,
     ensureEventIdCounterAtLeast,
   };
 

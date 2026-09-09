@@ -136,6 +136,31 @@
         rebuildStrategy: 'Cadena de SquadBudgetAllocation por club+temporada+moneda vía exportState()/restoreState() — un guardado v1 sin esta colección se migra construyendo asignaciones de apertura de compatibilidad (provenance "migration-backfill-v1"), nunca recalculando en directo.',
       },
       // -----------------------------------------------------------------
+      // ECONOMY-BOARD-1 (schemaVersion 2 -> 3) — economía real del club,
+      // manager/junta y peticiones de ampliación de presupuesto. Las tres
+      // son DURABLE: un plan financiero, una asignación forward, un
+      // posting/impago o una petición ya resuelta no son reconstruibles sin
+      // pérdida desde otro estado ya vivo. Un guardado v1/v2 (sin estas
+      // colecciones) se migra en `CareerHydrationService` inicializando la
+      // economía en la fecha REAL de la carrera restaurada — nunca
+      // retroactivamente (ver `docs/architecture/club-finance.md`).
+      // -----------------------------------------------------------------
+      {
+        key: 'clubFinance', owner: 'ClubFinanceRegistry', classification: 'durable',
+        identityKeys: ['id'], dependsOn: ['squadBudget', 'contracts', 'transfers', 'worldRegistries'],
+        rebuildStrategy: 'Perfiles/planes/items fechados/ledger de postings vía exportState()/restoreState() — una migración v1/v2 construye el perfil+plan+tesorería de apertura en la fecha del guardado, nunca retroactivamente.',
+      },
+      {
+        key: 'managerBoard', owner: 'ManagerBoardRegistry', classification: 'durable',
+        identityKeys: ['id'], dependsOn: ['worldRegistries'],
+        rebuildStrategy: 'Manager/spells de empleo/evaluaciones de temporada/perfiles de política de junta vía exportState()/restoreState() — una migración v1/v2 crea el manager+spell activo desde careerSetup.createdAtGameDate y el club controlado, nunca desde el reloj de sistema.',
+      },
+      {
+        key: 'boardBudgetRequests', owner: 'BoardBudgetRequestRegistry', classification: 'durable',
+        identityKeys: ['id'], dependsOn: ['managerBoard', 'squadBudget'],
+        rebuildStrategy: 'Peticiones de ampliación de presupuesto vía exportState()/restoreState() — una migración v1/v2 no crea ninguna petición histórica (vacío).',
+      },
+      // -----------------------------------------------------------------
       // SAVE-LOAD-1 — colecciones que WORLD-HARDEN-1 dejó fuera de la
       // sonda (auditoría de la sección 5 del prompt de SAVE-LOAD-1): el
       // estado institucional/táctico/de entrenamiento de cada `Team`
@@ -383,6 +408,9 @@
       academy: () => projectViaSnapshot(regs.academyRegistry),
       nationalTeams: () => projectViaSnapshot(regs.nationalTeamRegistry),
       squadBudget: () => projectViaSnapshot(regs.squadBudgetRegistry),
+      clubFinance: () => projectViaSnapshot(regs.clubFinanceRegistry),
+      managerBoard: () => projectViaSnapshot(regs.managerBoardRegistry),
+      boardBudgetRequests: () => projectViaSnapshot(regs.boardBudgetRequestRegistry),
       teams: () => projectTeams(runtime),
       competitionRuntime: () => projectCompetitionRuntime(runtime),
       uiState: () => projectUiState(runtime),
@@ -508,6 +536,9 @@
         academy: collections.academy,
         nationalTeams: collections.nationalTeams,
         squadBudget: collections.squadBudget,
+        clubFinance: collections.clubFinance,
+        managerBoard: collections.managerBoard,
+        boardBudgetRequests: collections.boardBudgetRequests,
         teams: collections.teams,
         competitionRuntime: collections.competitionRuntime,
         uiState: collections.uiState,
