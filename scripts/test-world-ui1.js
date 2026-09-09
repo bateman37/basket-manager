@@ -6,6 +6,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const { CareerSetupSnapshot } = require('../src/entities/CareerSetup.js');
 const CareerSetupService = require('../src/core/CareerSetupService.js');
@@ -323,6 +324,108 @@ check('Auditoría estática: CareerSetup.js/CareerSetupService.js/WorldNavigatio
       assert.ok(!pattern.test(contents), `${relPath} no debe contener el literal ${pattern}`);
     });
   });
+});
+
+// 12. BUG-CAREER-SETUP-BLANK — contratos de navegador (`window.BasketManager.
+// CareerSetupService`/`CompetitionCatalog`) y ciclo de validación de
+// `careerSeed` antes de habilitar "Comenzar carrera".
+
+// Carga, en un contexto `vm` aislado con `window` pero SIN `module`/
+// `require` (equivalente a un `<script>` clásico de navegador), los mismos
+// archivos que `index.html` carga en el mismo orden hasta
+// `CareerSetupService.js` inclusive — la única forma fiel de comprobar el
+// contrato de exportación real que consume `src/ui/game.js` en el
+// navegador, sin depender de la caché de módulos de Node.
+function loadBrowserBasketManager() {
+  const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const allSrcs = [...indexHtml.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
+  const cutIndex = allSrcs.indexOf('src/core/CareerSetupService.js');
+  assert.ok(cutIndex !== -1, 'index.html debe seguir cargando src/core/CareerSetupService.js');
+  const scriptsToLoad = allSrcs.slice(0, cutIndex + 1);
+
+  const sandbox = { window: {}, console };
+  sandbox.window.window = sandbox.window;
+  vm.createContext(sandbox);
+  scriptsToLoad.forEach((relPath) => {
+    const source = fs.readFileSync(path.join(__dirname, '..', relPath), 'utf8');
+    vm.runInContext(source, sandbox, { filename: relPath });
+  });
+  return sandbox.window.BasketManager;
+}
+
+const browserBM = loadBrowserBasketManager();
+
+check('Contexto navegador: CareerSetupService.js publica BasketManager.CareerSetupService con los 6 métodos requeridos por game.js', () => {
+  assert.ok(browserBM && browserBM.CareerSetupService, 'BasketManager.CareerSetupService debe existir');
+  ['buildCatalog', 'buildDefaultDraft', 'validateDraft', 'buildSnapshot', 'buildSimulationProfile', 'buildStartPlan'].forEach((fnName) => {
+    assert.strictEqual(typeof browserBM.CareerSetupService[fnName], 'function', `BasketManager.CareerSetupService.${fnName} debe ser función`);
+  });
+});
+
+check('Contexto navegador: CompetitionCatalog.js publica BasketManager.CompetitionCatalog con COMPETITION_IDS/getCompetitionDefinition', () => {
+  assert.ok(browserBM && browserBM.CompetitionCatalog, 'BasketManager.CompetitionCatalog debe existir');
+  assert.ok(browserBM.CompetitionCatalog.COMPETITION_IDS, 'BasketManager.CompetitionCatalog.COMPETITION_IDS debe existir');
+  assert.strictEqual(typeof browserBM.CompetitionCatalog.getCompetitionDefinition, 'function');
+});
+
+check('Contexto navegador: el namespace de CompetitionCatalog es identidad `===` con los exports planos retenidos, nunca una copia', () => {
+  assert.strictEqual(browserBM.CompetitionCatalog.COMPETITION_IDS, browserBM.COMPETITION_IDS);
+  assert.strictEqual(browserBM.CompetitionCatalog.getCompetitionDefinition, browserBM.getCompetitionDefinition);
+});
+
+check('Contexto navegador: el namespace de CareerSetupService es identidad `===` con los exports planos retenidos, nunca una copia', () => {
+  assert.strictEqual(browserBM.CareerSetupService.buildCatalog, browserBM.buildCatalog);
+  assert.strictEqual(browserBM.CareerSetupService.buildStartPlan, browserBM.buildStartPlan);
+});
+
+check('CommonJS/Node: require(...) de CareerSetupService.js/CompetitionCatalog.js conserva exactamente su forma previa', () => {
+  ['buildCatalog', 'buildDefaultDraft', 'validateDraft', 'buildSnapshot', 'buildSimulationProfile', 'buildStartPlan'].forEach((fnName) => {
+    assert.strictEqual(typeof CareerSetupService[fnName], 'function');
+  });
+  assert.ok(CompetitionCatalog.COMPETITION_IDS);
+  assert.strictEqual(typeof CompetitionCatalog.getCompetitionDefinition, 'function');
+});
+
+check('Ciclo de validación: el borrador por defecto (sin club) es inválido por MISSING_CONTROLLED_CLUB + MISSING_CAREER_SEED', () => {
+  const draft = CareerSetupService.buildDefaultDraft(catalog, { referenceDate: '2026-10-03', careerSeed: null });
+  const { valid, errors } = CareerSetupService.validateDraft(catalog, MANIFESTS_BY_ID, draft);
+  assert.strictEqual(valid, false);
+  assert.ok(errors.some((e) => e.code === 'MISSING_CONTROLLED_CLUB'));
+  assert.ok(errors.some((e) => e.code === 'MISSING_CAREER_SEED'));
+});
+
+check('Ciclo de validación: elegir club y derivar careerSeed = `${teamId}|${seasonStartYear}` (misma fórmula que game.js) vuelve el borrador válido', () => {
+  const draft = CareerSetupService.buildDefaultDraft(catalog, { referenceDate: '2026-10-03', careerSeed: null });
+  draft.controlledClubId = 'club-real-madrid';
+  draft.controlledTeamId = 'team-real-madrid';
+  draft.careerSeed = `${draft.controlledTeamId}|${draft.seasonStartYear}`;
+  const { valid, errors } = CareerSetupService.validateDraft(catalog, MANIFESTS_BY_ID, draft);
+  assert.ok(valid, `debe validar tras elegir club y derivar la semilla: ${JSON.stringify(errors)}`);
+});
+
+check('Ciclo de validación: cambiar de temporada con club ya elegido debe recomputar una careerSeed distinta (nunca queda atada a la temporada anterior)', () => {
+  const draft = CareerSetupService.buildDefaultDraft(catalog, { referenceDate: '2026-10-03', careerSeed: null });
+  draft.controlledClubId = 'club-real-madrid';
+  draft.controlledTeamId = 'team-real-madrid';
+  draft.careerSeed = `${draft.controlledTeamId}|${draft.seasonStartYear}`;
+  const seedForFirstSeason = draft.careerSeed;
+  const otherSeasonStartYear = draft.seasonStartYear + 1;
+  draft.seasonStartYear = otherSeasonStartYear;
+  draft.careerSeed = `${draft.controlledTeamId}|${draft.seasonStartYear}`;
+  assert.notStrictEqual(draft.careerSeed, seedForFirstSeason, 'la semilla debe cambiar al cambiar de temporada');
+  assert.strictEqual(draft.careerSeed, `team-real-madrid|${otherSeasonStartYear}`);
+});
+
+check('Auditoría estática: la selección de club en game.js deriva careerSeed inmediatamente (nunca solo dentro del botón deshabilitado de arranque)', () => {
+  const gameJsPath = path.join(__dirname, '..', 'src', 'ui', 'game.js');
+  const contents = fs.readFileSync(gameJsPath, 'utf8');
+  const clubStepMatch = contents.match(/function renderCareerSetupClubStep[\s\S]*?draft\.controlledTeamId = card\.dataset\.teamId;([\s\S]*?)renderCareerSetupScreen\(\);\s*\}\);/);
+  assert.ok(clubStepMatch, 'debe existir el handler de selección de club en renderCareerSetupClubStep');
+  assert.ok(/draft\.careerSeed = deriveCareerSeed\(/.test(clubStepMatch[1]), 'el handler de selección de club debe derivar careerSeed de inmediato');
+  const seasonStepMatch = contents.match(/function renderCareerSetupWorldStep[\s\S]*?draft\.createdAtGameDate = seasonAnchorIsoDate\(season\.seasonStartYear\);([\s\S]*?)renderCareerSetupScreen\(\);\s*\}\);/);
+  assert.ok(seasonStepMatch, 'debe existir el handler de cambio de temporada en renderCareerSetupWorldStep');
+  assert.ok(/draft\.careerSeed = deriveCareerSeed\(/.test(seasonStepMatch[1]), 'el handler de cambio de temporada debe recomputar careerSeed si ya hay club elegido');
+  assert.ok(!/Date\.now\(\)|Math\.random\(\)/.test(contents.match(/function deriveCareerSeed[\s\S]*?\n\s*\}/)[0]), 'deriveCareerSeed nunca debe usar reloj/azar');
 });
 
 console.log(`\n${passed} OK, ${failed} FAIL`);
