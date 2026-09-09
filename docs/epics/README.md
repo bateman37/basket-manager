@@ -41,6 +41,7 @@ directamente a la que necesitas.
 | 2026-09-08 | `SAVE-LOAD-1` | `docs/epics/SAVE-LOAD-1.md` | `docs/architecture/persistence-boundary.md` |
 | 2026-09-08 | `SIM-CAL-1` | `docs/epics/SIM-CAL-1.md` | `docs/architecture/simulation-advance.md` |
 | 2026-09-09 | `SQUAD-BUDGET-1` | `docs/epics/SQUAD-BUDGET-1.md` | `docs/architecture/squad-budget.md` |
+| 2026-09-09 | `ECONOMY-BOARD-1` | `docs/epics/ECONOMY-BOARD-1.md` | `docs/architecture/club-finance.md`, `docs/architecture/board-budget-requests.md` |
 
 Sesiones sin Epic identificable (agosto 2026, construcción del motor
 antes de que se adoptara la convención de nombrar cada entrega) están en

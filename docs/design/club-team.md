@@ -156,11 +156,19 @@ plantilla (`clubId+seasonKey+currency`, congelado por temporada,
 `SquadBudgetRegistry`/`SquadBudgetService`, ver
 `docs/architecture/squad-budget.md`). Es deliberadamente estrecho: solo
 cubre salario garantizado de jugadores, no caja/ingresos/gastos generales
-del club. Las peticiones jugables de ampliación de presupuesto, la
-confianza de junta dinámica y la comparación rendimiento-vs-expectativa
-mencionadas en esta sección siguen sin implementar — quedan como la
-entrega siguiente requerida (ver "Deuda aplazada" en
-`docs/epics/SQUAD-BUDGET-1.md`).
+del club.
+
+**Nota técnica (ECONOMY-BOARD-1)**: las peticiones jugables de ampliación
+de presupuesto, la confianza de junta dinámica (3 dimensiones: deportiva/
+disciplina financiera/relación-antigüedad) y el mandato/antigüedad del
+manager mencionados en esta sección YA están implementados — ver
+`docs/architecture/board-budget-requests.md`. La "comparación
+rendimiento-vs-expectativa" de esta ficha se resuelve hoy vía
+`SeasonEvaluation` (una por temporada cerrada). Sigue pendiente:
+`financialGoal`/`multiYearPlan` sin fórmula de cálculo estructurada más
+allá del objetivo financiero fijo ya usado por la capacidad financiera
+(`docs/architecture/club-finance.md`), y el modo presidente/propietario
+jugable que fijaría estos objetivos a mano.
 
 #### 6.2.5 Afición y factor cancha
 Variables de afición en la ficha de club:
@@ -205,15 +213,24 @@ no la televisión):
 - Cuerpo técnico — partida ya anotada pero **con importe pendiente de
   definir** cuando se diseñe esa entidad (ver 6.2.7).
 
-**Nota técnica (SQUAD-BUDGET-1)**: de este desglose completo, hoy solo
-existe una implementación REAL y acotada del primer gasto — "Salarios de
-jugadores" como presupuesto salarial de plantilla asignado por la junta
-(ver nota técnica de 6.2.4 y `docs/architecture/squad-budget.md`). El resto
-de ingresos/gastos de esta sección (patrocinio, TV, taquilla, merchandising,
-mantenimiento de instalaciones, cuerpo técnico) sigue siendo diseño sin
-implementar — no hay caja, ingresos ni beneficio reales en el motor
-todavía; la pantalla Finanzas lo declara explícitamente para no
-confundirlo con este desglose conceptual.
+**Nota técnica (SQUAD-BUDGET-1)**: "Salarios de jugadores" como
+presupuesto salarial de plantilla asignado por la junta fue el primer
+gasto con implementación REAL y acotada (ver nota técnica de 6.2.4 y
+`docs/architecture/squad-budget.md`).
+
+**Nota técnica (ECONOMY-BOARD-1)**: el resto de este desglose YA tiene
+una implementación real SIMULADA (`dataSource:
+'simulated-club-finance-v1'`, nunca datos reales verificados) —
+patrocinio principal/secundario, TV/reparto de liga, taquilla y
+merchandising como ingreso planificado y calendario de cobros reales;
+mantenimiento de instalaciones y "cuerpo técnico" (agregado como
+`coachingStaffAggregate`, sin entidad propia todavía, ver 6.2.7) como
+gasto planificado y calendario de pagos reales. Ver
+`docs/architecture/club-finance.md` para el contrato completo (categorías
+exactas, política de reparto, tesorería, impagos, proyección a 3
+temporadas). Sigue sin implementar: precio de entrada/aforo real,
+negociación de patrocinio, inversión en instalaciones y coste salarial
+individual del cuerpo técnico.
 
 #### 6.2.7 Cuerpo técnico
 No existe todavía como entidad propia — de momento el usuario ES el

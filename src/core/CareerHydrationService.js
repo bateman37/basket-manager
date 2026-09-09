@@ -29,6 +29,7 @@
   const isNode = (typeof module !== 'undefined' && module.exports);
   function dep(path) { return isNode ? require(path) : global.BasketManager; }
 
+  const { LocalDate } = dep('../utils/LocalDate.js');
   const { GameWorld } = dep('../entities/World.js');
   const { CareerSetupSnapshot } = dep('../entities/CareerSetup.js');
   const { GeographicArea } = dep('../entities/Geography.js');
@@ -63,20 +64,31 @@
   const SquadBudgetEntities = dep('../entities/SquadBudget.js');
   const { SquadBudgetRegistry } = dep('./SquadBudgetRegistry.js');
   const { SquadBudgetService } = dep('./SquadBudgetService.js');
+  const ClubFinanceEntities = dep('../entities/ClubFinance.js');
+  const { ClubFinanceRegistry } = dep('./ClubFinanceRegistry.js');
+  const { ClubFinanceService } = dep('./ClubFinanceService.js');
+  const ManagerBoardEntities = dep('../entities/ManagerBoard.js');
+  const { ManagerBoardRegistry } = dep('./ManagerBoardRegistry.js');
+  const { ManagerEmploymentService } = dep('./ManagerEmploymentService.js');
+  const { BoardConfidenceService } = dep('./BoardConfidenceService.js');
+  const BoardBudgetRequestEntities = dep('../entities/BoardBudgetRequest.js');
+  const { BoardBudgetRequestRegistry } = dep('./BoardBudgetRequestRegistry.js');
   const { ContentPackLifecycleService } = dep('./ContentPackLifecycleService.js');
-  const { CompetitionEngine } = dep('./CompetitionEngine.js');
+  const { CompetitionEngine, buildEditionId } = dep('./CompetitionEngine.js');
   const { CompetitionSimulationService } = dep('./CompetitionSimulationService.js');
   const { CompetitionScheduleService } = dep('./CompetitionScheduleService.js');
   const { CompetitionScheduleCatalog } = dep('./CompetitionScheduleCatalog.js');
+  const { CompetitionContextService } = dep('./CompetitionContextService.js');
   const Events = dep('./Events.js');
   const { CareerPersistenceBoundary } = dep('./CareerPersistenceBoundary.js');
 
-  // SQUAD-BUDGET-1: v2 añade la colección durable `squadBudget`. v1 sigue
-  // siendo una versión de guardado LEGIBLE (ver `MIGRATABLE_SCHEMA_VERSIONS`
-  // más abajo) — un guardado anterior a esta entrega nunca se vuelve
-  // inservible en silencio.
-  const SUPPORTED_SCHEMA_VERSION = 2;
-  const MIGRATABLE_SCHEMA_VERSIONS = [1];
+  // ECONOMY-BOARD-1: v3 añade las colecciones durables `clubFinance`/
+  // `managerBoard`/`boardBudgetRequests`. v1/v2 siguen siendo versiones de
+  // guardado LEGIBLES (ver `MIGRATABLE_SCHEMA_VERSIONS` más abajo) — un
+  // guardado anterior a esta entrega nunca se vuelve inservible en
+  // silencio.
+  const SUPPORTED_SCHEMA_VERSION = 3;
+  const MIGRATABLE_SCHEMA_VERSIONS = [1, 2];
   const SUPPORTED_FORMAT = 'basket-manager-career-save';
 
   function fail(reason, detail) {
@@ -326,6 +338,13 @@
     // con una fecha inventada.
     const squadBudgetRegistry = new SquadBudgetRegistry();
 
+    // ECONOMY-BOARD-1: mismo criterio — VACÍOS aquí, rellenados más abajo
+    // una vez reconstruidos calendario/careerSetup/usuario (la migración
+    // v1/v2 necesita la fecha real del calendario y el club controlado).
+    const clubFinanceRegistry = new ClubFinanceRegistry();
+    const managerBoardRegistry = new ManagerBoardRegistry();
+    const boardBudgetRequestRegistry = new BoardBudgetRequestRegistry();
+
     world.attachDomainRegistries({
       contractRegistry, registrationRegistry, agentRegistry, marketRegistry,
       transferRegistry, loanRegistry, annualCycleRegistry, academyRegistry, nationalTeamRegistry, squadBudgetRegistry,
@@ -405,6 +424,100 @@
       fail('el equipo del usuario del guardado no existe en el mundo reconstruido', userTeamId);
     }
 
+    // --- ECONOMY-BOARD-1: economía real del club --------------------------
+    // v3: restauración sin pérdida. v1/v2 (migración, sección 11 del
+    // prompt): se inicializa la economía EN LA FECHA del guardado — los
+    // contratos/ingresos anteriores quedan como evidencia
+    // "migration-assumed-settled" (implícita en la caja de apertura, nunca
+    // una posting retroactiva) y solo se programan items fechados a partir
+    // de esa fecha (`notBeforeDate`, ver `ClubFinanceService`).
+    if (payload.collections.clubFinance) {
+      clubFinanceRegistry.restoreState(payload.collections.clubFinance, ClubFinanceEntities);
+    } else {
+      const seasonKey = calendar.currentSeasonKey;
+      const isoDate = calendar.currentLocalDate;
+      const clubIds = world.registries.teams.all().map((team) => team.clubId);
+      const archetypes = ClubFinanceService.assignArchetypes(clubIds, world.careerSeed);
+      world.registries.teams.all().forEach((team) => {
+        ClubFinanceService.ensureClubProfile({
+          registry: clubFinanceRegistry,
+          clubId: team.clubId,
+          currency: 'EUR',
+          archetype: archetypes.get(team.clubId),
+          careerSeed: world.careerSeed,
+          calculatedAtGameDate: isoDate,
+        });
+        // Sección 5.4 del prompt: horizonte de 3 temporadas también en la
+        // migración — actual + 2 siguientes, con el ancla trasladada sin
+        // crecimiento para las que todavía no tienen límite propio.
+        [0, 1, 2].forEach((offset) => {
+          const horizonSeasonKey = LocalDate.addSeasons(seasonKey, offset);
+          let expectedHomeGames = 17;
+          try {
+            const competitionId = CompetitionContextService.resolveDomesticCompetitionId(world.registries, team.id, {
+              seasonKey: horizonSeasonKey, operation: 'club-finance-migration',
+            });
+            const edition = world.registries.competitionEditions.get(buildEditionId(competitionId, horizonSeasonKey));
+            if (edition) {
+              expectedHomeGames = Math.max(1, world.registries.competitionEntries.forEdition(edition.id).length - 1);
+            }
+          } catch (e) {
+            // Sin competición doméstica resoluble todavía (club sin Entry en
+            // esta temporada) — se conserva el valor por defecto, nunca falla
+            // la migración completa por esto.
+          }
+          ClubFinanceService.buildSeasonPlan({
+            registry: clubFinanceRegistry,
+            squadBudgetRegistry,
+            clubId: team.clubId,
+            seasonKey: horizonSeasonKey,
+            currency: 'EUR',
+            calculatedAtGameDate: isoDate,
+            expectedHomeGames,
+            isCareerOpening: offset === 0,
+          });
+        });
+      });
+    }
+
+    // --- ECONOMY-BOARD-1: manager/junta -----------------------------------
+    // v3: restauración sin pérdida. v1/v2: crea el manager humano + spell
+    // activo desde `careerSetup.createdAtGameDate` y el club controlado del
+    // guardado (nunca el reloj de sistema) y el perfil de política de junta
+    // por club — nunca peticiones históricas ni evaluaciones de temporada
+    // retroactivas.
+    if (payload.collections.managerBoard) {
+      managerBoardRegistry.restoreState(payload.collections.managerBoard, ManagerBoardEntities);
+    } else {
+      const clubIds = world.registries.teams.all().map((team) => team.clubId);
+      const fiscalStyles = BoardConfidenceService.assignFiscalStyles(clubIds, world.careerSeed);
+      world.registries.teams.all().forEach((team) => {
+        ManagerEmploymentService.ensureBoardPolicyProfile({
+          registry: managerBoardRegistry,
+          clubId: team.clubId,
+          fiscalStyle: fiscalStyles.get(team.clubId),
+          careerSeed: world.careerSeed,
+          calculatedAtGameDate: calendar.currentLocalDate,
+        });
+      });
+      if (userClubId) {
+        const managerStartDate = (careerSetupSnapshot && careerSetupSnapshot.createdAtGameDate) || calendar.currentLocalDate;
+        ManagerEmploymentService.ensureManagerAndActiveSpell({
+          registry: managerBoardRegistry,
+          careerSeed: world.careerSeed,
+          controlledClubId: userClubId,
+          startGameDate: managerStartDate,
+        });
+      }
+    }
+
+    // --- ECONOMY-BOARD-1: peticiones de ampliación de presupuesto ---------
+    // v3: restauración sin pérdida. v1/v2: ninguna petición histórica
+    // (sección 11 del prompt) — el registro queda vacío.
+    if (payload.collections.boardBudgetRequests) {
+      boardBudgetRequestRegistry.restoreState(payload.collections.boardBudgetRequests, BoardBudgetRequestEntities);
+    }
+
     // --- Estado de interfaz no derivable (noticias/agenda/alineación) -----
     const uiState = payload.collections.uiState || {};
     if (Events && typeof Events.ensureEventIdCounterAtLeast === 'function') {
@@ -439,6 +552,9 @@
       academyRegistry,
       nationalTeamRegistry,
       squadBudgetRegistry,
+      clubFinanceRegistry,
+      managerBoardRegistry,
+      boardBudgetRequestRegistry,
       competitionEngine,
       competitionSimulationService: simulationService,
       scheduleService,

@@ -161,6 +161,18 @@
     // creada en `bootstrapSquadBudgetForNewCareer()` y limpiada al volver a
     // selección de equipo, mismo criterio que el resto de registries.
     squadBudgetRegistry: null,
+    // ECONOMY-BOARD-1: registros CANÓNICOS de la economía real del club,
+    // manager/junta y peticiones de ampliación de presupuesto — instancias
+    // EXPLÍCITAS por carrera (nunca singletons), creadas en
+    // `bootstrapClubFinanceAndBoardForNewCareer()` y limpiadas al volver a
+    // selección de equipo, mismo criterio que el resto de registries.
+    clubFinanceRegistry: null,
+    managerBoardRegistry: null,
+    boardBudgetRequestRegistry: null,
+    // Solo distinto de `null` tras cargar un guardado v1/v2 migrado a v3 —
+    // evita que la fuente de calendario programe retroactivamente un mes ya
+    // pasado antes de la fecha de migración (sección 11 del prompt).
+    clubFinanceMigrationFloorDate: null,
     // Agenda de mercado (respuestas de interés, expiración de ofertas, fin
     // de autorización, ventanas de derechos, decisión de igualar...) — no
     // es reconstruible desde otro estado ya vivo (a diferencia de un
@@ -1300,6 +1312,10 @@
     // nómina garantizada ya comprometida (nunca recalculada en directo
     // después de esto).
     bootstrapSquadBudgetForNewCareer();
+    // ECONOMY-BOARD-1: se ejecuta DESPUÉS del presupuesto salarial — el
+    // plan financiero de apertura ancla su nómina salarial en la asignación
+    // ya congelada arriba (nunca la recalcula en directo).
+    bootstrapClubFinanceAndBoardForNewCareer();
     // CYCLE-1 (DESIGN.md 9.22, sección 29 del prompt): se ejecuta AL FINAL
     // del arranque — el ciclo anual orquesta contratos, inscripciones,
     // mercado, traspasos y cesiones, así que necesita los cinco registros
@@ -1553,6 +1569,105 @@
         note: `Apertura de carrera para ${seasonKey}: estimación de compatibilidad a partir de la nómina `
           + 'garantizada ya comprometida.',
       });
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // ECONOMY-BOARD-1 — semilla estable de carrera para la economía real del
+  // club y la junta (arquetipo financiero, estilo fiscal) — mismo criterio
+  // que `buildMarketCareerSeed()`/`buildCycleCareerSeed()`, nunca
+  // `Math.random()`/`Date.now()`.
+  // ---------------------------------------------------------------------
+  function buildFinanceCareerSeed() {
+    return `economy-board-1|${state.userTeamId || 'no-team'}|${state.seasonStartYear}`;
+  }
+
+  // Partidos en casa esperados de la temporada regular de `team` en
+  // `seasonKey` — SOLO para el baseline de taquilla del plan financiero
+  // (sección 5.5: "no hay autoridad de aforo/precio; deriva el baseline del
+  // plan anual y de los partidos en casa programados"). Resuelto SIEMPRE
+  // por Entries reales de la competición doméstica, nunca por división ni
+  // por un número fijo salvo que la competición todavía no sea resoluble
+  // (defensivo, nunca bloquea el bootstrap).
+  function estimateExpectedHomeGamesForTeam(team, seasonKey) {
+    try {
+      const competitionId = domesticCompetitionIdForTeam(team, seasonKey, 'club-finance-plan');
+      const edition = state.world.registries.competitionEditions.get(BM.buildEditionId(competitionId, seasonKey));
+      if (!edition) return 17;
+      const entries = state.world.registries.competitionEntries.forEdition(edition.id);
+      return Math.max(1, entries.length - 1);
+    } catch (e) {
+      return 17;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // ECONOMY-BOARD-1 — economía real del club (finanzas/tesorería) + manager
+  // humano/junta, para los 36 clubes (no solo el del usuario). Se ejecuta
+  // DESPUÉS del presupuesto salarial (ancla su plan en el límite ya
+  // congelado) y de contratos/mercado (necesita nómina/reservas reales).
+  // ---------------------------------------------------------------------
+  function bootstrapClubFinanceAndBoardForNewCareer() {
+    const {
+      ClubFinanceRegistry, ClubFinanceService, ManagerBoardRegistry, ManagerEmploymentService, BoardConfidenceService,
+      BoardBudgetRequestRegistry,
+    } = BM;
+    state.clubFinanceRegistry = new ClubFinanceRegistry();
+    state.managerBoardRegistry = new ManagerBoardRegistry();
+    state.boardBudgetRequestRegistry = new BoardBudgetRequestRegistry();
+
+    const careerSeed = buildFinanceCareerSeed();
+    const isoDate = currentGameIsoDate();
+    const seasonKey = buildCareerSeasonKey();
+    const teams = getAllTeams();
+    const clubIds = teams.map((team) => team.clubId);
+    const archetypes = ClubFinanceService.assignArchetypes(clubIds, careerSeed);
+    const fiscalStyles = BoardConfidenceService.assignFiscalStyles(clubIds, careerSeed);
+
+    teams.forEach((team) => {
+      ClubFinanceService.ensureClubProfile({
+        registry: state.clubFinanceRegistry,
+        clubId: team.clubId,
+        currency: 'EUR',
+        archetype: archetypes.get(team.clubId),
+        careerSeed,
+        calculatedAtGameDate: isoDate,
+      });
+      // Sección 5.4 del prompt: "Build plans for the current season plus
+      // the next two seasons" — desde el arranque, no solo tras el primer
+      // cierre. Las dos temporadas futuras usan el ancla trasladada sin
+      // crecimiento (`resolveSalaryAnchor()`, invocado dentro de
+      // `buildSeasonPlan()`) — nunca la fórmula de compatibilidad en
+      // directo para una temporada dentro del horizonte.
+      [0, 1, 2].forEach((offset) => {
+        const horizonSeasonKey = BM.LocalDate.addSeasons(seasonKey, offset);
+        ClubFinanceService.buildSeasonPlan({
+          registry: state.clubFinanceRegistry,
+          squadBudgetRegistry: state.squadBudgetRegistry,
+          clubId: team.clubId,
+          seasonKey: horizonSeasonKey,
+          currency: 'EUR',
+          calculatedAtGameDate: isoDate,
+          expectedHomeGames: estimateExpectedHomeGamesForTeam(team, horizonSeasonKey),
+          isCareerOpening: offset === 0,
+        });
+      });
+      ManagerEmploymentService.ensureBoardPolicyProfile({
+        registry: state.managerBoardRegistry,
+        clubId: team.clubId,
+        fiscalStyle: fiscalStyles.get(team.clubId),
+        careerSeed,
+        calculatedAtGameDate: isoDate,
+      });
+    });
+
+    // El único manager HUMANO de la carrera — el resto de clubes son CPU y
+    // no tienen empleo/confianza jugable (sección 7.1 del prompt).
+    ManagerEmploymentService.ensureManagerAndActiveSpell({
+      registry: state.managerBoardRegistry,
+      careerSeed,
+      controlledClubId: state.userClubId,
+      startGameDate: isoDate,
     });
   }
 
@@ -2568,6 +2683,206 @@
   }
 
   // ---------------------------------------------------------------------
+  // ECONOMY-BOARD-1 — resolución de confianza/junta/petición, punto ÚNICO
+  // de la interfaz (nunca dominio duplicado en `game.js`, solo orquesta
+  // dependencias YA construidas y llama a los servicios de dominio reales).
+  // ---------------------------------------------------------------------
+  function teamForClubId(clubId) { return getAllTeams().find((team) => team.clubId === clubId) || null; }
+
+  // Standings REALES de la liga doméstica de `team` en `seasonKey` — mismo
+  // patrón que ya usa productivamente `game.js` en otras pantallas
+  // (`BM.buildStageId(competitionId, seasonKey, 'regular-season')`), nunca
+  // `team.division`/texto de UI. `null` si el runner todavía no existe.
+  function resolveDomesticStandingsForTeam(team, seasonKey) {
+    try {
+      const competitionId = domesticCompetitionIdForTeam(team, seasonKey, 'board-confidence');
+      const stageId = BM.buildStageId(competitionId, seasonKey, 'regular-season');
+      const runner = state.competitionEngine.getRunner(stageId);
+      if (!runner) return null;
+      const standings = runner.getStandings();
+      const rankIndex = standings.findIndex((row) => row.participantId === team.id);
+      if (rankIndex === -1) return null;
+      const totalParticipants = standings.length;
+      const played = standings[rankIndex].played;
+      const seasonProgressFraction = totalParticipants > 1 ? Math.min(1, played / ((totalParticipants - 1) * 2)) : 1;
+      return {
+        rank: rankIndex + 1, totalParticipants, seasonProgressFraction, hasOfficialGames: played > 0,
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Snapshot de confianza de junta de un club — usado tanto al enviar como
+  // al resolver una petición (sección 8.1 del prompt: ambos snapshots se
+  // conservan) y por la pantalla Directiva.
+  function buildClubConfidenceSnapshot(clubId, atGameDate) {
+    const { BoardConfidenceService, FinancialCapacityService, ClubFinanceService, SquadBudgetService } = BM;
+    const team = teamForClubId(clubId);
+    const seasonKey = buildCareerSeasonKey();
+    const standingsInfo = team ? resolveDomesticStandingsForTeam(team, seasonKey) : null;
+    const capacity = FinancialCapacityService.evaluateFinancialCapacity({
+      registry: state.clubFinanceRegistry,
+      clubId,
+      currency: 'EUR',
+      currentSeasonKey: seasonKey,
+      transferRegistry: state.transferRegistry,
+      requestedSeasonKeys: [seasonKey],
+    });
+    const seasonProjection = ClubFinanceService.projectSeason({
+      registry: state.clubFinanceRegistry,
+      clubId,
+      seasonKey,
+      currency: 'EUR',
+      openingCashMinor: state.clubFinanceRegistry.treasuryBalance(clubId, 'EUR'),
+      transferRegistry: state.transferRegistry,
+    });
+    const hasBlockingOverdue = capacity.blockingOverdueIds.length > 0;
+    const projectedSeasonResultBp = seasonProjection && seasonProjection.plannedIncomeMinor > 0
+      ? Math.round(((seasonProjection.plannedIncomeMinor - seasonProjection.plannedExpenseMinor) * 10000) / seasonProjection.plannedIncomeMinor)
+      : 0;
+    const minCash = FinancialCapacityService.minimumCashPointForCurrentSeason(state.clubFinanceRegistry, clubId, 'EUR', seasonKey);
+    const belowRequiredReserve = seasonProjection ? minCash < seasonProjection.requiredMonthlyReserveMinor : false;
+    const budgetView = SquadBudgetService.deriveBudgetView({
+      registry: state.squadBudgetRegistry,
+      clubId,
+      seasonKey,
+      currency: 'EUR',
+      atGameDate,
+      contractRegistry: state.contractRegistry,
+      marketRegistry: state.marketRegistry,
+      loanRegistry: state.loanRegistry,
+    });
+    const spell = state.managerBoardRegistry.activeSpellForClub(clubId);
+    const seasonOutcomes = spell
+      ? state.managerBoardRegistry.evaluationsForSpell(spell.id).map((e) => e.sportingOutcome) : [];
+    return BoardConfidenceService.computeAllDimensions({
+      sporting: {
+        hasOfficialGames: standingsInfo ? standingsInfo.hasOfficialGames : false,
+        sportingGoalText: team ? team.board.sportingGoal : null,
+        rank: standingsInfo ? standingsInfo.rank : null,
+        totalParticipants: standingsInfo ? standingsInfo.totalParticipants : null,
+        seasonProgressFraction: standingsInfo ? standingsInfo.seasonProgressFraction : 0,
+        recentFormDeltaRaw: 0,
+      },
+      financialDiscipline: {
+        hasBlockingOverdue,
+        projectedSeasonResultBp,
+        belowRequiredReserve,
+        committedPlusReservedExceedsAllocation: budgetView.overcommittedMinor > 0,
+      },
+      relationship: {
+        completedEmploymentMonths: spell ? spell.completedMonthsAsOf(atGameDate) : 0,
+        seasonOutcomes,
+      },
+    });
+  }
+
+  // Resuelve, en su fecha de vencimiento, una petición de ampliación de
+  // presupuesto — llamada por `board-event` (nunca es parada del usuario).
+  function resolveBoardBudgetRequestDue(request, atGameDate) {
+    const boardPolicy = state.managerBoardRegistry.boardPolicyFor(request.clubId);
+    const confidenceSnapshot = buildClubConfidenceSnapshot(request.clubId, atGameDate);
+    return BM.BoardBudgetRequestService.resolveRequest({
+      registry: state.boardBudgetRequestRegistry,
+      request,
+      squadBudgetRegistry: state.squadBudgetRegistry,
+      clubFinanceRegistry: state.clubFinanceRegistry,
+      transferRegistry: state.transferRegistry,
+      currentSeasonKey: buildCareerSeasonKey(),
+      resolutionConfidenceSnapshot: confidenceSnapshot,
+      boardFiscalStyle: boardPolicy ? boardPolicy.fiscalStyle : 'balanced',
+      atGameDate,
+    });
+  }
+
+  // Elegibilidad de una petición de ampliación de presupuesto — MISMA regla
+  // desde Finanzas y desde una operación de mercado bloqueada (sección
+  // 4.5/8 del prompt): a lo sumo una sin resolver, un cooldown compartido
+  // y el bloqueo por impago obligatorio.
+  function describeBoardRequestEligibility(clubId, atGameDate) {
+    if (!state.boardBudgetRequestRegistry || !state.clubFinanceRegistry) {
+      return { eligible: false, reason: 'La economía de junta todavía no está disponible.' };
+    }
+    if (state.boardBudgetRequestRegistry.hasUnresolvedForClub(clubId)) {
+      return { eligible: false, reason: 'Ya hay una petición de ampliación de presupuesto sin resolver.' };
+    }
+    const cooldown = BM.BoardBudgetRequestService.cooldownStatus({ registry: state.boardBudgetRequestRegistry, clubId, atGameDate });
+    if (cooldown.active) {
+      return { eligible: false, reason: `El cooldown compartido de peticiones sigue activo hasta ${BM.LocalDate.formatEs(cooldown.untilGameDate)}.` };
+    }
+    const blockingOverdueIds = BM.FinancialCapacityService.blockingOverdueIdsForClub(state.clubFinanceRegistry, clubId, 'EUR');
+    if (blockingOverdueIds.length) {
+      return { eligible: false, reason: 'El club tiene impagos obligatorios pendientes — liquídalos antes de pedir más presupuesto.' };
+    }
+    return { eligible: true, reason: null };
+  }
+
+  // Envío real — MISMO comando/registro tanto si viene de una operación de
+  // mercado bloqueada como de la pantalla Finanzas (sección 8.1 del
+  // prompt).
+  function submitBoardBudgetRequestFromShortfalls(clubId, requestedIncreaseBySeasonKey, source, operationSnapshot) {
+    if (!state.managerBoardRegistry) return { ok: false, message: 'No hay manager/junta disponible en esta carrera.' };
+    const spell = state.managerBoardRegistry.activeSpellForClub(clubId);
+    if (!spell) return { ok: false, message: 'No hay manager empleado en este club.' };
+    const seasonKey = buildCareerSeasonKey();
+    const horizonSeasonKeys = [seasonKey, BM.LocalDate.addSeasons(seasonKey, 1), BM.LocalDate.addSeasons(seasonKey, 2)];
+    const isoDate = currentGameIsoDate();
+    const effectiveLimitBySeasonKey = {};
+    Object.keys(requestedIncreaseBySeasonKey).forEach((sk) => {
+      const allocation = state.squadBudgetRegistry.effectiveAllocationFor(clubId, sk, 'EUR', isoDate);
+      effectiveLimitBySeasonKey[sk] = allocation ? allocation.amountMinor : 0;
+    });
+    const confidenceSnapshot = buildClubConfidenceSnapshot(clubId, isoDate);
+    const result = BM.BoardBudgetRequestService.submitRequest({
+      registry: state.boardBudgetRequestRegistry,
+      clubFinanceRegistry: state.clubFinanceRegistry,
+      managerId: spell.managerId,
+      employmentSpellId: spell.id,
+      clubId,
+      source,
+      requestedIncreaseBySeasonKey,
+      currency: 'EUR',
+      operationSnapshot: operationSnapshot || null,
+      submittedGameDate: isoDate,
+      horizonSeasonKeys,
+      effectiveLimitBySeasonKey,
+      submittedConfidenceSnapshot: confidenceSnapshot,
+    });
+    if (result.ok) state.calendarCoordinator.sync();
+    return result;
+  }
+
+  // CTA "Solicitar autorización a la directiva" tras un `shortfalls[]` real
+  // de `validateOfferBeforeSend()` — nunca reserva presupuesto ni persiste
+  // el borrador como oferta viva (sección 9.1 del prompt).
+  function renderBoardRequestCtaAfter(errorEl, ctx) {
+    const existing = errorEl.parentElement ? errorEl.parentElement.querySelector('.gm-board-request-cta') : null;
+    if (existing) existing.remove();
+    if (!ctx.shortfalls || !ctx.shortfalls.length || !errorEl.parentElement) return;
+    const isoDate = currentGameIsoDate();
+    const eligibility = describeBoardRequestEligibility(ctx.clubId, isoDate);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'gm-board-request-cta';
+    if (eligibility.eligible) {
+      wrapper.innerHTML = '<button type="button" class="gm-board-request-btn">Solicitar autorización a la directiva</button>';
+      wrapper.querySelector('button').addEventListener('click', () => {
+        const requestedIncreaseBySeasonKey = {};
+        ctx.shortfalls.forEach((s) => { requestedIncreaseBySeasonKey[s.seasonKey] = s.shortfallMinor; });
+        const result = submitBoardBudgetRequestFromShortfalls(ctx.clubId, requestedIncreaseBySeasonKey, ctx.source, ctx.operationSnapshot);
+        if (result.ok) {
+          renderMarketScreen();
+        } else {
+          errorEl.textContent = result.message || 'No se pudo enviar la petición.';
+        }
+      });
+    } else {
+      wrapper.innerHTML = `<p class="gm-board-request-blocked">${eligibility.reason}</p>`;
+    }
+    errorEl.insertAdjacentElement('afterend', wrapper);
+  }
+
+  // ---------------------------------------------------------------------
   // Fuentes + coordinador de la carrera (dependencias EXPLÍCITAS).
   // ---------------------------------------------------------------------
   function buildWorldCalendarCoordinator() {
@@ -2600,6 +2915,47 @@
     if (state.loanRegistry) {
       sources.push(BM.createLoanEventSource({
         loanRegistry: state.loanRegistry, timeZoneId, resolveReturn: resolveLoanReturn,
+      }));
+    }
+    if (state.clubFinanceRegistry) {
+      sources.push(BM.ClubFinanceService.createClubFinanceEventSource({
+        registry: state.clubFinanceRegistry,
+        listClubIds: () => interactiveCohortTeams().map((team) => team.clubId),
+        contractRegistry: state.contractRegistry,
+        transferRegistry: state.transferRegistry,
+        timeZoneId,
+        notBeforeDate: state.clubFinanceMigrationFloorDate || null,
+        onOverdueCreated: (item) => {
+          if (item.clubId !== state.userClubId) return;
+          const team = teamForClubId(item.clubId);
+          if (!team) return;
+          pushNews(BM.Events.buildFinanceOverdueNewsEvent({
+            dateTime: state.calendar.currentGameDateTime, team, categoryLabel: item.category, amountLabel: BM.Money.format(item.amountMinor, item.currency),
+          }));
+        },
+        onOverdueSettled: (item) => {
+          if (item.clubId !== state.userClubId) return;
+          const team = teamForClubId(item.clubId);
+          if (!team) return;
+          pushNews(BM.Events.buildFinanceOverdueSettledNewsEvent({
+            dateTime: state.calendar.currentGameDateTime, team, categoryLabel: item.category, amountLabel: BM.Money.format(item.amountMinor, item.currency),
+          }));
+        },
+      }));
+    }
+    if (state.boardBudgetRequestRegistry) {
+      sources.push(BM.BoardBudgetRequestService.createBoardEventSource({
+        registry: state.boardBudgetRequestRegistry,
+        timeZoneId,
+        resolveDueRequest: (request, atGameDate) => resolveBoardBudgetRequestDue(request, atGameDate),
+        onResolved: (request) => {
+          if (request.clubId !== state.userClubId) return;
+          const team = teamForClubId(request.clubId);
+          if (!team) return;
+          pushNews(BM.Events.buildBoardRequestResolvedNewsEvent({
+            dateTime: state.calendar.currentGameDateTime, team, outcome: request.outcome, explanationEs: request.explanationEs,
+          }));
+        },
       }));
     }
     return new BM.WorldCalendarCoordinator({
@@ -2675,8 +3031,26 @@
     const { descriptor } = info;
     applyRecoveryForResolvedMatch(info.homeTeam, info.awayTeam, descriptor.result, descriptor.scheduledDate, info);
     pushMatchNewsAfterCommit(info);
+    recordHomeMatchTicketReceiptIfApplicable(info);
     const activationEvents = drainCompetitionActivationEvents();
     publishActivationNews(activationEvents);
+  }
+
+  // ECONOMY-BOARD-1 (sección 5.5 del prompt): un `matchId` genera A LO SUMO
+  // un recibo de taquilla, con el baseline por partido ya fijado en el plan
+  // financiero de la temporada — nunca una segunda aritmética de aforo.
+  function recordHomeMatchTicketReceiptIfApplicable(info) {
+    if (!state.clubFinanceRegistry || !info.homeTeam || !info.homeTeam.clubId) return;
+    const seasonKey = buildCareerSeasonKey();
+    const plan = state.clubFinanceRegistry.effectivePlanFor(info.homeTeam.clubId, seasonKey, 'EUR');
+    if (!plan) return;
+    BM.ClubFinanceService.recordHomeMatchTicketReceipt({
+      registry: state.clubFinanceRegistry,
+      plan,
+      clubId: info.homeTeam.clubId,
+      matchId: info.descriptor.id,
+      atGameDate: BM.LocalDate.fromJsDate(info.descriptor.scheduledDate),
+    });
   }
 
   // Noticias de un partido ya resuelto — se publican SOLO si el partido
@@ -2915,6 +3289,13 @@
     // clubes españoles. WORLD-SIM-1 (BUG-WORLDSIM-06): el ciclo anual solo
     // procesa el cohorte INTERACTIVO — hoy son los mismos 36 equipos.
     const teams = interactiveCohortTeams();
+    // ECONOMY-BOARD-1: capturado ANTES de que `closeSeasonHistory()`
+    // recalcule `board.sportingGoal` para la temporada que EMPIEZA — la
+    // evaluación de temporada del manager compara el resultado de la
+    // temporada que TERMINA contra el objetivo que estaba vigente para
+    // ELLA, nunca contra el ya sobrescrito.
+    const previousSportingGoalByTeamId = new Map(teams.map((team) => [team.id, team.board.sportingGoal]));
+    const previousStandingsByTeamId = new Map(teams.map((team) => [team.id, resolveDomesticStandingsForTeam(team, fromSeasonKey)]));
 
     // Sin evidencia de último partido oficial de CADA club no se abre el
     // ciclo — nunca se inventa una fecha común. Si faltara algún club (una
@@ -3078,6 +3459,59 @@
     // CONTRACT-1: la nómina proyectada de los 36 clubes se recalcula para la
     // temporada que entra, siempre desde el registro contractual.
     refreshAllSalaryProjections(targetSeasonKey);
+
+    // ECONOMY-BOARD-1 (sección 5.4/9.2 del prompt): se rueda el horizonte
+    // financiero UNA vez por apertura real de temporada — construye (de
+    // forma IDEMPOTENTE) los planes de `targetSeasonKey` y las DOS
+    // temporadas siguientes, anclados en la asignación salarial YA
+    // congelada/trasladada de cada una.
+    if (state.clubFinanceRegistry) {
+      teams.forEach((team) => {
+        [0, 1, 2].forEach((offset) => {
+          const horizonSeasonKey = BM.LocalDate.addSeasons(targetSeasonKey, offset);
+          BM.ClubFinanceService.buildSeasonPlan({
+            registry: state.clubFinanceRegistry,
+            squadBudgetRegistry: state.squadBudgetRegistry,
+            clubId: team.clubId,
+            seasonKey: horizonSeasonKey,
+            currency: 'EUR',
+            calculatedAtGameDate: seasonEndIso,
+            expectedHomeGames: estimateExpectedHomeGamesForTeam(team, horizonSeasonKey),
+            isCareerOpening: false,
+            revisionKind: 'season-opening-plan',
+          });
+        });
+      });
+    }
+
+    // ECONOMY-BOARD-1 (sección 7.2/9.2 del prompt): evaluación de temporada
+    // del manager humano — UNA vez por temporada cerrada (IDEMPOTENTE por
+    // spell+temporada), comparando el resultado REAL de `fromSeasonKey`
+    // contra el objetivo que estaba vigente para ELLA (capturado arriba,
+    // antes de que `closeSeasonHistory()` lo sobrescribiera). Se calcula
+    // ANTES de `state.seasonStartYear += 1` para que `buildCareerSeasonKey()`
+    // siga resolviendo `fromSeasonKey` dentro del snapshot de confianza.
+    if (state.userClubId && state.managerBoardRegistry && state.clubFinanceRegistry) {
+      const spell = state.managerBoardRegistry.activeSpellForClub(state.userClubId);
+      if (spell) {
+        const standingsInfo = previousStandingsByTeamId.get(state.userTeamId);
+        const sportingOutcome = BM.ManagerEmploymentService.classifySeasonSportingOutcome({
+          sportingGoalTextForClosedSeason: previousSportingGoalByTeamId.get(state.userTeamId),
+          rank: standingsInfo ? standingsInfo.rank : null,
+          totalParticipants: standingsInfo ? standingsInfo.totalParticipants : null,
+        });
+        const confidenceSnapshot = buildClubConfidenceSnapshot(state.userClubId, seasonEndIso);
+        BM.ManagerEmploymentService.recordSeasonEvaluationIfMissing({
+          registry: state.managerBoardRegistry,
+          employmentSpellId: spell.id,
+          seasonKey: fromSeasonKey,
+          sportingOutcome,
+          overallConfidenceAtClose: confidenceSnapshot.overall,
+          confidenceBreakdownAtClose: confidenceSnapshot,
+          atGameDate: seasonEndIso,
+        });
+      }
+    }
 
     // WORLD-CALENDAR-1 (DESIGN.md 10.14, invariante 3): NO se crea ningún
     // calendario nuevo — el MISMO `WorldCalendar` de la carrera registra la
@@ -7901,15 +8335,48 @@
     if (!container) return;
     const team = getUserTeam();
     if (!team || !state.squadBudgetRegistry) { container.innerHTML = ''; return; }
+    const isoDate = currentGameIsoDate();
     BM.FinanceScreen.render(container, {
       team,
       seasonKey: buildCareerSeasonKey(),
-      isoDate: currentGameIsoDate(),
+      isoDate,
       squadBudgetRegistry: state.squadBudgetRegistry,
       contractRegistry: state.contractRegistry,
       marketRegistry: state.marketRegistry,
       loanRegistry: state.loanRegistry,
+      transferRegistry: state.transferRegistry,
+      clubFinanceRegistry: state.clubFinanceRegistry,
+      boardBudgetRequestRegistry: state.boardBudgetRequestRegistry,
       playerRegistry: state.playerRegistry,
+      escapeHtml,
+      eligibility: describeBoardRequestEligibility(team.clubId, isoDate),
+      onSubmitRequest: (seasonKey, amountMinor) => {
+        const result = submitBoardBudgetRequestFromShortfalls(team.clubId, { [seasonKey]: amountMinor }, 'finance-screen', null);
+        renderFinanceScreen();
+        return result;
+      },
+    });
+  }
+
+  // ECONOMY-BOARD-1 — pantalla "Directiva": solo lectura, ver
+  // `src/ui/DirectivaScreen.js` para el renderizado real.
+  function renderDirectivaScreen() {
+    const container = byId('gm-board');
+    if (!container) return;
+    const team = getUserTeam();
+    if (!team || !state.managerBoardRegistry) { container.innerHTML = ''; return; }
+    const isoDate = currentGameIsoDate();
+    const spell = state.managerBoardRegistry.activeSpellForClub(team.clubId);
+    const manager = spell ? state.managerBoardRegistry.getManager(spell.managerId) : null;
+    BM.DirectivaScreen.render(container, {
+      team,
+      manager,
+      spell,
+      boardPolicy: state.managerBoardRegistry.boardPolicyFor(team.clubId),
+      confidenceSnapshot: buildClubConfidenceSnapshot(team.clubId, isoDate),
+      financialGoal: BM.BoardConfidenceService.structuredFinancialGoal(BM.ClubFinancePolicy.FINANCIAL_CAPACITY_POLICY),
+      requests: state.boardBudgetRequestRegistry ? state.boardBudgetRequestRegistry.requestsForClub(team.clubId) : [],
+      isoDate,
       escapeHtml,
     });
   }
@@ -9057,6 +9524,16 @@
         });
         if (!validation.valid) {
           errorEl.textContent = validation.errors.join(' · ');
+          renderBoardRequestCtaAfter(errorEl, {
+            clubId: team.clubId,
+            shortfalls: validation.shortfalls,
+            source: 'blocked-operation',
+            operationSnapshot: validation.shortfalls && validation.shortfalls.length ? {
+              hash: BM.CareerPersistenceBoundary.computeFingerprint(draft),
+              shortfalls: validation.shortfalls,
+              note: 'Oferta de mercado bloqueada por presupuesto salarial insuficiente.',
+            } : null,
+          });
           return;
         }
         // BUG-MARKET1-03 (DESIGN.md 9.20): `createAndSendOffer()` valida
@@ -9664,7 +10141,7 @@
   // Navegación entre pantallas
   // ---------------------------------------------------------------------
   const SCREENS = [
-    'team-select', 'home', 'world', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'finance', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
+    'team-select', 'home', 'world', 'lineup', 'tactics', 'training', 'medical', 'contracts', 'registrations', 'market', 'cycle', 'finance', 'board', 'agenda', 'news', 'calendar', 'competitions', 'stats', 'match',
     'save-load',
     'player-profile',
   ];
@@ -9691,6 +10168,7 @@
     if (screen === 'market') renderMarketScreen();
     if (screen === 'cycle') renderCycleScreen();
     if (screen === 'finance') renderFinanceScreen();
+    if (screen === 'board') renderDirectivaScreen();
     if (screen === 'agenda') renderAgendaScreen();
     if (screen === 'news') renderNewsScreen();
     if (screen === 'calendar') renderCalendarScreen();
@@ -9773,6 +10251,13 @@
       // plantilla pertenece a UNA partida, nunca sobrevive a "Volver a
       // selección de equipo".
       state.squadBudgetRegistry = null;
+      // ECONOMY-BOARD-1: mismo criterio — la economía real del club, el
+      // manager/junta y las peticiones de ampliación pertenecen a UNA
+      // partida, nunca sobreviven a "Volver a selección de equipo".
+      state.clubFinanceRegistry = null;
+      state.managerBoardRegistry = null;
+      state.boardBudgetRequestRegistry = null;
+      state.clubFinanceMigrationFloorDate = null;
       // TRANSFER-1 (DESIGN.md 9.20): mismo criterio — expedientes/
       // ofertas club-club/obligaciones/TransactionRecords pertenecen a
       // UNA partida, nunca sobreviven a "Volver a selección de equipo".
@@ -10293,13 +10778,14 @@
   // =========================================================================
 
   const SAVE_FORMAT = 'basket-manager-career-save';
-  // SQUAD-BUDGET-1: schemaVersion 2 añade la colección durable
-  // `squadBudget` (ver `CareerPersistenceBoundary.inventory()`). Un
-  // guardado v1 sigue siendo LEGIBLE — `CareerHydrationService` migra
-  // construyendo asignaciones de apertura de compatibilidad (nunca falla ni
+  // ECONOMY-BOARD-1: schemaVersion 3 añade las colecciones durables
+  // `clubFinance`/`managerBoard`/`boardBudgetRequests` (ver
+  // `CareerPersistenceBoundary.inventory()`). Un guardado v1/v2 sigue
+  // siendo LEGIBLE — `CareerHydrationService` migra construyendo la
+  // economía/manager/junta en la fecha real del guardado (nunca falla ni
   // deja el guardado antiguo inservible) y una partida cargada así, al
-  // volver a guardarse, ya escribe v2.
-  const SAVE_SCHEMA_VERSION = 2;
+  // volver a guardarse, ya escribe v3.
+  const SAVE_SCHEMA_VERSION = 3;
   const AUTOSAVE_SLOT_ID = 'autosave';
 
   // Runtime EXPLÍCITO para `CareerPersistenceBoundary.project()`/
@@ -10322,6 +10808,9 @@
         academyRegistry: state.academyRegistry,
         nationalTeamRegistry: state.nationalTeamRegistry,
         squadBudgetRegistry: state.squadBudgetRegistry,
+        clubFinanceRegistry: state.clubFinanceRegistry,
+        managerBoardRegistry: state.managerBoardRegistry,
+        boardBudgetRequestRegistry: state.boardBudgetRequestRegistry,
       },
       installedContentPacks: state.installedContentPacks,
       competitionEngine: state.competitionEngine,
@@ -10448,6 +10937,14 @@
       state.academyRegistry = hydrated.academyRegistry;
       state.nationalTeamRegistry = hydrated.nationalTeamRegistry;
       state.squadBudgetRegistry = hydrated.squadBudgetRegistry;
+      state.clubFinanceRegistry = hydrated.clubFinanceRegistry;
+      state.managerBoardRegistry = hydrated.managerBoardRegistry;
+      state.boardBudgetRequestRegistry = hydrated.boardBudgetRequestRegistry;
+      // ECONOMY-BOARD-1 (sección 11 del prompt): un guardado v1/v2 migrado
+      // nunca programa retroactivamente un mes ya pasado — la fuente
+      // `club-finance-event` recibe este suelo de fecha (`notBeforeDate`)
+      // reconstruida a partir del propio `schemaVersion` del envelope leído.
+      state.clubFinanceMigrationFloorDate = record.envelope.schemaVersion < 3 ? hydrated.calendar.currentLocalDate : null;
       state.competitionEngine = hydrated.competitionEngine;
       state.competitionSimulationService = hydrated.competitionSimulationService;
       state.scheduleService = hydrated.scheduleService;

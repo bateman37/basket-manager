@@ -6,6 +6,24 @@ bajo `docs/epics/`, o en `docs/history/` para sesiones sin Epic
 identificable. A partir de esta migración, una entrada nueva es un resumen
 corto con enlace al detalle — no un informe completo pegado aquí.
 
+## 2026-09-09 — `ECONOMY-BOARD-1`: economía real del club + manager/junta
+
+Sobre el presupuesto salarial de `SQUAD-BUDGET-1`, se entrega la economía
+real SIMULADA del club (plan financiero anual, tesorería derivada de un
+ledger de postings, calendario de cobros/pagos, impagos durables con
+reintento automático, proyección a 3 temporadas y capacidad financiera
+dura independiente de la confianza), un manager humano con empleo/
+antigüedad y una junta con confianza dinámica (3 dimensiones + estilo
+fiscal simulado por club), y peticiones jugables de ampliación de
+presupuesto salarial — desde Finanzas o desde una oferta de mercado
+bloqueada, resueltas por el calendario mundial 1-3 días después con
+aprobación total/parcial/rechazo deterministas y aplicadas atómicamente
+sobre `SquadBudgetRegistry`. Nuevas pantallas Directiva y Finanzas
+ampliada. Persistencia: `schemaVersion` 2→3 con migración real de v1/v2
+(nunca retroactiva). Detalle completo: `docs/epics/ECONOMY-BOARD-1.md`.
+Checklist manual pendiente de Dennis:
+`docs/manual/ECONOMY_BOARD_ACCEPTANCE.md`.
+
 ## 2026-09-08 — `SIM-CAL-1`: avance cooperativo y cancelable de "Continuar"
 
 "Continuar" deja de ser una operación síncrona/bloqueante en el navegador:

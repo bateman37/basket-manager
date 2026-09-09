@@ -75,10 +75,18 @@ tocar el cálculo del presupuesto, solo quién puede invocar
   crear nada (`created: false`) — repetir bootstrap, sincronización de
   calendario, render o cierre de temporada nunca duplica ni recalcula.
 - `recordRevision()` es el mecanismo de una revisión EXPLÍCITA y auditable
-  (encadena `predecessorId`) — hoy sin ningún flujo jugable que lo dispare
-  (ver Deuda aplazada, "peticiones de ampliación de presupuesto"); existe
-  como el punto de entrada que usará esa entrega futura, y como mecanismo
-  de prueba/depuración manual mientras tanto.
+  (encadena `predecessorId`). **ECONOMY-BOARD-1 le añade dos flujos
+  jugables/de sistema reales**: `BoardBudgetRequestService.resolveRequest()`
+  lo invoca (`revisionKind: 'board-revision'`, `decisionAuthority:
+  'board-system'`) al aprobar total o parcialmente una petición de
+  ampliación, y `ClubFinanceService.resolveSalaryAnchor()` lo invoca
+  (`revisionKind: 'forward-board-allocation'`, `decisionAuthority:
+  'board-system'`) para trasladar sin crecimiento el límite de una
+  temporada futura del horizonte de planificación financiera que todavía
+  no tiene asignación propia — ver
+  `docs/architecture/board-budget-requests.md` y
+  `docs/architecture/club-finance.md`. Sigue disponible también como
+  mecanismo de prueba/depuración manual.
 
 ### Lectura pura — `deriveBudgetView()`
 
@@ -152,13 +160,18 @@ mercado real — nunca dos implementaciones de la misma regla.
   servicio de presupuesto solo LEE `salaryAllocationForSeason()` para
   ajustar `committedMinor` en ambos lados de una cesión activa/acordada.
 
-## Persistencia (`schemaVersion` 1 → 2)
+## Persistencia (`schemaVersion` 1 → 2; ECONOMY-BOARD-1 la eleva de nuevo a 3
+sin tocar el contrato de esta colección — ver `docs/architecture/club-finance.md`)
 
 - `CareerPersistenceBoundary.inventory()` declara `squadBudget` como
   colección DURABLE (`dependsOn: ['contracts', 'worldRegistries']`,
   proyectada vía `exportState()` como el resto de registros de dominio).
-- `CareerHydrationService`: `SUPPORTED_SCHEMA_VERSION = 2`,
-  `MIGRATABLE_SCHEMA_VERSIONS = [1]`. Un guardado `v2` restaura la
+- `CareerHydrationService`: `SUPPORTED_SCHEMA_VERSION` es ahora `3`
+  (ECONOMY-BOARD-1), `MIGRATABLE_SCHEMA_VERSIONS = [1, 2]`. Un guardado `v2`
+  o `v3` restaura esta colección sin pérdida exactamente igual; un
+  guardado `v1` (sin la colección) se migra reconstruyendo, para cada
+  `Team` del mundo ya restaurado, una asignación de apertura de
+  compatibilidad con `computeMarketCompatibilityAmount()`
   colección sin pérdida; un guardado `v1` (sin la colección) se migra
   reconstruyendo, para cada `Team` del mundo ya restaurado, una asignación
   de apertura de compatibilidad con `computeMarketCompatibilityAmount()`
@@ -181,17 +194,23 @@ excedido siempre visible; exposición de riesgo (variable máx./beneficios/
 costes de agente) separada; tabla de otras temporadas con asignación,
 compromiso o reserva; contribución por jugador con badges de cesión;
 historial de asignaciones/revisiones; aviso de procedencia cuando la
-asignación vigente es una estimación de compatibilidad; nota explícita de
-que esto es presupuesto salarial deportivo, no caja ni beneficio; y el
-recordatorio de que las peticiones de ampliación a la junta llegarán en la
-entrega siguiente — nunca un botón de "petición" que parezca funcional sin
-serlo.
+asignación vigente es una estimación de compatibilidad; y nota explícita
+de que esto es presupuesto salarial deportivo, no caja ni beneficio.
+**ECONOMY-BOARD-1 extiende esta misma pantalla** con resumen económico
+real/tesorería/presupuesto planificado/proyección a 3 temporadas y la
+pestaña jugable "Solicitar ampliación" — ver
+`docs/architecture/club-finance.md`/`docs/architecture/
+board-budget-requests.md`; el botón de petición ya es funcional, no un
+recordatorio de que llegará después.
 
-## Qué NO cubre esta Epic
+## Qué NO cubre esta Epic (histórico — ver ECONOMY-BOARD-1 para lo entregado después)
 
 Caja/ingresos/gastos reales del club, pagos/impagos/deuda, confianza de
 junta dinámica, mandato/antigüedad del manager, peticiones jugables de
-ampliación de presupuesto, modo presidente/propietario jugable,
-presupuesto de operaciones/traspasos separado, e investigación de datos
-financieros reales. Ver `docs/epics/SQUAD-BUDGET-1.md`, sección "Deuda
-aplazada", para la lista completa y los follow-ups aceptados.
+ampliación de presupuesto — **las cinco quedaron entregadas por
+ECONOMY-BOARD-1** (`docs/architecture/club-finance.md`,
+`docs/architecture/board-budget-requests.md`). Siguen sin implementar:
+modo presidente/propietario jugable, presupuesto de operaciones/
+traspasos separado del salarial, e investigación de datos financieros
+reales. Ver `docs/epics/SQUAD-BUDGET-1.md`, sección "Deuda aplazada", para
+el histórico completo del follow-up original.

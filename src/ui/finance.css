@@ -43,3 +43,48 @@
   .gm-stats-row { gap: 10px 16px; }
   .gm-stat { min-width: 45%; }
 }
+
+/* ECONOMY-BOARD-1 — confianza de junta (Directiva) y formulario/CTA de
+   peticiones de ampliación de presupuesto (Finanzas / Mercado bloqueado). */
+.gm-confidence-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.gm-confidence-row__bar {
+  height: 10px;
+  border-radius: 6px;
+  background: var(--court-bg-alt);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.gm-confidence-row__fill {
+  height: 100%;
+  background: var(--win, #2e7d32);
+}
+
+.gm-confidence-row__value { font-variant-numeric: tabular-nums; text-align: right; }
+
+.gm-confidence-row__detail { grid-column: 1 / -1; margin: 0; }
+
+.gm-confidence-row--overall .gm-confidence-row__label { font-weight: bold; }
+
+.gm-board-request-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.gm-board-request-suggestions { display: flex; gap: 8px; }
+
+.gm-board-request-cta { margin-top: 8px; }
+
+@media (max-width: 640px) {
+  .gm-confidence-row { grid-template-columns: 110px 1fr 32px; }
+  .gm-board-request-form { max-width: 100%; }
+}
