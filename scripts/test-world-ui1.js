@@ -20,6 +20,8 @@ const { SPAIN_MANIFEST } = require('../data/world/spain-2026.1.js');
 const { REAL_DATA_INDEX, REAL_DATA_TEAMS } = require('../data/real/real-data-bundle.js');
 const { Player } = require('../src/entities/Player.js');
 const { Team } = require('../src/entities/Team.js');
+const CareerParticipantFactory = require('../src/core/CareerParticipantFactory.js');
+const CompetitionParticipationService = require('../src/core/CompetitionParticipationService.js');
 
 let passed = 0;
 let failed = 0;
@@ -339,8 +341,8 @@ check('Auditoría estática: CareerSetup.js/CareerSetupService.js/WorldNavigatio
 function loadBrowserBasketManager() {
   const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   const allSrcs = [...indexHtml.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
-  const cutIndex = allSrcs.indexOf('src/core/CareerSetupService.js');
-  assert.ok(cutIndex !== -1, 'index.html debe seguir cargando src/core/CareerSetupService.js');
+  const cutIndex = allSrcs.indexOf('src/core/CareerParticipantFactory.js');
+  assert.ok(cutIndex !== -1, 'index.html debe seguir cargando src/core/CareerParticipantFactory.js');
   const scriptsToLoad = allSrcs.slice(0, cutIndex + 1);
 
   const sandbox = { window: {}, console };
@@ -426,6 +428,39 @@ check('Auditoría estática: la selección de club en game.js deriva careerSeed 
   assert.ok(seasonStepMatch, 'debe existir el handler de cambio de temporada en renderCareerSetupWorldStep');
   assert.ok(/draft\.careerSeed = deriveCareerSeed\(/.test(seasonStepMatch[1]), 'el handler de cambio de temporada debe recomputar careerSeed si ya hay club elegido');
   assert.ok(!/Date\.now\(\)|Math\.random\(\)/.test(contents.match(/function deriveCareerSeed[\s\S]*?\n\s*\}/)[0]), 'deriveCareerSeed nunca debe usar reloj/azar');
+});
+
+// 13. BUG-CAREER-START-BROWSER-CONTRACTS — `startCareerFromSetup()` consume
+// `BM.CareerParticipantFactory`/`BM.CompetitionParticipationService` como
+// namespaces; ambos módulos solo aplanaban sus exports sobre
+// `window.BasketManager`, dejando esos dos namespaces `undefined` en el
+// navegador real (Node/`require()` no detecta esta regresión).
+
+check('Contexto navegador: CareerParticipantFactory.js publica BasketManager.CareerParticipantFactory con los 3 métodos requeridos', () => {
+  assert.ok(browserBM && browserBM.CareerParticipantFactory, 'BasketManager.CareerParticipantFactory debe existir');
+  ['materializeParticipants', 'groupTeamsByCompetitionId', 'competitionIdByTeamIdFrom'].forEach((fnName) => {
+    assert.strictEqual(typeof browserBM.CareerParticipantFactory[fnName], 'function', `BasketManager.CareerParticipantFactory.${fnName} debe ser función`);
+  });
+});
+
+check('Contexto navegador: CompetitionParticipationService.js publica BasketManager.CompetitionParticipationService con primaryLeagueCompetitionId', () => {
+  assert.ok(browserBM && browserBM.CompetitionParticipationService, 'BasketManager.CompetitionParticipationService debe existir');
+  assert.strictEqual(typeof browserBM.CompetitionParticipationService.primaryLeagueCompetitionId, 'function');
+});
+
+check('Contexto navegador: los namespaces de CareerParticipantFactory/CompetitionParticipationService son identidad `===` con los exports planos retenidos, nunca una copia', () => {
+  assert.strictEqual(browserBM.CareerParticipantFactory.competitionIdByTeamIdFrom, browserBM.competitionIdByTeamIdFrom);
+  assert.strictEqual(browserBM.CareerParticipantFactory.groupTeamsByCompetitionId, browserBM.groupTeamsByCompetitionId);
+  assert.strictEqual(browserBM.CompetitionParticipationService.primaryLeagueCompetitionId, browserBM.primaryLeagueCompetitionId);
+});
+
+check('CommonJS/Node: require(...) de CareerParticipantFactory.js/CompetitionParticipationService.js conserva exactamente su forma previa', () => {
+  ['materializeParticipants', 'groupTeamsByCompetitionId', 'competitionIdByTeamIdFrom'].forEach((fnName) => {
+    assert.strictEqual(typeof CareerParticipantFactory[fnName], 'function');
+  });
+  ['activeEntriesForParticipant', 'activeCompetitionsForParticipant', 'primaryLeagueCompetitionId', 'editionAndStageForEntry', 'participantsForStage'].forEach((fnName) => {
+    assert.strictEqual(typeof CompetitionParticipationService[fnName], 'function');
+  });
 });
 
 console.log(`\n${passed} OK, ${failed} FAIL`);

@@ -100,5 +100,6 @@
   } else {
     global.BasketManager = global.BasketManager || {};
     Object.assign(global.BasketManager, exportsObj);
+    global.BasketManager.CompetitionParticipationService = exportsObj;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
